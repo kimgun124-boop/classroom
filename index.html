@@ -139,6 +139,11 @@
   input[type=text],input[type=number],textarea{font-family:inherit;font-size:16px;border:2px solid var(--line);border-radius:12px;padding:9px 12px;width:100%;background:#fffdf9;color:var(--ink)}
   textarea{min-height:200px;resize:vertical;line-height:1.6}
   input:focus,textarea:focus{outline:none;border-color:var(--accent)}
+  .preview-head{display:flex;justify-content:space-between;margin:12px 2px 6px;font-size:14px;color:var(--ink-soft)}
+  .preview-head b{font-family:"Jua";font-weight:400;color:var(--accent);font-size:16px}
+  .preview{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px}
+  .preview span{background:#faf4ea;border-radius:10px;padding:5px 9px;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .preview span i{font-style:normal;font-family:"Jua";color:var(--accent);margin-right:6px}
   .rule-row{display:grid;grid-template-columns:84px 70px 1fr 40px;gap:8px;align-items:center;margin-bottom:8px}
   .rule-row .del{font-size:20px;height:40px;border-radius:12px;color:#c23356}
   .rule-row .del:hover{background:#fff0f3}
@@ -219,8 +224,10 @@
     <input type="text" id="inClass" placeholder="예: 6학년 3반" maxlength="30">
 
     <h3>학생 명단</h3>
-    <p class="desc">한 줄에 한 명씩, 번호 순서대로 적어 주세요. 이름이 같으면 지금까지 횟수가 그대로 남아요.</p>
-    <textarea id="inStudents" placeholder="김민준&#10;이서연&#10;박지호"></textarea>
+    <p class="desc">명단을 그대로 <b>붙여넣기</b> 하세요. 위에서부터 1번, 2번… 순서로 번호가 붙어요. ("1. 홍길동"처럼 번호가 있어도 괜찮아요) 이름은 이 컴퓨터에만 저장되고 인터넷에 올라가지 않아요.</p>
+    <textarea id="inStudents" placeholder="강하윤&#10;권나윤&#10;김서율"></textarea>
+    <div class="preview-head"><span>번호 미리보기</span><b id="pvCount">0명</b></div>
+    <div class="preview" id="pv"></div>
 
     <h3>약속 단계</h3>
     <p class="desc">몇 번이 되면 무엇을 하는지 정해요. 횟수가 작은 순서로 보여요.</p>
@@ -486,9 +493,20 @@
     draftRules.push({at:last+2||3, emoji:"📌", label:"선생님과 상담"}); ruleRows();
   };
 
+  const parseNames = txt => txt.split(/\r?\n/)
+    .map(x => x.replace(/^\s*\d+\s*(번|[.)．:\-])?\s*/, "").trim())
+    .filter(Boolean);
+  function preview(){
+    const names = parseNames($("#inStudents").value);
+    $("#pvCount").textContent = `${names.length}명`;
+    $("#pv").innerHTML = names.map((n,i)=>`<span><i>${i+1}</i>${esc(n)}</span>`).join("");
+  }
+  $("#inStudents").addEventListener("input", preview);
+
   function openSettings(){
     $("#inClass").value = S.className;
-    $("#inStudents").value = S.students.map(s=>s.name).join("\n");
+    $("#inStudents").value = S.isDefault ? "" : S.students.map(s=>s.name).join("\n");
+    preview();
     draftRules = rulesSorted().map(r=>({...r}));
     ruleRows();
     openM("#setModal");
@@ -498,7 +516,8 @@
 
   $("#saveBtn").onclick = () => {
     S.className = $("#inClass").value.trim() || "우리 반";
-    const names = $("#inStudents").value.split("\n").map(x=>x.trim()).filter(Boolean);
+    const names = parseNames($("#inStudents").value);
+    if (!names.length) { alert("학생 명단을 붙여넣어 주세요."); $("#inStudents").focus(); return; }
     const pool = [...S.students];
     S.students = names.map(n => {
       const i = pool.findIndex(p=>p.name===n);
