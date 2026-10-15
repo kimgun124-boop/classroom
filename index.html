@@ -122,6 +122,65 @@
   body.big .count{font-size:70px}
   body.big .minus{display:none}
 
+
+  /* ---------- view tabs ---------- */
+  .tabnav{display:flex;gap:8px;margin:16px 0 0}
+  .tabnav button{font-family:"Jua";font-size:19px;padding:10px 22px;border-radius:16px 16px 0 0;background:#efe6d8;color:var(--ink-soft);border:2px solid transparent;border-bottom:0}
+  .tabnav button.on{background:var(--paper);color:var(--ink);border-color:var(--line)}
+  .tabnav button .badge{display:inline-block;min-width:22px;padding:1px 7px;margin-left:6px;border-radius:999px;background:#c23356;color:#fff;font-size:13px;vertical-align:2px}
+  .view{background:var(--paper);border:2px solid var(--line);border-radius:0 22px 22px 22px;padding:16px;box-shadow:var(--shadow)}
+  #viewBoard{background:transparent;border:0;box-shadow:none;padding:0}
+  #viewBoard .bar{margin-top:14px}
+
+  /* ---------- check view ---------- */
+  .ck-top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .month{display:flex;align-items:center;gap:6px}
+  .month b{font-family:"Jua";font-weight:400;font-size:24px;min-width:140px;text-align:center}
+  .month .btn{padding:7px 12px}
+  .ck-sum{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .ck-sum div{background:#faf4ea;border-radius:14px;padding:8px 14px;font-size:14px;color:var(--ink-soft)}
+  .ck-sum b{font-family:"Jua";font-weight:400;font-size:22px;color:var(--ink);margin-right:4px}
+  .ck-sum .warn b{color:#c23356}
+  .ck-sum .good b{color:#2f8a5b}
+  .sec-title{font-family:"Jua";font-weight:400;font-size:20px;margin:6px 0 10px;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px}
+  .sec-title small{font-family:"Gowun Dodum";font-size:14px;color:var(--ink-soft)}
+  .pending{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:22px}
+  .pend{display:flex;align-items:center;gap:10px;border:2px solid #ffc9d5;background:#fff6f8;border-radius:16px;padding:10px 12px}
+  .pend .who{font-family:"Jua";font-size:18px}
+  .pend .who i{font-style:normal;font-size:13px;color:var(--ink-soft);margin-right:4px}
+  .pend .what{font-size:15px}
+  .pend .when{font-size:13px;color:var(--ink-soft)}
+  .pend .btn{margin-left:auto;white-space:nowrap;padding:7px 12px;font-size:14px}
+  .allgood{border:2px dashed var(--t0-line);background:var(--t0);color:var(--t0-ink);border-radius:16px;padding:14px;margin-bottom:22px;text-align:center}
+  .tbl-wrap{overflow-x:auto;border:2px solid var(--line);border-radius:16px;-webkit-overflow-scrolling:touch}
+  table.ck{border-collapse:separate;border-spacing:0;width:100%;font-size:15px}
+  table.ck th,table.ck td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+  table.ck thead th{background:#faf4ea;font-family:"Jua";font-weight:400;font-size:15px;color:var(--ink-soft);position:sticky;top:0}
+  table.ck thead th.sat{color:#3b6fd1} table.ck thead th.sun{color:#c23356}
+  table.ck th.nm,table.ck td.nm{position:sticky;left:0;background:var(--paper);text-align:left;padding-left:12px;z-index:1;border-right:2px solid var(--line)}
+  table.ck thead th.nm{background:#faf4ea;z-index:2}
+  table.ck td.nm{font-weight:700;cursor:pointer}
+  table.ck td.nm i{font-style:normal;font-family:"Jua";font-weight:400;color:var(--ink-soft);display:inline-block;width:24px}
+  table.ck tbody tr:hover td{background:#fffaf2}
+  table.ck tbody tr:last-child td{border-bottom:0}
+  .c{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 6px;border-radius:10px;font-family:"Jua";font-size:16px}
+  .c.l1{background:var(--t1);color:var(--t1-ink)} .c.l2{background:var(--t2);color:var(--t2-ink)} .c.l3{background:var(--t3);color:var(--t3-ink)}
+  .c0{color:#d8cfc2}
+  .tk{display:block;font-size:12px;margin-top:3px;line-height:1.3}
+  .tk.y{color:#2f8a5b} .tk.n{color:#c23356;font-weight:700}
+  td.sum{font-family:"Jua";font-size:17px}
+  td.tsum{font-size:14px}
+  td.tsum .n{color:#c23356;font-weight:700}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--ink-soft);margin:10px 2px 0}
+  /* student detail */
+  .det-day{border:2px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px}
+  .det-day .dh{display:flex;justify-content:space-between;align-items:center;font-family:"Jua";font-size:18px}
+  .det-day .times{font-size:13px;color:var(--ink-soft);margin:4px 0 8px}
+  .det-task{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;background:#faf4ea;margin-top:6px;font-size:15px}
+  .det-task .st{margin-left:auto;font-size:13px}
+  .det-task .st.y{color:#2f8a5b} .det-task .st.n{color:#c23356;font-weight:700}
+  .det-task .btn{padding:5px 10px;font-size:13px}
+
   /* ---------- toast ---------- */
   .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120%);background:#2e2a26;color:#fff;border-radius:16px;padding:12px 14px 12px 18px;display:flex;gap:14px;align-items:center;font-size:16px;box-shadow:0 10px 30px rgba(0,0,0,.25);transition:transform .25s;z-index:50;max-width:calc(100% - 32px)}
   .toast.show{transform:translateX(-50%) translateY(0)}
@@ -194,6 +253,12 @@
     </div>
   </header>
 
+  <nav class="tabnav" role="tablist">
+    <button class="on" data-view="board" role="tab">📋 보드</button>
+    <button data-view="check" role="tab">✅ 체크<span class="badge" id="pendBadge" hidden>0</span></button>
+  </nav>
+
+  <section class="view" id="viewBoard">
   <div class="bar">
     <div class="rules" id="ruleChips"></div>
     <div class="tools">
@@ -211,6 +276,24 @@
   </div>
 
   <main class="grid" id="grid" aria-live="polite"></main>
+  </section>
+
+  <section class="view" id="viewCheck" hidden>
+    <div class="ck-top">
+      <div class="month">
+        <button class="btn" id="mPrev" aria-label="이전 달">◀</button>
+        <b id="mLabel"></b>
+        <button class="btn" id="mNext" aria-label="다음 달">▶</button>
+      </div>
+      <button class="btn" id="csvBtn">📥 엑셀로 저장</button>
+    </div>
+    <div class="ck-sum" id="ckSum"></div>
+    <div class="sec-title">⏳ 아직 안 한 할 일 <small>다 하면 ‘완료’를 눌러요</small></div>
+    <div id="ckPending"></div>
+    <div class="sec-title">📅 날짜별 체크표 <small>이름을 누르면 자세히 볼 수 있어요</small></div>
+    <div class="tbl-wrap"><table class="ck" id="ckTable"></table></div>
+    <div class="legend"><span><span class="c l1">1</span> 그날 어긴 횟수</span><span class="tk y" style="display:inline">🧹✓ 할 일 완료</span><span class="tk n" style="display:inline">🧹✗ 아직 안 함</span></div>
+  </section>
 </div>
 
 <div class="toast" id="toast" role="status"><span id="toastMsg"></span><button id="undoBtn">되돌리기</button></div>
@@ -235,7 +318,7 @@
     <button class="btn" id="addRule">＋ 단계 추가</button>
 
     <h3>새로 시작하기</h3>
-    <p class="desc">이번 기간 횟수를 <b>지난 기록</b>에 보관하고 모두 0회로 돌려요. (예: 매주 월요일)</p>
+    <p class="desc">이번 기간 횟수를 <b>지난 기록</b>에 보관하고 모두 0회로 돌려요. (예: 매주 월요일) 날짜별 기록과 할 일 체크는 <b>✅ 체크</b> 탭에 그대로 남아요.</p>
     <div class="row">
       <button class="btn danger" id="resetBtn">🔄 보관하고 새로 시작</button>
     </div>
@@ -252,6 +335,14 @@
       <button class="btn" data-close>취소</button>
       <button class="btn primary" id="saveBtn">저장하기</button>
     </div>
+  </div>
+</div>
+
+<!-- student detail -->
+<div class="modal" id="detModal" aria-modal="true" role="dialog">
+  <div class="sheet">
+    <h2><span id="detTitle"></span> <button class="x" data-close>×</button></h2>
+    <div id="detBody"></div>
   </div>
 </div>
 
@@ -278,9 +369,9 @@
     const students = Array.from({length:24}, (_,i) => ({id:uid(), name:`학생 ${i+1}`}));
     return {
       v:1, className:"우리 반", isDefault:true,
-      students, counts:{}, done:{},
+      students, counts:{},
       rules:[{at:3, emoji:"🧹", label:"교실 청소"},{at:5, emoji:"✍️", label:"약속 글쓰기"}],
-      log:[], periodStart:new Date().toISOString(), archive:[],
+      log:[], tasks:[], periodStart:new Date().toISOString(), archive:[],
       sort:"num", sound:true
     };
   }
@@ -290,6 +381,24 @@
   const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
 
   const rulesSorted = () => [...S.rules].sort((a,b)=>a.at-b.at);
+  let view = "board";
+  const pStart = () => new Date(S.periodStart).getTime();
+  const curTasks = sid => S.tasks.filter(k => k.sid===sid && k.t >= pStart());
+
+  /* migrate: old per-period "done" flags → dated tasks (replay this period's log) */
+  if (!Array.isArray(S.tasks) || (S.v < 2)) {
+    S.tasks = Array.isArray(S.tasks) ? S.tasks : [];
+    const run = {};
+    S.log.filter(l => l.t >= pStart()).forEach(l => {
+      const b = run[l.sid] || 0, a = Math.max(0, b + l.d); run[l.sid] = a;
+      rulesSorted().forEach(r => {
+        if (l.d > 0 && b < r.at && a >= r.at && !S.tasks.some(k=>k.sid===l.sid && k.at===r.at && k.t>=pStart()))
+          S.tasks.push({id:uid(), sid:l.sid, at:r.at, emoji:r.emoji, label:r.label, t:l.t,
+                        done:!!((S.done||{})[l.sid]||{})[r.at], doneAt:null});
+      });
+    });
+    S.v = 2; delete S.done; save();
+  }
   const cnt = id => S.counts[id] || 0;
   function tier(c){
     const r = rulesSorted();
@@ -339,6 +448,9 @@
     $("#soundBtn").classList.toggle("on", !!S.sound);
     $("#soundBtn").textContent = S.sound ? "🔔 소리 켬" : "🔕 소리 끔";
     $("#hint").hidden = !S.isDefault;
+    const ids = new Set(S.students.map(s=>s.id));
+    const np = S.tasks.filter(k => !k.done && ids.has(k.sid)).length;
+    $("#pendBadge").hidden = !np; $("#pendBadge").textContent = np;
   }
 
   function cardHTML(s, idx){
@@ -349,14 +461,12 @@
     let dots = "";
     for(let i=1;i<=shown;i++) dots += `<span class="dot${i<=c?" f":""}${marks.has(i)?" mark":""}"></span>`;
     if (c > max) dots += `<span class="more">+${c-max}</span>`;
-    const reached = r.filter(x=>c>=x.at);
-    const done = S.done[s.id] || {};
+    const tasks = curTasks(s.id).sort((a,b)=>a.at-b.at);
     let tags;
-    if (reached.length) {
-      tags = reached.map(x => {
-        const k = String(x.at), isDone = !!done[k];
-        return `<button class="tag${isDone?" done":""}" data-done="${s.id}" data-at="${k}" title="다 했으면 눌러서 체크">${esc(x.emoji)} ${esc(x.label)}<span class="ck">${isDone?"✓":""}</span></button>`;
-      }).join("");
+    if (tasks.length) {
+      tags = tasks.map(k =>
+        `<button class="tag${k.done?" done":""}" data-task="${k.id}" title="다 했으면 눌러서 체크">${esc(k.emoji)} ${esc(k.label)}<span class="ck">${k.done?"✓":""}</span></button>`
+      ).join("");
     } else if (c === 0) {
       tags = `<div class="ok">🌱 약속 잘 지키는 중</div>`;
     } else {
@@ -379,7 +489,7 @@
     $("#grid").innerHTML = list.map(({s,i})=>cardHTML(s,i)).join("") ||
       `<div class="empty">설정에서 학생 명단을 입력해 주세요.</div>`;
   }
-  function render(){ renderHeader(); renderGrid(); }
+  function render(){ renderHeader(); renderGrid(); if (view === "check") renderCheck(); }
 
   /* ---------- actions ---------- */
   let lastAction = null, toastTimer;
@@ -395,13 +505,28 @@
     const before = cnt(id);
     const after = Math.max(0, before + d);
     if (after === before) return;
+    const now = Date.now();
     S.counts[id] = after;
-    S.log.push({sid:id, name:s.name, t:Date.now(), d});
-    // un-done stages above the new count when decreasing
-    if (d < 0 && S.done[id]) for (const k of Object.keys(S.done[id])) if (+k > after) delete S.done[id][k];
+    S.log.push({sid:id, name:s.name, t:now, d});
+    const added = [], removed = [];
+    if (d > 0) {
+      rulesSorted().forEach(r => {
+        if (before < r.at && after >= r.at && !curTasks(id).some(k=>k.at===r.at)) {
+          const k = {id:uid(), sid:id, at:r.at, emoji:r.emoji, label:r.label, t:now, done:false, doneAt:null};
+          S.tasks.push(k); added.push(k.id);
+        }
+      });
+    } else {
+      // count went back below a step → drop that step's unfinished task
+      S.tasks = S.tasks.filter(k => {
+        const drop = k.sid===id && k.t>=pStart() && k.at>after && !k.done;
+        if (drop) removed.push(k);
+        return !drop;
+      });
+    }
     save();
-    const crossed = d > 0 && rulesSorted().some(r => before < r.at && after >= r.at);
-    lastAction = {id, d};
+    const crossed = added.length > 0;
+    lastAction = {id, d, added, removed};
     render();
     const card = document.querySelector(`.card[data-id="${id}"]`);
     if (card) {
@@ -427,10 +552,10 @@
   }
   $("#undoBtn").onclick = () => {
     if (!lastAction) return;
-    const {id, d} = lastAction; lastAction = null;
+    const {id, d, added, removed} = lastAction; lastAction = null;
     S.counts[id] = Math.max(0, cnt(id) - d);
     for (let i = S.log.length-1; i>=0; i--) if (S.log[i].sid===id && S.log[i].d===d) { S.log.splice(i,1); break; }
-    if (S.done[id]) for (const k of Object.keys(S.done[id])) if (+k > cnt(id)) delete S.done[id][k];
+    S.tasks = S.tasks.filter(k => !added.includes(k.id)).concat(removed);
     save(); render();
     toast("되돌렸어요", false);
   };
@@ -439,14 +564,14 @@
     const t = e.target.closest("button"); if(!t) return;
     if (t.dataset.plus) change(t.dataset.plus, +1, e);
     else if (t.dataset.minus) change(t.dataset.minus, -1, e);
-    else if (t.dataset.done) {
-      const id = t.dataset.done, k = t.dataset.at;
-      S.done[id] = S.done[id] || {};
-      S.done[id][k] = !S.done[id][k];
-      save(); render();
-      if (S.done[id][k]) { beep(true); toast("다 했어요! 👏", false); }
-    }
+    else if (t.dataset.task) toggleTask(t.dataset.task);
   });
+  function toggleTask(tid){
+    const k = S.tasks.find(x=>x.id===tid); if(!k) return;
+    k.done = !k.done; k.doneAt = k.done ? Date.now() : null;
+    save(); render();
+    if (k.done) { beep(true); toast("다 했어요! 👏", false); }
+  }
 
   $("#sortBtn").onclick = () => { S.sort = S.sort==="num" ? "most" : "num"; save(); render(); };
   $("#soundBtn").onclick = () => { S.sound = !S.sound; save(); renderHeader(); };
@@ -525,7 +650,6 @@
     });
     const keep = new Set(S.students.map(s=>s.id));
     for (const k of Object.keys(S.counts)) if(!keep.has(k)) delete S.counts[k];
-    for (const k of Object.keys(S.done)) if(!keep.has(k)) delete S.done[k];
     S.rules = draftRules.filter(r=>r.label.trim()).map(r=>({at:Math.max(1,r.at|0), emoji:(r.emoji||"📌").trim(), label:r.label.trim()}));
     S.isDefault = false;
     save(); render();
@@ -541,7 +665,7 @@
       rules:rulesSorted()
     });
     S.archive = S.archive.slice(0, 40);
-    S.counts = {}; S.done = {}; S.log = []; S.periodStart = new Date().toISOString();
+    S.counts = {}; S.periodStart = new Date().toISOString();  // log & tasks are kept for the 체크 tab
     save(); render(); closeM($("#resetBtn"));
     toast("새로 시작해요! 모두 0회 🌱", false);
   };
@@ -561,8 +685,7 @@
       const data = JSON.parse(await f.text());
       if (!Array.isArray(data.students)) throw 0;
       if (!confirm("지금 기록을 이 파일 내용으로 바꿀까요?")) return;
-      S = Object.assign(defaults(), data); save(); render(); closeM($("#importBtn"));
-      toast("불러왔어요 📂", false);
+      S = Object.assign(defaults(), data); save(); location.reload();
     }catch(err){ alert("이 보드의 백업 파일이 아니에요."); }
     e.target.value = "";
   };
@@ -574,15 +697,16 @@
   function renderLog(){
     document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("on", b.dataset.tab===tab));
     if (tab === "now") {
-      if (!S.log.length) { $("#logBody").innerHTML = `<div class="empty">아직 기록이 없어요 🌱<br>${fmtD(S.periodStart)}부터 시작</div>`; return; }
+      const plog = S.log.filter(l => l.t >= pStart());
+      if (!plog.length) { $("#logBody").innerHTML = `<div class="empty">아직 기록이 없어요 🌱<br>${fmtD(S.periodStart)}부터 시작</div>`; return; }
       let html = "", lastDay = "";
-      [...S.log].reverse().forEach(l => {
+      [...plog].reverse().forEach(l => {
         const day = fmtD(l.t);
         if (day !== lastDay) { html += `<div class="day">${day}</div>`; lastDay = day; }
         const nm = (S.students.find(s=>s.id===l.sid)||{}).name || l.name;
         html += `<div class="log-item"><time>${fmtT(l.t)}</time><span class="who">${esc(nm)}</span><span class="d ${l.d>0?"p":"m"}">${l.d>0?"+1":"−1"}</span></div>`;
       });
-      $("#logBody").innerHTML = `<p class="desc">${fmtD(S.periodStart)}부터 · 총 ${S.log.filter(l=>l.d>0).length}번 기록</p><div class="log">${html}</div>`;
+      $("#logBody").innerHTML = `<p class="desc">${fmtD(S.periodStart)}부터 · 총 ${plog.filter(l=>l.d>0).length}번 기록</p><div class="log">${html}</div>`;
     } else {
       if (!S.archive.length) { $("#logBody").innerHTML = `<div class="empty">보관된 기록이 없어요.<br>설정 → '보관하고 새로 시작'을 누르면 여기에 쌓여요.</div>`; return; }
       $("#logBody").innerHTML = S.archive.map(a => {
@@ -595,6 +719,165 @@
   }
   document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { tab = b.dataset.tab; renderLog(); });
   $("#logBtn").onclick = () => { tab = "now"; renderLog(); openM("#logModal"); };
+
+
+  /* ---------- 체크 tab ---------- */
+  const WD = "일월화수목금토";
+  const dayKey = t => { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
+  const keyLabel = (k, long) => { const [y,m,d] = k.split("-").map(Number); const w = WD[new Date(y,m-1,d).getDay()]; return long ? `${m}월 ${d}일 (${w})` : `${d}`; };
+  const keyW = k => { const [y,m,d] = k.split("-").map(Number); return new Date(y,m-1,d).getDay(); };
+  const shortDate = t => { const d = new Date(t); return `${d.getMonth()+1}/${d.getDate()}`; };
+  let mCur = (() => { const d = new Date(); return {y:d.getFullYear(), m:d.getMonth()}; })();
+
+  // net count per student per day, from the full log
+  function dayCounts(){
+    const map = {}; // sid -> dayKey -> {n, times[]}
+    S.log.forEach(l => {
+      const k = dayKey(l.t);
+      const o = ((map[l.sid] = map[l.sid] || {})[k] = map[l.sid][k] || {n:0, times:[]});
+      o.n += l.d;
+      if (l.d > 0) o.times.push(l.t); else o.times.pop();
+    });
+    return map;
+  }
+  const lvl = n => n >= 3 ? 3 : n === 2 ? 2 : 1;
+
+  function renderCheck(){
+    const {y, m} = mCur;
+    $("#mLabel").textContent = `${y}년 ${m+1}월`;
+    const inMonth = t => { const d = new Date(t); return d.getFullYear()===y && d.getMonth()===m; };
+    const DC = dayCounts();
+    const ids = new Set(S.students.map(s=>s.id));
+    const num = sid => S.students.findIndex(s=>s.id===sid) + 1;
+    const nm = sid => (S.students.find(s=>s.id===sid)||{}).name || "";
+
+    // days of this month with any record
+    const days = new Set();
+    S.log.forEach(l => { if (inMonth(l.t) && ids.has(l.sid)) days.add(dayKey(l.t)); });
+    S.tasks.forEach(k => { if (inMonth(k.t) && ids.has(k.sid)) days.add(dayKey(k.t)); });
+    const dayList = [...days].sort();
+
+    // summary
+    const mTasks = S.tasks.filter(k => inMonth(k.t) && ids.has(k.sid));
+    let total = 0;
+    S.students.forEach(s => dayList.forEach(k => { total += Math.max(0, ((DC[s.id]||{})[k]||{}).n || 0); }));
+    const doneN = mTasks.filter(k=>k.done).length;
+    $("#ckSum").innerHTML = `
+      <div><b>${total}</b>번 어김</div>
+      <div><b>${dayList.length}</b>일 기록</div>
+      <div class="good"><b>${doneN}</b>개 할 일 완료</div>
+      <div class="warn"><b>${mTasks.length - doneN}</b>개 아직 안 함</div>`;
+
+    // pending (all months, so nothing slips through)
+    const pend = S.tasks.filter(k => !k.done && ids.has(k.sid)).sort((a,b)=>a.t-b.t);
+    $("#ckPending").innerHTML = pend.length ? `<div class="pending">${pend.map(k => `
+      <div class="pend">
+        <div>
+          <div class="who"><i>${num(k.sid)}번</i>${esc(nm(k.sid))}</div>
+          <div class="what">${esc(k.emoji)} ${esc(k.label)}</div>
+          <div class="when">${keyLabel(dayKey(k.t), true)} · ${k.at}회째</div>
+        </div>
+        <button class="btn primary" data-task="${k.id}">✓ 완료</button>
+      </div>`).join("")}</div>`
+      : `<div class="allgood">🎉 밀린 할 일이 하나도 없어요!</div>`;
+
+    // table
+    if (!dayList.length) {
+      $("#ckTable").innerHTML = `<tbody><tr><td class="empty" style="border:0">${m+1}월에는 아직 기록이 없어요 🌱</td></tr></tbody>`;
+      return;
+    }
+    const head = `<thead><tr><th class="nm">번호 · 이름</th>${dayList.map(k => {
+      const w = keyW(k);
+      return `<th class="${w===6?"sat":w===0?"sun":""}">${keyLabel(k)}<br><small>${WD[w]}</small></th>`;
+    }).join("")}<th>합계</th><th>할 일</th></tr></thead>`;
+    const body = S.students.map((s, i) => {
+      let sum = 0;
+      const cells = dayList.map(k => {
+        const n = Math.max(0, ((DC[s.id]||{})[k]||{}).n || 0); sum += n;
+        const tk = S.tasks.filter(x => x.sid===s.id && dayKey(x.t)===k)
+          .map(x => `<span class="tk ${x.done?"y":"n"}" title="${esc(x.label)} ${x.done?"완료":"아직 안 함"}">${esc(x.emoji)}${x.done?"✓":"✗"}</span>`).join("");
+        return `<td>${n ? `<span class="c l${lvl(n)}">${n}</span>` : `<span class="c0">·</span>`}${tk}</td>`;
+      }).join("");
+      const st = mTasks.filter(x => x.sid===s.id);
+      const sd = st.filter(x=>x.done).length;
+      const ts = st.length ? `${sd}/${st.length}${st.length-sd ? ` <span class="n">(${st.length-sd} 남음)</span>` : " ✓"}` : "–";
+      return `<tr><td class="nm" data-stu="${s.id}"><i>${i+1}</i>${esc(s.name)}</td>${cells}<td class="sum">${sum || "–"}</td><td class="tsum">${ts}</td></tr>`;
+    }).join("");
+    $("#ckTable").innerHTML = head + `<tbody>${body}</tbody>`;
+  }
+
+  function openDetail(sid){
+    const s = S.students.find(x=>x.id===sid); if(!s) return;
+    const DC = dayCounts()[sid] || {};
+    const keys = new Set(Object.keys(DC).filter(k => DC[k].n > 0));
+    S.tasks.filter(k=>k.sid===sid).forEach(k => keys.add(dayKey(k.t)));
+    const list = [...keys].sort().reverse();
+    $("#detTitle").textContent = `${S.students.indexOf(s)+1}번 ${s.name}`;
+    const all = S.tasks.filter(k=>k.sid===sid);
+    const totalN = Object.values(DC).reduce((a,o)=>a+Math.max(0,o.n),0);
+    $("#detBody").innerHTML = `
+      <div class="ck-sum" style="margin-top:10px">
+        <div><b>${totalN}</b>번 어김 (전체)</div>
+        <div class="good"><b>${all.filter(k=>k.done).length}</b>개 완료</div>
+        <div class="warn"><b>${all.filter(k=>!k.done).length}</b>개 아직 안 함</div>
+      </div>` + (list.length ? list.map(k => {
+        const o = DC[k] || {n:0, times:[]};
+        const tasks = all.filter(x => dayKey(x.t)===k).sort((a,b)=>a.at-b.at);
+        return `<div class="det-day">
+          <div class="dh"><span>${keyLabel(k, true)}</span><span class="c l${lvl(Math.max(1,o.n))}">${Math.max(0,o.n)}회</span></div>
+          ${o.times.length ? `<div class="times">🕒 ${o.times.map(fmtT).join(" · ")}</div>` : ""}
+          ${tasks.map(x => `<div class="det-task">${esc(x.emoji)} ${esc(x.label)} <small style="color:var(--ink-soft)">(${x.at}회째)</small>
+            <span class="st ${x.done?"y":"n"}">${x.done ? `✅ 완료${x.doneAt?` ${shortDate(x.doneAt)}`:""}` : "⏳ 아직 안 함"}</span>
+            <button class="btn" data-task="${x.id}">${x.done?"취소":"완료"}</button></div>`).join("")}
+        </div>`;
+      }).join("") : `<div class="empty">기록이 없어요. 약속 잘 지키고 있어요 🌱</div>`);
+    openM("#detModal");
+  }
+
+  function setView(v){
+    view = v;
+    document.querySelectorAll("[data-view]").forEach(b => b.classList.toggle("on", b.dataset.view===v));
+    $("#viewBoard").hidden = v !== "board";
+    $("#viewCheck").hidden = v !== "check";
+    if (v === "check") renderCheck();
+  }
+  document.querySelectorAll("[data-view]").forEach(b => b.onclick = () => setView(b.dataset.view));
+  $("#mPrev").onclick = () => { mCur.m--; if (mCur.m < 0) { mCur.m = 11; mCur.y--; } renderCheck(); };
+  $("#mNext").onclick = () => { mCur.m++; if (mCur.m > 11) { mCur.m = 0; mCur.y++; } renderCheck(); };
+  $("#viewCheck").addEventListener("click", e => {
+    const t = e.target.closest("[data-task],[data-stu]"); if(!t) return;
+    if (t.dataset.task) toggleTask(t.dataset.task);
+    else openDetail(t.dataset.stu);
+  });
+  $("#detModal").addEventListener("click", e => {
+    const t = e.target.closest("[data-task]"); if(!t) return;
+    const k = S.tasks.find(x=>x.id===t.dataset.task);
+    toggleTask(t.dataset.task);
+    if (k) openDetail(k.sid);
+  });
+
+  $("#csvBtn").onclick = () => {
+    const {y, m} = mCur;
+    const inMonth = t => { const d = new Date(t); return d.getFullYear()===y && d.getMonth()===m; };
+    const DC = dayCounts();
+    const rows = [["번호","이름","날짜","어긴 횟수","시각","할 일","완료 여부","완료 날짜"]];
+    S.students.forEach((s, i) => {
+      const keys = new Set(Object.keys(DC[s.id]||{}).filter(k => { const [yy,mm] = k.split("-").map(Number); return yy===y && mm===m+1 && DC[s.id][k].n>0; }));
+      S.tasks.filter(k => k.sid===s.id && inMonth(k.t)).forEach(k => keys.add(dayKey(k.t)));
+      [...keys].sort().forEach(k => {
+        const o = (DC[s.id]||{})[k] || {n:0, times:[]};
+        const tasks = S.tasks.filter(x => x.sid===s.id && dayKey(x.t)===k);
+        const base = [i+1, s.name, keyLabel(k, true), Math.max(0,o.n), o.times.map(fmtT).join(" / ")];
+        if (!tasks.length) rows.push([...base, "", "", ""]);
+        tasks.forEach((x, j) => rows.push([...(j ? ["","","","",""] : base), x.label, x.done ? "완료" : "안 함", x.doneAt ? keyLabel(dayKey(x.doneAt), true) : ""]));
+      });
+    });
+    const csv = "﻿" + rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\r\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv;charset=utf-8"}));
+    a.download = `${S.className || "우리반"}_${y}년${m+1}월_손들기체크.csv`;
+    a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  };
 
   render();
   setInterval(renderHeader, 60*1000);
