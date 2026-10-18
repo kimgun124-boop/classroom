@@ -90,7 +90,8 @@
   .card.t4{background:var(--t4);border-color:var(--t4-line)}
   .card .head{display:flex;align-items:center;gap:8px}
   .num{font-family:"Jua";font-size:14px;background:rgba(255,255,255,.75);border-radius:10px;padding:2px 8px;color:var(--ink-soft)}
-  .name{font-family:"Jua";font-size:24px;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1}
+  .card .head{min-height:34px}
+  .name{font-family:"Jua";font-size:26px;line-height:1.15;margin-top:6px;word-break:keep-all;overflow-wrap:anywhere}
   .count{font-family:"Jua";font-size:58px;line-height:1;margin:8px 0 6px;color:var(--t0-ink);display:flex;align-items:baseline;gap:4px}
   .count small{font-size:20px;opacity:.7}
   .t1 .count{color:var(--t1-ink)} .t2 .count{color:var(--t2-ink)} .t3 .count{color:var(--t3-ink)} .t4 .count{color:var(--t4-ink)}
@@ -692,7 +693,8 @@
     return `<article class="card t${t}" data-id="${s.id}">
       <button class="hit" data-plus="${s.id}" aria-label="${esc(s.name)} 한 번 추가"></button>
       <button class="minus" data-minus="${s.id}" aria-label="${esc(s.name)} 한 번 빼기" title="한 번 빼기">−</button>
-      <div class="head"><span class="num">${idx+1}</span><span class="name">${esc(s.name)}</span>${stampN(s.id) ? `<span class="stampct" title="칭찬도장">🌟${stampN(s.id)}</span>` : ""}</div>
+      <div class="head"><span class="num">${idx+1}</span>${stampN(s.id) ? `<span class="stampct" title="칭찬도장">🌟${stampN(s.id)}</span>` : ""}</div>
+      <div class="name">${esc(s.name)}</div>
       <div class="count">${c}<small>회</small></div>
       <div class="dots">${dots}</div>
       <div class="tags">${tags}</div>
