@@ -209,11 +209,11 @@
 
 
   /* ---------- stamp view ---------- */
-  .wk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .wk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:12px 10px;padding-top:6px}
   .wk{position:relative;display:flex;align-items:center;gap:8px;border:2px solid var(--line);border-radius:16px;padding:10px 12px;background:#fff;text-align:left;font-size:15px;min-height:56px;transition:transform .1s}
   .wk:active{transform:scale(.97)}
   .wk i{font-style:normal;font-family:"Jua";color:var(--ink-soft);font-size:13px;min-width:18px}
-  .wk .nm{font-weight:700;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wk .nm{font-weight:700;flex:1;min-width:0;word-break:keep-all;overflow-wrap:anywhere;line-height:1.15}
   .wk .st{font-size:13px;white-space:nowrap}
   .wk.clean{border-color:var(--t0-line);background:var(--t0)}
   .wk.clean .st{color:var(--t0-ink)}
@@ -221,6 +221,13 @@
   .wk.bad .nm{font-weight:400}
   .wk.on{border-color:#f2a5a5;background:#fff3f1}
   .wk .mini{width:34px;height:34px;flex:none}
+  .wkbox{position:relative}
+  .wkbox .wk{width:100%}
+  .stampwrap{position:relative;flex:none;display:flex}
+  .stx{position:absolute;right:-8px;bottom:-6px;font-family:"Jua";font-weight:400;font-size:13px;background:#d63b3b;color:#fff;border-radius:9px;padding:0 6px;line-height:18px;box-shadow:0 1px 0 rgba(0,0,0,.15)}
+  .wkminus{position:absolute;top:-8px;right:-6px;width:24px;height:24px;border-radius:50%;background:#fff;border:2px solid #f2a5a5;color:#c23356;font-size:16px;line-height:1;display:grid;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.12);z-index:2}
+  .wkminus:hover{background:#ffe9ec}
+  body.big .wkminus{display:none}
   .stamp{display:grid;place-items:center;border-radius:50%;border:3px solid #d63b3b;color:#d63b3b;font-family:"Jua";
     background:radial-gradient(circle, rgba(214,59,59,.06), rgba(214,59,59,.14));transform:rotate(-14deg);
     box-shadow:inset 0 0 0 2px #fff, inset 0 0 0 3.5px rgba(214,59,59,.55);line-height:1;text-align:center;opacity:.92}
@@ -1300,11 +1307,17 @@
     return {tag, range:`${a.getMonth()+1}/${a.getDate()}(월) ~ ${b.getMonth()+1}/${b.getDate()}(금)`};
   }
   const weekCount = (sid, wk) => Math.max(0, S.log.filter(l => l.sid===sid && weekKey(l.t)===wk).reduce((a,l)=>a+l.d, 0));
-  const hasStamp = (sid, wk) => (S.stamps||[]).some(x => x.sid===sid && x.week===wk);
+  const weekStamps = (sid, wk) => (S.stamps||[]).filter(x => x.sid===sid && x.week===wk).length;
+  const hasStamp = (sid, wk) => weekStamps(sid, wk) > 0;
+  // on=true: 도장 한 개 더, on=false: 이 주에 찍은 도장 중 마지막 한 개 빼기
   function setStamp(sid, wk, on){
     S.stamps = S.stamps || [];
-    if (on && !hasStamp(sid, wk)) S.stamps.push({sid, week:wk, t:Date.now()});
-    if (!on) S.stamps = S.stamps.filter(x => !(x.sid===sid && x.week===wk));
+    if (on) S.stamps.push({sid, week:wk, t:Date.now()});
+    else {
+      let idx = -1;
+      S.stamps.forEach((x,i) => { if (x.sid===sid && x.week===wk && (idx<0 || x.t >= S.stamps[idx].t)) idx = i; });
+      if (idx >= 0) S.stamps.splice(idx, 1);
+    }
     const before = (S.rewards||[]).length;
     syncRewards(sid);
     return (S.rewards||[]).length > before;
@@ -1315,17 +1328,17 @@
     $("#wLabel").textContent = `${L.tag} · ${L.range}`;
     $("#wNext").disabled = wk >= thisWeek();
     const clean = S.students.filter(s => weekCount(s.id, wk) === 0);
-    const todo = clean.filter(s => !hasStamp(s.id, wk));
     const ongoing = wk === thisWeek();
-    $("#wDesc").innerHTML = `이 주에 한 번도 안 어긴 친구 <b>${clean.length}명</b>${ongoing ? " · 아직 진행 중인 주예요. 금요일에 찍어 주면 좋아요" : ""}. 이름을 누르면 도장을 찍거나 뺄 수 있어요.`;
-    $("#stampAll").disabled = !todo.length;
-    $("#stampAll").textContent = todo.length ? `🌟 약속 지킨 친구 모두 도장 찍기 (${todo.length}명)` : "🌟 도장 다 찍었어요";
+    const given = S.students.reduce((a,s)=>a+weekStamps(s.id, wk), 0);
+    $("#wDesc").innerHTML = `이 주에 한 번도 안 어긴 친구 <b>${clean.length}명</b> · 이 주에 찍은 도장 <b>${given}개</b>. 이름을 누를 때마다 도장이 하나씩 더 찍혀요. 잘못 찍었으면 <b>−</b>를 눌러 빼요.`;
+    $("#stampAll").disabled = !clean.length;
+    $("#stampAll").textContent = clean.length ? `🌟 약속 지킨 친구 모두 도장 +1 (${clean.length}명)` : "🌟 약속 지킨 친구가 아직 없어요";
 
     $("#wkGrid").innerHTML = S.students.map((s,i) => {
-      const n = weekCount(s.id, wk), on = hasStamp(s.id, wk);
+      const n = weekCount(s.id, wk), k = weekStamps(s.id, wk), on = k > 0;
       const cls = on ? "on" : n === 0 ? "clean" : "bad";
-      const st = on ? `<span class="stamp mini">참<br>잘했어요</span>` : n === 0 ? `<span class="st">🌱 0회</span>` : `<span class="st">${n}회</span>`;
-      return `<button class="wk ${cls}" data-wk="${s.id}"><i>${i+1}</i><span class="nm">${esc(s.name)}</span>${st}</button>`;
+      const st = on ? `<span class="stampwrap"><span class="stamp mini">참<br>잘했어요</span>${k>1 ? `<b class="stx">×${k}</b>` : ""}</span>` : n === 0 ? `<span class="st">🌱 0회</span>` : `<span class="st">${n}회</span>`;
+      return `<div class="wkbox"><button class="wk ${cls}" data-wk="${s.id}" title="누르면 도장 하나 더"><i>${i+1}</i><span class="nm">${esc(s.name)}</span>${st}</button>${on ? `<button class="wkminus" data-wkminus="${s.id}" title="도장 하나 빼기" aria-label="${esc(s.name)} 도장 하나 빼기">−</button>` : ""}</div>`;
     }).join("");
 
     const ids = new Set(S.students.map(s=>s.id));
@@ -1379,26 +1392,33 @@
   $("#wPrev").onclick = () => { wCur = shiftWeek(wCur, -1); renderStamp(); };
   $("#wNext").onclick = () => { if (wCur < thisWeek()) { wCur = shiftWeek(wCur, 1); renderStamp(); } };
   $("#stampAll").onclick = () => {
-    const todo = S.students.filter(s => weekCount(s.id, wCur) === 0 && !hasStamp(s.id, wCur));
+    const todo = S.students.filter(s => weekCount(s.id, wCur) === 0);
     if (!todo.length) return;
+    const already = todo.filter(s => hasStamp(s.id, wCur)).length;
+    if (already && !confirm(`이 주에 이미 도장을 받은 친구가 ${already}명 있어요.\n약속 지킨 친구 ${todo.length}명 모두에게 한 개씩 더 찍을까요?`)) return;
     let gotReward = false;
     todo.forEach(s => { if (setStamp(s.id, wCur, true)) gotReward = true; });
     save(); render(); fanfare();
     document.querySelectorAll("#wkGrid .stamp").forEach(el => el.classList.add("pop-in"));
-    toast(`🌟 ${todo.length}명에게 칭찬도장을 찍었어요!${gotReward ? " 🎁 보상 받을 친구가 생겼어요" : ""}`, false);
+    toast(`🌟 ${todo.length}명에게 칭찬도장을 하나씩 찍었어요!${gotReward ? " 🎁 보상 받을 친구가 생겼어요" : ""}`, false);
   };
   $("#viewStamp").addEventListener("click", e => {
-    const w = e.target.closest("[data-wk]"), r = e.target.closest("[data-reward]");
-    if (w) {
+    const w = e.target.closest("[data-wk]"), m = e.target.closest("[data-wkminus]"), r = e.target.closest("[data-reward]");
+    if (m) {
+      const sid = m.dataset.wkminus, s = S.students.find(x=>x.id===sid);
+      setStamp(sid, wCur, false);
+      save(); render();
+      const left = weekStamps(sid, wCur);
+      toast(`${s.name} 도장 하나 뺐어요${left ? ` (이 주 ${left}개)` : ""}`, false);
+    } else if (w) {
       const sid = w.dataset.wk, s = S.students.find(x=>x.id===sid), on = hasStamp(sid, wCur), n = weekCount(sid, wCur);
       if (!on && n > 0 && !confirm(`${s.name}은(는) 이 주에 ${n}번 어겼어요. 그래도 도장을 찍을까요?`)) return;
-      const got = setStamp(sid, wCur, !on);
+      const got = setStamp(sid, wCur, true);
       save(); render();
-      if (!on) {
-        beep(true);
-        const el = document.querySelector(`[data-wk="${sid}"] .stamp`); if (el) el.classList.add("pop-in");
-        toast(got ? `🌟 ${s.name} 도장! 🎁 보상 받을 차례예요` : `🌟 ${s.name} 칭찬도장 쾅!`, false);
-      } else toast(`${s.name} 도장을 뺐어요`, false);
+      beep(true);
+      const el = document.querySelector(`[data-wk="${sid}"] .stamp`); if (el) el.classList.add("pop-in");
+      const k = weekStamps(sid, wCur);
+      toast(got ? `🌟 ${s.name} 도장! 🎁 보상 받을 차례예요` : `🌟 ${s.name} 칭찬도장 쾅!${k>1 ? ` (이 주 ${k}개)` : ""}`, false);
     } else if (r) {
       const k = (S.rewards||[]).find(x => x.id===r.dataset.reward); if (!k) return;
       k.given = true; k.givenAt = Date.now();
