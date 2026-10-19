@@ -128,11 +128,12 @@
   .tabnav{display:flex;gap:8px;margin:16px 0 0}
   .tabnav button{font-family:"Jua";font-size:19px;padding:10px 22px;border-radius:16px 16px 0 0;background:#efe6d8;color:var(--ink-soft);border:2px solid transparent;border-bottom:0}
   .tabnav{align-items:flex-end}
-  .clock{display:flex;align-items:baseline;gap:6px;background:#3c5a4a;color:#fdfbf6;border:4px solid #b98a5a;border-radius:18px;padding:4px 16px 5px;margin-right:6px;align-self:center;font-family:"Jua";box-shadow:var(--shadow)}
-  .clock .ap{font-size:16px;opacity:.85}
-  .clock .hm{font-size:32px;line-height:1.05;letter-spacing:1px;font-variant-numeric:tabular-nums}
-  .clock .sec{font-size:17px;opacity:.7;min-width:22px;font-variant-numeric:tabular-nums}
-  body.big .clock .hm{font-size:38px}
+  .clock{display:flex;align-items:baseline;gap:8px;background:#3c5a4a;color:#fdfbf6;border:5px solid #b98a5a;border-radius:22px;padding:6px 22px 8px;margin-right:10px;align-self:center;font-family:"Jua";box-shadow:var(--shadow)}
+  .clock .ap{font-size:24px;opacity:.85}
+  .clock .hm{font-size:60px;line-height:1;letter-spacing:2px;font-variant-numeric:tabular-nums}
+  .clock .sec{font-size:28px;opacity:.7;min-width:34px;font-variant-numeric:tabular-nums}
+  body.big .clock .hm{font-size:72px}
+  @media (max-width:560px){.clock .hm{font-size:40px}.clock .ap,.clock .sec{font-size:18px}}
   .tabnav button.on{background:var(--paper);color:var(--ink);border-color:var(--line)}
   .tabnav button .badge{display:inline-block;min-width:22px;padding:1px 7px;margin-left:6px;border-radius:999px;background:#c23356;color:#fff;font-size:13px;vertical-align:2px}
   .view{background:var(--paper);border:2px solid var(--line);border-radius:0 22px 22px 22px;padding:16px;box-shadow:var(--shadow)}
