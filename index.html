@@ -424,6 +424,13 @@
     .board-layout{grid-template-columns:1fr}
     .tt{position:static}
   }
+
+  /* drag to rearrange */
+  .card{cursor:grab;touch-action:manipulation}
+  .card .minus,.card .tag{cursor:pointer}
+  .drag-ghost{position:fixed;left:0;top:0;z-index:999;pointer-events:none;margin:0;opacity:.95;box-shadow:0 18px 40px rgba(60,40,20,.28);transition:none;cursor:grabbing}
+  .drag-hole{opacity:.25;outline:3px dashed var(--accent);outline-offset:-3px;transform:none!important}
+  body.dragging-card, body.dragging-card *{cursor:grabbing!important;user-select:none!important}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -783,7 +790,7 @@
       `<div class="rule-chip r${Math.min(i,2)}"><span class="n">${r.at}회</span><span class="arrow">→</span><span>${esc(r.emoji)} ${esc(r.label)}</span></div>`
     ).join("") + (S.rules.length ? `<div class="rule-chip"><span>🔁 그다음부터 같은 순서로 반복</span></div>` : "")
       || `<div class="rule-chip">설정에서 약속 단계를 정해 주세요</div>`;
-    $("#sortBtn").textContent = S.sort === "num" ? "🔢 번호순" : "📊 많은 순";
+    $("#sortBtn").textContent = S.sort === "num" ? "🔢 번호순" : S.sort === "custom" ? "✋ 옮긴 자리" : "📊 많은 순";
     $("#soundBtn").classList.toggle("on", !!S.sound);
     $("#soundBtn").textContent = S.sound ? "🔔 소리 켬" : "🔕 소리 끔";
     $("#hint").hidden = !S.isDefault;
@@ -830,6 +837,10 @@
   function renderGrid(){
     let list = S.students.map((s,i)=>({s,i}));
     if (S.sort === "most") list.sort((a,b)=>cnt(b.s.id)-cnt(a.s.id) || a.i-b.i);
+    else if (S.sort === "custom") {
+      const pos = new Map((S.boardOrder||[]).map((id,k)=>[id,k]));
+      list.sort((a,b)=>(pos.has(a.s.id)?pos.get(a.s.id):1e6+a.i) - (pos.has(b.s.id)?pos.get(b.s.id):1e6+b.i));
+    }
     $("#grid").innerHTML = list.map(({s,i})=>cardHTML(s,i)).join("") ||
       `<div class="empty">설정에서 학생 명단을 입력해 주세요.</div>`;
   }
@@ -917,7 +928,84 @@
     if (k.done) { beep(true); toast("다 했어요! 👏", false); }
   }
 
-  $("#sortBtn").onclick = () => { S.sort = S.sort==="num" ? "most" : "num"; save(); render(); };
+  $("#sortBtn").onclick = () => {
+    const hasCustom = (S.boardOrder||[]).length > 0;
+    S.sort = S.sort==="num" ? "most" : (S.sort==="most" && hasCustom) ? "custom" : "num";
+    save(); render();
+    if (S.sort === "custom") toast("✋ 내가 옮긴 자리로 보여요", false);
+  };
+
+  /* ---------- drag to rearrange cards ---------- */
+  (function(){
+    const grid = $("#grid");
+    let st = null, suppressClick = false;
+    const THRESH = 8, LONGPRESS = 350;
+    grid.addEventListener("pointerdown", e => {
+      if (e.button !== 0) return;
+      const card = e.target.closest(".card");
+      if (!card || e.target.closest(".minus, .tag")) return;
+      st = {card, id:card.dataset.id, x:e.clientX, y:e.clientY, pid:e.pointerId, type:e.pointerType, on:false, timer:null};
+      if (e.pointerType !== "mouse") st.timer = setTimeout(() => { if (st && !st.on) begin(st.x, st.y); }, LONGPRESS);
+    });
+    function begin(x, y){
+      const r = st.card.getBoundingClientRect();
+      const ghost = st.card.cloneNode(true);
+      ghost.classList.add("drag-ghost");
+      ghost.querySelectorAll(".pop").forEach(n => n.remove()); ghost.classList.remove("bump","levelup");
+      ghost.style.width = r.width + "px"; ghost.style.height = r.height + "px";
+      document.body.appendChild(ghost);
+      st.ghost = ghost; st.dx = x - r.left; st.dy = y - r.top; st.on = true;
+      st.card.classList.add("drag-hole");
+      document.body.classList.add("dragging-card");
+      try{ grid.setPointerCapture(st.pid); }catch(e){}
+      move(x, y);
+    }
+    function move(x, y){
+      st.ghost.style.transform = `translate(${x - st.dx}px, ${y - st.dy}px) rotate(2deg) scale(1.04)`;
+      const under = document.elementFromPoint(x, y);
+      const tgt = under && under.closest && under.closest("#grid .card");
+      if (!tgt || tgt === st.card) return;
+      const r = tgt.getBoundingClientRect();
+      const after = (y > r.bottom - r.height*0.25) || (y >= r.top + r.height*0.25 && x > r.left + r.width/2);
+      const ref = after ? tgt.nextElementSibling : tgt;
+      if (ref !== st.card && ref !== st.card.nextElementSibling) grid.insertBefore(st.card, ref);
+      else if (!after && tgt.previousElementSibling !== st.card) grid.insertBefore(st.card, tgt);
+    }
+    grid.addEventListener("pointermove", e => {
+      if (!st || e.pointerId !== st.pid) return;
+      if (!st.on) {
+        const far = Math.hypot(e.clientX - st.x, e.clientY - st.y) > THRESH;
+        if (far && st.type === "mouse") begin(e.clientX, e.clientY);
+        else if (far) { clearTimeout(st.timer); st = null; }   // touch: moved before long-press → scroll
+        return;
+      }
+      e.preventDefault();
+      move(e.clientX, e.clientY);
+    });
+    function end(commit){
+      if (!st) return;
+      clearTimeout(st.timer);
+      if (st.on) {
+        st.ghost.remove();
+        st.card.classList.remove("drag-hole");
+        document.body.classList.remove("dragging-card");
+        suppressClick = true; setTimeout(() => suppressClick = false, 0);
+        if (commit) {
+          const order = [...grid.querySelectorAll(".card")].map(c => c.dataset.id);
+          const changed = S.sort !== "custom" || JSON.stringify(order) !== JSON.stringify(S.boardOrder||[]);
+          S.boardOrder = order; S.sort = "custom";
+          save(); render();
+          if (changed) toast("✋ 자리를 옮겼어요 · '정렬' 버튼으로 번호순으로 돌아갈 수 있어요", false);
+        } else render();
+      }
+      st = null;
+    }
+    grid.addEventListener("pointerup", e => { if (st && e.pointerId === st.pid) end(true); });
+    grid.addEventListener("pointercancel", () => end(false));
+    grid.addEventListener("click", e => { if (suppressClick) { e.stopPropagation(); e.preventDefault(); } }, true);
+    grid.addEventListener("contextmenu", e => { if (st && st.on) e.preventDefault(); });
+    grid.addEventListener("dragstart", e => e.preventDefault());
+  })();
   $("#soundBtn").onclick = () => { S.sound = !S.sound; save(); renderHeader(); };
   $("#bigBtn").onclick = async () => {
     const on = !document.body.classList.contains("big");
