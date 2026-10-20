@@ -102,8 +102,12 @@
   .t0 .dots{color:var(--t0-ink)} .t1 .dots{color:var(--t1-ink)} .t2 .dots{color:var(--t2-ink)} .t3 .dots{color:var(--t3-ink)} .t4 .dots{color:var(--t4-ink)}
   .more{font-family:"Jua";font-size:14px;opacity:.7;align-self:center}
   .tags{display:flex;flex-direction:column;gap:6px;margin-top:auto}
-  .tag{position:relative;z-index:2;display:flex;align-items:center;gap:6px;background:#fff;border-radius:12px;padding:6px 10px;font-size:15px;font-weight:700;box-shadow:0 1px 0 rgba(0,0,0,.05);text-align:left;width:100%}
-  .tag .ck{margin-left:auto;width:22px;height:22px;border-radius:7px;border:2px solid #d9cfc2;display:grid;place-items:center;font-size:13px;flex:none}
+  .tag{position:relative;z-index:2;display:grid;grid-template-columns:26px 15px 1fr 20px;align-items:center;gap:3px;background:#fff;border-radius:12px;padding:6px 10px;font-size:15px;font-weight:700;box-shadow:0 1px 0 rgba(0,0,0,.05);text-align:left;width:100%}
+    .tag .em{text-align:center;font-size:13px}
+  .tag{padding:6px 6px !important;font-size:14px !important}
+  .tag .lb{min-width:0;word-break:keep-all;overflow-wrap:anywhere;line-height:1.25}
+  .tag .at{text-align:center;white-space:nowrap;font-size:11px;font-weight:700;color:var(--ink-soft);background:#f3eee7;border-radius:7px;padding:2px 0;letter-spacing:-.5px;font-variant-numeric:tabular-nums;text-decoration:none}
+  .tag .ck{width:20px !important;height:20px !important;width:22px;height:22px;border-radius:7px;border:2px solid #d9cfc2;display:grid;place-items:center;font-size:13px;flex:none}
   .tag.done{opacity:.6;text-decoration:line-through}
   .tag.done .ck{background:#2f8a5b;border-color:#2f8a5b;color:#fff}
   .ok{font-size:15px;color:var(--t0-ink);margin-top:auto;display:flex;align-items:center;gap:6px}
@@ -784,7 +788,7 @@
     let tags;
     if (tasks.length) {
       tags = tasks.map(k =>
-        `<button class="tag${k.done?" done":""}" data-task="${k.id}" title="다 했으면 눌러서 체크">${esc(k.emoji)} ${esc(k.label)}${tasks.some(o=>o!==k && o.label===k.label) ? ` <small>(${k.at}회)</small>` : ""}<span class="ck">${k.done?"✓":""}</span></button>`
+        `<button class="tag${k.done?" done":""}" data-task="${k.id}" title="다 했으면 눌러서 체크"><span class="at">${k.at}회</span><span class="em">${esc(k.emoji)}</span><span class="lb">${esc(k.label)}</span><span class="ck">${k.done?"✓":""}</span></button>`
       ).join("");
     } else if (c === 0) {
       tags = `<div class="ok">🌱 약속 잘 지키는 중</div>`;
