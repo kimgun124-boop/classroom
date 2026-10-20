@@ -431,6 +431,37 @@
   .drag-ghost{position:fixed;left:0;top:0;z-index:999;pointer-events:none;margin:0;opacity:.95;box-shadow:0 18px 40px rgba(60,40,20,.28);transition:none;cursor:grabbing}
   .drag-hole{opacity:.25;outline:3px dashed var(--accent);outline-offset:-3px;transform:none!important}
   body.dragging-card, body.dragging-card *{cursor:grabbing!important;user-select:none!important}
+
+  /* ---------- reasons (왜 눌렸나요) ---------- */
+  .card .why{font-size:13px;line-height:1.35;color:var(--ink-soft);margin:-4px 0 8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:keep-all}
+  .card .why b{font-weight:700;color:var(--ink)}
+  body.big .card .why{font-size:15px}
+  .whypop{position:fixed;z-index:60;width:330px;max-width:calc(100vw - 24px);background:#fff;border:3px solid var(--accent);border-radius:20px;padding:12px;box-shadow:0 16px 40px rgba(60,40,20,.25);animation:wpIn .18s ease-out}
+  .whypop[hidden]{display:none}
+  @keyframes wpIn{from{opacity:0;transform:translateY(6px) scale(.97)}}
+  .wp-head{display:flex;align-items:center;gap:6px;margin-bottom:8px;font-size:15px}
+  .wp-head b{font-family:"Jua";font-weight:400;font-size:20px}
+  .wp-head span{color:var(--ink-soft)}
+  .wp-x{margin-left:auto;width:30px;height:30px;border-radius:10px;background:#f7efe3;font-size:18px;line-height:1}
+  .wp-row{display:flex;gap:6px}
+  .wp-row input{flex:1;min-width:0;font:inherit;font-size:16px;border:2px solid var(--line);border-radius:12px;padding:8px 10px}
+  .wp-row input:focus{outline:none;border-color:var(--accent)}
+  .wp-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .wp-chips button{background:#fff4ec;border:1.5px solid #ffd3bd;border-radius:999px;padding:5px 11px;font-size:14px}
+  .wp-chips button:hover{background:#ffe6d6}
+  .wp-chips .hint{font-size:13px;color:var(--ink-soft)}
+  .why-sheet{max-width:820px}
+  .why-top{background:#fff7ef;border:2px dashed #ffcfb4;border-radius:18px;padding:12px 16px;margin:8px 0 16px;font-size:17px;line-height:1.6}
+  .why-top b{font-family:"Jua";font-weight:400;font-size:19px;color:#c2562a}
+  .why-list{display:flex;flex-direction:column;gap:10px}
+  .why-item{display:flex;gap:12px;align-items:flex-start;background:#fbf8f3;border-radius:16px;padding:12px 14px}
+  .why-item .nm{flex:none;min-width:92px;font-family:"Jua";font-size:22px;line-height:1.3}
+  .why-item .nm i{font-style:normal;font-size:14px;color:var(--ink-soft);margin-right:4px}
+  .why-item .txt{font-size:18px;line-height:1.6;word-break:keep-all}
+  .why-item .txt q{quotes:"‘" "’";font-weight:700;color:var(--ink)}
+  .why-item .txt .tm{display:block;font-size:13px;color:var(--ink-soft);margin-top:2px}
+  .why-item .n{margin-left:auto;flex:none;font-family:"Jua";font-size:20px;color:#c2562a;background:#fff;border-radius:12px;padding:2px 10px}
+  .why-chip-x{margin-left:2px;color:#c2b7a8}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -473,6 +504,7 @@
       <button class="btn" id="soundBtn" title="효과음">🔔 소리</button>
       <button class="btn" id="bigBtn" title="전체 화면으로 크게 보기">🖥️ 크게 보기</button>
       <button class="btn" id="clockBtn" title="시계만 크게 보기 (5분 동안 아무것도 안 누르면 자동으로 켜져요)">🕐 시계</button>
+      <button class="btn" id="whyBtn" title="왜 눌렸는지 모아 보기">💬 이유 모아 보기</button>
       <button class="btn" id="logBtn">📒 기록</button>
       <button class="btn primary" id="setBtn">⚙️ 설정</button>
     </div>
@@ -664,6 +696,20 @@
 </div>
 
 <!-- log -->
+<div class="modal" id="whyModal" aria-modal="true" role="dialog">
+  <div class="sheet why-sheet">
+    <h2>💬 왜 눌렸을까요? <button class="x" data-close>×</button></h2>
+    <p class="desc" id="whyDesc"></p>
+    <div id="whyBody"></div>
+  </div>
+</div>
+
+<div class="whypop" id="whyPop" role="dialog" aria-label="이유 적기" hidden>
+  <div class="wp-head"><b id="wpName"></b><span>왜 눌렸나요?</span><button class="wp-x" id="wpSkip" title="건너뛰기">×</button></div>
+  <div class="wp-row"><input id="wpIn" type="text" maxlength="40" placeholder="예: 수업 중에 떠들었어요" autocomplete="off"><button class="btn primary" id="wpSave">저장</button></div>
+  <div class="wp-chips" id="wpChips"></div>
+</div>
+
 <div class="modal" id="logModal" aria-modal="true" role="dialog">
   <div class="sheet">
     <h2>📒 기록 <button class="x" data-close>×</button></h2>
@@ -801,6 +847,20 @@
     $("#rwBadge").hidden = !nr; $("#rwBadge").textContent = nr;
   }
 
+  /* ---------- reasons ---------- */
+  const normWhy = t => String(t||"").replace(/\s+/g," ").trim().replace(/[.。!?…~]+$/,"").trim();
+  const activeHits = sid => S.log.filter(l => l.sid===sid && l.d>0 && !l.x && l.t >= sinceFor(sid));
+  function whyGroups(sid){
+    const m = new Map(); let none = 0;
+    activeHits(sid).forEach(l => { const w = normWhy(l.why); if (!w) { none++; return; } m.set(w, (m.get(w)||0)+1); });
+    const arr = [...m.entries()].sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0]));
+    return {arr, none};
+  }
+  function cardWhy(sid){
+    const {arr} = whyGroups(sid);
+    if (!arr.length) return "";
+    return `<div class="why">💬 ${arr.map(([w,n]) => `${esc(w)}${n>1?` <b>×${n}</b>`:""}`).join(" · ")}</div>`;
+  }
   function cardHTML(s, idx){
     const c = cnt(s.id), t = tier(c), {P} = ruleCycle();
     const max0 = S.rules.length ? rulesSorted().slice(-1)[0].at : 5;
@@ -830,6 +890,7 @@
       <div class="name">${esc(s.name)}</div>
       <div class="count">${c}<small>회</small></div>
       <div class="dots">${dots}</div>
+      ${cardWhy(s.id)}
       <div class="tags">${tags}</div>
     </article>`;
   }
@@ -862,7 +923,14 @@
     if (after === before) return;
     const now = Date.now();
     S.counts[id] = after;
-    S.log.push({sid:id, name:s.name, t:now, d});
+    const entry = {sid:id, name:s.name, t:now, d};
+    let cancelled = null;
+    if (d < 0) {
+      const hits = activeHits(id);
+      cancelled = hits.length ? hits[hits.length-1] : null;
+      if (cancelled) cancelled.x = true;
+    }
+    S.log.push(entry);
     const added = [], removed = [];
     if (d > 0) {
       rulesTo(after).forEach(r => {
@@ -881,7 +949,7 @@
     }
     save();
     const crossed = added.length > 0;
-    lastAction = {id, d, added, removed};
+    lastAction = {id, d, added, removed, entry, cancelled};
     render();
     const card = document.querySelector(`.card[data-id="${id}"]`);
     if (card) {
@@ -904,12 +972,17 @@
       beep(d > 0);
       toast(`${s.name} ${d>0?"+1":"−1"} (지금 ${after}회)`, true);
     }
+    if (d > 0) openWhy(entry, card, ev); else closeWhy();
   }
   $("#undoBtn").onclick = () => {
     if (!lastAction) return;
-    const {id, d, added, removed} = lastAction; lastAction = null;
+    const {id, d, added, removed, entry, cancelled} = lastAction; lastAction = null;
     S.counts[id] = Math.max(0, cnt(id) - d);
-    for (let i = S.log.length-1; i>=0; i--) if (S.log[i].sid===id && S.log[i].d===d) { S.log.splice(i,1); break; }
+    const ei = entry ? S.log.indexOf(entry) : -1;
+    if (ei >= 0) S.log.splice(ei, 1);
+    else for (let i = S.log.length-1; i>=0; i--) if (S.log[i].sid===id && S.log[i].d===d) { S.log.splice(i,1); break; }
+    if (cancelled) delete cancelled.x;
+    if (whyEntry && whyEntry === entry) closeWhy();
     S.tasks = S.tasks.filter(k => !added.includes(k.id)).concat(removed);
     save(); render();
     toast("되돌렸어요", false);
@@ -934,6 +1007,96 @@
     save(); render();
     if (S.sort === "custom") toast("✋ 내가 옮긴 자리로 보여요", false);
   };
+
+  /* ---------- 왜 눌렸나요 popover ---------- */
+  let whyEntry = null;
+  function savedReasons(){
+    const m = new Map();
+    (S.reasons||[]).forEach(w => m.set(w, 0));
+    S.log.forEach(l => { const w = normWhy(l.why); if (w) m.set(w, (m.get(w)||0)+1); });
+    (S.hiddenReasons||[]).forEach(w => m.delete(w));
+    return [...m.entries()].sort((a,b)=>b[1]-a[1] || a[0].localeCompare(b[0])).map(x=>x[0]);
+  }
+  function openWhy(entry, card, ev){
+    whyEntry = entry;
+    const pop = $("#whyPop");
+    $("#wpName").textContent = entry.name;
+    $("#wpIn").value = entry.why || "";
+    const list = savedReasons().slice(0, 12);
+    $("#wpChips").innerHTML = list.length
+      ? list.map(w => `<button data-why="${esc(w)}">${esc(w)}</button>`).join("")
+      : `<span class="hint">한 번 적은 이유는 여기에 생겨서, 다른 친구도 눌러서 바로 쓸 수 있어요.</span>`;
+    pop.hidden = false;
+    const W = pop.offsetWidth, H = pop.offsetHeight, vw = innerWidth, vh = innerHeight;
+    let x, y;
+    if (card) {
+      const r = card.getBoundingClientRect();
+      x = r.left + r.width/2 - W/2; y = r.bottom + 8;
+      if (y + H > vh - 8) y = r.top - H - 8;
+    } else { x = (vw - W)/2; y = vh/3; }
+    pop.style.left = Math.max(8, Math.min(vw - W - 8, x)) + "px";
+    pop.style.top = Math.max(8, Math.min(vh - H - 8, y)) + "px";
+    setTimeout(() => $("#wpIn").focus({preventScroll:true}), 30);
+  }
+  function closeWhy(){ $("#whyPop").hidden = true; whyEntry = null; }
+  function saveWhy(text){
+    const w = normWhy(text);
+    if (whyEntry && w) {
+      whyEntry.why = w;
+      S.reasons = S.reasons || [];
+      if (!S.reasons.includes(w)) S.reasons.push(w);
+      if (S.hiddenReasons) S.hiddenReasons = S.hiddenReasons.filter(x => x !== w);
+      save(); renderGrid();
+      toast(`💬 ${whyEntry.name}: ${w}`, !!(lastAction && lastAction.entry === whyEntry));
+    }
+    closeWhy();
+  }
+  $("#wpSave").onclick = () => saveWhy($("#wpIn").value);
+  $("#wpSkip").onclick = closeWhy;
+  $("#wpIn").addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); saveWhy($("#wpIn").value); }
+    else if (e.key === "Escape") closeWhy();
+  });
+  $("#wpChips").addEventListener("click", e => { const b = e.target.closest("[data-why]"); if (b) saveWhy(b.dataset.why); });
+  document.addEventListener("pointerdown", e => {
+    if ($("#whyPop").hidden) return;
+    if (e.target.closest("#whyPop") || e.target.closest("#grid .card .hit") || e.target.closest("#toast")) return;
+    closeWhy();
+  }, true);
+
+  /* ---------- 이유 모아 보기 ---------- */
+  function renderWhy(){
+    const rows = S.students.map((s,i) => ({s, i, n:cnt(s.id), g:whyGroups(s.id)})).filter(r => r.n > 0);
+    const total = new Map();
+    rows.forEach(r => r.g.arr.forEach(([w,n]) => total.set(w, (total.get(w)||0)+n)));
+    const top = [...total.entries()].sort((a,b)=>b[1]-a[1]).slice(0,3);
+    $("#whyDesc").textContent = "이번 기간에 눌린 이유를 친구마다 모아서 정리했어요. 같은 이유는 하나로 묶어서 보여 줘요.";
+    const medal = ["🥇","🥈","🥉"];
+    const head = top.length
+      ? `<div class="why-top">우리 반에서 가장 많이 나온 이유는 ${top.map(([w,n],k) => `${medal[k]} <b>${esc(w)}</b> ${n}번`).join(", ")}이에요.<br>다 함께 조심해 봐요! 🙌</div>`
+      : `<div class="why-top">${rows.length ? "아직 적힌 이유가 없어요. 카드를 누를 때 나오는 칸에 이유를 적어 주세요." : "이번 기간에는 모두 약속을 잘 지키고 있어요! 🌱"}</div>`;
+    const body = rows.sort((a,b)=>b.n-a.n || a.i-b.i).map(({s,i,n,g}) => {
+      const parts = g.arr.map(([w,c]) => `<q>${esc(w)}</q> ${c}번`);
+      if (g.none) parts.push(`이유를 적지 않은 것 ${g.none}번`);
+      const sentence = `${parts.join(", ")}${parts.length ? " — " : ""}모두 <b>${n}번</b> 약속을 어겼어요.`;
+      return `<div class="why-item"><div class="nm"><i>${i+1}</i>${esc(s.name)}</div><div class="txt">${sentence}</div><div class="n">${n}회</div></div>`;
+    }).join("");
+    $("#whyBody").innerHTML = head + `<div class="why-list">${body}</div>` + manageChips();
+  }
+  function manageChips(){
+    const list = savedReasons();
+    if (!list.length) return "";
+    return `<h3>저장된 이유 <small style="font-family:'Gowun Dodum';font-size:13px;color:var(--ink-soft)">× 를 누르면 고르는 목록에서 빠져요 (기록은 그대로)</small></h3>
+      <div class="wp-chips">${list.map(w => `<button data-hide="${esc(w)}">${esc(w)}<span class="why-chip-x">×</span></button>`).join("")}</div>`;
+  }
+  $("#whyBody").addEventListener("click", e => {
+    const b = e.target.closest("[data-hide]"); if (!b) return;
+    const w = b.dataset.hide;
+    S.reasons = (S.reasons||[]).filter(x => x !== w);
+    S.hiddenReasons = [...new Set([...(S.hiddenReasons||[]), w])];
+    save(); renderWhy();
+  });
+  $("#whyBtn").onclick = () => { closeWhy(); renderWhy(); openM("#whyModal"); };
 
   /* ---------- drag to rearrange cards ---------- */
   (function(){
@@ -1165,7 +1328,7 @@
         const day = fmtD(l.t);
         if (day !== lastDay) { html += `<div class="day">${day}</div>`; lastDay = day; }
         const nm = (S.students.find(s=>s.id===l.sid)||{}).name || l.name;
-        html += `<div class="log-item"><time>${fmtT(l.t)}</time><span class="who">${esc(nm)}</span><span class="d ${l.d>0?"p":"m"}">${l.d>0?"+1":"−1"}</span></div>`;
+        html += `<div class="log-item"><time>${fmtT(l.t)}</time><span class="who">${esc(nm)}</span><span class="d ${l.d>0?"p":"m"}">${l.d>0?"+1":"−1"}</span>${l.why ? `<span class="lw" style="color:var(--ink-soft);font-size:14px;${l.x?"text-decoration:line-through;":""}">💬 ${esc(l.why)}</span>` : ""}</div>`;
       });
       $("#logBody").innerHTML = `<p class="desc">${fmtD(S.periodStart)}부터 · 총 ${plog.filter(l=>l.d>0).length}번 기록</p><div class="log">${html}</div>`;
     } else {
