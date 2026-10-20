@@ -669,6 +669,21 @@
   const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
 
   const rulesSorted = () => [...S.rules].sort((a,b)=>a.at-b.at);
+  /* 마지막 단계를 넘으면 같은 순서로 다시 반복 (예: 3·5·7 → 9·11·13 → 15·17·19 …) */
+  function ruleCycle(){
+    const r = rulesSorted(); if (!r.length) return {P:0, base:[], last:0};
+    const f = r[0], last = r[r.length-1].at;
+    const j = r.findIndex((x,i) => i>0 && x.label===f.label && x.emoji===f.emoji);
+    if (j > 0) return {P: r[j].at - f.at, base: r.slice(0,j), last};
+    const gap = r.length > 1 ? last - r[r.length-2].at : f.at;
+    return {P: last - f.at + gap, base: r, last};
+  }
+  function rulesTo(n){
+    const r = rulesSorted(), {P, base, last} = ruleCycle(), out = [...r];
+    if (P > 0) for (let k = 1; base[0].at + k*P <= n; k++)
+      base.forEach(b => { const at = b.at + k*P; if (at > last && at <= n) out.push({...b, at}); });
+    return out.sort((a,b)=>a.at-b.at);
+  }
   let view = "board";
   const pStart = () => new Date(S.periodStart).getTime();
   const stampN = sid => (S.stamps||[]).filter(x => x.sid===sid).length;
@@ -742,7 +757,8 @@
     }).join("");
     $("#ruleChips").innerHTML = rulesSorted().map((r,i) =>
       `<div class="rule-chip r${Math.min(i,2)}"><span class="n">${r.at}회</span><span class="arrow">→</span><span>${esc(r.emoji)} ${esc(r.label)}</span></div>`
-    ).join("") || `<div class="rule-chip">설정에서 약속 단계를 정해 주세요</div>`;
+    ).join("") + (S.rules.length ? `<div class="rule-chip"><span>🔁 그다음부터 같은 순서로 반복</span></div>` : "")
+      || `<div class="rule-chip">설정에서 약속 단계를 정해 주세요</div>`;
     $("#sortBtn").textContent = S.sort === "num" ? "🔢 번호순" : "📊 많은 순";
     $("#soundBtn").classList.toggle("on", !!S.sound);
     $("#soundBtn").textContent = S.sound ? "🔔 소리 켬" : "🔕 소리 끔";
@@ -755,10 +771,12 @@
   }
 
   function cardHTML(s, idx){
-    const c = cnt(s.id), t = tier(c), r = rulesSorted();
-    const max = r.length ? r[r.length-1].at : 5;
+    const c = cnt(s.id), t = tier(c), {P} = ruleCycle();
+    const max0 = S.rules.length ? rulesSorted().slice(-1)[0].at : 5;
+    let max = max0; while (P > 0 && c > max) max += P;
+    const r = rulesTo(max + P);
     const marks = new Set(r.map(x=>x.at));
-    const shown = Math.min(Math.max(c, max), max);
+    const shown = max;
     let dots = "";
     for(let i=1;i<=shown;i++) dots += `<span class="dot${i<=c?" f":""}${marks.has(i)?" mark":""}"></span>`;
     if (c > max) dots += `<span class="more">+${c-max}</span>`;
@@ -766,7 +784,7 @@
     let tags;
     if (tasks.length) {
       tags = tasks.map(k =>
-        `<button class="tag${k.done?" done":""}" data-task="${k.id}" title="다 했으면 눌러서 체크">${esc(k.emoji)} ${esc(k.label)}<span class="ck">${k.done?"✓":""}</span></button>`
+        `<button class="tag${k.done?" done":""}" data-task="${k.id}" title="다 했으면 눌러서 체크">${esc(k.emoji)} ${esc(k.label)}${tasks.some(o=>o!==k && o.label===k.label) ? ` <small>(${k.at}회)</small>` : ""}<span class="ck">${k.done?"✓":""}</span></button>`
       ).join("");
     } else if (c === 0) {
       tags = `<div class="ok">🌱 약속 잘 지키는 중</div>`;
@@ -812,7 +830,7 @@
     S.log.push({sid:id, name:s.name, t:now, d});
     const added = [], removed = [];
     if (d > 0) {
-      rulesSorted().forEach(r => {
+      rulesTo(after).forEach(r => {
         if (before < r.at && after >= r.at && !curTasks(id).some(k=>k.at===r.at)) {
           const k = {id:uid(), sid:id, at:r.at, emoji:r.emoji, label:r.label, t:now, done:false, doneAt:null};
           S.tasks.push(k); added.push(k.id);
@@ -844,7 +862,7 @@
       }
     }
     if (crossed) {
-      const r = rulesSorted().filter(r => before < r.at && after >= r.at).pop();
+      const r = rulesTo(after).filter(r => before < r.at && after >= r.at).pop();
       fanfare();
       toast(`${s.name} ${after}회 → ${r.emoji} ${r.label}`, true);
     } else {
