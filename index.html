@@ -138,6 +138,19 @@
   .clock .sec{font-size:28px;opacity:.7;min-width:34px;font-variant-numeric:tabular-nums}
   body.big .clock .hm{font-size:72px}
   @media (max-width:560px){.clock .hm{font-size:40px}.clock .ap,.clock .sec{font-size:18px}}
+  .clock{cursor:pointer;transition:transform .15s} .clock:hover{transform:scale(1.03)}
+  #bigClock{position:fixed;inset:0;z-index:9999;display:none;flex-direction:column;align-items:center;justify-content:center;gap:2vh;
+    background:radial-gradient(ellipse at center,#46695a 0%,#2f4a3d 70%,#263d32 100%);color:#fdfbf6;font-family:"Jua";cursor:pointer;
+    border:clamp(10px,2vw,26px) solid #b98a5a;user-select:none}
+  #bigClock.open{display:flex;animation:bcIn .4s ease}
+  @keyframes bcIn{from{opacity:0}to{opacity:1}}
+  #bigClock .bc-date{font-size:clamp(24px,4.5vw,64px);opacity:.85}
+  #bigClock .bc-time{display:flex;align-items:baseline;gap:2vw;line-height:1;font-variant-numeric:tabular-nums}
+  #bigClock .bc-ap{font-size:clamp(28px,6vw,90px);opacity:.85}
+  #bigClock .bc-hm{font-size:clamp(90px,24vw,380px);letter-spacing:.02em}
+  #bigClock .bc-sec{font-size:clamp(32px,7vw,110px);opacity:.6;min-width:1.3em}
+  #bigClock .bc-msg{font-size:clamp(18px,2.6vw,36px);opacity:.75;margin-top:1vh}
+  #bigClock .bc-hint{position:absolute;bottom:3vh;font-size:clamp(13px,1.4vw,20px);opacity:.45}
   .tabnav button.on{background:var(--paper);color:var(--ink);border-color:var(--line)}
   .tabnav button .badge{display:inline-block;min-width:22px;padding:1px 7px;margin-left:6px;border-radius:999px;background:#c23356;color:#fff;font-size:13px;vertical-align:2px}
   .view{background:var(--paper);border:2px solid var(--line);border-radius:0 22px 22px 22px;padding:16px;box-shadow:var(--shadow)}
@@ -415,6 +428,12 @@
 </style>
 </head>
 <body>
+<div id="bigClock" role="button" aria-label="시계 화면 닫기">
+  <div class="bc-date" id="bcDate"></div>
+  <div class="bc-time"><span class="bc-ap" id="bcAp"></span><span class="bc-hm" id="bcHm"></span><span class="bc-sec" id="bcSec"></span></div>
+  <div class="bc-msg">✋ 말하고 싶을 땐 손을 들어요</div>
+  <div class="bc-hint">화면을 누르면 보드로 돌아가요</div>
+</div>
 <div class="wrap">
   <header class="top">
     <div class="title">
@@ -446,6 +465,7 @@
       <button class="btn" id="sortBtn" title="정렬 바꾸기">🔢 번호순</button>
       <button class="btn" id="soundBtn" title="효과음">🔔 소리</button>
       <button class="btn" id="bigBtn" title="전체 화면으로 크게 보기">🖥️ 크게 보기</button>
+      <button class="btn" id="clockBtn" title="시계만 크게 보기 (5분 동안 아무것도 안 누르면 자동으로 켜져요)">🕐 시계</button>
       <button class="btn" id="logBtn">📒 기록</button>
       <button class="btn primary" id="setBtn">⚙️ 설정</button>
     </div>
@@ -1560,8 +1580,34 @@
     $("#clkAp").textContent = h<12 ? "오전" : "오후";
     $("#clkHm").textContent = `${h%12||12}:${m}`;
     $("#clkSec").textContent = sc;
+    if (bcOpen) {
+      $("#bcAp").textContent = h<12 ? "오전" : "오후";
+      $("#bcHm").textContent = `${h%12||12}:${m}`;
+      $("#bcSec").textContent = sc;
+      $("#bcDate").textContent = `${d.getMonth()+1}월 ${d.getDate()}일 ${"일월화수목금토"[d.getDay()]}요일`;
+    }
     if (d.getSeconds()===0 && !ttEditing) renderTT();
   }
+  /* ---------- 시계 전체화면: 시계 버튼, 또는 5분 동안 아무 조작이 없을 때 ---------- */
+  const IDLE_MS = 5*60*1000;
+  let bcOpen = false, lastAct = Date.now();
+  function openBigClock(){
+    if (bcOpen) return;
+    bcOpen = true; $("#bigClock").classList.add("open"); tickClock();
+  }
+  function closeBigClock(){
+    bcOpen = false; lastAct = Date.now(); $("#bigClock").classList.remove("open");
+  }
+  $("#clock").addEventListener("click", e => { e.stopPropagation(); openBigClock(); });
+  $("#clockBtn").onclick = e => { e.stopPropagation(); openBigClock(); };
+  $("#bigClock").addEventListener("click", e => { e.stopPropagation(); closeBigClock(); });
+  ["pointerdown","keydown","wheel","touchstart","input"].forEach(ev =>
+    document.addEventListener(ev, e => {
+      lastAct = Date.now();
+      if (bcOpen && ev==="keydown") { e.preventDefault(); closeBigClock(); }
+    }, {capture:true, passive: ev!=="keydown"}));
+  setInterval(() => { if (!bcOpen && Date.now() - lastAct >= IDLE_MS) openBigClock(); }, 5000);
+
   tickClock(); setInterval(tickClock, 1000);
 
   autoCheck();
