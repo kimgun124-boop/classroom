@@ -151,6 +151,22 @@
   #bigClock .bc-sec{font-size:clamp(32px,7vw,110px);opacity:.6;min-width:1.3em}
   #bigClock .bc-msg{font-size:clamp(30px,5.5vw,84px);opacity:.92;margin-top:2vh}
   #bigClock .bc-hint{position:absolute;bottom:3vh;font-size:clamp(13px,1.4vw,20px);opacity:.45}
+
+  /* ---------- 수업 30초 전 자리 알림 ---------- */
+  #seatCall{position:fixed;inset:0;z-index:10000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:2.2vh;
+    background:radial-gradient(ellipse at center,#fff6e6 0%,#ffe2c4 75%,#ffcfa6 100%);color:#5a3a1c;font-family:"Jua";cursor:pointer;
+    border:clamp(10px,2vw,26px) solid #ff8a5b;user-select:none;text-align:center;padding:4vh 4vw}
+  #seatCall.open{display:flex;animation:bcIn .3s ease}
+  #seatCall .sc-chair{font-size:clamp(90px,18vw,260px);line-height:1;animation:scHop 1s ease-in-out infinite}
+  @keyframes scHop{0%,100%{transform:translateY(0)}40%{transform:translateY(-6%) rotate(-4deg)}70%{transform:translateY(0) rotate(3deg)}}
+  #seatCall .sc-msg{font-size:clamp(46px,9vw,150px);line-height:1.1;color:#c2562a;word-break:keep-all}
+  #seatCall .sc-sub{font-size:clamp(22px,3.6vw,56px);opacity:.85}
+  #seatCall .sc-sub b{font-weight:400;color:#c2562a;font-variant-numeric:tabular-nums;font-size:1.25em}
+  #seatCall .sc-dots{display:flex;gap:1.4vw;margin-top:1vh}
+  #seatCall .sc-dots i{width:clamp(18px,2.4vw,36px);height:clamp(18px,2.4vw,36px);border-radius:50%;background:rgba(194,86,42,.18);transition:background .2s,transform .2s}
+  #seatCall .sc-dots i.on{background:#ff8a5b;transform:scale(1.25)}
+  #seatCall .sc-dots i.done{background:#c2562a}
+  #seatCall .sc-hint{position:absolute;bottom:3vh;font-size:clamp(13px,1.4vw,20px);opacity:.5}
   .tabnav button.on{background:var(--paper);color:var(--ink);border-color:var(--line)}
   .tabnav button .badge{display:inline-block;min-width:22px;padding:1px 7px;margin-left:6px;border-radius:999px;background:#c23356;color:#fff;font-size:13px;vertical-align:2px}
   .view{background:var(--paper);border:2px solid var(--line);border-radius:0 22px 22px 22px;padding:16px;box-shadow:var(--shadow)}
@@ -641,6 +657,13 @@
 </style>
 </head>
 <body>
+<div id="seatCall" role="alertdialog" aria-label="자리에 앉아요">
+  <div class="sc-chair" aria-hidden="true">🪑</div>
+  <div class="sc-msg">자리에 앉아요!</div>
+  <div class="sc-sub" id="scSub"></div>
+  <div class="sc-dots" id="scDots"></div>
+  <div class="sc-hint">화면을 누르면 닫혀요</div>
+</div>
 <div id="bigClock" role="button" aria-label="시계 화면 닫기">
   <div class="bc-date" id="bcDate"></div>
   <div class="bc-time"><span class="bc-ap" id="bcAp"></span><span class="bc-hm" id="bcHm"></span><span class="bc-sec" id="bcSec"></span></div>
@@ -688,6 +711,7 @@
       <button class="btn sfx" data-sfx="7" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">오키</span></button>
       <button class="btn sfx-ed" id="sfxEdit" title="소리 버튼 이름 바꾸기" aria-label="소리 버튼 이름 바꾸기">✏️</button>
       <button class="btn" id="bigBtn" title="전체 화면으로 크게 보기">🖥️ 크게 보기</button>
+      <button class="btn" id="seatBtn" title="수업 시작 30초 전에 ‘자리’ 소리를 5번 들려줘요 (시간표의 시작 시간 기준)">🪑 자리 알림</button>
       <button class="btn" id="clockBtn" title="시계만 크게 보기 (5분 동안 아무것도 안 누르면 자동으로 켜져요)">🕐 시계</button>
       <button class="btn" id="whyBtn" title="왜 눌렸는지 모아 보기">💬 이유 모아 보기</button>
       <button class="btn" id="logBtn">📒 기록</button>
@@ -2693,6 +2717,81 @@
     voiceBuf = null; updateRecUI();
   };
   loadVoice();
+
+
+  /* ---------- 수업 시작 30초 전: '자리' 소리 5번 + 큰 화면 ---------- */
+  const SEAT_LEAD = 30, SEAT_REPEAT = 5;
+  if (typeof S.seatAlert !== "boolean") S.seatAlert = true;
+  let seatFired = {}, seatRun = null;
+  function renderSeatBtn(){
+    const b = $("#seatBtn"); b.classList.toggle("on", S.seatAlert);
+    b.textContent = S.seatAlert ? "🪑 자리 알림 켬" : "🪑 자리 알림 끔";
+  }
+  function seatPeriods(wd){   // 오늘 수업이 있는 교시의 시작 시각(분)
+    const subs = (S.tt && S.tt.days && S.tt.days[wd]) || [], times = (S.tt && S.tt.times) || [];
+    const anySub = subs.some(x => (x||"").trim());
+    const out = [];
+    times.forEach((t,i) => { const a = toMin(t && t[0]); if (a != null && (!anySub || (subs[i]||"").trim())) out.push({i, a}); });
+    return out;
+  }
+  function stopSeat(){
+    if (!seatRun) return;
+    seatRun.stop = true; clearInterval(seatRun.tick);
+    const x = sfxAudio[0]; x.onended = null; x.pause(); x.currentTime = 0;
+    $("#seatCall").classList.remove("open"); seatRun = null;
+  }
+  function startSeat(period, startAt){
+    stopSeat();
+    const run = seatRun = {stop:false, n:0, startAt, period};
+    $("#scDots").innerHTML = Array.from({length:SEAT_REPEAT}, () => "<i></i>").join("");
+    const upd = () => {
+      const left = Math.max(0, Math.ceil((run.startAt - Date.now())/1000));
+      $("#scSub").innerHTML = left > 0 ? `${period+1}교시 시작까지 <b>${left}</b>초` : `${period+1}교시 시작!`;
+      document.querySelectorAll("#scDots i").forEach((d,k) => { d.className = k < run.n - 1 ? "done" : (k === run.n - 1 ? "on" : ""); });
+      if (left <= 0 && run.n >= SEAT_REPEAT && sfxAudio[0].paused) setTimeout(() => { if (seatRun === run) stopSeat(); }, 3000);
+    };
+    const playOne = () => {
+      if (run.stop) return;
+      if (run.n >= SEAT_REPEAT){ upd(); return; }
+      run.n++; upd();
+      const x = sfxAudio[0];
+      sfxAudio.forEach((o,j) => { if (j) { o.pause(); o.currentTime = 0; } });
+      x.currentTime = 0; x.volume = 1;
+      x.onended = () => { if (!run.stop) setTimeout(playOne, 700); };
+      const pr = x.play();
+      if (pr && pr.catch) pr.catch(() => { toast("소리를 틀 수 없어요. 보드 화면을 한 번 눌러 두면 다음부터 소리가 나요.", false); run.n = SEAT_REPEAT; upd(); });
+    };
+    $("#seatCall").classList.add("open");
+    run.tick = setInterval(upd, 250);
+    playOne();
+    setTimeout(() => { if (seatRun === run) stopSeat(); }, (SEAT_LEAD + 60) * 1000);   // 혹시 남아 있어도 1분 뒤엔 닫기
+  }
+  function checkSeat(){
+    if (!S.seatAlert || seatRun) return;
+    const now = new Date(), wd = now.getDay();
+    if (wd < 1 || wd > 5) return;
+    const sec = now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds();
+    const day = now.toDateString();
+    seatPeriods(wd).forEach(({i, a}) => {
+      const left = a*60 - sec, key = day + "#" + i;
+      if (left > 0 && left <= SEAT_LEAD && !seatFired[key]){
+        seatFired[key] = true;
+        const d = new Date(now); d.setHours(Math.floor(a/60), a%60, 0, 0);
+        startSeat(i, d.getTime());
+      }
+    });
+  }
+  $("#seatCall").addEventListener("click", e => { e.stopPropagation(); stopSeat(); });
+  $("#seatBtn").onclick = () => {
+    S.seatAlert = !S.seatAlert; save(); renderSeatBtn();
+    if (S.seatAlert){
+      const now = new Date(), cur = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
+      const nx = (now.getDay()>=1 && now.getDay()<=5) ? seatPeriods(now.getDay()).find(p => p.a > cur + 0.5) : null;
+      toast(nx ? `🪑 ${nx.i+1}교시 시작 30초 전에 ‘자리’ 소리가 5번 나와요` : "🪑 수업 시작 30초 전마다 ‘자리’ 소리가 5번 나와요", false);
+    } else toast("🪑 자리 알림을 껐어요", false);
+  };
+  renderSeatBtn();
+  setInterval(checkSeat, 1000);
 
   tickClock(); setInterval(tickClock, 1000);
 
