@@ -559,6 +559,13 @@
   .why-hist{margin-top:4px;font-size:14px;color:var(--ink-soft)}
   .why-hist summary{cursor:pointer;width:max-content}
   .why-hist ul{margin:6px 0 0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:3px}
+  .why-hist li{display:flex;align-items:center;gap:4px;padding:2px 4px;border-radius:8px}
+  .why-hist li:hover{background:#fff}
+  .why-hist .hw{flex:1;min-width:0;color:var(--ink)}
+  .why-act{flex:none;display:flex;gap:2px;opacity:.45}
+  .why-hist li:hover .why-act{opacity:1}
+  .why-act button{font-size:14px;padding:2px 5px;border-radius:7px;background:transparent}
+  .why-act button:hover{background:#f3ebdf}
   .why-hist time{display:inline-block;min-width:122px;margin-right:6px;font-variant-numeric:tabular-nums;color:#a08a70}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -1098,11 +1105,7 @@
     if (ei >= 0) S.log.splice(ei, 1);
     else for (let i = S.log.length-1; i>=0; i--) if (S.log[i].sid===id && S.log[i].d===d) { S.log.splice(i,1); break; }
     if (cancelled) delete cancelled.x;
-    if (entry && entry.wid) {
-      S.whyLog = (S.whyLog||[]).filter(w => w.id !== entry.wid);
-      const w0 = normWhy(entry.why);
-      if (w0 && !S.whyLog.some(x => normWhy(x.why) === w0)) S.reasons = (S.reasons||[]).filter(x => x !== w0);
-    }
+    // 적어 둔 이유는 되돌리기를 해도 지우지 않아요 (이유 모아 보기에서 고치거나 지울 수 있음)
     if (whyEntry && whyEntry === entry) closeWhy();
     S.tasks = S.tasks.filter(k => !added.includes(k.id)).concat(removed);
     save(); render();
@@ -1200,7 +1203,7 @@
     rows.forEach(r => r.g.arr.forEach(([w,n]) => total.set(w, (total.get(w)||0)+n)));
     const top = [...total.entries()].sort((a,b)=>b[1]-a[1]).slice(0,3);
     $("#whyDesc").innerHTML = `<span class="seg why-seg"><button class="${sc==="all"?"on":""}" data-scope="all">📚 전체 기록</button><button class="${sc==="now"?"on":""}" data-scope="now">🗓️ 이번 기간</button></span>
-      <span style="display:block;margin-top:8px">적어 둔 이유는 횟수를 빼거나 보드를 초기화해도 지워지지 않고 계속 쌓여요. 같은 이유는 하나로 묶어서 보여 줘요.</span>`;
+      <span style="display:block;margin-top:8px">적어 둔 이유는 −로 빼거나 되돌리기·초기화를 해도 지워지지 않고 계속 쌓여요. 날짜별 목록의 ✏️로 고치고 🗑️로 지울 수 있어요.</span>`;
     const medal = ["🥇","🥈","🥉"];
     const head = top.length
       ? `<div class="why-top">우리 반에서 가장 많이 나온 이유는 ${top.map(([w,n],k) => `${medal[k]} <b>${esc(w)}</b> ${n}번`).join(", ")}이에요.<br>다 함께 조심해 봐요! 🙌</div>`
@@ -1210,9 +1213,9 @@
       const k = g.items.length;
       const parts = g.arr.map(([w,c]) => `<q>${esc(w)}</q> ${c}번`);
       const sentence = `${parts.join(", ")} — ${sc==="all" ? "지금까지" : "이번 기간에"} 모두 <b>${k}번</b> 약속을 어겼어요.`;
-      const hist = [...g.items].sort((a,b)=>b.t-a.t).map(x => `<li><time>${fmtWT(x.t)}</time>${esc(x.why)}</li>`).join("");
+      const hist = [...g.items].sort((a,b)=>b.t-a.t).map(x => `<li><time>${fmtWT(x.t)}</time><span class="hw">${esc(x.why)}</span><span class="why-act"><button data-wedit="${x.id}" title="이 이유 고치기" aria-label="고치기">✏️</button><button data-wdel="${x.id}" title="이 이유 지우기" aria-label="지우기">🗑️</button></span></li>`).join("");
       return `<div class="why-item"><div class="nm"><i>${gone?"":i+1}</i>${esc(s.name)}</div>
-        <div class="txt">${sentence}<details class="why-hist"><summary>날짜별로 보기</summary><ul>${hist}</ul></details></div>
+        <div class="txt">${sentence}<details class="why-hist" open><summary>날짜별로 보기 · ✏️ 고치기</summary><ul>${hist}</ul></details></div>
         <div class="n" title="적힌 이유 수">${k}번</div></div>`;
     }).join("");
     $("#whyBody").innerHTML = head + `<div class="why-list">${body}</div>` + manageChips();
@@ -1225,6 +1228,32 @@
   }
   $("#whyDesc").addEventListener("click", e => { const b = e.target.closest("[data-scope]"); if (b) { whyScope = b.dataset.scope; renderWhy(); } });
   $("#whyBody").addEventListener("click", e => {
+    const ed = e.target.closest("[data-wedit]"), dl = e.target.closest("[data-wdel]");
+    if (ed || dl) {
+      e.preventDefault();
+      const id = (ed || dl).dataset[ed ? "wedit" : "wdel"];
+      const it = (S.whyLog||[]).find(w => w.id === id); if (!it) return;
+      const keep = [...document.querySelectorAll("#whyBody details.why-hist")].map(d => d.open);
+      if (ed) {
+        const v = prompt(`${it.name} — 이유 고치기`, it.why);
+        if (v === null) return;
+        const w = normWhy(v);
+        if (!w) { toast("내용이 비어 있어요. 지우려면 🗑️을 눌러 주세요.", false); return; }
+        it.why = w;
+        S.log.forEach(l => { if (l.wid === id) l.why = w; });
+        S.reasons = S.reasons || []; if (!S.reasons.includes(w)) S.reasons.push(w);
+        if (S.hiddenReasons) S.hiddenReasons = S.hiddenReasons.filter(x => x !== w);
+        toast(`✏️ ${it.name}: ${w}`, false);
+      } else {
+        if (!confirm(`${it.name}의 이유 "${it.why}"를 지울까요?`)) return;
+        S.whyLog = S.whyLog.filter(w => w.id !== id);
+        S.log.forEach(l => { if (l.wid === id) { delete l.why; delete l.wid; } });
+        toast("🗑️ 이유를 지웠어요", false);
+      }
+      save(); render(); renderWhy();
+      document.querySelectorAll("#whyBody details.why-hist").forEach((d,i) => { if (keep[i] === false) d.open = false; });
+      return;
+    }
     const b = e.target.closest("[data-hide]"); if (!b) return;
     const w = b.dataset.hide;
     S.reasons = (S.reasons||[]).filter(x => x !== w);
@@ -1463,7 +1492,7 @@
         const day = fmtD(l.t);
         if (day !== lastDay) { html += `<div class="day">${day}</div>`; lastDay = day; }
         const nm = (S.students.find(s=>s.id===l.sid)||{}).name || l.name;
-        html += `<div class="log-item"><time>${fmtT(l.t)}</time><span class="who">${esc(nm)}</span><span class="d ${l.d>0?"p":"m"}">${l.d>0?"+1":"−1"}</span>${l.why ? `<span class="lw" style="color:var(--ink-soft);font-size:14px;${l.x?"text-decoration:line-through;":""}">💬 ${esc(l.why)}</span>` : ""}</div>`;
+        html += `<div class="log-item"><time>${fmtT(l.t)}</time><span class="who">${esc(nm)}</span><span class="d ${l.d>0?"p":"m"}">${l.d>0?"+1":"−1"}</span>${l.why ? `<span class="lw" style="color:var(--ink-soft);font-size:14px;">💬 ${esc(l.why)}</span>` : ""}</div>`;
       });
       $("#logBody").innerHTML = `<p class="desc">${fmtD(S.periodStart)}부터 · 총 ${plog.filter(l=>l.d>0).length}번 기록</p><div class="log">${html}</div>`;
     } else {
