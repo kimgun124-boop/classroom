@@ -464,6 +464,10 @@
   .mt-recbar{display:flex;gap:6px;margin:-4px 0 12px}
   .mt-recbar button{font-family:"Jua";font-size:14px;padding:7px 8px;border-radius:12px;background:#f9ece9;color:#b2493b;border:2px dashed #efc4bc}
   .mt-recbar #mtRec{flex:1}
+  .mt-recbar #mtYT{flex:none;width:40px;padding:7px 0;filter:grayscale(1);opacity:.6}
+  .mt-recbar #mtYT.on{filter:none;opacity:1;background:#fff0f0;border-style:solid;border-color:#ff9a9a}
+  #ytBox{position:fixed;left:-9999px;bottom:20px;width:240px;height:135px;z-index:10000;border-radius:14px;overflow:hidden;box-shadow:0 8px 30px rgba(0,0,0,.5);pointer-events:none}
+  #ytBox.show{left:20px}
   .mt-recbar button:hover{background:#f6ded8}
   .mt-recbar #mtRec.rec{background:#e5484d;color:#fff;border-color:#e5484d;animation:mtPuff 1s ease-in-out infinite}
   .mt-body{display:flex;gap:8px}
@@ -609,13 +613,14 @@
     <button class="btn primary" id="hintBtn">명단 입력하기</button>
   </div>
 
+  <div id="ytBox"></div>
   <div id="scary" aria-hidden="true"><div><div class="face">😡</div><div class="txt">조용히 안 해?</div></div></div>
   <div class="board-layout">
     <aside class="mt" id="mt" aria-label="선생님 마음 온도계">
       <div class="mt-head"><h2>🌡️ 선생님<br>마음 온도계</h2></div>
       <div class="mt-now"><div class="mt-face" id="mtFace">🥰</div><span class="mt-lvl" id="mtLvl">1단계</span><div class="mt-msg" id="mtMsg"></div></div>
       <div class="mt-ctl"><button id="mtDown" title="온도 내리기">▼ 내리기</button><button id="mtUp" title="온도 올리기">▲ 올리기</button></div>
-      <div class="mt-recbar"><button id="mtRec">🎙️ 10단계 목소리 녹음</button><button id="mtRecDel" title="녹음 지우기" aria-label="녹음 지우기" hidden>🗑️</button></div>
+      <div class="mt-recbar"><button id="mtYT" aria-label="유튜브 목소리 설정">▶️</button><button id="mtRec">🎙️ 10단계 목소리 녹음</button><button id="mtRecDel" title="녹음 지우기" aria-label="녹음 지우기" hidden>🗑️</button></div>
       <div class="mt-body">
         <div class="mt-scale" aria-hidden="true"><div class="mt-tube" id="mtTube"><div class="mt-fill" id="mtFill"></div></div><div class="mt-bulb"></div></div>
         <div class="mt-rows" id="mtRows"></div>
@@ -2140,7 +2145,8 @@
     if (S.mood !== 10 || scaryBusy || recState) return;
     scaryBusy = true;
     let sec = 3.2;
-    if (voiceBuf){ try{ sec = Math.min(5.5, playDemon(voiceBuf)); scaryRumble(Math.min(sec, 3)); }catch(e){ scaryRumble(sec); ttsVoice(); } }
+    if (ytUsable()){ sec = ytPlay(); scaryRumble(Math.min(sec, 2.5)); }
+    else if (voiceBuf){ try{ sec = Math.min(5.5, playDemon(voiceBuf)); scaryRumble(Math.min(sec, 3)); }catch(e){ scaryRumble(sec); ttsVoice(); } }
     else { scaryRumble(sec); ttsVoice(); }
     const ov = $("#scary");
     ov.style.animationDuration = sec + "s";
@@ -2152,6 +2158,63 @@
   document.querySelector("#mt .mt-now").addEventListener("pointerdown", scaryShout);
   $("#mtFace").title = "10단계일 때 눌러 보세요";
 
+  // ---- 유튜브 영상 소리 (기본: 보이스가드 "조용히해" 남자 목소리) ----
+  const YKEY = "classroom.scaryYT";
+  const YT_DEFAULT = {id:"R1wG2KRm3nw", start:0, dur:6};
+  let ytCfg = YT_DEFAULT, ytPlayer = null, ytReady = false, ytFailed = false, ytStopT = 0;
+  try{ const v = JSON.parse(localStorage.getItem(YKEY) || "null"); if (v === false) ytCfg = null; else if (v && v.id) ytCfg = v; }catch(e){}
+  function ytUsable(){ return !!(ytCfg && ytReady && !ytFailed && ytPlayer && navigator.onLine !== false); }
+  function ytPlay(){
+    const dur = Math.max(1, Math.min(20, +ytCfg.dur || 6));
+    clearTimeout(ytStopT);
+    const box = $("#ytBox"); box.classList.add("show");
+    try{
+      ytPlayer.unMute(); ytPlayer.setVolume(100);
+      ytPlayer.seekTo(+ytCfg.start || 0, true); ytPlayer.playVideo();
+    }catch(e){ ytFailed = true; }
+    ytStopT = setTimeout(() => { try{ ytPlayer.pauseVideo(); }catch(e){} box.classList.remove("show"); }, dur*1000);
+    return dur + .3;
+  }
+  function ytBuild(){
+    ytReady = false; ytFailed = false;
+    if (ytPlayer){ try{ ytPlayer.destroy(); }catch(e){} ytPlayer = null; }
+    $("#ytBox").innerHTML = '<div id="ytPlayer"></div>';
+    if (!ytCfg || !window.YT || !YT.Player) return;
+    ytPlayer = new YT.Player("ytPlayer", {
+      width: 240, height: 135, videoId: ytCfg.id,
+      playerVars: {start: +ytCfg.start || 0, controls: 0, disablekb: 1, playsinline: 1, rel: 0, fs: 0, modestbranding: 1},
+      events: {
+        onReady: () => { ytReady = true; try{ ytPlayer.setVolume(100); }catch(e){} updateRecUI(); },
+        onError: () => { ytFailed = true; updateRecUI(); }   // 삭제됨·퍼가기 금지 등 → 녹음/컴퓨터 목소리로
+      }
+    });
+  }
+  window.onYouTubeIframeAPIReady = ytBuild;
+  (function(){ const s = document.createElement("script"); s.src = "https://www.youtube.com/iframe_api"; s.async = true; s.onerror = () => { ytFailed = true; }; document.head.appendChild(s); })();
+  function ytParse(url){
+    url = (url || "").trim();
+    const m = url.match(/(?:youtu\.be\/|v=|shorts\/|embed\/)([\w-]{11})/) || url.match(/^([\w-]{11})$/);
+    if (!m) return null;
+    const t = url.match(/[?&]t=(\d+)/);
+    return {id: m[1], start: t ? +t[1] : 0};
+  }
+  function ytSetup(){
+    const cur = ytCfg ? `https://youtu.be/${ytCfg.id}${ytCfg.start ? "?t="+ytCfg.start : ""}` : "";
+    const u = prompt("10단계 목소리로 쓸 유튜브 주소를 넣어 주세요.\n(비워 두고 확인 → 유튜브 끄고 녹음/컴퓨터 목소리 사용)", cur);
+    if (u === null) return;
+    if (!u.trim()){ ytCfg = null; try{ localStorage.setItem(YKEY, "false"); }catch(e){} ytBuild(); updateRecUI(); toast("유튜브 목소리를 껐어요", false); return; }
+    const v = ytParse(u);
+    if (!v){ toast("유튜브 주소를 알아보지 못했어요", false); return; }
+    const st = prompt("몇 초부터 틀까요? (영상 시작이면 0)", String(v.start || (ytCfg && ytCfg.id === v.id ? ytCfg.start : 0) || 0));
+    if (st === null) return;
+    const du = prompt("몇 초 동안 틀까요? (1~20초)", String((ytCfg && ytCfg.dur) || 6));
+    if (du === null) return;
+    ytCfg = {id: v.id, start: Math.max(0, parseInt(st,10) || 0), dur: Math.max(1, Math.min(20, parseInt(du,10) || 6))};
+    try{ localStorage.setItem(YKEY, JSON.stringify(ytCfg)); }catch(e){}
+    ytBuild(); updateRecUI(); toast("유튜브 목소리로 바꿨어요. 10단계에서 얼굴을 눌러 보세요!", false);
+  }
+  $("#mtYT").onclick = ytSetup;
+
   // ---- 선생님 목소리 녹음 ----
   let recState = null;   // {rec, stream, chunks, timer}
   function updateRecUI(){
@@ -2159,6 +2222,8 @@
     if (!b) return;
     if (recState){ b.textContent = "⏹️ 녹음 끝내기"; b.classList.add("rec"); x.hidden = true; return; }
     b.classList.remove("rec");
+    const y = $("#mtYT");
+    if (y){ y.classList.toggle("on", !!(ytCfg && !ytFailed)); y.title = !ytCfg ? "유튜브 목소리 꺼짐 — 눌러서 유튜브 주소 넣기" : ytFailed ? "유튜브 영상을 틀 수 없어요 (인터넷·퍼가기 금지) — 녹음/컴퓨터 목소리로 대신해요" : `유튜브 목소리 사용 중 (${ytCfg.start}초부터 ${ytCfg.dur}초) — 눌러서 바꾸기`; }
     b.textContent = voiceBuf ? "🎙️ 다시 녹음" : "🎙️ 10단계 목소리 녹음";
     b.title = voiceBuf ? "녹음된 목소리를 악마 목소리로 바꿔서 틀어 줘요. 다시 녹음하려면 누르세요." : "\"조용히 안 해?\"를 직접 녹음하면 훨씬 무서운 악마 목소리로 바뀌어요";
     x.hidden = !voiceBuf;
