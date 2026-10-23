@@ -441,7 +441,7 @@
   @keyframes mtShake{0%,100%{transform:none}20%{transform:rotate(-7deg) scale(1.05)}40%{transform:rotate(6deg) scale(1.05)}60%{transform:rotate(-4deg)}80%{transform:rotate(3deg)}}
   .mt.lv10 .mt-now::after{content:"💢";position:absolute;top:6px;right:10px;font-size:26px;animation:mtPuff 1.2s ease-in-out infinite}
   @keyframes mtPuff{0%,100%{opacity:.4;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
-  .mt.lv10 .mt-face{cursor:pointer}
+  .mt.lv10 .mt-now{cursor:pointer}
   .mt.lv10 .mt-face:active{transform:scale(.92)}
   /* 10단계 이모티콘 → "조용히 안 해?" */
   #scary{position:fixed;inset:0;z-index:9999;display:none;place-items:center;pointer-events:none;background:radial-gradient(ellipse at center,rgba(120,0,0,.15) 0%,rgba(90,0,0,.55) 60%,rgba(30,0,0,.85) 100%)}
@@ -2078,7 +2078,8 @@
     scaryRumble(); scaryVoice();
     setTimeout(() => { ov.classList.remove("on"); document.body.classList.remove("sc-quake"); scaryBusy = false; }, 2700);
   }
-  $("#mtFace").addEventListener("click", scaryShout);
+  // 흔들리는 얼굴을 놓쳐도 되도록 얼굴 주변 칸 전체를 누를 수 있게
+  document.querySelector("#mt .mt-now").addEventListener("pointerdown", scaryShout);
   $("#mtFace").title = "10단계일 때 눌러 보세요";
 
   tickClock(); setInterval(tickClock, 1000);
