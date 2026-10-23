@@ -585,6 +585,58 @@
   .why-act button{font-size:14px;padding:2px 5px;border-radius:7px;background:transparent}
   .why-act button:hover{background:#f3ebdf}
   .why-hist time{display:inline-block;min-width:122px;margin-right:6px;font-variant-numeric:tabular-nums;color:#a08a70}
+  /* ---------- 📆 달력 ---------- */
+  .cal-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .cal-top .month b{font-family:"Jua";font-weight:400;font-size:26px;min-width:150px;text-align:center;display:inline-block}
+  .cal-tools{display:flex;gap:8px;flex-wrap:wrap}
+  .cal-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border:2px solid var(--line);border-radius:18px;overflow:hidden;background:var(--line);gap:1px}
+  .cal-wd{background:#faf4ea;font-family:"Jua";text-align:center;padding:8px 0;font-size:16px;color:var(--ink-soft)}
+  .cal-wd.sun{color:#d2453b}.cal-wd.sat{color:#2f6fc2}
+  .cal-day{background:#fff;min-height:112px;padding:6px 6px 8px;text-align:left;display:flex;flex-direction:column;gap:3px;cursor:pointer;position:relative;transition:background .12s}
+  .cal-day:hover{background:#fffaf2}
+  .cal-day.out{background:#fbf8f3}.cal-day.out .dn{opacity:.35}
+  .cal-day .dn{font-family:"Jua";font-size:18px;line-height:1;display:flex;align-items:center;gap:6px}
+  .cal-day.sun .dn{color:#d2453b}.cal-day.sat .dn{color:#2f6fc2}
+  .cal-day.today .dn b{background:var(--accent);color:#fff;border-radius:999px;padding:3px 8px}
+  .cal-day.sel{outline:3px solid var(--sky);outline-offset:-3px;z-index:1}
+  .cal-day .memo-dot{font-size:13px}
+  .ev{display:block;font-size:13px;line-height:1.3;border-radius:7px;padding:2px 6px;background:var(--ec,#f5f1ea);color:var(--ei,#6f665d);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:700}
+  .ev.cont{border-radius:3px;opacity:.85}
+  .ev.done{text-decoration:line-through;opacity:.55}
+  .cal-more{font-size:12px;color:var(--ink-soft);padding-left:4px}
+  .cal-side{display:flex;flex-direction:column;gap:14px}
+  .cal-card{border:2px solid var(--line);border-radius:20px;padding:14px;background:#fffdf9}
+  .cal-card h3{font-family:"Jua";font-weight:400;font-size:20px;margin:0 0 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .cal-card textarea{width:100%;min-height:96px;font-family:inherit;font-size:15px;border:2px solid var(--line);border-radius:12px;padding:8px 10px;resize:vertical;background:#fff;color:var(--ink)}
+  .ev-row{display:flex;align-items:flex-start;gap:8px;border:2px solid var(--line);border-radius:14px;padding:8px 10px;margin-bottom:8px;background:#fff;cursor:pointer}
+  .ev-row:hover{border-color:#e2d3bf}
+  .ev-row .em{font-size:20px;line-height:1.2}
+  .ev-row .t{font-weight:700;font-size:15px}
+  .ev-row .m{font-size:13px;color:var(--ink-soft);white-space:pre-wrap;margin-top:2px}
+  .ev-row .ck{margin-left:auto;font-size:18px;background:none;border:0;cursor:pointer}
+  .ev-row.done .t{text-decoration:line-through;color:var(--ink-soft)}
+  .dday{font-family:"Jua";font-size:13px;background:#ffe9dc;color:#c2562a;border-radius:8px;padding:1px 7px;white-space:nowrap}
+  .dday.d0{background:var(--accent);color:#fff}
+  .cal-empty{color:var(--ink-soft);font-size:14px;padding:6px 2px}
+  .ev-form{display:grid;gap:10px}
+  .ev-form label{display:grid;gap:4px;font-size:14px;color:var(--ink-soft)}
+  .ev-form input,.ev-form select,.ev-form textarea{font-family:inherit;font-size:16px;border:2px solid var(--line);border-radius:12px;padding:9px 10px;background:#fff;color:var(--ink);width:100%}
+  .ev-form .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .cat-pick{display:flex;flex-wrap:wrap;gap:6px}
+  .cat-pick button{border:2px solid transparent;border-radius:999px;padding:6px 12px;font-size:14px;background:var(--ec);color:var(--ei);font-weight:700}
+  .cat-pick button.on{border-color:var(--ei)}
+  .ev-actions{display:flex;gap:8px;justify-content:space-between;flex-wrap:wrap;margin-top:6px}
+  .up{margin-top:16px;background:#eef6ff;border-radius:18px;padding:12px 14px}
+  .up h3{font-family:"Jua";font-weight:400;font-size:18px;margin:0 0 8px;display:flex;justify-content:space-between;align-items:center}
+  .up-item{display:flex;align-items:center;gap:8px;font-size:15px;padding:5px 0;border-bottom:1px dashed #d6e5f7}
+  .up-item:last-child{border-bottom:0}
+  .up-item .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .up-item small{color:var(--ink-soft);font-size:12px;white-space:nowrap}
+  @media (max-width:980px){ .cal-layout{grid-template-columns:1fr} }
+  .tabnav button{white-space:nowrap}
+  @media (max-width:700px){ .tabnav{flex-wrap:wrap}.tabnav button{font-size:16px;padding:8px 12px;border-radius:12px 12px 0 0} }
+  @media (max-width:560px){ .cal-day{min-height:70px;padding:4px 3px}.cal-day .dn{font-size:15px}.ev{font-size:11px;padding:1px 3px} }
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -616,6 +668,7 @@
     <button class="on" data-view="board" role="tab">📋 보드</button>
     <button data-view="check" role="tab">✅ 체크<span class="badge" id="pendBadge" hidden>0</span></button>
     <button data-view="stamp" role="tab">⭐ 칭찬도장<span class="badge" id="rwBadge" hidden>0</span></button>
+    <button data-view="cal" role="tab">📆 달력</button>
     <button data-view="reset" role="tab">🔄 초기화</button>
   </nav>
 
@@ -673,6 +726,10 @@
         <div class="note-head"><h3>💬 선생님 말씀</h3><button class="tt-edit" id="noteEdit" title="선생님 말씀 고치기" aria-label="선생님 말씀 고치기">✏️</button></div>
         <div class="note-body" id="noteBody"></div>
       </div>
+      <div class="up" id="upBox" hidden>
+        <h3>📆 다가오는 일정</h3>
+        <div id="upList"></div>
+      </div>
     </aside>
   </div>
   </section>
@@ -717,6 +774,38 @@
       </div>
     </div>
     <div id="sbGrid"></div>
+  </section>
+
+  <section class="view" id="viewCal" hidden>
+    <div class="cal-top">
+      <div class="month">
+        <button class="btn" id="cPrev" aria-label="이전 달">◀</button>
+        <b id="cLabel"></b>
+        <button class="btn" id="cNext" aria-label="다음 달">▶</button>
+        <button class="btn" id="cToday">오늘</button>
+      </div>
+      <div class="cal-tools">
+        <button class="btn primary" id="cAdd">➕ 일정 추가</button>
+        <button class="btn" id="cCsv">📥 엑셀로 저장</button>
+      </div>
+    </div>
+    <div class="cal-layout">
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="cal-side">
+        <div class="cal-card">
+          <h3><span id="cDayTitle"></span><button class="btn" id="cDayAdd" style="padding:5px 10px;font-size:14px">➕ 이날 일정</button></h3>
+          <div id="cDayList"></div>
+        </div>
+        <div class="cal-card">
+          <h3>📝 이날의 기록 <small style="font-family:'Gowun Dodum';font-size:13px;color:var(--ink-soft)" id="cNoteSaved"></small></h3>
+          <textarea id="cNote" maxlength="2000" placeholder="오늘 있었던 일, 학급 일지, 상담·전달 사항 등을 적어 두세요. 적으면 바로 저장돼요."></textarea>
+        </div>
+        <div class="cal-card">
+          <h3>⏳ 다가오는 일정</h3>
+          <div id="cUpList"></div>
+        </div>
+      </div>
+    </div>
   </section>
 
   <section class="view" id="viewReset" hidden>
@@ -836,6 +925,30 @@
 </div>
 
 <!-- student detail -->
+<div class="modal" id="evModal" aria-modal="true" role="dialog">
+  <div class="sheet">
+    <h2><span id="evTitleH">📆 일정 추가</span> <button class="x" data-close>×</button></h2>
+    <div class="ev-form">
+      <label>일정 이름<input id="evName" maxlength="40" placeholder="예: 현장체험학습, 학부모 상담, 수학 단원평가"></label>
+      <div class="two">
+        <label>시작 날짜<input type="date" id="evStart"></label>
+        <label>끝 날짜 <span style="font-size:12px">(하루면 비워 두기)</span><input type="date" id="evEnd"></label>
+      </div>
+      <div class="two">
+        <label>시간 <span style="font-size:12px">(선택)</span><input type="time" id="evTime"></label>
+        <label>매년 반복<select id="evRepeat"><option value="">안 함</option><option value="year">매년 같은 날 (생일·기념일)</option></select></label>
+      </div>
+      <div><div style="font-size:14px;color:var(--ink-soft);margin-bottom:6px">종류</div><div class="cat-pick" id="evCats"></div></div>
+      <label>메모·기록<textarea id="evMemo" rows="3" maxlength="1000" placeholder="준비물, 장소, 결과, 있었던 일 등을 적어 두세요."></textarea></label>
+      <label style="display:flex;align-items:center;gap:8px;color:var(--ink)"><input type="checkbox" id="evDone" style="width:auto"> 끝났어요(완료로 표시)</label>
+      <div class="ev-actions">
+        <button class="btn" id="evDel" style="color:#c23e3e">🗑️ 지우기</button>
+        <button class="btn primary" id="evSave">✅ 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="detModal" aria-modal="true" role="dialog">
   <div class="sheet">
     <h2><span id="detTitle"></span> <button class="x" data-close>×</button></h2>
@@ -885,7 +998,7 @@
       log:[], tasks:[], periodStart:new Date().toISOString(), archive:[], sStart:{}, autoReset:"off",
       stamps:[], rewards:[],
       rewardRules:[{at:3, emoji:"🍬", label:"간식 쿠폰"},{at:5, emoji:"🪑", label:"자리 선택권"},{at:8, emoji:"🎨", label:"자유 시간 10분"},{at:10, emoji:"🎁", label:"선생님 선물"}],
-      sort:"num", sound:true
+      sort:"num", sound:true, events:[], dayNotes:{}
     };
   }
   let S;
@@ -1058,7 +1171,7 @@
     $("#grid").innerHTML = list.map(({s,i})=>cardHTML(s,i)).join("") ||
       `<div class="empty">설정에서 학생 명단을 입력해 주세요.</div>`;
   }
-  function render(){ renderHeader(); renderGrid(); if (!ttEditing) renderTT(); if (!noteEditing) renderNote(); if (view === "check") renderCheck(); if (view === "reset") renderReset(); if (view === "stamp") renderStamp(); }
+  function render(){ renderHeader(); renderGrid(); if (!ttEditing) renderTT(); if (!noteEditing) renderNote(); if (view === "check") renderCheck(); if (view === "reset") renderReset(); if (view === "stamp") renderStamp(); try{ renderUp(); if (view === "cal" && !calTyping) renderCal(); }catch(e){} }
 
   /* ---------- actions ---------- */
   let lastAction = null, toastTimer;
@@ -1659,6 +1772,8 @@
     $("#viewCheck").hidden = v !== "check";
     $("#viewReset").hidden = v !== "reset";
     $("#viewStamp").hidden = v !== "stamp";
+    $("#viewCal").hidden = v !== "cal";
+    if (v === "cal") renderCal();
     if (v === "stamp") renderStamp();
     if (v === "check") renderCheck();
     if (v === "reset") renderReset();
@@ -2034,6 +2149,197 @@
     else return;
     save();
   });
+
+  /* ---------- 📆 달력 · 일정 · 그날의 기록 ---------- */
+  const CATS = [
+    {k:"event", em:"🎉", nm:"학교 행사", bg:"#ffe3d3", ink:"#c2562a"},
+    {k:"class", em:"📚", nm:"수업·평가", bg:"#dcebff", ink:"#2f6fc2"},
+    {k:"trip",  em:"🚌", nm:"체험학습",  bg:"#e3f6ec", ink:"#2f8a5b"},
+    {k:"meet",  em:"🤝", nm:"상담·회의", bg:"#ead9ff", ink:"#6b3fc2"},
+    {k:"off",   em:"🏖️", nm:"방학·휴업", bg:"#fff4cf", ink:"#a07a00"},
+    {k:"bday",  em:"🎂", nm:"생일",      bg:"#ffdbe3", ink:"#c23356"},
+    {k:"todo",  em:"📌", nm:"할 일·제출", bg:"#efe6da", ink:"#8a6237"},
+    {k:"etc",   em:"🗓️", nm:"기타",      bg:"#f5f1ea", ink:"#6f665d"}
+  ];
+  const catOf = k => CATS.find(c => c.k === k) || CATS[CATS.length-1];
+  if (!Array.isArray(S.events)) S.events = [];
+  if (!S.dayNotes || typeof S.dayNotes !== "object") S.dayNotes = {};
+  const k2d = k => { const [y,m,d] = k.split("-").map(Number); return new Date(y, m-1, d); };
+  const todayK = () => dayKey(Date.now());
+  let cCur = (() => { const d = new Date(); return {y:d.getFullYear(), m:d.getMonth()}; })();
+  let cSel = todayK(), evEditing = null, evCat = "event", calTyping = false;
+
+  function evOn(e, k){                  // 이 날짜(k)에 걸리는 일정인지 (여러 날·매년 반복 포함)
+    if (e.repeat === "year"){
+      const md = k.slice(5), s = e.start.slice(5), en = (e.end || e.start).slice(5);
+      return k >= e.start ? (s <= en ? md >= s && md <= en : (md >= s || md <= en)) : false;
+    }
+    return k >= e.start && k <= (e.end || e.start);
+  }
+  const evsOn = k => S.events.filter(e => evOn(e, k)).sort((a,b) => (a.time||"99").localeCompare(b.time||"99") || a.start.localeCompare(b.start));
+  const dDiff = k => Math.round((k2d(k) - k2d(todayK())) / 86400000);
+  const ddayTxt = n => n === 0 ? "오늘" : (n > 0 ? `D-${n}` : `D+${-n}`);
+  function nextOcc(e, fromK){           // fromK 이후 가장 가까운 시작일(매년 반복은 올해/내년)
+    if (e.repeat !== "year") return (e.end || e.start) >= fromK ? (e.start >= fromK ? e.start : fromK) : null;
+    const y = +fromK.slice(0,4);
+    for (const yy of [y, y+1]){ const k = `${yy}${e.start.slice(4)}`; if (k >= fromK && k >= e.start) return k; }
+    return null;
+  }
+  function upcoming(days){
+    const t = todayK(), lim = dayKey(k2d(t).getTime() + days*86400000);
+    return S.events.filter(e => !e.done || e.repeat === "year").map(e => ({e, k: nextOcc(e, t)})).filter(x => x.k && x.k <= lim)
+      .sort((a,b) => a.k.localeCompare(b.k) || (a.e.time||"99").localeCompare(b.e.time||"99"));
+  }
+  const evChip = (e, k) => { const c = catOf(e.cat); const cont = k !== e.start && e.repeat !== "year";
+    return `<span class="ev ${cont?"cont":""} ${e.done?"done":""}" style="--ec:${c.bg};--ei:${c.ink}" title="${esc(e.title)}">${cont?"↳ ":c.em+" "}${e.time&&!cont?esc(e.time)+" ":""}${esc(e.title)}</span>`; };
+
+  function renderCal(){
+    const {y, m} = cCur;
+    $("#cLabel").textContent = `${y}년 ${m+1}월`;
+    const first = new Date(y, m, 1), start = new Date(y, m, 1 - first.getDay());
+    const weeks = Math.ceil((first.getDay() + new Date(y, m+1, 0).getDate()) / 7);
+    const tk = todayK();
+    let html = ["일","월","화","수","목","금","토"].map((w,i) => `<div class="cal-wd ${i===0?"sun":i===6?"sat":""}">${w}</div>`).join("");
+    for (let i = 0; i < weeks*7; i++){
+      const d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i), k = dayKey(d);
+      const evs = evsOn(k), wd = d.getDay(), note = (S.dayNotes[k]||"").trim();
+      html += `<div class="cal-day ${d.getMonth()!==m?"out":""} ${wd===0?"sun":wd===6?"sat":""} ${k===tk?"today":""} ${k===cSel?"sel":""}" data-cday="${k}">
+        <div class="dn"><b>${d.getDate()}</b>${note?`<span class="memo-dot" title="기록 있음">📝</span>`:""}</div>
+        ${evs.slice(0,3).map(e => evChip(e, k)).join("")}${evs.length>3?`<span class="cal-more">+${evs.length-3}개 더</span>`:""}
+      </div>`;
+    }
+    $("#calGrid").innerHTML = html;
+    renderCalDay();
+    $("#cUpList").innerHTML = upList(30, 12, true);
+  }
+  function renderCalDay(){
+    const n = dDiff(cSel);
+    $("#cDayTitle").innerHTML = `${keyLabel(cSel, true)} <span class="dday ${n===0?"d0":""}">${ddayTxt(n)}</span>`;
+    const evs = evsOn(cSel);
+    $("#cDayList").innerHTML = evs.length ? evs.map(e => { const c = catOf(e.cat);
+      return `<div class="ev-row ${e.done?"done":""}" data-ev="${e.id}">
+        <span class="em">${c.em}</span>
+        <div style="min-width:0"><div class="t">${e.time?esc(e.time)+" · ":""}${esc(e.title)}</div>
+          <div class="m">${c.nm}${(e.end&&e.end!==e.start)?` · ${keyLabel(e.start,true)} ~ ${keyLabel(e.end,true)}`:""}${e.repeat==="year"?" · 매년":""}${e.memo?"\n"+esc(e.memo):""}</div></div>
+        <button class="ck" data-evdone="${e.id}" title="${e.done?"완료 취소":"완료로 표시"}">${e.done?"✅":"⬜"}</button>
+      </div>`; }).join("") : `<div class="cal-empty">일정이 없어요. ➕ 이날 일정을 눌러 추가하세요.</div>`;
+    const ta = $("#cNote");
+    if (document.activeElement !== ta) ta.value = S.dayNotes[cSel] || "";
+    $("#cNoteSaved").textContent = "";
+  }
+  function upList(days, max, withDate){
+    const list = upcoming(days).slice(0, max);
+    if (!list.length) return `<div class="cal-empty">앞으로 ${days}일 동안 일정이 없어요.</div>`;
+    return list.map(({e, k}) => { const c = catOf(e.cat), n = dDiff(k);
+      return `<div class="up-item" ${withDate?`data-cgo="${k}" style="cursor:pointer"`:""}><span>${c.em}</span><span class="nm">${esc(e.title)}</span>
+        <small>${withDate ? keyLabel(k, true) : `${+k.slice(5,7)}/${+k.slice(8)}`}${e.time?" "+esc(e.time):""}</small><span class="dday ${n===0?"d0":""}">${ddayTxt(n)}</span></div>`; }).join("");
+  }
+  function renderUp(){
+    const box = $("#upBox"); if (!box) return;
+    const has = upcoming(14).length > 0;
+    box.hidden = !has;
+    if (has) $("#upList").innerHTML = upList(14, 5, false);
+  }
+
+  function openEv(id, dateK){
+    const e = id ? S.events.find(x => x.id === id) : null;
+    evEditing = e ? e.id : null;
+    $("#evTitleH").textContent = e ? "📆 일정 고치기" : "📆 일정 추가";
+    $("#evName").value = e ? e.title : "";
+    $("#evStart").value = e ? e.start : (dateK || cSel || todayK());
+    $("#evEnd").value = e && e.end && e.end !== e.start ? e.end : "";
+    $("#evTime").value = e ? (e.time || "") : "";
+    $("#evRepeat").value = e ? (e.repeat || "") : "";
+    $("#evMemo").value = e ? (e.memo || "") : "";
+    $("#evDone").checked = !!(e && e.done);
+    evCat = e ? e.cat : "event";
+    renderCats();
+    $("#evDel").style.visibility = e ? "visible" : "hidden";
+    openM("#evModal");
+    setTimeout(() => $("#evName").focus(), 30);
+  }
+  function renderCats(){
+    $("#evCats").innerHTML = CATS.map(c => `<button type="button" data-cat="${c.k}" class="${c.k===evCat?"on":""}" style="--ec:${c.bg};--ei:${c.ink}">${c.em} ${c.nm}</button>`).join("");
+  }
+  $("#evCats").addEventListener("click", e => { const b = e.target.closest("[data-cat]"); if (!b) return; evCat = b.dataset.cat;
+    if (evCat === "bday" && !$("#evRepeat").value) $("#evRepeat").value = "year"; renderCats(); });
+  $("#evSave").onclick = () => {
+    const title = $("#evName").value.trim(), start = $("#evStart").value;
+    if (!title){ $("#evName").focus(); toast("일정 이름을 적어 주세요", false); return; }
+    if (!start){ $("#evStart").focus(); toast("날짜를 골라 주세요", false); return; }
+    let end = $("#evEnd").value || "";
+    if (end && end < start) end = "";
+    const rec = {title, start, end: end && end !== start ? end : "", time: $("#evTime").value || "", cat: evCat,
+                 repeat: $("#evRepeat").value || "", memo: $("#evMemo").value.trim(), done: $("#evDone").checked};
+    if (evEditing){ Object.assign(S.events.find(x => x.id === evEditing), rec); }
+    else S.events.push({id: uid(), made: new Date().toISOString(), ...rec});
+    save(); closeM($("#evSave"));
+    cSel = start; const d = k2d(start); cCur = {y:d.getFullYear(), m:d.getMonth()};
+    renderUp(); if (view === "cal") renderCal();
+    toast(evEditing ? "일정을 고쳤어요 ✏️" : "일정을 추가했어요 📆", false);
+  };
+  $("#evDel").onclick = () => {
+    const e = S.events.find(x => x.id === evEditing); if (!e) return;
+    if (!confirm(`'${e.title}' 일정을 지울까요?`)) return;
+    S.events = S.events.filter(x => x.id !== evEditing);
+    save(); closeM($("#evDel")); renderUp(); if (view === "cal") renderCal(); toast("일정을 지웠어요", false);
+  };
+  $("#evName").addEventListener("keydown", e => { if (e.key === "Enter" && !e.isComposing) $("#evSave").click(); });
+
+  $("#cPrev").onclick = () => { cCur.m--; if (cCur.m < 0){ cCur.m = 11; cCur.y--; } renderCal(); };
+  $("#cNext").onclick = () => { cCur.m++; if (cCur.m > 11){ cCur.m = 0; cCur.y++; } renderCal(); };
+  $("#cToday").onclick = () => { const d = new Date(); cCur = {y:d.getFullYear(), m:d.getMonth()}; cSel = todayK(); renderCal(); };
+  $("#cAdd").onclick = () => openEv(null, cSel);
+  $("#cDayAdd").onclick = () => openEv(null, cSel);
+  $("#calGrid").addEventListener("click", e => {
+    const c = e.target.closest("[data-cday]"); if (!c) return;
+    const k = c.dataset.cday;
+    if (k === cSel && e.detail >= 2) { openEv(null, k); return; }   // 같은 날을 두 번 누르면 바로 추가
+    cSel = k; const d = k2d(k);
+    if (d.getMonth() !== cCur.m){ cCur = {y:d.getFullYear(), m:d.getMonth()}; renderCal(); }
+    else { document.querySelectorAll(".cal-day.sel").forEach(x => x.classList.remove("sel")); c.classList.add("sel"); renderCalDay(); }
+  });
+  $("#calGrid").addEventListener("dblclick", e => { const c = e.target.closest("[data-cday]"); if (c) openEv(null, c.dataset.cday); });
+  $("#cDayList").addEventListener("click", e => {
+    const d = e.target.closest("[data-evdone]");
+    if (d){ const ev = S.events.find(x => x.id === d.dataset.evdone); if (ev){ ev.done = !ev.done; save(); renderCal(); renderUp(); } return; }
+    const r = e.target.closest("[data-ev]"); if (r) openEv(r.dataset.ev);
+  });
+  $("#cUpList").addEventListener("click", e => {
+    const r = e.target.closest("[data-cgo]"); if (!r) return;
+    cSel = r.dataset.cgo; const d = k2d(cSel); cCur = {y:d.getFullYear(), m:d.getMonth()}; renderCal();
+  });
+  $("#upBox").addEventListener("click", () => setView("cal"));
+  $("#upBox").style.cursor = "pointer";
+  let noteT = null;
+  $("#cNote").addEventListener("focus", () => { calTyping = true; });
+  $("#cNote").addEventListener("blur", () => { calTyping = false; renderCal(); });
+  $("#cNote").addEventListener("input", e => {
+    const v = e.target.value;
+    if (v.trim()) S.dayNotes[cSel] = v; else delete S.dayNotes[cSel];
+    clearTimeout(noteT);
+    noteT = setTimeout(() => { save(); $("#cNoteSaved").textContent = "저장됨 ✓"; }, 400);
+  });
+  $("#cCsv").onclick = () => {
+    const {y, m} = cCur;
+    const pre = `${y}-${String(m+1).padStart(2,"0")}`;
+    const last = new Date(y, m+1, 0).getDate();
+    const rows = [["날짜","요일","종류","일정","시간","기간","완료","메모","이날의 기록"]];
+    for (let d = 1; d <= last; d++){
+      const k = `${pre}-${String(d).padStart(2,"0")}`, w = WD[k2d(k).getDay()];
+      const evs = evsOn(k).filter(e => k === e.start || e.repeat === "year" || d === 1);
+      const note = S.dayNotes[k] || "";
+      if (!evs.length && !note) continue;
+      if (!evs.length) rows.push([k, w, "", "", "", "", "", "", note]);
+      evs.forEach((e, i) => rows.push([k, w, catOf(e.cat).nm, e.title, e.time||"", e.end&&e.end!==e.start?`${e.start} ~ ${e.end}`:"",
+        e.done?"완료":"", e.memo||"", i ? "" : note]));
+    }
+    const csv = "﻿" + rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\r\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv;charset=utf-8"}));
+    a.download = `${S.className || "우리반"}_${y}년${m+1}월_일정·기록.csv`;
+    a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  };
 
   /* ---------- teacher's note ---------- */
   let noteEditing = false;
