@@ -441,6 +441,18 @@
   @keyframes mtShake{0%,100%{transform:none}20%{transform:rotate(-7deg) scale(1.05)}40%{transform:rotate(6deg) scale(1.05)}60%{transform:rotate(-4deg)}80%{transform:rotate(3deg)}}
   .mt.lv10 .mt-now::after{content:"💢";position:absolute;top:6px;right:10px;font-size:26px;animation:mtPuff 1.2s ease-in-out infinite}
   @keyframes mtPuff{0%,100%{opacity:.4;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+  .mt.lv10 .mt-face{cursor:pointer}
+  .mt.lv10 .mt-face:active{transform:scale(.92)}
+  /* 10단계 이모티콘 → "조용히 안 해?" */
+  #scary{position:fixed;inset:0;z-index:9999;display:none;place-items:center;pointer-events:none;background:radial-gradient(ellipse at center,rgba(120,0,0,.15) 0%,rgba(90,0,0,.55) 60%,rgba(30,0,0,.85) 100%)}
+  #scary.on{display:grid;animation:scFade 2.6s ease forwards}
+  #scary .face{font-size:min(30vw,260px);line-height:1;text-align:center;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;animation:scZoom 2.6s cubic-bezier(.2,1.4,.4,1) forwards;filter:drop-shadow(0 0 40px rgba(255,0,0,.6))}
+  #scary .txt{font-family:"Jua";font-size:min(11vw,110px);color:#fff;text-align:center;margin-top:10px;text-shadow:0 0 12px #000,0 6px 0 #7a0000,0 0 40px rgba(255,0,0,.8);letter-spacing:4px;animation:scShake .12s linear infinite}
+  @keyframes scFade{0%{opacity:0}8%{opacity:1}80%{opacity:1}100%{opacity:0}}
+  @keyframes scZoom{0%{transform:scale(.2)}25%{transform:scale(1.1)}100%{transform:scale(1)}}
+  @keyframes scShake{0%{transform:translate(0,0)}25%{transform:translate(-3px,2px)}50%{transform:translate(3px,-2px)}75%{transform:translate(-2px,-3px)}100%{transform:translate(2px,3px)}}
+  body.sc-quake{animation:scQuake .5s linear 2}
+  @keyframes scQuake{0%,100%{transform:none}20%{transform:translate(-8px,4px)}40%{transform:translate(8px,-4px)}60%{transform:translate(-6px,-4px)}80%{transform:translate(6px,4px)}}
   .mt-lvl{font-family:"Jua";font-size:15px;color:#fff;background:var(--mc);border-radius:999px;padding:2px 12px;display:inline-block;margin-top:6px;transition:background .4s}
   .mt-msg{font-family:"Jua";font-size:22px;margin-top:6px;line-height:1.25;word-break:keep-all;color:var(--ink)}
   .mt-ctl{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0 12px}
@@ -590,6 +602,7 @@
     <button class="btn primary" id="hintBtn">명단 입력하기</button>
   </div>
 
+  <div id="scary" aria-hidden="true"><div><div class="face">😡</div><div class="txt">조용히 안 해?</div></div></div>
   <div class="board-layout">
     <aside class="mt" id="mt" aria-label="선생님 마음 온도계">
       <div class="mt-head"><h2>🌡️ 선생님<br>마음 온도계</h2></div>
@@ -2012,6 +2025,61 @@
   $("#mtDown").onclick = () => setMood(S.mood - 1);
   window.addEventListener("resize", renderMood);
   renderMood();
+
+  /* 10단계에서 큰 이모티콘을 누르면 무서운 목소리로 "조용히 안 해?" */
+  let scaryBusy = false, koVoice = null;
+  function pickVoice(){
+    if (!("speechSynthesis" in window)) return;
+    const vs = speechSynthesis.getVoices().filter(v => /^ko/i.test(v.lang));
+    // 남성/낮은 목소리 우선 (Windows: InJoon, Google 등)
+    koVoice = vs.find(v => /injoon|male|남/i.test(v.name)) || vs[0] || null;
+  }
+  if ("speechSynthesis" in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+
+  function scaryRumble(){
+    try{
+      ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+      if (ac.state === "suspended") ac.resume();
+      const t = ac.currentTime, out = ac.createGain(), lp = ac.createBiquadFilter();
+      lp.type = "lowpass"; lp.frequency.value = 260;
+      out.gain.setValueAtTime(.0001, t);
+      out.gain.exponentialRampToValueAtTime(.35, t+.08);
+      out.gain.setValueAtTime(.35, t+1.6);
+      out.gain.exponentialRampToValueAtTime(.0001, t+2.4);
+      lp.connect(out).connect(ac.destination);
+      [48, 51, 72].forEach(f => {          // 서로 살짝 어긋난 낮은 음 → 으르렁거림
+        const o = ac.createOscillator(); o.type = "sawtooth";
+        o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f*.8, t+2.4);
+        o.connect(lp); o.start(t); o.stop(t+2.5);
+      });
+      // 쿵! 하는 타격음
+      const k = ac.createOscillator(), kg = ac.createGain();
+      k.type = "sine"; k.frequency.setValueAtTime(120, t); k.frequency.exponentialRampToValueAtTime(35, t+.4);
+      kg.gain.setValueAtTime(.6, t); kg.gain.exponentialRampToValueAtTime(.0001, t+.5);
+      k.connect(kg).connect(ac.destination); k.start(t); k.stop(t+.55);
+    }catch(e){}
+  }
+  function scaryVoice(){
+    if (!("speechSynthesis" in window)) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance("조용히... 안 해?");
+    u.lang = "ko-KR"; if (koVoice) u.voice = koVoice;
+    u.pitch = 0.1;   // 최대한 낮게
+    u.rate = 0.65;   // 천천히
+    u.volume = 1;
+    setTimeout(() => speechSynthesis.speak(u), 250);
+  }
+  function scaryShout(){
+    if (S.mood !== 10 || scaryBusy) return;
+    scaryBusy = true;
+    const ov = $("#scary");
+    ov.classList.remove("on"); void ov.offsetWidth; ov.classList.add("on");
+    document.body.classList.add("sc-quake");
+    scaryRumble(); scaryVoice();
+    setTimeout(() => { ov.classList.remove("on"); document.body.classList.remove("sc-quake"); scaryBusy = false; }, 2700);
+  }
+  $("#mtFace").addEventListener("click", scaryShout);
+  $("#mtFace").title = "10단계일 때 눌러 보세요";
 
   tickClock(); setInterval(tickClock, 1000);
 
