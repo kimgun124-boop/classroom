@@ -461,6 +461,11 @@
   .mt-ctl button{font-family:"Jua";font-size:16px;padding:8px 0;border-radius:14px;background:#f7efe3;color:var(--ink-soft)}
   .mt-ctl button:hover{background:#f1e4d1;color:var(--ink)}
   .mt-ctl button:disabled{opacity:.35;cursor:default}
+  .mt-recbar{display:flex;gap:6px;margin:-4px 0 12px}
+  .mt-recbar button{font-family:"Jua";font-size:14px;padding:7px 8px;border-radius:12px;background:#f9ece9;color:#b2493b;border:2px dashed #efc4bc}
+  .mt-recbar #mtRec{flex:1}
+  .mt-recbar button:hover{background:#f6ded8}
+  .mt-recbar #mtRec.rec{background:#e5484d;color:#fff;border-color:#e5484d;animation:mtPuff 1s ease-in-out infinite}
   .mt-body{display:flex;gap:8px}
   .mt-scale{flex:none;width:40px;display:flex;flex-direction:column;align-items:center}
   .mt-tube{flex:1;width:22px;border-radius:12px 12px 0 0;background:#f3ebdf;box-shadow:inset 0 2px 4px rgba(60,40,20,.12);position:relative;overflow:hidden;border:3px solid #fff;border-bottom:0;outline:2px solid #ead9c4}
@@ -610,6 +615,7 @@
       <div class="mt-head"><h2>🌡️ 선생님<br>마음 온도계</h2></div>
       <div class="mt-now"><div class="mt-face" id="mtFace">🥰</div><span class="mt-lvl" id="mtLvl">1단계</span><div class="mt-msg" id="mtMsg"></div></div>
       <div class="mt-ctl"><button id="mtDown" title="온도 내리기">▼ 내리기</button><button id="mtUp" title="온도 올리기">▲ 올리기</button></div>
+      <div class="mt-recbar"><button id="mtRec">🎙️ 10단계 목소리 녹음</button><button id="mtRecDel" title="녹음 지우기" aria-label="녹음 지우기" hidden>🗑️</button></div>
       <div class="mt-body">
         <div class="mt-scale" aria-hidden="true"><div class="mt-tube" id="mtTube"><div class="mt-fill" id="mtFill"></div></div><div class="mt-bulb"></div></div>
         <div class="mt-rows" id="mtRows"></div>
@@ -2029,61 +2035,168 @@
   window.addEventListener("resize", renderMood);
   renderMood();
 
-  /* 10단계에서 큰 이모티콘을 누르면 무서운 목소리로 "조용히 안 해?" */
-  let scaryBusy = false, koVoice = null;
+  /* 10단계에서 큰 이모티콘을 누르면 무서운 목소리로 "조용히 안 해?"
+     - 선생님 목소리를 녹음해 두면 → 악마 목소리로 바꿔서 재생 (가장 무서움)
+     - 녹음이 없으면 → 컴퓨터 음성(최대한 낮게) + 으르렁 효과음 */
+  const VKEY = "classroom.scaryVoice";
+  let scaryBusy = false, koVoice = null, voiceBuf = null;
+  function getAC(){
+    ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+    if (ac.state === "suspended") ac.resume();
+    return ac;
+  }
   function pickVoice(){
     if (!("speechSynthesis" in window)) return;
     const vs = speechSynthesis.getVoices().filter(v => /^ko/i.test(v.lang));
-    // 남성/낮은 목소리 우선 (Windows: InJoon, Google 등)
     koVoice = vs.find(v => /injoon|male|남/i.test(v.name)) || vs[0] || null;
   }
   if ("speechSynthesis" in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
 
-  function scaryRumble(){
+  // 저장된 녹음 불러오기
+  function loadVoice(){
+    let d = null; try{ d = localStorage.getItem(VKEY); }catch(e){}
+    if (!d){ voiceBuf = null; updateRecUI(); return; }
     try{
-      ac = ac || new (window.AudioContext||window.webkitAudioContext)();
-      if (ac.state === "suspended") ac.resume();
-      const t = ac.currentTime, out = ac.createGain(), lp = ac.createBiquadFilter();
-      lp.type = "lowpass"; lp.frequency.value = 260;
+      const bin = atob(d.split(",")[1]), u8 = new Uint8Array(bin.length);
+      for (let i=0;i<bin.length;i++) u8[i] = bin.charCodeAt(i);
+      getAC().decodeAudioData(u8.buffer).then(b => { voiceBuf = b; updateRecUI(); }, () => { voiceBuf = null; updateRecUI(); });
+    }catch(e){ voiceBuf = null; updateRecUI(); }
+  }
+
+  // 공간 울림(리버브)용 잔향 만들기
+  let irBuf = null;
+  function impulse(a){
+    if (irBuf) return irBuf;
+    const len = a.sampleRate * 2.8, b = a.createBuffer(2, len, a.sampleRate);
+    for (let c=0;c<2;c++){ const d = b.getChannelData(c); for (let i=0;i<len;i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, 2.6); }
+    return irBuf = b;
+  }
+  function distCurve(k){
+    const n = 2048, c = new Float32Array(n);
+    for (let i=0;i<n;i++){ const x = i*2/n - 1; c[i] = (1+k)*x/(1+k*Math.abs(x)); }
+    return c;
+  }
+  // 악마 목소리: 낮게 + 느리게 + 찌그러짐 + 메아리 + 동굴 울림 + 더 낮은 겹목소리
+  function playDemon(buf){
+    const a = getAC(), t = a.currentTime + .05;
+    const bus = a.createGain(); bus.gain.value = 1;
+    const ws = a.createWaveShaper(); ws.curve = distCurve(6); ws.oversample = "4x";
+    const lp = a.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2600;
+    const bass = a.createBiquadFilter(); bass.type = "lowshelf"; bass.frequency.value = 180; bass.gain.value = 9;
+    const comp = a.createDynamicsCompressor();
+    const master = a.createGain(); master.gain.value = 1.1;
+    bus.connect(ws).connect(lp).connect(bass);
+    const dry = a.createGain(); dry.gain.value = .9; bass.connect(dry).connect(comp);
+    const cv = a.createConvolver(); cv.buffer = impulse(a);
+    const wet = a.createGain(); wet.gain.value = .55; bass.connect(cv).connect(wet).connect(comp);
+    const dl = a.createDelay(1.5), fb = a.createGain(), dg = a.createGain();
+    dl.delayTime.value = .32; fb.gain.value = .38; dg.gain.value = .45;
+    bass.connect(dl); dl.connect(fb).connect(dl); dl.connect(dg).connect(comp);
+    comp.connect(master).connect(a.destination);
+    [[.72, 1], [.52, .55], [.62, .35]].forEach(([rate, g]) => {   // 세 겹의 낮은 목소리
+      const s = a.createBufferSource(), sg = a.createGain();
+      s.buffer = buf; s.playbackRate.value = rate; sg.gain.value = g;
+      s.connect(sg).connect(bus); s.start(t);
+    });
+    return buf.duration / .52 + 1.2;   // 가장 긴 겹이 끝나는 시간(초)
+  }
+
+  function scaryRumble(sec){
+    try{
+      const a = getAC(), t = a.currentTime, out = a.createGain(), lp = a.createBiquadFilter();
+      lp.type = "lowpass"; lp.frequency.value = 240;
       out.gain.setValueAtTime(.0001, t);
-      out.gain.exponentialRampToValueAtTime(.35, t+.08);
-      out.gain.setValueAtTime(.35, t+1.6);
-      out.gain.exponentialRampToValueAtTime(.0001, t+2.4);
-      lp.connect(out).connect(ac.destination);
-      [48, 51, 72].forEach(f => {          // 서로 살짝 어긋난 낮은 음 → 으르렁거림
-        const o = ac.createOscillator(); o.type = "sawtooth";
-        o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f*.8, t+2.4);
-        o.connect(lp); o.start(t); o.stop(t+2.5);
+      out.gain.exponentialRampToValueAtTime(.4, t+.08);
+      out.gain.setValueAtTime(.4, t+sec-.8);
+      out.gain.exponentialRampToValueAtTime(.0001, t+sec);
+      lp.connect(out).connect(a.destination);
+      [41, 43.5, 62].forEach(f => {
+        const o = a.createOscillator(); o.type = "sawtooth";
+        o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f*.75, t+sec);
+        o.connect(lp); o.start(t); o.stop(t+sec+.1);
       });
-      // 쿵! 하는 타격음
-      const k = ac.createOscillator(), kg = ac.createGain();
-      k.type = "sine"; k.frequency.setValueAtTime(120, t); k.frequency.exponentialRampToValueAtTime(35, t+.4);
-      kg.gain.setValueAtTime(.6, t); kg.gain.exponentialRampToValueAtTime(.0001, t+.5);
-      k.connect(kg).connect(ac.destination); k.start(t); k.stop(t+.55);
+      // 쿵… 쿵… 심장 소리
+      [0, .5, 1.6, 2.1].filter(d => d < sec).forEach(d => {
+        const k = a.createOscillator(), kg = a.createGain();
+        k.type = "sine"; k.frequency.setValueAtTime(110, t+d); k.frequency.exponentialRampToValueAtTime(32, t+d+.35);
+        kg.gain.setValueAtTime(d === 0 ? .8 : .5, t+d); kg.gain.exponentialRampToValueAtTime(.0001, t+d+.45);
+        k.connect(kg).connect(a.destination); k.start(t+d); k.stop(t+d+.5);
+      });
     }catch(e){}
   }
-  function scaryVoice(){
+  function ttsVoice(){
     if (!("speechSynthesis" in window)) return;
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance("조용히... 안 해?");
-    u.lang = "ko-KR"; if (koVoice) u.voice = koVoice;
-    u.pitch = 0.1;   // 최대한 낮게
-    u.rate = 0.65;   // 천천히
-    u.volume = 1;
-    setTimeout(() => speechSynthesis.speak(u), 250);
+    const say = (txt, delay) => setTimeout(() => {
+      const u = new SpeechSynthesisUtterance(txt);
+      u.lang = "ko-KR"; if (koVoice) u.voice = koVoice;
+      u.pitch = 0; u.rate = .5; u.volume = 1;
+      speechSynthesis.speak(u);
+    }, delay);
+    say("조용히이...", 300);
+    say("안 해?", 1500);
   }
   function scaryShout(){
-    if (S.mood !== 10 || scaryBusy) return;
+    if (S.mood !== 10 || scaryBusy || recState) return;
     scaryBusy = true;
+    let sec = 3.2;
+    if (voiceBuf){ try{ sec = Math.min(5.5, playDemon(voiceBuf)); scaryRumble(Math.min(sec, 3)); }catch(e){ scaryRumble(sec); ttsVoice(); } }
+    else { scaryRumble(sec); ttsVoice(); }
     const ov = $("#scary");
+    ov.style.animationDuration = sec + "s";
+    ov.querySelector(".face").style.animationDuration = sec + "s";
     ov.classList.remove("on"); void ov.offsetWidth; ov.classList.add("on");
     document.body.classList.add("sc-quake");
-    scaryRumble(); scaryVoice();
-    setTimeout(() => { ov.classList.remove("on"); document.body.classList.remove("sc-quake"); scaryBusy = false; }, 2700);
+    setTimeout(() => { ov.classList.remove("on"); document.body.classList.remove("sc-quake"); scaryBusy = false; }, sec*1000 + 100);
   }
-  // 흔들리는 얼굴을 놓쳐도 되도록 얼굴 주변 칸 전체를 누를 수 있게
   document.querySelector("#mt .mt-now").addEventListener("pointerdown", scaryShout);
   $("#mtFace").title = "10단계일 때 눌러 보세요";
+
+  // ---- 선생님 목소리 녹음 ----
+  let recState = null;   // {rec, stream, chunks, timer}
+  function updateRecUI(){
+    const b = $("#mtRec"), x = $("#mtRecDel");
+    if (!b) return;
+    if (recState){ b.textContent = "⏹️ 녹음 끝내기"; b.classList.add("rec"); x.hidden = true; return; }
+    b.classList.remove("rec");
+    b.textContent = voiceBuf ? "🎙️ 다시 녹음" : "🎙️ 10단계 목소리 녹음";
+    b.title = voiceBuf ? "녹음된 목소리를 악마 목소리로 바꿔서 틀어 줘요. 다시 녹음하려면 누르세요." : "\"조용히 안 해?\"를 직접 녹음하면 훨씬 무서운 악마 목소리로 바뀌어요";
+    x.hidden = !voiceBuf;
+  }
+  async function startRec(){
+    if (!navigator.mediaDevices || !window.MediaRecorder){ toast("이 브라우저에서는 녹음이 안 돼요 (크롬·엣지 권장)", false); return; }
+    let stream;
+    try{ stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:true}}); }
+    catch(e){ toast("마이크를 쓸 수 없어요. 주소창 왼쪽에서 마이크를 허용해 주세요.", false); return; }
+    const rec = new MediaRecorder(stream), chunks = [];
+    rec.ondataavailable = e => e.data.size && chunks.push(e.data);
+    rec.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      clearTimeout(recState && recState.timer); recState = null;
+      const blob = new Blob(chunks, {type: rec.mimeType || "audio/webm"});
+      const fr = new FileReader();
+      fr.onload = () => {
+        try{ localStorage.setItem(VKEY, fr.result); }catch(e){ toast("녹음이 너무 길어서 저장을 못 했어요. 짧게 다시 해 주세요.", false); updateRecUI(); return; }
+        const bin = atob(fr.result.split(",")[1]), u8 = new Uint8Array(bin.length);
+        for (let i=0;i<bin.length;i++) u8[i] = bin.charCodeAt(i);
+        getAC().decodeAudioData(u8.buffer).then(b => {
+          voiceBuf = b; updateRecUI(); toast("녹음 완료! 악마 목소리로 들려 드릴게요 😈", false);
+          playDemon(b);
+        }, () => { toast("녹음을 읽지 못했어요. 다시 해 주세요.", false); updateRecUI(); });
+      };
+      fr.readAsDataURL(blob);
+    };
+    recState = {rec, stream, timer: setTimeout(() => rec.state === "recording" && rec.stop(), 5000)};
+    rec.start(); updateRecUI();
+    toast("🔴 녹음 중… \"조용히 안 해?\" 하고 말한 뒤 다시 누르세요 (최대 5초)", false);
+  }
+  $("#mtRec").onclick = () => { getAC(); if (recState) recState.rec.stop(); else startRec(); };
+  $("#mtRecDel").onclick = () => {
+    if (!confirm("녹음한 목소리를 지우고 컴퓨터 목소리로 돌아갈까요?")) return;
+    try{ localStorage.removeItem(VKEY); }catch(e){}
+    voiceBuf = null; updateRecUI();
+  };
+  loadVoice();
 
   tickClock(); setInterval(tickClock, 1000);
 
