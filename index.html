@@ -273,6 +273,19 @@
   .seg button{white-space:nowrap;font-size:13px}
 
   /* stamp chart: whole class at a glance */
+  .sb-tools{display:flex;gap:8px;align-items:center}
+  .sb-cols{display:inline-flex;align-items:center;gap:2px;background:#fff;border:2px solid #f3d9c9;border-radius:14px;padding:3px}
+  .sb-cols b{font-family:"Jua";font-weight:400;font-size:17px;min-width:52px;text-align:center}
+  .sb-cols button{font-family:"Jua";font-size:20px;width:34px;height:32px;border-radius:10px;background:#fff4ec;color:#c2562a;line-height:1}
+  .sb-cols button:hover{background:#ffe6d6}
+  .sb-cols button:disabled{opacity:.3;cursor:default}
+  table.sbt td.cnt{width:auto;padding:0 6px}
+  .cnt-ctl{display:inline-flex;align-items:center;gap:3px}
+  .cnt-ctl .cn{min-width:30px;display:inline-block}
+  .cnt-ctl button{font-family:"Jua";font-size:16px;width:24px;height:24px;border-radius:8px;background:#fff4ec;color:#c2562a;line-height:1;opacity:.35;transition:opacity .15s}
+  table.sbt tr:hover .cnt-ctl button{opacity:1}
+  .cnt-ctl button:hover{background:#ffe0cc}
+  .cnt-ctl button:disabled{opacity:0 !important;cursor:default}
   .sb-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:22px 0 10px}
   .sbt-wrap{overflow-x:auto;border:3px solid #f3d9c9;border-radius:20px;background:#fffdfa;-webkit-overflow-scrolling:touch}
   table.sbt{border-collapse:separate;border-spacing:0;width:100%}
@@ -684,7 +697,10 @@
 
     <div class="sb-head">
       <div class="sec-title" style="margin:0">📒 우리 반 도장판 <small id="rwRuleTxt"></small></div>
-      <button class="btn" id="sbSort">🔢 번호순</button>
+      <div class="sb-tools">
+        <span class="sb-cols" title="도장판 칸 수 늘리기·줄이기"><button id="sbColsDown" aria-label="칸 줄이기">−</button><b id="sbColsN">10칸</b><button id="sbColsUp" aria-label="칸 늘리기">+</button></span>
+        <button class="btn" id="sbSort">🔢 번호순</button>
+      </div>
     </div>
     <div id="sbGrid"></div>
   </section>
@@ -1780,6 +1796,7 @@
     return (S.rewards||[]).length > before;
   }
 
+  let sbColsNow = 10, sbColsMin = 5;
   function renderStamp(){
     const wk = wCur, L = weekLabel(wk);
     $("#wLabel").textContent = `${L.tag} · ${L.range}`;
@@ -1817,11 +1834,17 @@
     const maxAt = rr.length ? rr[rr.length-1].at : 10;
     const goals = new Map(rr.map(r => [r.at, r]));
     const allN = S.students.map(s => stampN(s.id));
-    const cols = Math.max(maxAt, Math.ceil(Math.max(0, ...allN)/5)*5, 5);
+    const autoCols = Math.max(maxAt, Math.ceil(Math.max(0, ...allN)/5)*5, 5);
+    const minCols = Math.max(5, Math.ceil(Math.max(0, ...allN)/5)*5);   // 이미 찍힌 도장은 가리지 않게
+    const cols = S.sbCols ? Math.max(S.sbCols, minCols) : autoCols;
+    sbColsNow = cols; sbColsMin = minCols;
+    $("#sbColsN").textContent = cols + "칸";
+    $("#sbColsDown").disabled = cols <= minCols;
+    $("#sbColsUp").disabled = cols >= 100;
     const order = S.students.map((s,i)=>({s,i,n:allN[i]}));
     if (S.sbSort === "most") order.sort((a,b)=>b.n-a.n || a.i-b.i);
     const top = Math.max(0, ...allN);
-    let head = `<thead><tr><th class="who">번호 · 이름</th><th class="cnt">🌟</th>`;
+    let head = `<thead><tr><th class="who">번호 · 이름</th><th class="cnt">🌟 도장</th>`;
     for (let j=1; j<=cols; j++) {
       const g = goals.get(j);
       head += `<th class="${g?"goal":""}${j%5===0?" five":""}">${g ? `<span class="ge">${esc(g.emoji)}</span>` : ""}<span class="gn">${j}</span></th>`;
@@ -1837,7 +1860,7 @@
       const owed = (S.rewards||[]).filter(k => k.sid===s.id && !k.given).length;
       return `<tr class="${n && n===top ? "lead" : ""}">
         <td class="who"><i>${i+1}</i>${esc(s.name)}${owed ? ` <span class="owe" title="받을 보상">🎁${owed}</span>` : ""}</td>
-        <td class="cnt">${n}</td>${cells}
+        <td class="cnt"><span class="cnt-ctl"><button data-sbminus="${s.id}" ${n?"":"disabled"} title="도장 하나 빼기" aria-label="${esc(s.name)} 도장 빼기">−</button><span class="cn">${n}</span><button data-sbplus="${s.id}" title="도장 하나 더 찍기" aria-label="${esc(s.name)} 도장 더하기">+</button></span></td>${cells}
         <td class="nx">${next ? `${esc(next.emoji)} <b>${next.at - n}</b>개 남음` : rr.length ? "🏆 다 모았어요" : ""}</td>
       </tr>`;
     }).join("");
@@ -1845,6 +1868,30 @@
     $("#sbSort").textContent = S.sbSort === "most" ? "📊 많은 순" : "🔢 번호순";
   }
 
+  $("#sbColsUp").onclick = () => { S.sbCols = Math.min(100, sbColsNow + 5); save(); renderStamp(); };
+  $("#sbColsDown").onclick = () => {
+    if (sbColsNow <= sbColsMin) { toast("도장을 이미 그만큼 받은 친구가 있어서 더 줄일 수 없어요", false); return; }
+    S.sbCols = Math.max(sbColsMin, sbColsNow - 5); save(); renderStamp();
+  };
+  $("#sbGrid").addEventListener("click", e => {
+    const pl = e.target.closest("[data-sbplus]"), mi = e.target.closest("[data-sbminus]");
+    if (!pl && !mi) return;
+    e.stopPropagation();
+    const sid = (pl || mi).dataset[pl ? "sbplus" : "sbminus"], s = S.students.find(x=>x.id===sid); if (!s) return;
+    if (pl) {
+      const got = setStamp(sid, thisWeek(), true);
+      save(); render(); beep(true);
+      toast(got ? `🌟 ${s.name} 도장! 🎁 보상 받을 차례예요` : `🌟 ${s.name} 도장 +1 (모두 ${stampN(sid)}개)`, false);
+    } else {
+      // 가장 최근에 찍은 도장 하나 빼기
+      let idx = -1;
+      (S.stamps||[]).forEach((x,i) => { if (x.sid===sid && (idx<0 || x.t >= S.stamps[idx].t)) idx = i; });
+      if (idx < 0) return;
+      S.stamps.splice(idx, 1); syncRewards(sid);
+      save(); render(); beep(false);
+      toast(`${s.name} 도장 하나 뺐어요 (모두 ${stampN(sid)}개)`, false);
+    }
+  });
   $("#sbSort").onclick = () => { S.sbSort = S.sbSort === "most" ? "num" : "most"; save(); renderStamp(); };
   $("#wPrev").onclick = () => { wCur = shiftWeek(wCur, -1); renderStamp(); };
   $("#wNext").onclick = () => { if (wCur < thisWeek()) { wCur = shiftWeek(wCur, 1); renderStamp(); } };
