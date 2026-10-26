@@ -566,6 +566,18 @@
   @keyframes fameIn{from{opacity:0;transform:translateY(8px) scale(.85)}}
   .fame-empty{position:relative;font-size:16px;color:#9a7420;padding:4px 2px}
   body.big .fame-chip{font-size:25px}
+  .fame-ed{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.75);border:2px solid #f0c64a;font-size:17px;display:grid;place-items:center;align-self:center}
+  .fame-ed:hover{background:#fff}
+  .fame-ed.on{background:#8a5a00;border-color:#8a5a00;color:#fff;font-family:"Jua";width:auto;padding:0 14px;font-size:16px}
+  body.big .fame-ed:not(.on){display:none}
+  .fame-chip .by{font-size:13px;margin-left:2px;opacity:.75}
+  .fame.editing .fame-list{gap:7px}
+  .fame.editing .fame-chip{cursor:pointer;animation:none;transition:transform .12s,background .15s}
+  .fame.editing .fame-chip:hover{transform:translateY(-2px)}
+  .fame.editing .fame-chip.off{background:rgba(255,255,255,.45);border:2px dashed #e2cf98;color:#b3a27a}
+  .fame.editing .fame-chip.off .cr{filter:grayscale(1);opacity:.35}
+  .fame-tip{position:relative;font-size:14px;color:#8a6200;margin:0 2px 10px;line-height:1.5}
+  .fame-tip button{font:inherit;color:#8a5a00;text-decoration:underline;margin-left:6px}
   .card.famed{border-color:#f0c64a;background:linear-gradient(160deg,#fffbe8,var(--t0) 60%)}
   .card .crown{font-size:20px;line-height:1;filter:drop-shadow(0 2px 2px rgba(160,120,0,.3))}
   .card .decay{position:relative;z-index:2;font-size:13px;color:var(--ink-soft);margin:-2px 0 8px;display:flex;align-items:center;gap:5px}
@@ -753,7 +765,8 @@
   <div id="ytBox"></div>
   <div id="scary" aria-hidden="true"><div><div class="face">😡</div><div class="txt">조용히 안 해?</div></div></div>
   <section class="fame" id="fame" aria-label="명예의 전당">
-    <div class="fame-head"><h2><span class="tr">🏆</span> 명예의 전당</h2><span class="sub" id="fameSub"></span><span class="n" id="fameN"></span></div>
+    <div class="fame-head"><h2><span class="tr">🏆</span> 명예의 전당</h2><span class="sub" id="fameSub"></span><span class="n" id="fameN"></span><button class="fame-ed" id="fameEdit" title="명예의 전당 고치기 (넣고 빼기)" aria-label="명예의 전당 고치기">✏️</button></div>
+    <div class="fame-tip" id="fameTip" hidden></div>
     <div class="fame-list" id="fameList"></div>
   </section>
   <div class="board-layout">
@@ -2827,18 +2840,59 @@
 
   /* ---------- 명예의 전당 + 1시간 동안 안 눌리면 1개씩 줄어요 ---------- */
   // 명예의 전당: 이번 판(초기화 이후)에 한 번도 안 눌린 친구 (− 버튼으로 바로잡은 건 안 눌린 걸로 봐요)
-  function isFamed(sid){ return cnt(sid) === 0 && activeHits(sid).length === 0; }
+  // 선생님이 직접 넣고 뺀 것 (이번 판에서만 유지, 초기화하면 자동으로 돌아가요)
+  function fameAdj(sid){
+    const a = S.fameAdj && S.fameAdj.p === S.periodStart ? S.fameAdj.m[sid] : null;
+    if (!a) return null;
+    if (a.m === "in" && activeHits(sid).some(h => h.t > a.t)) return null;   // 넣은 뒤에 또 눌리면 자동으로 내려가요
+    return a.m;
+  }
+  const autoFamed = sid => cnt(sid) === 0 && activeHits(sid).length === 0;
+  function isFamed(sid){ const a = fameAdj(sid); return a === "in" ? true : a === "out" ? false : autoFamed(sid); }
+  let fameEditing = false;
+  function setFame(sid, on){
+    if (!S.fameAdj || S.fameAdj.p !== S.periodStart) S.fameAdj = {p:S.periodStart, m:{}};
+    if (on === autoFamed(sid)) delete S.fameAdj.m[sid];          // 자동과 같으면 표시 지우기
+    else S.fameAdj.m[sid] = {m: on ? "in" : "out", t: Date.now()};
+    save(); render();
+  }
   function renderFame(){
     const list = S.students.map((s,i)=>({s,i})).filter(({s}) => isFamed(s.id));
     $("#fameN").textContent = `${list.length}명`;
+    $("#fame").classList.toggle("editing", fameEditing);
+    $("#fameEdit").classList.toggle("on", fameEditing);
+    $("#fameEdit").textContent = fameEditing ? "✅ 다 했어요" : "✏️";
+    const hasAdj = S.fameAdj && S.fameAdj.p === S.periodStart && Object.keys(S.fameAdj.m).length;
+    $("#fameTip").hidden = !fameEditing;
+    if (fameEditing){
+      $("#fameTip").innerHTML = `이름을 누르면 넣고 빼요. 👑 = 명예의 전당 · ✋ = 선생님이 직접 바꾼 친구${hasAdj ? `<button id="fameResetAdj">처음처럼 되돌리기</button>` : ""}`;
+      $("#fameList").dataset.k = "";
+      $("#fameList").innerHTML = S.students.map((s,i) => {
+        const on = isFamed(s.id), a = fameAdj(s.id);
+        return `<button class="fame-chip${on?"":" off"}" data-fame="${s.id}" aria-pressed="${on}"><span class="cr">👑</span> <i>${i+1}</i>${esc(s.name)}${a ? `<span class="by" title="선생님이 직접 ${a==="in"?"넣었어요":"뺐어요"}">✋</span>` : ""}</button>`;
+      }).join("");
+      return;
+    }
     $("#fameSub").textContent = `${fmtD(S.periodStart)}부터 한 번도 안 눌린 친구들`;
-    const key = list.map(x=>x.s.id).join(",");
+    const key = list.map(x=>x.s.id+(fameAdj(x.s.id)||"")).join(",");
     if ($("#fameList").dataset.k === key && $("#fameList").children.length) return;   // 같으면 다시 그리지 않아요 (반짝임 유지)
     $("#fameList").dataset.k = key;
     $("#fameList").innerHTML = list.length
-      ? list.map(({s,i},k) => `<span class="fame-chip" style="animation-delay:${Math.min(k,20)*30}ms">👑 <i>${i+1}</i>${esc(s.name)}</span>`).join("")
+      ? list.map(({s,i},k) => `<span class="fame-chip" style="animation-delay:${Math.min(k,20)*30}ms">👑 <i>${i+1}</i>${esc(s.name)}${fameAdj(s.id)==="in" ? `<span class="by" title="선생님이 직접 넣었어요">✋</span>` : ""}</span>`).join("")
       : `<div class="fame-empty">아직 아무도 없어요. 손 들고 말하면 명예의 전당에 올라갈 수 있어요! ✋</div>`;
   }
+
+  $("#fameEdit").onclick = () => { fameEditing = !fameEditing; renderFame(); };
+  $("#fame").addEventListener("click", e => {
+    const c = e.target.closest("[data-fame]");
+    if (c && fameEditing){
+      const sid = c.dataset.fame, on = !isFamed(sid), s = S.students.find(x=>x.id===sid);
+      setFame(sid, on);
+      toast(`${s ? s.name : ""} ${on ? "👑 명예의 전당에 넣었어요" : "명예의 전당에서 뺐어요"}`, false);
+      return;
+    }
+    if (e.target.closest("#fameResetAdj")){ S.fameAdj = {p:S.periodStart, m:{}}; save(); render(); toast("명예의 전당을 처음처럼 되돌렸어요", false); }
+  });
 
   // 1시간 동안 안 눌리면 1개씩 줄어요 — 평일 수업 시간(08:00~17:00)만 셉니다 (밤·주말엔 멈춤)
   const DECAY_MS = 60*60*1000, SCHOOL_FROM = 8, SCHOOL_TO = 17;
