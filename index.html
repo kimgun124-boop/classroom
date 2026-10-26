@@ -5,9 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>손들고 말해요</title>
 <meta name="description" content="수업 시간 손들기 약속을 아이들이 눈으로 확인하는 우리 반 보드">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<!-- 글꼴은 fonts 폴더에 함께 들어 있어요 (인터넷 없이도 예쁘게 보여요) -->
+<link href="fonts/fonts.css" rel="stylesheet">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✋</text></svg>">
 <style>
   :root{
@@ -495,6 +494,15 @@
   .btn.sfx.playing{background:#3b82c4;color:#fff;border-color:#3b82c4;animation:sfxPulse .6s ease-in-out infinite alternate}
   @keyframes sfxPulse{from{transform:scale(1)}to{transform:scale(1.06)}}
   .btn.sfx-ed{padding-left:10px;padding-right:10px}
+  .sfx-rows{display:flex;flex-direction:column;gap:8px}
+  .sfx-row{display:grid;grid-template-columns:30px minmax(0,1fr) auto auto auto;gap:6px;align-items:center;background:#f7fbff;border:2px solid #e1ecf8;border-radius:14px;padding:7px 8px}
+  .sfx-row .no{font-family:"Jua";font-size:17px;color:#2f5d8a;text-align:center}
+  .sfx-row input{padding:7px 10px}
+  .sfx-row .btn{padding:7px 10px;font-size:14px;white-space:nowrap}
+  .sfx-row .btn.rec{background:#d63b3b;color:#fff;border-color:#d63b3b;animation:sfxPulse .6s ease-in-out infinite alternate}
+  .sfx-row .mine{font-size:12px;color:#2f8a5b;display:block}
+  .sfx-row .btn[disabled]{opacity:.35;cursor:default}
+  @media (max-width:560px){ .sfx-row{grid-template-columns:24px minmax(0,1fr) auto auto} .sfx-row .rs{grid-column:2 / -1} }
   .mt-recbar{display:flex;gap:6px;margin:-4px 0 12px}
   .mt-recbar button{font-family:"Jua";font-size:14px;padding:7px 8px;border-radius:12px;background:#f9ece9;color:#b2493b;border:2px dashed #efc4bc}
   .mt-recbar #mtRec{flex:1}
@@ -747,7 +755,7 @@
       <button class="btn sfx" data-sfx="5" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">돌아</span></button>
       <button class="btn sfx" data-sfx="6" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">아니</span></button>
       <button class="btn sfx" data-sfx="7" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">오키</span></button>
-      <button class="btn sfx-ed" id="sfxEdit" title="소리 버튼 이름 바꾸기" aria-label="소리 버튼 이름 바꾸기">✏️</button>
+      <button class="btn sfx-ed" id="sfxEdit" title="소리 버튼 고치기 (이름 바꾸기·내 목소리 녹음)" aria-label="소리 버튼 고치기">✏️</button>
       <button class="btn" id="bigBtn" title="전체 화면으로 크게 보기">🖥️ 크게 보기</button>
       <button class="btn" id="decayBtn" title="켜면 1시간 동안 안 눌린 친구는 1개씩 줄어요 (평일 8~17시)">⏳ 자동 줄이기 끔</button>
       <button class="btn" id="seatBtn" title="수업 시작 30초 전에 ‘자리’ 소리를 5번 들려줘요 (시간표의 시작 시간 기준)">🪑 자리 알림</button>
@@ -988,6 +996,19 @@
     <div class="actions">
       <button class="btn" data-close>취소</button>
       <button class="btn primary" id="saveBtn">저장하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 소리 버튼 고치기 -->
+<div class="modal" id="sfxModal" aria-modal="true" role="dialog">
+  <div class="sheet">
+    <h2>🔊 소리 버튼 고치기 <button class="x" data-close>×</button></h2>
+    <p class="desc">이름을 바꾸고, <b>🎙️ 녹음</b>을 눌러 선생님 목소리로 바꿀 수 있어요 (한 번에 최대 5초). 녹음은 이 컴퓨터에 저장돼요. <b>↺ 처음 소리</b>를 누르면 원래 소리로 돌아가요.</p>
+    <div class="sfx-rows" id="sfxRows"></div>
+    <div class="actions">
+      <button class="btn" data-close>닫기</button>
+      <button class="btn primary" id="sfxSave">이름 저장하기</button>
     </div>
   </div>
 </div>
@@ -2485,14 +2506,74 @@
     b.classList.remove("playing"); void b.offsetWidth; b.classList.add("playing");
     x.onended = () => b.classList.remove("playing");
   }));
-  $("#sfxEdit").onclick = () => {
-    for (let i = 0; i < SFX.length; i++){
-      const v = prompt(`${i+1}번 소리 버튼 이름 (예: 조용히, 박수)`, S.sfxNames[i] || "");
-      if (v === null) return;
-      S.sfxNames[i] = v.trim().slice(0, 12) || SFX_DEF[i] || `소리 ${i+1}`;
+  // ---- 선생님이 직접 녹음한 소리 (이 컴퓨터에만 저장) ----
+  const SFXKEY = "handboard.sfx.v1";
+  let sfxMine = [];
+  try{ sfxMine = JSON.parse(localStorage.getItem(SFXKEY) || "[]") || []; }catch(e){ sfxMine = []; }
+  if (!Array.isArray(sfxMine)) sfxMine = [];
+  const applySfx = i => { const x = sfxAudio[i]; x.pause(); x.src = sfxMine[i] || SFX[i]; x.load(); };
+  SFX.forEach((_, i) => { if (sfxMine[i]) applySfx(i); });
+  function saveSfxMine(){
+    try{ localStorage.setItem(SFXKEY, JSON.stringify(sfxMine)); return true; }
+    catch(e){ toast("저장 공간이 모자라요. 다른 녹음을 짧게 다시 하거나 ‘처음 소리’로 돌려 주세요.", false); return false; }
+  }
+  let sfxRec = null;   // {i, rec, stream, timer}
+  function renderSfxRows(){
+    $("#sfxRows").innerHTML = SFX.map((_, i) => {
+      const recing = sfxRec && sfxRec.i === i;
+      return `<div class="sfx-row">
+        <span class="no">${i+1}</span>
+        <span><input type="text" data-sfxname="${i}" value="${esc(S.sfxNames[i] || SFX_DEF[i] || "")}" maxlength="12" placeholder="버튼 이름">${sfxMine[i] ? `<span class="mine">🎙️ 내 목소리로 바뀜</span>` : ""}</span>
+        <button class="btn" data-sfxplay="${i}" title="들어 보기">▶ 듣기</button>
+        <button class="btn${recing ? " rec" : ""}" data-sfxrec="${i}" ${sfxRec && !recing ? "disabled" : ""}>${recing ? "⏹️ 끝내기" : "🎙️ 녹음"}</button>
+        <button class="btn rs" data-sfxreset="${i}" ${sfxMine[i] ? "" : "disabled"} title="원래 소리로 돌아가기">↺ 처음 소리</button>
+      </div>`;
+    }).join("");
+  }
+  async function startSfxRec(i){
+    if (!navigator.mediaDevices || !window.MediaRecorder){ toast("이 브라우저에서는 녹음이 안 돼요 (크롬·엣지에서 열어 주세요)", false); return; }
+    let stream;
+    try{ stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:true, autoGainControl:true}}); }
+    catch(e){ toast("마이크를 쓸 수 없어요. 마이크가 꽂혀 있는지, 주소창 왼쪽에서 마이크를 허용했는지 확인해 주세요.", false); return; }
+    let rec; try{ rec = new MediaRecorder(stream, {audioBitsPerSecond: 32000}); }catch(e){ rec = new MediaRecorder(stream); }   // 작게 저장 (8개 모두 녹음해도 넉넉하게)
+    const chunks = [];
+    rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+    rec.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      clearTimeout(sfxRec && sfxRec.timer); sfxRec = null;
+      const blob = new Blob(chunks, {type: rec.mimeType || "audio/webm"});
+      if (!blob.size){ toast("소리가 녹음되지 않았어요. 다시 해 주세요.", false); renderSfxRows(); return; }
+      const fr = new FileReader();
+      fr.onload = () => {
+        const prev = sfxMine[i];
+        sfxMine[i] = fr.result;
+        if (!saveSfxMine()){ sfxMine[i] = prev; renderSfxRows(); return; }
+        applySfx(i); renderSfxRows();
+        toast(`${i+1}번 소리를 선생님 목소리로 바꿨어요 🎙️`, false);
+        const pr = sfxAudio[i].play(); if (pr && pr.catch) pr.catch(()=>{});
+      };
+      fr.readAsDataURL(blob);
+    };
+    sfxRec = {i, rec, stream, timer: setTimeout(() => { if (rec.state === "recording") rec.stop(); }, 5000)};
+    rec.start(); renderSfxRows();
+    toast("🔴 녹음 중… 말한 뒤 ⏹️ 끝내기를 누르세요 (5초가 지나면 저절로 끝나요)", false);
+  }
+  $("#sfxRows").addEventListener("click", e => {
+    const p = e.target.closest("[data-sfxplay]"), r = e.target.closest("[data-sfxrec]"), z = e.target.closest("[data-sfxreset]");
+    if (p){ const x = sfxAudio[+p.dataset.sfxplay]; sfxAudio.forEach(o => { o.pause(); }); x.currentTime = 0; const pr = x.play(); if (pr && pr.catch) pr.catch(() => toast("소리를 틀 수 없어요. 컴퓨터 소리가 켜져 있는지 확인해 주세요.", false)); }
+    else if (r && !r.disabled){ const i = +r.dataset.sfxrec; if (sfxRec && sfxRec.i === i) sfxRec.rec.stop(); else if (!sfxRec) startSfxRec(i); }
+    else if (z && !z.disabled){
+      const i = +z.dataset.sfxreset;
+      if (!confirm(`${i+1}번 버튼을 원래 소리로 되돌릴까요? (녹음한 목소리는 지워져요)`)) return;
+      sfxMine[i] = null; saveSfxMine(); applySfx(i); renderSfxRows(); toast(`${i+1}번 소리를 처음 소리로 되돌렸어요`, false);
     }
-    save(); renderSfx(); toast("소리 버튼 이름을 바꿨어요 🔊", false);
+  });
+  $("#sfxEdit").onclick = () => { renderSfxRows(); openM("#sfxModal"); };
+  $("#sfxSave").onclick = () => {
+    document.querySelectorAll("[data-sfxname]").forEach(inp => { const i = +inp.dataset.sfxname; S.sfxNames[i] = inp.value.trim().slice(0, 12) || SFX_DEF[i] || `소리 ${i+1}`; });
+    save(); renderSfx(); closeM($("#sfxSave")); toast("소리 버튼 이름을 저장했어요 🔊", false);
   };
+  $("#sfxModal").addEventListener("click", e => { if (sfxRec && (e.target === $("#sfxModal") || e.target.closest("[data-close]"))) sfxRec.rec.stop(); });
   renderSfx();
 
   /* ---------- 선생님 마음 온도계 (1 = 아주 좋음 → 10 = 폭발 직전) ---------- */
