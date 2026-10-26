@@ -749,6 +749,7 @@
       <button class="btn sfx" data-sfx="7" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">오키</span></button>
       <button class="btn sfx-ed" id="sfxEdit" title="소리 버튼 이름 바꾸기" aria-label="소리 버튼 이름 바꾸기">✏️</button>
       <button class="btn" id="bigBtn" title="전체 화면으로 크게 보기">🖥️ 크게 보기</button>
+      <button class="btn" id="decayBtn" title="켜면 1시간 동안 안 눌린 친구는 1개씩 줄어요 (평일 8~17시)">⏳ 자동 줄이기 끔</button>
       <button class="btn" id="seatBtn" title="수업 시작 30초 전에 ‘자리’ 소리를 5번 들려줘요 (시간표의 시작 시간 기준)">🪑 자리 알림</button>
       <button class="btn" id="clockBtn" title="시계만 크게 보기 (5분 동안 아무것도 안 누르면 자동으로 켜져요)">🕐 시계</button>
       <button class="btn" id="whyBtn" title="왜 눌렸는지 모아 보기">💬 이유 모아 보기</button>
@@ -2920,7 +2921,7 @@
     return st;
   }
   function decayHTML(sid, c){
-    if (c <= 0) return "";
+    if (c <= 0 || !S.decayOn) return "";
     const st = decayState(sid), used = schoolMs(st.base, Date.now()) - st.n*DECAY_MS;
     const left = Math.max(0, DECAY_MS - used), min = Math.ceil(left/60000);
     const pct = Math.max(0, Math.min(100, used/DECAY_MS*100));
@@ -2928,6 +2929,7 @@
     return `<div class="decay${paused?" paused":""}" data-decay="${sid}" title="1시간 동안 안 눌리면 1개 줄어요 (평일 8시~17시만 세요)">⏳ <span class="bar"><b style="width:${pct}%"></b></span><span class="tx">${paused ? "쉬는 중" : `${min}분 뒤 −1`}</span></div>`;
   }
   function decayTick(){
+    if (!S.decayOn) return;   // 기본은 꺼져 있어요: 누른 횟수는 저절로 줄지 않아요
     const now = Date.now(), dropped = [];
     S.students.forEach(s => {
       let c = cnt(s.id); if (c <= 0) return;
@@ -2960,6 +2962,19 @@
       });
     }
   }
+  S.decayOn = S.decayOn === true;   // 예전 버전에서 켜져 있던 것도 처음엔 꺼 둬요 (버튼으로만 켜요)
+  if (S.decayOnV !== 1){ S.decayOn = false; S.decayOnV = 1; save(); }
+  function renderDecayBtn(){ const b = $("#decayBtn"); b.classList.toggle("on", S.decayOn); b.textContent = S.decayOn ? "⏳ 자동 줄이기 켬" : "⏳ 자동 줄이기 끔"; }
+  $("#decayBtn").onclick = () => {
+    S.decayOn = !S.decayOn;
+    if (S.decayOn){   // 켠 순간부터 1시간을 새로 세요 (꺼 둔 동안의 시간으로 한꺼번에 줄지 않게)
+      const now = Date.now(); S.decay = {};
+      S.students.forEach(st => { S.decay[st.id] = {base: now, n: 0}; });
+    }
+    save(); renderDecayBtn(); render();
+    toast(S.decayOn ? "⏳ 이제 1시간 동안 안 눌리면 1개씩 줄어요" : "⏳ 자동 줄이기를 껐어요. 누른 횟수는 그대로 남아요", false);
+  };
+  renderDecayBtn();
   setInterval(decayTick, 20*1000);
   decayTick();
 
