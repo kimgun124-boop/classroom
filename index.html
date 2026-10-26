@@ -550,6 +550,32 @@
     .mt-row{flex:1 0 18%}
   }
 
+
+  /* ---------- 명예의 전당 + 1시간마다 −1 ---------- */
+  .fame{position:relative;margin:0 0 16px;background:linear-gradient(135deg,#fff8dc 0%,#ffefb0 55%,#ffe08a 100%);border:3px solid #f0c64a;border-radius:24px;padding:12px 16px 14px;box-shadow:0 2px 0 rgba(160,120,0,.12),0 10px 24px rgba(200,150,0,.15);overflow:hidden}
+  .fame::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 12% 0%,rgba(255,255,255,.75),transparent 40%),radial-gradient(circle at 95% 110%,rgba(255,255,255,.5),transparent 45%)}
+  .fame-head{position:relative;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .fame-head h2{font-family:"Jua";font-weight:400;font-size:26px;margin:0;color:#8a5a00;display:flex;align-items:center;gap:8px}
+  .fame-head h2 .tr{font-size:32px;display:inline-block;animation:fameShine 2.4s ease-in-out infinite}
+  @keyframes fameShine{0%,100%{transform:rotate(0) scale(1)}50%{transform:rotate(-8deg) scale(1.12)}}
+  .fame-head .sub{font-size:14px;color:#9a7420}
+  .fame-head .n{margin-left:auto;font-family:"Jua";font-size:18px;background:#fff;color:#a06d00;border-radius:999px;padding:3px 14px;border:2px solid #f0c64a}
+  .fame-list{position:relative;display:flex;flex-wrap:wrap;gap:8px}
+  .fame-chip{display:inline-flex;align-items:center;gap:5px;background:#fff;border:2px solid #f3d67a;border-radius:999px;padding:5px 14px 5px 8px;font-family:"Jua";font-size:21px;color:#5a3a00;box-shadow:0 2px 0 rgba(160,120,0,.12);animation:fameIn .5s cubic-bezier(.3,1.5,.5,1) both}
+  .fame-chip i{font-style:normal;font-size:12px;background:#f7e7b0;color:#8a6200;border-radius:8px;padding:1px 6px}
+  @keyframes fameIn{from{opacity:0;transform:translateY(8px) scale(.85)}}
+  .fame-empty{position:relative;font-size:16px;color:#9a7420;padding:4px 2px}
+  body.big .fame-chip{font-size:25px}
+  .card.famed{border-color:#f0c64a;background:linear-gradient(160deg,#fffbe8,var(--t0) 60%)}
+  .card .crown{font-size:20px;line-height:1;filter:drop-shadow(0 2px 2px rgba(160,120,0,.3))}
+  .card .decay{position:relative;z-index:2;font-size:13px;color:var(--ink-soft);margin:-2px 0 8px;display:flex;align-items:center;gap:5px}
+  .card .decay .bar{flex:1;height:7px;border-radius:4px;background:rgba(255,255,255,.8);overflow:hidden}
+  .card .decay .bar b{display:block;height:100%;background:#7cc7a0;border-radius:4px;transition:width .6s}
+  .card .decay.paused{opacity:.6}
+  .card.dropped{animation:dropped 1s ease}
+  @keyframes dropped{0%{box-shadow:0 0 0 0 rgba(124,199,160,.9)}100%{box-shadow:0 0 0 18px rgba(124,199,160,0)}}
+  .log-item .d.auto{color:#2f8a5b}
+
   /* drag to rearrange */
   .card{cursor:grab;touch-action:manipulation}
   .card .minus,.card .tag{cursor:pointer}
@@ -726,6 +752,10 @@
 
   <div id="ytBox"></div>
   <div id="scary" aria-hidden="true"><div><div class="face">😡</div><div class="txt">조용히 안 해?</div></div></div>
+  <section class="fame" id="fame" aria-label="명예의 전당">
+    <div class="fame-head"><h2><span class="tr">🏆</span> 명예의 전당</h2><span class="sub" id="fameSub"></span><span class="n" id="fameN"></span></div>
+    <div class="fame-list" id="fameList"></div>
+  </section>
   <div class="board-layout">
     <aside class="mt" id="mt" aria-label="선생님 마음 온도계">
       <div class="mt-head"><h2>🌡️ 선생님<br>마음 온도계</h2></div>
@@ -1173,14 +1203,15 @@
       const next = r.find(x=>c<x.at);
       tags = next ? `<div class="ok" style="color:var(--t1-ink)">⚠️ ${next.at-c}번 더 하면 ${esc(next.emoji)} ${esc(next.label)}</div>` : "";
     }
-    return `<article class="card t${t}" data-id="${s.id}">
+    return `<article class="card t${t}${isFamed(s.id)?" famed":""}" data-id="${s.id}">
       <button class="hit" data-plus="${s.id}" aria-label="${esc(s.name)} 한 번 추가"></button>
       <button class="minus" data-minus="${s.id}" aria-label="${esc(s.name)} 한 번 빼기" title="한 번 빼기">−</button>
-      <div class="head"><span class="num">${idx+1}</span>${stampN(s.id) ? `<span class="stampct" title="칭찬도장">🌟${stampN(s.id)}</span>` : ""}</div>
+      <div class="head"><span class="num">${idx+1}</span>${isFamed(s.id) ? `<span class="crown" title="명예의 전당">👑</span>` : ""}${stampN(s.id) ? `<span class="stampct" title="칭찬도장">🌟${stampN(s.id)}</span>` : ""}</div>
       <div class="name">${esc(s.name)}</div>
       <div class="count">${c}<small>회</small></div>
       <div class="dots">${dots}</div>
       ${cardWhy(s.id)}
+      ${decayHTML(s.id, c)}
       <div class="tags">${tags}</div>
     </article>`;
   }
@@ -1195,7 +1226,7 @@
     $("#grid").innerHTML = list.map(({s,i})=>cardHTML(s,i)).join("") ||
       `<div class="empty">설정에서 학생 명단을 입력해 주세요.</div>`;
   }
-  function render(){ renderHeader(); renderGrid(); if (!ttEditing) renderTT(); if (!noteEditing) renderNote(); if (view === "check") renderCheck(); if (view === "reset") renderReset(); if (view === "stamp") renderStamp(); try{ renderUp(); if (view === "cal" && !calTyping) renderCal(); }catch(e){} }
+  function render(){ renderHeader(); renderFame(); renderGrid(); if (!ttEditing) renderTT(); if (!noteEditing) renderNote(); if (view === "check") renderCheck(); if (view === "reset") renderReset(); if (view === "stamp") renderStamp(); try{ renderUp(); if (view === "cal" && !calTyping) renderCal(); }catch(e){} }
 
   /* ---------- actions ---------- */
   let lastAction = null, toastTimer;
@@ -1652,16 +1683,16 @@
   function renderLog(){
     document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("on", b.dataset.tab===tab));
     if (tab === "now") {
-      const plog = S.log.filter(l => l.t >= pStart());
+      const plog = S.log.filter(l => l.t >= pStart()).concat((S.decayLog||[]).filter(l => l.t >= pStart()).map(l => ({...l, auto:true}))).sort((a,b)=>a.t-b.t);
       if (!plog.length) { $("#logBody").innerHTML = `<div class="empty">아직 기록이 없어요 🌱<br>${fmtD(S.periodStart)}부터 시작</div>`; return; }
       let html = "", lastDay = "";
       [...plog].reverse().forEach(l => {
         const day = fmtD(l.t);
         if (day !== lastDay) { html += `<div class="day">${day}</div>`; lastDay = day; }
         const nm = (S.students.find(s=>s.id===l.sid)||{}).name || l.name;
-        html += `<div class="log-item"><time>${fmtT(l.t)}</time><span class="who">${esc(nm)}</span><span class="d ${l.d>0?"p":"m"}">${l.d>0?"+1":"−1"}</span>${l.why ? `<span class="lw" style="color:var(--ink-soft);font-size:14px;">💬 ${esc(l.why)}</span>` : ""}</div>`;
+        html += `<div class="log-item"><time>${fmtT(l.t)}</time><span class="who">${esc(nm)}</span><span class="d ${l.auto?"auto":l.d>0?"p":"m"}">${l.auto?"−1 ⏳ 1시간 잘 지킴":l.d>0?"+1":"−1"}</span>${l.why ? `<span class="lw" style="color:var(--ink-soft);font-size:14px;">💬 ${esc(l.why)}</span>` : ""}</div>`;
       });
-      $("#logBody").innerHTML = `<p class="desc">${fmtD(S.periodStart)}부터 · 총 ${plog.filter(l=>l.d>0).length}번 기록</p><div class="log">${html}</div>`;
+      $("#logBody").innerHTML = `<p class="desc">${fmtD(S.periodStart)}부터 · 총 ${plog.filter(l=>l.d>0&&!l.auto).length}번 기록</p><div class="log">${html}</div>`;
     } else {
       if (!S.archive.length) { $("#logBody").innerHTML = `<div class="empty">보관된 기록이 없어요.<br>설정 → '보관하고 새로 시작'을 누르면 여기에 쌓여요.</div>`; return; }
       $("#logBody").innerHTML = S.archive.map(a => {
@@ -2792,6 +2823,91 @@
   };
   renderSeatBtn();
   setInterval(checkSeat, 1000);
+
+
+  /* ---------- 명예의 전당 + 1시간 동안 안 눌리면 1개씩 줄어요 ---------- */
+  // 명예의 전당: 이번 판(초기화 이후)에 한 번도 안 눌린 친구 (− 버튼으로 바로잡은 건 안 눌린 걸로 봐요)
+  function isFamed(sid){ return cnt(sid) === 0 && activeHits(sid).length === 0; }
+  function renderFame(){
+    const list = S.students.map((s,i)=>({s,i})).filter(({s}) => isFamed(s.id));
+    $("#fameN").textContent = `${list.length}명`;
+    $("#fameSub").textContent = `${fmtD(S.periodStart)}부터 한 번도 안 눌린 친구들`;
+    const key = list.map(x=>x.s.id).join(",");
+    if ($("#fameList").dataset.k === key && $("#fameList").children.length) return;   // 같으면 다시 그리지 않아요 (반짝임 유지)
+    $("#fameList").dataset.k = key;
+    $("#fameList").innerHTML = list.length
+      ? list.map(({s,i},k) => `<span class="fame-chip" style="animation-delay:${Math.min(k,20)*30}ms">👑 <i>${i+1}</i>${esc(s.name)}</span>`).join("")
+      : `<div class="fame-empty">아직 아무도 없어요. 손 들고 말하면 명예의 전당에 올라갈 수 있어요! ✋</div>`;
+  }
+
+  // 1시간 동안 안 눌리면 1개씩 줄어요 — 평일 수업 시간(08:00~17:00)만 셉니다 (밤·주말엔 멈춤)
+  const DECAY_MS = 60*60*1000, SCHOOL_FROM = 8, SCHOOL_TO = 17;
+  function schoolMs(a, b){
+    if (!(b > a)) return 0;
+    let ms = 0; const d = new Date(a); d.setHours(0,0,0,0);
+    for (let guard = 0; d.getTime() < b && guard < 400; guard++){
+      const wd = d.getDay();
+      if (wd >= 1 && wd <= 5){
+        const s0 = new Date(d).setHours(SCHOOL_FROM,0,0,0), s1 = new Date(d).setHours(SCHOOL_TO,0,0,0);
+        ms += Math.max(0, Math.min(b, s1) - Math.max(a, s0));
+      }
+      d.setDate(d.getDate() + 1);
+    }
+    return ms;
+  }
+  const inSchool = t => { const d = new Date(t), h = d.getHours(); return d.getDay()>=1 && d.getDay()<=5 && h>=SCHOOL_FROM && h<SCHOOL_TO; };
+  function lastHitAt(sid){ const h = activeHits(sid); return h.length ? h[h.length-1].t : 0; }
+  function decayState(sid){
+    S.decay = S.decay || {};
+    let st = S.decay[sid];
+    const lh = lastHitAt(sid);
+    const base = Math.max(lh, sinceFor(sid));
+    if (!st || st.base < base) st = S.decay[sid] = {base: lh || Date.now(), n: 0};   // 새로 눌리면 1시간을 다시 셉니다
+    return st;
+  }
+  function decayHTML(sid, c){
+    if (c <= 0) return "";
+    const st = decayState(sid), used = schoolMs(st.base, Date.now()) - st.n*DECAY_MS;
+    const left = Math.max(0, DECAY_MS - used), min = Math.ceil(left/60000);
+    const pct = Math.max(0, Math.min(100, used/DECAY_MS*100));
+    const paused = !inSchool(Date.now());
+    return `<div class="decay${paused?" paused":""}" data-decay="${sid}" title="1시간 동안 안 눌리면 1개 줄어요 (평일 8시~17시만 세요)">⏳ <span class="bar"><b style="width:${pct}%"></b></span><span class="tx">${paused ? "쉬는 중" : `${min}분 뒤 −1`}</span></div>`;
+  }
+  function decayTick(){
+    const now = Date.now(), dropped = [];
+    S.students.forEach(s => {
+      let c = cnt(s.id); if (c <= 0) return;
+      const st = decayState(s.id), due = Math.floor(schoolMs(st.base, now) / DECAY_MS);
+      while (st.n < due && c > 0){
+        st.n++; c--;
+        S.decayLog = S.decayLog || [];
+        S.decayLog.push({sid:s.id, name:s.name, t: now, d:-1});
+        dropped.push(s);
+      }
+      S.counts[s.id] = c;
+    });
+    if (S.decayLog && S.decayLog.length > 3000) S.decayLog = S.decayLog.slice(-3000);
+    if (dropped.length){
+      save();
+      if (document.body.classList.contains("dragging-card")) return;
+      render();
+      const names = [...new Set(dropped.map(s=>s.name))];
+      dropped.forEach(s => { const el = document.querySelector(`.card[data-id="${s.id}"]`); if (el) el.classList.add("dropped"); });
+      toast(`⏳ 1시간 잘 지켰어요! ${names.slice(0,4).join(", ")}${names.length>4?` 외 ${names.length-4}명`:""} −1`, false);
+    } else {
+      // 남은 시간만 살짝 고쳐요 (카드 전체를 다시 그리지 않음)
+      document.querySelectorAll("[data-decay]").forEach(el => {
+        const sid = el.dataset.decay, tmp = document.createElement("div");
+        tmp.innerHTML = decayHTML(sid, cnt(sid));
+        const nw = tmp.firstElementChild; if (!nw) return;
+        el.className = nw.className;
+        el.querySelector(".bar b").style.width = nw.querySelector(".bar b").style.width;
+        el.querySelector(".tx").textContent = nw.querySelector(".tx").textContent;
+      });
+    }
+  }
+  setInterval(decayTick, 20*1000);
+  decayTick();
 
   tickClock(); setInterval(tickClock, 1000);
 
