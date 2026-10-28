@@ -284,6 +284,7 @@
   .stampct{font-family:"Jua";font-size:14px;color:#d63b3b;background:rgba(255,255,255,.85);border-radius:9px;padding:1px 7px;white-space:nowrap}
 
   .tabnav .badge[hidden]{display:none}
+  .hint[hidden]{display:none}
   .btn:disabled{opacity:.5;cursor:default}
   .seg button{white-space:nowrap;font-size:13px}
 
@@ -699,6 +700,59 @@
   .tabnav button{white-space:nowrap}
   @media (max-width:700px){ .tabnav{flex-wrap:wrap}.tabnav button{font-size:16px;padding:8px 12px;border-radius:12px 12px 0 0} }
   @media (max-width:560px){ .cal-day{min-height:70px;padding:4px 3px}.cal-day .dn{font-size:15px}.ev{font-size:11px;padding:1px 3px} }
+  /* ---------- 🎤 발표 뽑기 ---------- */
+  #pick{position:fixed;inset:0;z-index:9990;display:none;flex-direction:column;gap:2vh;padding:2.4vh 3vw 2vh;
+    background:radial-gradient(ellipse at 50% 35%,#46695a 0%,#34503f 65%,#29402f 100%);color:#fdfbf6;
+    border:clamp(8px,1.4vw,20px) solid #b98a5a;user-select:none;overflow:auto}
+  #pick.open{display:flex;animation:bcIn .3s ease}
+  .pk-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .pk-top h2{font-family:"Jua";font-weight:400;font-size:clamp(26px,3vw,44px);margin:0;flex:1}
+  .pk-meta{font-family:"Jua";font-size:clamp(17px,1.8vw,26px);background:rgba(255,255,255,.12);border:2px dashed rgba(255,255,255,.35);border-radius:999px;padding:4px 18px}
+  .pk-meta b{font-weight:400;color:#ffd27a;font-size:1.25em}
+  .pk-x{font-size:30px;width:52px;height:52px;border-radius:16px;background:rgba(255,255,255,.12);color:#fff}
+  .pk-x:hover{background:rgba(255,255,255,.22)}
+  .pk-stage{flex:1;min-height:34vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.4vh}
+  .pk-card{position:relative;min-width:min(78vw,640px);max-width:92vw;background:#fffdf6;color:var(--ink);border-radius:36px;padding:3vh 5vw 3.4vh;text-align:center;
+    box-shadow:0 6px 0 #d9c7ad,0 20px 50px rgba(0,0,0,.35);transition:transform .15s}
+  .pk-card .pk-no{font-family:"Jua";font-size:clamp(20px,2.4vw,34px);color:var(--ink-soft);min-height:1.2em}
+  .pk-card .pk-name{font-family:"Jua";font-size:clamp(64px,13vw,210px);line-height:1.08;word-break:keep-all;overflow-wrap:anywhere}
+  .pk-card .pk-q{font-family:"Jua";font-size:clamp(34px,6vw,96px);color:#b4a58f;line-height:1.2}
+  .pk-card.spin .pk-name{color:#8a7f73}
+  .pk-card.win{animation:pkWin .7s cubic-bezier(.2,1.6,.4,1)}
+  .pk-card.win .pk-name{color:#c2562a}
+  .pk-card.win::before,.pk-card.win::after{content:"✨";position:absolute;font-size:clamp(34px,5vw,70px);animation:pkSpark 1.4s ease-out forwards}
+  .pk-card.win::before{left:-0.4em;top:-0.4em} .pk-card.win::after{right:-0.4em;bottom:-0.3em}
+  @keyframes pkWin{0%{transform:scale(.7) rotate(-4deg)}60%{transform:scale(1.08) rotate(2deg)}100%{transform:none}}
+  @keyframes pkSpark{0%{opacity:0;transform:scale(.3)}30%{opacity:1;transform:scale(1.2)}100%{opacity:0;transform:scale(1) translateY(-20px)}}
+  .pk-card.alldone .pk-q{color:#2f8a5b}
+  .pk-actions{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;align-items:center}
+  .pk-go{font-family:"Jua";font-size:clamp(28px,3.4vw,50px);background:#ff8a5b;color:#fff;border-radius:24px;padding:1.4vh 4vw;box-shadow:0 6px 0 #c9603a;transition:transform .1s}
+  .pk-go:hover{background:#ff7a45}
+  .pk-go:active{transform:translateY(4px);box-shadow:0 2px 0 #c9603a}
+  .pk-go:disabled{opacity:.6;cursor:default;transform:none}
+  .pk-sub{font-family:"Jua";font-size:clamp(16px,1.6vw,22px);background:rgba(255,255,255,.14);color:#fff;border:2px solid rgba(255,255,255,.3);border-radius:16px;padding:10px 16px}
+  .pk-sub:hover{background:rgba(255,255,255,.24)}
+  .pk-sub:disabled{opacity:.35;cursor:default}
+  .pk-hint{font-size:clamp(13px,1.2vw,16px);opacity:.6;text-align:center}
+  .pk-lists{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .pk-box{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.18);border-radius:22px;padding:12px 14px}
+  .pk-box h3{font-family:"Jua";font-weight:400;font-size:clamp(18px,1.7vw,24px);margin:0 0 8px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .pk-box h3 small{font-family:"Gowun Dodum";font-size:13px;opacity:.7}
+  .pk-chips{display:flex;flex-wrap:wrap;gap:6px}
+  .pk-chip{font-family:"Jua";font-size:clamp(16px,1.5vw,21px);background:#fffdf6;color:var(--ink);border-radius:999px;padding:4px 13px 4px 7px;display:inline-flex;align-items:center;gap:5px;transition:transform .08s,background .08s}
+  .pk-chip i{font-style:normal;font-size:12px;background:#efe6d8;color:var(--ink-soft);border-radius:8px;padding:1px 6px}
+  .pk-chip:hover{transform:translateY(-1px)}
+  .pk-chip.hot{background:#ffd27a;transform:scale(1.12)}
+  .pk-chip.off{background:transparent;color:rgba(255,255,255,.55);border:2px dashed rgba(255,255,255,.35);text-decoration:line-through}
+  .pk-chip.off i{background:rgba(255,255,255,.12);color:rgba(255,255,255,.6)}
+  .pk-chip.used{background:#e3f6ec;color:#2f8a5b}
+  .pk-chip.used i{background:#2f8a5b;color:#fff}
+  .pk-chip.used.last{outline:3px solid #ffd27a;outline-offset:1px}
+  .pk-empty{font-size:14px;opacity:.6;padding:4px 2px}
+  .btn.pickb{background:#fff4ec;border-color:#ffd3bd;color:#c2562a}
+  .btn.pickb:hover{background:#ffe6d6}
+  @media (max-width:700px){ .pk-lists{grid-template-columns:1fr} }
+
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -715,6 +769,26 @@
   <div class="bc-time"><span class="bc-ap" id="bcAp"></span><span class="bc-hm" id="bcHm"></span><span class="bc-sec" id="bcSec"></span></div>
   <div class="bc-msg">✋ 말하고 싶을 땐 손을 들어요</div>
   <div class="bc-hint">화면을 누르면 보드로 돌아가요</div>
+</div>
+<div id="pick" role="dialog" aria-label="발표 뽑기">
+  <div class="pk-top">
+    <h2>🎤 발표 뽑기</h2>
+    <span class="pk-meta" id="pkMeta"></span>
+    <button class="pk-x" id="pkClose" title="닫기 (Esc)" aria-label="발표 뽑기 닫기">×</button>
+  </div>
+  <div class="pk-stage">
+    <div class="pk-card" id="pkCard"></div>
+    <div class="pk-actions">
+      <button class="pk-sub" id="pkUndo" title="방금 뽑힌 친구를 다시 뽑을 수 있게 돌려놓아요">↩ 다시 넣기</button>
+      <button class="pk-go" id="pkGo">🎲 뽑기</button>
+      <button class="pk-sub" id="pkReset" title="모두 다시 뽑을 수 있게 처음부터 시작해요">🔄 처음부터</button>
+    </div>
+    <div class="pk-hint">한 번 뽑힌 친구는 모두 한 번씩 뽑힐 때까지 다시 나오지 않아요 · 스페이스 바로도 뽑을 수 있어요</div>
+  </div>
+  <div class="pk-lists">
+    <div class="pk-box"><h3>🙋 아직 안 뽑힌 친구 <small>오늘 없는 친구는 눌러서 빼 두세요</small></h3><div class="pk-chips" id="pkLeft"></div></div>
+    <div class="pk-box"><h3>✅ 발표한 친구 <small>누르면 다시 뽑을 수 있게 돌려놓아요</small></h3><div class="pk-chips" id="pkUsed"></div></div>
+  </div>
 </div>
 <div class="wrap">
   <header class="top">
@@ -759,6 +833,7 @@
       <button class="btn" id="bigBtn" title="전체 화면으로 크게 보기">🖥️ 크게 보기</button>
       <button class="btn" id="decayBtn" title="켜면 1시간 동안 안 눌린 친구는 1개씩 줄어요 (평일 8~17시)">⏳ 자동 줄이기 끔</button>
       <button class="btn" id="seatBtn" title="수업 시작 30초 전에 ‘자리’ 소리를 5번 들려줘요 (시간표의 시작 시간 기준)">🪑 자리 알림</button>
+      <button class="btn pickb" id="pickBtn" title="발표할 친구 뽑기 (모두 한 번씩 뽑힐 때까지 겹치지 않아요)">🎤 발표 뽑기</button>
       <button class="btn" id="clockBtn" title="시계만 크게 보기 (5분 동안 아무것도 안 누르면 자동으로 켜져요)">🕐 시계</button>
       <button class="btn" id="whyBtn" title="왜 눌렸는지 모아 보기">💬 이유 모아 보기</button>
       <button class="btn" id="logBtn">📒 기록</button>
@@ -3058,6 +3133,144 @@
   renderDecayBtn();
   setInterval(decayTick, 20*1000);
   decayTick();
+
+  /* ---------- 🎤 발표 뽑기: 한 번 뽑힌 친구는 모두 한 번씩 뽑힐 때까지 다시 안 나와요 ---------- */
+  S.pick = (S.pick && typeof S.pick === "object") ? S.pick : {};
+  function pickState(){
+    const ids = new Set(S.students.map(s => s.id)), p = S.pick, today = dayKey(Date.now());
+    p.used = (Array.isArray(p.used) ? p.used : []).filter(id => ids.has(id));
+    if (!p.absent || p.absent.day !== today) p.absent = {day: today, ids: []};   // '오늘 없음'은 날이 바뀌면 저절로 풀려요
+    p.absent.ids = p.absent.ids.filter(id => ids.has(id));
+    return p;
+  }
+  const pkNo = sid => S.students.findIndex(s => s.id === sid) + 1;
+  const pkPool = () => { const p = pickState(), u = new Set(p.used), a = new Set(p.absent.ids); return S.students.filter(s => !u.has(s.id) && !a.has(s.id)); };
+  const pkRnd = n => { try{ const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }catch(e){ return Math.floor(Math.random()*n); } };
+  let pkOpen = false, pkSpin = false, pkShow = null, pkHot = null;   // pkShow: 카드에 보이는 학생 id (null이면 안내 문구)
+  function pkTick(){
+    if (!S.sound) return;
+    try{
+      ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+      const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime;
+      o.type = "triangle"; o.frequency.setValueAtTime(1100, t);
+      g.gain.setValueAtTime(.12, t); g.gain.exponentialRampToValueAtTime(.0001, t+.05);
+      o.connect(g).connect(ac.destination); o.start(t); o.stop(t+.06);
+    }catch(e){}
+  }
+  function pkCardHTML(sid, mode){
+    const s = S.students.find(x => x.id === sid);
+    if (s) return `<div class="pk-no">${pkNo(s.id)}번</div><div class="pk-name">${esc(s.name)}</div>`;
+    if (mode === "alldone") return `<div class="pk-no">&nbsp;</div><div class="pk-q">🎉 모두 한 번씩<br>발표했어요!</div>`;
+    if (mode === "nobody") return `<div class="pk-no">&nbsp;</div><div class="pk-q">뽑을 친구가 없어요</div>`;
+    return `<div class="pk-no">&nbsp;</div><div class="pk-q">누가 발표할까요? 🤔</div>`;
+  }
+  function renderPick(){
+    if (!pkOpen) return;
+    const p = pickState(), pool = pkPool(), a = new Set(p.absent.ids), u = new Set(p.used);
+    const present = S.students.length - p.absent.ids.length;
+    $("#pkMeta").innerHTML = `남은 친구 <b>${pool.length}</b> / ${present}명${p.absent.ids.length ? ` · 오늘 없음 ${p.absent.ids.length}명` : ""}`;
+    if (!pkSpin) {
+      const card = $("#pkCard");
+      const mode = pkShow ? "" : (!pool.length ? (p.used.length ? "alldone" : "nobody") : "");
+      card.className = "pk-card" + (mode === "alldone" ? " alldone" : "") + (pkShow && p.used[p.used.length-1] === pkShow ? " shown" : "");
+      card.innerHTML = pkCardHTML(pkShow, mode);
+    }
+    const allDone = !pool.length && p.used.length > 0;
+    $("#pkGo").textContent = allDone ? "🔄 새로 한 바퀴" : "🎲 뽑기";
+    $("#pkGo").disabled = pkSpin || (!pool.length && !allDone);
+    $("#pkUndo").disabled = pkSpin || !p.used.length;
+    $("#pkReset").disabled = pkSpin || !p.used.length;
+    const last = p.used[p.used.length-1];
+    const left = S.students.filter(s => !u.has(s.id));
+    $("#pkLeft").innerHTML = left.map(s => `<button class="pk-chip${a.has(s.id) ? " off" : ""}${pkHot === s.id ? " hot" : ""}" data-pk-left="${s.id}" title="${a.has(s.id) ? "누르면 다시 넣어요" : "오늘 없으면 눌러서 빼 두세요"}"><i>${pkNo(s.id)}</i>${esc(s.name)}</button>`).join("")
+      || `<div class="pk-empty">모두 뽑혔어요!</div>`;
+    $("#pkUsed").innerHTML = p.used.map((id, k) => { const s = S.students.find(x => x.id === id); return s ? `<button class="pk-chip used${id === last ? " last" : ""}" data-pk-used="${id}" title="누르면 다시 뽑을 수 있게 돌려놓아요"><i>${k+1}</i>${esc(s.name)}</button>` : ""; }).join("")
+      || `<div class="pk-empty">아직 아무도 안 뽑혔어요</div>`;
+  }
+  function pkHotChip(sid){
+    pkHot = sid;
+    document.querySelectorAll("#pkLeft .pk-chip.hot").forEach(el => el.classList.remove("hot"));
+    const el = document.querySelector(`#pkLeft [data-pk-left="${sid}"]`); if (el) el.classList.add("hot");
+  }
+  function pickDraw(){
+    if (pkSpin) return;
+    const p = pickState();
+    let pool = pkPool();
+    if (!pool.length) {
+      if (!p.used.length) return;
+      const lastId = p.used[p.used.length-1];   // 한 바퀴가 끝나면 새로 시작 (방금 마지막으로 뽑힌 친구는 첫 번째로 안 나오게)
+      p.used = []; save();
+      pool = pkPool();
+      if (pool.length > 1) pool = pool.filter(s => s.id !== lastId);
+      toast("🔄 새로 한 바퀴 시작해요", false);
+    }
+    if (!pool.length) return;
+    const win = pool[pkRnd(pool.length)];
+    pkSpin = true; pkShow = null; renderPick();
+    const card = $("#pkCard");
+    card.className = "pk-card spin";
+    const steps = pool.length > 1 ? 18 : 4;
+    let i = 0, delay = 45, prev = null;
+    const step = () => {
+      if (!pkOpen) { pkSpin = false; pkHot = null; return; }   // 도는 중에 닫으면 아무도 안 뽑힌 걸로 해요
+      if (i >= steps) return land();
+      let s = pool[pkRnd(pool.length)];
+      if (pool.length > 1) while (s === prev) s = pool[pkRnd(pool.length)];
+      prev = s;
+      card.innerHTML = pkCardHTML(s.id); pkHotChip(s.id); pkTick();
+      i++; delay *= 1.1; setTimeout(step, delay);
+    };
+    const land = () => {
+      pickState().used.push(win.id); save();
+      pkSpin = false; pkHot = null; pkShow = win.id;
+      renderPick();
+      card.className = "pk-card"; void card.offsetWidth; card.className = "pk-card win";
+      fanfare();
+    };
+    step();
+  }
+  function openPick(){
+    pkOpen = true; pkShow = null; pkHot = null;
+    $("#pick").classList.add("open");
+    renderPick();
+    $("#pkGo").focus({preventScroll:true});
+  }
+  function closePick(){ pkOpen = false; $("#pick").classList.remove("open"); }
+  $("#pickBtn").onclick = openPick;
+  $("#pkClose").onclick = closePick;
+  $("#pkGo").onclick = pickDraw;
+  $("#pkUndo").onclick = () => {
+    const p = pickState(); if (pkSpin || !p.used.length) return;
+    const id = p.used.pop(); save();
+    if (pkShow === id) pkShow = null;
+    renderPick();
+    const s = S.students.find(x => x.id === id);
+    if (s) toast(`${s.name} 다시 넣었어요`, false);
+  };
+  $("#pkReset").onclick = () => {
+    const p = pickState(); if (pkSpin || !p.used.length) return;
+    if (!confirm(`발표한 친구 ${p.used.length}명을 모두 다시 뽑을 수 있게 처음부터 시작할까요?`)) return;
+    p.used = []; pkShow = null; save(); renderPick();
+    toast("🔄 처음부터 다시 뽑아요", false);
+  };
+  $("#pkLeft").addEventListener("click", e => {
+    const b = e.target.closest("[data-pk-left]"); if (!b || pkSpin) return;
+    const p = pickState(), id = b.dataset.pkLeft, k = p.absent.ids.indexOf(id);
+    if (k >= 0) p.absent.ids.splice(k, 1); else p.absent.ids.push(id);
+    save(); renderPick();
+  });
+  $("#pkUsed").addEventListener("click", e => {
+    const b = e.target.closest("[data-pk-used]"); if (!b || pkSpin) return;
+    const p = pickState(), id = b.dataset.pkUsed;
+    p.used = p.used.filter(x => x !== id);
+    if (pkShow === id) pkShow = null;
+    save(); renderPick();
+  });
+  document.addEventListener("keydown", e => {
+    if (!pkOpen || e.defaultPrevented || bcOpen) return;
+    if (e.key === "Escape") { closePick(); return; }
+    if (e.key === " " || e.code === "Space") { e.preventDefault(); pickDraw(); }
+  });
 
   tickClock(); setInterval(tickClock, 1000);
 
