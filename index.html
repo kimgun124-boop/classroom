@@ -700,6 +700,20 @@
   .tabnav button{white-space:nowrap}
   @media (max-width:700px){ .tabnav{flex-wrap:wrap}.tabnav button{font-size:16px;padding:8px 12px;border-radius:12px 12px 0 0} }
   @media (max-width:560px){ .cal-day{min-height:70px;padding:4px 3px}.cal-day .dn{font-size:15px}.ev{font-size:11px;padding:1px 3px} }
+  /* ---------- 🛎️ 쉬는 시간 알림 ---------- */
+  #breakCall{position:fixed;inset:0;z-index:10000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:2.4vh;
+    background:radial-gradient(ellipse at center,#effaf3 0%,#d3f0de 75%,#b7e4c9 100%);color:#1f5a3c;font-family:"Jua";cursor:pointer;
+    border:clamp(10px,2vw,26px) solid #4fae7b;user-select:none;text-align:center;padding:4vh 4vw}
+  #breakCall.open{display:flex;animation:bcIn .3s ease}
+  #breakCall.lunch{background:radial-gradient(ellipse at center,#fffaea 0%,#fff0bf 75%,#ffe39a 100%);border-color:#f0b53c;color:#6b4a00}
+  #breakCall.end{background:radial-gradient(ellipse at center,#f3f0ff 0%,#e2dafc 75%,#cfc2f7 100%);border-color:#8c6be0;color:#3e2a7a}
+  #breakCall .bk-ic{font-size:clamp(90px,17vw,250px);line-height:1;animation:bkRing 1.2s ease-in-out infinite;transform-origin:50% 10%}
+  @keyframes bkRing{0%,50%,100%{transform:rotate(0)}10%,30%{transform:rotate(16deg)}20%,40%{transform:rotate(-16deg)}}
+  #breakCall .bk-msg{font-size:clamp(50px,9.5vw,160px);line-height:1.1;word-break:keep-all}
+  #breakCall .bk-sub{font-size:clamp(22px,3.6vw,56px);opacity:.9;word-break:keep-all}
+  #breakCall .bk-left{font-size:clamp(40px,7vw,110px);font-variant-numeric:tabular-nums;background:rgba(255,255,255,.65);border-radius:28px;padding:.6vh 3vw}
+  #breakCall .bk-left:empty{display:none}
+  #breakCall .bk-hint{position:absolute;bottom:3vh;font-size:clamp(13px,1.4vw,20px);opacity:.5}
   /* ---------- 🎤 발표 뽑기 ---------- */
   #pick{position:fixed;inset:0;z-index:9990;display:none;flex-direction:column;gap:2vh;padding:2.4vh 3vw 2vh;
     background:radial-gradient(ellipse at 50% 35%,#46695a 0%,#34503f 65%,#29402f 100%);color:#fdfbf6;
@@ -757,6 +771,13 @@
 </style>
 </head>
 <body>
+<div id="breakCall" role="alertdialog" aria-label="쉬는 시간 알림">
+  <div class="bk-ic" id="bkIc" aria-hidden="true">🛎️</div>
+  <div class="bk-msg" id="bkMsg">쉬는 시간이에요!</div>
+  <div class="bk-sub" id="bkSub"></div>
+  <div class="bk-left" id="bkLeft"></div>
+  <div class="bk-hint">화면을 누르면 닫혀요 · 1분 뒤 저절로 닫혀요</div>
+</div>
 <div id="seatCall" role="alertdialog" aria-label="자리에 앉아요">
   <div class="sc-chair" aria-hidden="true">🪑</div>
   <div class="sc-msg">자리에 앉아요!</div>
@@ -832,6 +853,7 @@
       <button class="btn sfx-ed" id="sfxEdit" title="소리 버튼 고치기 (이름 바꾸기·내 목소리 녹음)" aria-label="소리 버튼 고치기">✏️</button>
       <button class="btn" id="bigBtn" title="전체 화면으로 크게 보기">🖥️ 크게 보기</button>
       <button class="btn" id="decayBtn" title="켜면 1시간 동안 안 눌린 친구는 1개씩 줄어요 (평일 8~17시)">⏳ 자동 줄이기 끔</button>
+      <button class="btn" id="breakBtn" title="교시가 끝나면 종소리와 함께 ‘쉬는 시간’ 화면을 보여 줘요 (시간표의 끝 시간 기준)">🛎️ 쉬는 시간 알림</button>
       <button class="btn" id="seatBtn" title="수업 시작 30초 전에 ‘자리’ 소리를 5번 들려줘요 (시간표의 시작 시간 기준)">🪑 자리 알림</button>
       <button class="btn pickb" id="pickBtn" title="발표할 친구 뽑기 (모두 한 번씩 뽑힐 때까지 겹치지 않아요)">🎤 발표 뽑기</button>
       <button class="btn" id="clockBtn" title="시계만 크게 보기 (5분 동안 아무것도 안 누르면 자동으로 켜져요)">🕐 시계</button>
@@ -2942,7 +2964,7 @@
     $("#seatCall").classList.remove("open"); seatRun = null;
   }
   function startSeat(period, startAt){
-    stopSeat();
+    stopSeat(); if (typeof stopBreak === "function") stopBreak();
     const run = seatRun = {stop:false, n:0, startAt, period};
     $("#scDots").innerHTML = Array.from({length:SEAT_REPEAT}, () => "<i></i>").join("");
     const upd = () => {
@@ -2993,6 +3015,96 @@
   };
   renderSeatBtn();
   setInterval(checkSeat, 1000);
+
+  /* ---------- 교시가 끝나면: 종소리 + '쉬는 시간' 큰 화면 ---------- */
+  if (typeof S.breakAlert !== "boolean") S.breakAlert = true;
+  let breakFired = {}, breakRun = null;
+  function renderBreakBtn(){
+    const b = $("#breakBtn"); b.classList.toggle("on", S.breakAlert);
+    b.textContent = S.breakAlert ? "🛎️ 쉬는 시간 알림 켬" : "🛎️ 쉬는 시간 알림 끔";
+  }
+  function breakPeriods(wd){   // 오늘 수업이 있는 교시: 끝 시각(분) + 다음 교시
+    const subs = (S.tt && S.tt.days && S.tt.days[wd]) || [], times = (S.tt && S.tt.times) || [];
+    const anySub = subs.some(x => (x||"").trim());
+    const has = i => !anySub || (subs[i]||"").trim();
+    const out = [];
+    times.forEach((t,i) => {
+      const b = toMin(t && t[1]); if (b == null || !has(i)) return;
+      let j = -1;
+      for (let k = i+1; k < times.length; k++) if (toMin(times[k] && times[k][0]) != null && has(k)) { j = k; break; }
+      out.push({i, b, j, a: j >= 0 ? toMin(times[j][0]) : null, sub: j >= 0 ? (subs[j]||"").trim() : ""});
+    });
+    return out;
+  }
+  function chime(){   // 딩-동-댕-동 (소리 파일 없이 만들어요)
+    try{
+      ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+      if (ac.state === "suspended") ac.resume();
+      const notes = [659.25, 523.25, 587.33, 392.00, 392.00, 587.33, 659.25, 523.25];
+      notes.forEach((f, k) => {
+        const t = ac.currentTime + 0.1 + k * 0.62;
+        [1, 2.01].forEach((m, h) => {
+          const o = ac.createOscillator(), g = ac.createGain();
+          o.type = "sine"; o.frequency.setValueAtTime(f * m, t);
+          const v = h ? .06 : .28;
+          g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(v, t + .015);
+          g.gain.exponentialRampToValueAtTime(.0001, t + 1.5);
+          o.connect(g).connect(ac.destination); o.start(t); o.stop(t + 1.55);
+        });
+      });
+      return ac.state !== "suspended";
+    }catch(e){ return false; }
+  }
+  function stopBreak(){
+    if (!breakRun) return;
+    clearInterval(breakRun.tick); clearTimeout(breakRun.close);
+    $("#breakCall").classList.remove("open"); breakRun = null;
+  }
+  function startBreak(p, test){
+    stopBreak();
+    const kind = p.j < 0 ? "end" : (p.a - p.b >= 30 ? "lunch" : "break");
+    const el = $("#breakCall");
+    el.classList.remove("lunch","end"); if (kind !== "break") el.classList.add(kind);
+    $("#bkIc").textContent = kind === "end" ? "🎒" : kind === "lunch" ? "🍚" : "🛎️";
+    $("#bkMsg").textContent = kind === "end" ? "오늘 수업 끝!" : kind === "lunch" ? "점심시간이에요!" : "쉬는 시간이에요!";
+    const nextAt = new Date(); if (kind !== "end") nextAt.setHours(Math.floor(p.a/60), p.a%60, 0, 0);
+    const hm = m => { const h = Math.floor(m/60); return `${h<12?"오전":"오후"} ${h%12||12}:${String(m%60).padStart(2,"0")}`; };
+    $("#bkSub").textContent = kind === "end"
+      ? `${p.i+1}교시까지 모두 끝났어요. 오늘도 수고했어요! 👏`
+      : `${p.i+1}교시 끝 · 다음은 ${p.j+1}교시${p.sub ? ` ${p.sub}` : ""} (${hm(p.a)})`;
+    const run = breakRun = {};
+    const upd = () => {
+      if (kind === "end") { $("#bkLeft").textContent = ""; return; }
+      const left = Math.max(0, Math.round((nextAt - Date.now())/1000));
+      $("#bkLeft").textContent = `⏳ ${Math.floor(left/60)}:${String(left%60).padStart(2,"0")}`;
+    };
+    upd(); run.tick = setInterval(upd, 500);
+    el.classList.add("open");
+    if (!chime() && !test) toast("종소리를 틀 수 없어요. 보드 화면을 한 번 눌러 두면 다음부터 소리가 나요.", false);
+    run.close = setTimeout(() => { if (breakRun === run) stopBreak(); }, 60*1000);
+  }
+  function checkBreak(){
+    if (!S.breakAlert) return;
+    const now = new Date(), wd = now.getDay();
+    if (wd < 1 || wd > 5) return;
+    const sec = now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds();
+    const day = now.toDateString();
+    breakPeriods(wd).forEach(p => {
+      const past = sec - p.b*60, key = day + "#" + p.i;
+      if (past >= 0 && past < 10 && !breakFired[key]) { breakFired[key] = true; if (!seatRun) startBreak(p); }
+    });
+  }
+  $("#breakCall").addEventListener("click", e => { e.stopPropagation(); stopBreak(); });
+  $("#breakBtn").onclick = () => {
+    S.breakAlert = !S.breakAlert; save(); renderBreakBtn();
+    if (S.breakAlert){
+      const now = new Date(), cur = now.getHours()*60 + now.getMinutes() + now.getSeconds()/60;
+      const nx = (now.getDay()>=1 && now.getDay()<=5) ? breakPeriods(now.getDay()).find(p => p.b > cur) : null;
+      toast(nx ? `🛎️ ${nx.i+1}교시가 끝나는 ${Math.floor(nx.b/60)}:${String(nx.b%60).padStart(2,"0")}에 종이 울려요` : "🛎️ 교시가 끝날 때마다 종이 울려요", false);
+    } else toast("🛎️ 쉬는 시간 알림을 껐어요", false);
+  };
+  renderBreakBtn();
+  setInterval(checkBreak, 1000);
 
 
   /* ---------- 명예의 전당 + 1시간 동안 안 눌리면 1개씩 줄어요 ---------- */
