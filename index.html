@@ -719,8 +719,9 @@
     transform-origin:330px 132px;transform:rotate(55deg);filter:drop-shadow(0 10px 14px rgba(60,40,20,.35))}
   #hammer svg{width:100%;height:100%;display:block}
   body.hammering #hammer{display:block}
+  body.hammering:has(.modal.open) #hammer, body:has(.modal.open) #hamBar{display:none!important}
   body.hammering, body.hammering *{cursor:none!important}
-  body.hammering .toast, body.hammering .toast *, body.hammering #hamBar, body.hammering #hamBar *{cursor:pointer!important}
+  body.hammering .toast, body.hammering .toast *, body.hammering #hamBar, body.hammering #hamBar *, body.hammering .modal, body.hammering .modal *{cursor:auto!important}
   #hamBar{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9997;display:none;align-items:center;gap:12px;
     background:#2e2a26;color:#fff;border-radius:999px;padding:8px 8px 8px 20px;font-family:"Jua";font-size:19px;box-shadow:0 10px 30px rgba(0,0,0,.25);max-width:calc(100% - 24px)}
   body.hammering #hamBar{display:flex}
@@ -741,6 +742,25 @@
   .fx-ring{position:absolute;border-radius:50%;border:10px solid #ffd27a;width:60px;height:60px;margin:-30px 0 0 -30px}
   .fx-p{position:absolute;left:0;top:0;line-height:1;will-change:transform,opacity}
   .fx-flash{position:absolute;inset:0;background:radial-gradient(circle at var(--fx-x) var(--fx-y),rgba(255,255,255,.85),rgba(255,240,200,.35) 22%,transparent 50%)}
+  .fx-name{position:absolute;display:flex;align-items:center;gap:.3em;white-space:nowrap;font-family:"Jua";font-weight:400;line-height:1;
+    font-size:clamp(64px,8vw,150px);color:#2e2a26;-webkit-text-stroke:.08em #fff;paint-order:stroke fill;filter:drop-shadow(0 6px 0 rgba(46,42,38,.25))}
+  .fx-name .fx-nth{font-size:.42em;-webkit-text-stroke:0;color:#fff;background:#e5484d;border-radius:999px;padding:.18em .55em .22em;box-shadow:0 4px 0 #a3171d}
+  .hamct{font-family:"Jua";font-size:14px;color:#c23356;background:rgba(255,255,255,.85);border-radius:9px;padding:1px 7px;white-space:nowrap}
+  .hamct.pop{animation:hamctPop .5s cubic-bezier(.3,1.8,.5,1)}
+  @keyframes hamctPop{0%{transform:scale(.4)}60%{transform:scale(1.5)}100%{transform:none}}
+  body.hammering .hamct{font-size:18px;background:#fff;box-shadow:0 0 0 2px #ffc4c4}
+  .ham-sheet{max-width:760px}
+  .ham-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:6px 0 12px}
+  .ham-top .tot{font-family:"Jua";font-size:18px;color:var(--ink-soft)} .ham-top .tot b{font-weight:400;color:#c23356;font-size:24px}
+  .ham-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+  .ham-row{display:flex;align-items:center;gap:6px;border:2px solid var(--line);border-radius:16px;padding:7px 8px 7px 12px;background:#fffdf9}
+  .ham-row.has{border-color:#ffc4c4;background:#fff6f6}
+  .ham-row .nm{flex:1;min-width:0;font-family:"Jua";font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ham-row .nm i{font-style:normal;font-size:13px;color:var(--ink-soft);margin-right:5px}
+  .ham-row button{font-family:"Jua";font-size:20px;width:34px;height:34px;border-radius:11px;background:#ffecec;color:#c23356;line-height:1;flex:none}
+  .ham-row button:hover{background:#ffdcdc} .ham-row button:disabled{opacity:.3;cursor:default}
+  .ham-row input{width:58px!important;text-align:center;font-family:"Jua";font-size:20px!important;padding:4px 4px!important;flex:none;color:#c23356}
+  .ham-row.lead{border-color:#e5484d;box-shadow:0 0 0 2px #ffc4c4}
   .card .hit-flash{position:absolute;inset:0;z-index:3;border-radius:inherit;background:#fff;pointer-events:none;animation:hitFlash .35s ease-out forwards}
   @keyframes hitFlash{0%{opacity:.95}100%{opacity:0}}
   .card .daze{position:absolute;z-index:3;pointer-events:none;left:0;right:0;top:4px;height:70px}
@@ -823,7 +843,7 @@
   <rect x="12" y="36" width="9" height="56" rx="4.5" fill="#fff" opacity=".45"/>
 </svg></div>
 <div id="fx" aria-hidden="true"></div>
-<div id="hamBar" role="status"><span>🔨 뿅망치 시간! 친구 카드를 눌러 보세요</span><button id="hamOff">끝내기 (Esc)</button></div>
+<div id="hamBar" role="status"><span>🔨 뿅망치 시간! 친구 카드를 눌러 보세요</span><button id="hamList" style="background:#fff;color:#2e2a26">📋 맞은 횟수</button><button id="hamOff">끝내기 (Esc)</button></div>
 <div id="breakCall" role="alertdialog" aria-label="쉬는 시간 알림">
   <div class="bk-ic" id="bkIc" aria-hidden="true">🛎️</div>
   <div class="bk-msg" id="bkMsg">쉬는 시간이에요!</div>
@@ -908,7 +928,8 @@
       <button class="btn" id="decayBtn" title="켜면 1시간 동안 안 눌린 친구는 1개씩 줄어요 (평일 8~17시)">⏳ 자동 줄이기 끔</button>
       <button class="btn" id="breakBtn" title="교시가 끝나면 종소리와 함께 ‘쉬는 시간’ 화면을 보여 줘요 (시간표의 끝 시간 기준)">🛎️ 쉬는 시간 알림</button>
       <button class="btn" id="seatBtn" title="수업 시작 30초 전에 ‘자리’ 소리를 5번 들려줘요 (시간표의 시작 시간 기준)">🪑 자리 알림</button>
-      <button class="btn hamb" id="hamBtn" title="뿅망치를 들고 친구 카드를 눌러요 (횟수는 올라가지 않아요)">🔨 뿅망치</button>
+      <button class="btn hamb" id="hamBtn" title="뿅망치를 들고 친구 카드를 눌러요 (손들기 횟수는 올라가지 않아요)">🔨 뿅망치</button>
+      <button class="btn sfx-ed" id="hamEdit" title="뿅망치 맞은 횟수 보기·고치기" aria-label="뿅망치 맞은 횟수 보기·고치기">🔨📋</button>
       <button class="btn pickb" id="pickBtn" title="발표할 친구 뽑기 (모두 한 번씩 뽑힐 때까지 겹치지 않아요)">🎤 발표 뽑기</button>
       <button class="btn" id="clockBtn" title="시계만 크게 보기 (5분 동안 아무것도 안 누르면 자동으로 켜져요)">🕐 시계</button>
       <button class="btn" id="whyBtn" title="왜 눌렸는지 모아 보기">💬 이유 모아 보기</button>
@@ -1196,6 +1217,22 @@
   </div>
 </div>
 
+<div class="modal" id="hamModal" aria-modal="true" role="dialog">
+  <div class="sheet ham-sheet">
+    <h2>🔨 뿅망치 맞은 횟수 <button class="x" data-close>×</button></h2>
+    <p class="desc">뿅망치로 누를 때마다 1번씩 올라가요. <b>−</b> <b>+</b> 를 누르거나 숫자를 바로 고칠 수 있어요. (손들기 횟수와는 따로 세요)</p>
+    <div class="ham-top">
+      <span class="tot" id="hamTot"></span>
+      <div class="row">
+        <button class="btn" id="hamSort">🔢 번호순</button>
+        <button class="btn danger" id="hamZero">모두 0번으로</button>
+      </div>
+    </div>
+    <div class="ham-list" id="hamRows"></div>
+    <div class="actions"><button class="btn primary" data-close>다 했어요</button></div>
+  </div>
+</div>
+
 <!-- log -->
 <div class="modal" id="whyModal" aria-modal="true" role="dialog">
   <div class="sheet why-sheet">
@@ -1268,6 +1305,7 @@
   }
   let view = "board";
   const pStart = () => new Date(S.periodStart).getTime();
+  const hamN = sid => ((S.hammer||{})[sid] || 0);
   const stampN = sid => (S.stamps||[]).filter(x => x.sid===sid).length;
   const rewardRulesSorted = () => [...(S.rewardRules||[])].sort((a,b)=>a.at-b.at);
   function syncRewards(sid){
@@ -1392,7 +1430,7 @@
     return `<article class="card t${t}${isFamed(s.id)?" famed":""}" data-id="${s.id}">
       <button class="hit" data-plus="${s.id}" aria-label="${esc(s.name)} 한 번 추가"></button>
       <button class="minus" data-minus="${s.id}" aria-label="${esc(s.name)} 한 번 빼기" title="한 번 빼기">−</button>
-      <div class="head"><span class="num">${idx+1}</span>${isFamed(s.id) ? `<span class="crown" title="명예의 전당">👑</span>` : ""}${stampN(s.id) ? `<span class="stampct" title="칭찬도장">🌟${stampN(s.id)}</span>` : ""}</div>
+      <div class="head"><span class="num">${idx+1}</span>${isFamed(s.id) ? `<span class="crown" title="명예의 전당">👑</span>` : ""}${stampN(s.id) ? `<span class="stampct" title="칭찬도장">🌟${stampN(s.id)}</span>` : ""}${hamN(s.id) ? `<span class="hamct" title="뿅망치 맞은 횟수">🔨${hamN(s.id)}</span>` : ""}</div>
       <div class="name">${esc(s.name)}</div>
       <div class="count">${c}<small>회</small></div>
       <div class="dots">${dots}</div>
@@ -3368,6 +3406,13 @@
     const kill = (el, ms) => setTimeout(() => el.remove(), ms);
     function bonk(card, x, y){
       const id = card.dataset.id, now = Date.now(), c0 = combo.get(id);
+      const stu = S.students.find(z => z.id === id);
+      S.hammer = S.hammer || {}; S.hammer[id] = hamN(id) + 1; save();
+      const hn = S.hammer[id];
+      let hc = card.querySelector(".hamct");
+      if (!hc) { hc = document.createElement("span"); hc.className = "hamct"; hc.title = "뿅망치 맞은 횟수"; const hd = card.querySelector(".head"); if (hd) hd.appendChild(hc); }
+      hc.textContent = `🔨${hn}`; hc.classList.remove("pop"); void hc.offsetWidth; hc.classList.add("pop");
+      if ($("#hamModal").classList.contains("open")) renderHam();
       const n = c0 && now - c0.t < 1300 ? c0.n + 1 : 1; combo.set(id, {n, t: now});
       const power = n >= 5 ? 3 : n >= 3 ? 2 : 1;
       squeak(power);
@@ -3439,12 +3484,30 @@
         {transform:`translate(${wx}px,${wy - 70}px) translate(-50%,-50%) scale(${big*.95}) rotate(${tilt}deg)`, opacity:0}
       ], {duration:1300, easing:"ease-out", fill:"forwards"});
       kill(word, 1350);
-      $("#fx").querySelectorAll(".fx-word").forEach(o => { if (o !== word) o.style.opacity = ".25"; });
+      $("#fx").querySelectorAll(".fx-word,.fx-name").forEach(o => { if (o !== word) o.style.opacity = ".2"; });
+
+      // 맞은 친구 이름 + 몇 번째
+      if (stu){
+        const nm = fxAt("fx-name", 0, 0, `<span>${esc(stu.name)}</span><span class="fx-nth">🔨 ${hn}번째</span>`);
+        if (nm.offsetWidth > vw*.92) nm.style.fontSize = (parseFloat(getComputedStyle(nm).fontSize) * vw*.92 / nm.offsetWidth) + "px";
+        const nw = nm.offsetWidth, nh = nm.offsetHeight;
+        let ny = wy - wh*.5 - nh*.55 - 10;
+        if (ny < nh/2 + 12) ny = wy + wh*.5 + nh*.6 + 10;   // 위에 자리가 없으면 글씨 아래로
+        const nx = Math.min(Math.max(wx, nw/2 + 16), vw - nw/2 - 16);
+        nm.animate([
+          {transform:`translate(${nx}px,${ny + 40}px) translate(-50%,-50%) scale(.5)`, opacity:0},
+          {transform:`translate(${nx}px,${ny}px) translate(-50%,-50%) scale(1.12)`, opacity:1, offset:.15},
+          {transform:`translate(${nx}px,${ny}px) translate(-50%,-50%) scale(1)`, opacity:1, offset:.25},
+          {transform:`translate(${nx}px,${ny - 20}px) translate(-50%,-50%) scale(1)`, opacity:1, offset:.82},
+          {transform:`translate(${nx}px,${ny - 50}px) translate(-50%,-50%) scale(.96)`, opacity:0}
+        ], {duration:1500, easing:"ease-out", fill:"forwards"});
+        kill(nm, 1550);
+      }
 
       // 연타 표시
       if (n >= 2){
         const cb = fxAt("fx-combo", 0, 0); cb.textContent = `${n}연타!`;
-        const cx = Math.min(wx + ww*.45, vw - 90), cy = Math.max(wy - wh*.55, 40);
+        const cx = Math.min(wx + ww*.4, vw - 150), cy = Math.min(wy + wh*.55, vh - 60);   // 글씨 오른쪽 아래 (이름과 안 겹치게)
         cb.animate([{transform:`translate(${cx}px,${cy}px) translate(-50%,-50%) scale(.3) rotate(10deg)`,opacity:0},{transform:`translate(${cx}px,${cy}px) translate(-50%,-50%) scale(1.3) rotate(10deg)`,opacity:1,offset:.2},{transform:`translate(${cx}px,${cy}px) translate(-50%,-50%) scale(1) rotate(10deg)`,opacity:1,offset:.7},{transform:`translate(${cx}px,${cy-30}px) translate(-50%,-50%) scale(1) rotate(10deg)`,opacity:0}], {duration:1100, fill:"forwards"});
         kill(cb, 1150);
       }
@@ -3462,6 +3525,48 @@
       ], {duration:420, easing:"ease-out"});
     }
     const HIT_MS = 190;   // 망치가 닿는 순간 (420ms × 0.45)
+    let hamSort = "num";
+    window.renderHam = renderHam;
+    function renderHam(){
+      S.hammer = S.hammer || {};
+      let list = S.students.map((st, i) => ({st, i, n: hamN(st.id)}));
+      if (hamSort === "most") list.sort((a, b) => b.n - a.n || a.i - b.i);
+      const max = Math.max(0, ...list.map(r => r.n)), tot = list.reduce((a, r) => a + r.n, 0);
+      $("#hamTot").innerHTML = `모두 <b>${tot}</b>번 · 맞은 친구 ${list.filter(r => r.n).length}명`;
+      $("#hamSort").textContent = hamSort === "num" ? "🔢 번호순" : "📊 많이 맞은 순";
+      $("#hamRows").innerHTML = list.map(({st, i, n}) => `<div class="ham-row${n ? " has" : ""}${n && n === max ? " lead" : ""}" data-sid="${st.id}">
+        <span class="nm"><i>${i+1}</i>${esc(st.name)}</span>
+        <button data-hd="-1" ${n ? "" : "disabled"} aria-label="${esc(st.name)} 1번 빼기">−</button>
+        <input type="number" min="0" max="999" value="${n}" aria-label="${esc(st.name)} 맞은 횟수">
+        <button data-hd="1" aria-label="${esc(st.name)} 1번 더하기">+</button></div>`).join("")
+        || `<div class="empty">설정에서 학생 명단을 입력해 주세요.</div>`;
+    }
+    function setHam(sid, v){
+      S.hammer = S.hammer || {};
+      v = Math.max(0, Math.min(999, Math.floor(+v || 0)));
+      if (v) S.hammer[sid] = v; else delete S.hammer[sid];
+      save();
+    }
+    $("#hamRows").addEventListener("click", e => {
+      const b = e.target.closest("[data-hd]"); if (!b) return;
+      const sid = b.closest(".ham-row").dataset.sid;
+      setHam(sid, hamN(sid) + (+b.dataset.hd)); renderHam(); render();
+    });
+    $("#hamRows").addEventListener("change", e => {
+      const inp = e.target.closest("input"); if (!inp) return;
+      setHam(inp.closest(".ham-row").dataset.sid, inp.value); renderHam(); render();
+    });
+    $("#hamRows").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches("input")) e.target.blur(); });
+    $("#hamSort").onclick = () => { hamSort = hamSort === "num" ? "most" : "num"; renderHam(); };
+    $("#hamZero").onclick = () => {
+      if (!Object.values(S.hammer || {}).some(Boolean)) return;
+      if (!confirm("모든 친구의 뿅망치 맞은 횟수를 0번으로 할까요?")) return;
+      S.hammer = {}; save(); renderHam(); render(); toast("🔨 뿅망치 횟수를 모두 0번으로 했어요", false);
+    };
+    const openHam = () => { renderHam(); openM("#hamModal"); };
+    $("#hamEdit").onclick = openHam;
+    $("#hamList").onclick = openHam;
+
     function setOn(v){
       on = v; document.body.classList.toggle("hammering", on);
       $("#hamBtn").classList.toggle("on", on);
@@ -3473,7 +3578,7 @@
     document.addEventListener("pointermove", e => { if (on) place(e.clientX, e.clientY); }, {passive:true});
     document.addEventListener("pointerdown", e => {
       if (!on || e.button > 0) return;
-      if (e.target.closest("#hamBar, #hamBtn, .toast, .modal, #pick, #bigClock, #seatCall, #breakCall")) return;
+      if (document.querySelector(".modal.open") || e.target.closest("#hamBar, #hamBtn, #hamEdit, .toast, .modal, #pick, #bigClock, #seatCall, #breakCall")) return;
       place(e.clientX, e.clientY); swing();
       const card = e.target.closest("#grid .card");
       if (card) {
@@ -3484,7 +3589,7 @@
     document.addEventListener("click", e => {
       if (on && e.target.closest("#grid .card")) { e.stopPropagation(); e.preventDefault(); }
     }, true);
-    document.addEventListener("keydown", e => { if (on && e.key === "Escape") setOn(false); });
+    document.addEventListener("keydown", e => { if (on && e.key === "Escape" && !document.querySelector(".modal.open")) setOn(false); }, true);
   })();
 
   /* ---------- 🎤 발표 뽑기: 한 번 뽑힌 친구는 모두 한 번씩 뽑힐 때까지 다시 안 나와요 ---------- */
