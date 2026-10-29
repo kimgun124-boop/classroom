@@ -1029,6 +1029,43 @@
   .btn.pickb:hover{background:#ffe6d6}
   @media (max-width:700px){ .pk-lists{grid-template-columns:1fr} }
 
+
+  /* ---------- 도구 줄: 쓰임새별로 묶어서 깔끔하게 ---------- */
+  #viewBoard .bar{flex-direction:column;align-items:stretch;gap:10px}
+  .rule-chip{font-family:"Jua";font-size:16px}
+  .tb{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch}
+  .tgp{flex:1 1 auto;display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:6px 8px 6px 6px;border-radius:18px;background:var(--gb);border:2px solid var(--gl)}
+  .tgl{font-family:"Jua";font-size:14px;color:var(--gi);background:#fff;border-radius:12px;padding:6px 9px;line-height:1;align-self:stretch;display:grid;place-items:center;
+    box-shadow:inset 0 0 0 1.5px var(--gl);letter-spacing:1px}
+  .g-play{--gb:#fff3f6;--gl:#ffd6e2;--gi:#c23356}
+  .g-alarm{--gb:#eefaf4;--gl:#c8ecd9;--gi:#1f7a5c}
+  .g-view{--gb:#fff8ea;--gl:#f6e2b8;--gi:#a06d00}
+  .g-sound{--gb:#eef5ff;--gl:#cfe1f7;--gi:#2f5d8a}
+  .g-note{--gb:#f6f2ec;--gl:#e6dccd;--gi:#6f665d}
+  .tb .btn{font-family:"Jua";font-size:17px;height:40px;padding:0 13px;border-radius:13px;border-width:2px;background:#fff;border-color:transparent;
+    box-shadow:0 2px 0 rgba(60,40,20,.08);gap:5px;white-space:nowrap;color:var(--ink);line-height:1}
+  .tb .btn:hover{background:#fffaf2}
+  .tb .btn.primary{background:var(--accent);color:#fff}
+  .tb .btn.on:not(.tg){background:#2e2a26;color:#fff}
+  .tb .btn.sfx{font-size:16px;padding:0 10px;background:#fff;color:#2f5d8a;border-color:transparent}
+  .tb .btn.sfx.playing{background:#3b82c4;color:#fff}
+  .tb .btn.sfx-ed{padding:0 10px}
+  /* 켜고 끄는 버튼: 오른쪽 스위치로 보여 줘요 */
+  .tb .btn.tg::after{content:"";flex:none;width:32px;height:18px;border-radius:999px;margin-left:4px;
+    background:radial-gradient(circle at 9px 50%,#fff 0 6.5px,transparent 7px),#d6cdbf;transition:background .2s}
+  .tb .btn.tg.on{background:#fff;color:var(--ink);border-color:#9fd9bb}
+  .tb .btn.tg.on::after{background:radial-gradient(circle at 23px 50%,#fff 0 6.5px,transparent 7px),#34b27a}
+  /* 놀이 도구: 버튼 + 📋 붙여서 */
+  .split{display:inline-flex;align-items:stretch;border-radius:13px;box-shadow:0 2px 0 rgba(60,40,20,.08)}
+  .split .btn{box-shadow:none}
+  .split .btn:first-child{border-radius:13px 0 0 13px}
+  .split .btn.mini{border-radius:0 13px 13px 0;padding:0 9px;font-size:15px;border-left:2px dashed rgba(0,0,0,.08)}
+  .tb .btn.hamb{color:#c23356} .tb .btn.hamb.on{background:#e5484d;color:#fff}
+  .tb .btn.prb{color:#b8326f} .tb .btn.prb.on{background:#d6337f;color:#fff}
+  .tb .btn.hlb{color:#1f7a5c} .tb .btn.hlb.on{background:#2f9a72;color:#fff}
+  .tb .btn.pickb{color:#c2562a}
+  .split .btn.mini{color:var(--gi)}
+  @media (max-width:700px){ .tgl{display:none} .tb .btn{font-size:15px;height:36px;padding:0 10px} }
   @media (prefers-reduced-motion:reduce){body:not(.hammering) *{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -1133,32 +1170,33 @@
   <section class="view" id="viewBoard">
   <div class="bar">
     <div class="rules" id="ruleChips"></div>
-    <div class="tools">
-      <button class="btn" id="sortBtn" title="정렬 바꾸기">🔢 번호순</button>
-      <button class="btn" id="soundBtn" title="효과음">🔔 소리</button>
-      <button class="btn sfx" data-sfx="0" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">자리</span></button>
-      <button class="btn sfx" data-sfx="1" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">조용</span></button>
-      <button class="btn sfx" data-sfx="2" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">야</span></button>
-      <button class="btn sfx" data-sfx="3" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">방해</span></button>
-      <button class="btn sfx" data-sfx="4" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">왜</span></button>
-      <button class="btn sfx" data-sfx="5" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">돌아</span></button>
-      <button class="btn sfx" data-sfx="6" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">아니</span></button>
-      <button class="btn sfx" data-sfx="7" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">오키</span></button>
-      <button class="btn sfx-ed" id="sfxEdit" title="소리 버튼 고치기 (이름 바꾸기·내 목소리 녹음)" aria-label="소리 버튼 고치기">✏️</button>
-      <button class="btn" id="bigBtn" title="전체 화면으로 크게 보기">🖥️ 크게 보기</button>
-      <button class="btn" id="decayBtn" title="켜면 1시간 동안 안 눌린 친구는 1개씩 줄어요 (평일 8~17시)">⏳ 자동 줄이기 끔</button>
-      <button class="btn" id="breakBtn" title="교시가 끝나면 종소리와 함께 ‘쉬는 시간’ 화면을 보여 줘요 (시간표의 끝 시간 기준)">🛎️ 쉬는 시간 알림</button>
-      <button class="btn" id="seatBtn" title="수업 시작 30초 전에 ‘자리’ 소리를 5번 들려줘요 (시간표의 시작 시간 기준)">🪑 자리 알림</button>
-      <button class="btn hamb" id="hamBtn" title="뿅망치를 들고 친구 카드를 눌러요 (손들기 횟수는 올라가지 않아요)">🔨 뿅망치</button>
-      <button class="btn hlb" id="hlBtn" title="연고를 발라 주면 뿅망치 맞은 횟수가 1번씩 줄고 카드가 나아요">🧴 후시딘</button>
-      <button class="btn prb" id="prBtn" title="칭찬 도장을 들고 친구 카드를 눌러요 (많이 받을수록 카드가 멋지게 변신해요)">💮 칭찬 도장</button>
-      <button class="btn sfx-ed" id="prEdit" title="칭찬 도장 횟수·남녀 보기·고치기" aria-label="칭찬 도장 횟수 보기·고치기">💮📋</button>
-      <button class="btn sfx-ed" id="hamEdit" title="뿅망치 맞은 횟수 보기·고치기" aria-label="뿅망치 맞은 횟수 보기·고치기">🔨📋</button>
-      <button class="btn pickb" id="pickBtn" title="발표할 친구 뽑기 (모두 한 번씩 뽑힐 때까지 겹치지 않아요)">🎤 발표 뽑기</button>
-      <button class="btn" id="clockBtn" title="시계만 크게 보기 (5분 동안 아무것도 안 누르면 자동으로 켜져요)">🕐 시계</button>
-      <button class="btn" id="whyBtn" title="왜 눌렸는지 모아 보기">💬 이유 모아 보기</button>
-      <button class="btn" id="logBtn">📒 기록</button>
-      <button class="btn primary" id="setBtn">⚙️ 설정</button>
+    <div class="tools tb">
+      <div class="tgp g-play"><span class="tgl">놀이</span>
+        <span class="split"><button class="btn hamb" id="hamBtn" title="뿅망치를 들고 친구 카드를 눌러요 (손들기 횟수는 올라가지 않아요)">🔨 뿅망치</button><button class="btn mini" id="hamEdit" title="뿅망치 맞은 횟수 보기·고치기" aria-label="뿅망치 맞은 횟수 보기·고치기">📋</button></span>
+        <button class="btn hlb" id="hlBtn" title="연고를 발라 주면 뿅망치 맞은 횟수가 1번씩 줄고 카드가 나아요">🧴 후시딘</button>
+        <span class="split"><button class="btn prb" id="prBtn" title="칭찬 도장을 들고 친구 카드를 눌러요 (많이 받을수록 카드가 멋지게 변신해요)">💮 칭찬 도장</button><button class="btn mini" id="prEdit" title="칭찬 도장 횟수·남녀 보기·고치기" aria-label="칭찬 도장 횟수 보기·고치기">📋</button></span>
+        <button class="btn pickb" id="pickBtn" title="발표할 친구 뽑기 (모두 한 번씩 뽑힐 때까지 겹치지 않아요)">🎤 발표 뽑기</button>
+      </div>
+      <div class="tgp g-alarm"><span class="tgl">알림</span>
+        <button class="btn tg" id="breakBtn" title="교시가 끝나면 종소리와 함께 ‘쉬는 시간’ 화면을 보여 줘요 (시간표의 끝 시간 기준)">🛎️ 쉬는 시간</button>
+        <button class="btn tg" id="seatBtn" title="수업 시작 30초 전에 ‘자리’ 소리를 5번 들려줘요 (시간표의 시작 시간 기준)">🪑 자리 알림</button>
+        <button class="btn tg" id="decayBtn" title="켜면 1시간 동안 안 눌린 친구는 1개씩 줄어요 (평일 8~17시)">⏳ 자동 줄이기</button>
+      </div>
+      <div class="tgp g-view"><span class="tgl">보기</span>
+        <button class="btn" id="sortBtn" title="정렬 바꾸기">🔢 번호순</button>
+        <button class="btn" id="bigBtn" title="전체 화면으로 크게 보기">🖥️ 크게</button>
+        <button class="btn" id="clockBtn" title="시계만 크게 보기 (5분 동안 아무것도 안 누르면 자동으로 켜져요)">🕐 시계</button>
+      </div>
+      <div class="tgp g-sound"><span class="tgl">소리</span>
+        <button class="btn tg" id="soundBtn" title="효과음">🔔 효과음</button>
+        <button class="btn sfx" data-sfx="0" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">자리</span></button><button class="btn sfx" data-sfx="1" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">조용</span></button><button class="btn sfx" data-sfx="2" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">야</span></button><button class="btn sfx" data-sfx="3" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">방해</span></button><button class="btn sfx" data-sfx="4" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">왜</span></button><button class="btn sfx" data-sfx="5" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">돌아</span></button><button class="btn sfx" data-sfx="6" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">아니</span></button><button class="btn sfx" data-sfx="7" title="누르면 소리가 나요 · 이름을 바꾸려면 ✏️">🔊 <span class="sfx-n">오키</span></button>
+        <button class="btn sfx-ed" id="sfxEdit" title="소리 버튼 고치기 (이름 바꾸기·내 목소리 녹음)" aria-label="소리 버튼 고치기">✏️</button>
+      </div>
+      <div class="tgp g-note"><span class="tgl">기록</span>
+        <button class="btn" id="whyBtn" title="왜 눌렸는지 모아 보기">💬 이유</button>
+        <button class="btn" id="logBtn">📒 기록</button>
+        <button class="btn primary" id="setBtn">⚙️ 설정</button>
+      </div>
     </div>
   </div>
 
@@ -1745,7 +1783,7 @@
       || `<div class="rule-chip">설정에서 약속 단계를 정해 주세요</div>`;
     $("#sortBtn").textContent = S.sort === "num" ? "🔢 번호순" : S.sort === "custom" ? "✋ 옮긴 자리" : "📊 많은 순";
     $("#soundBtn").classList.toggle("on", !!S.sound);
-    $("#soundBtn").textContent = S.sound ? "🔔 소리 켬" : "🔕 소리 끔";
+    $("#soundBtn").textContent = S.sound ? "🔔 효과음" : "🔕 효과음";
     $("#hint").hidden = !S.isDefault;
     const ids = new Set(S.students.map(s=>s.id));
     const np = S.tasks.filter(k => !k.done && ids.has(k.sid)).length;
@@ -3405,7 +3443,7 @@
   let seatFired = {}, seatRun = null;
   function renderSeatBtn(){
     const b = $("#seatBtn"); b.classList.toggle("on", S.seatAlert);
-    b.textContent = S.seatAlert ? "🪑 자리 알림 켬" : "🪑 자리 알림 끔";
+    b.textContent = "🪑 자리 알림"; b.title = (S.seatAlert ? "켜져 있어요 · " : "꺼져 있어요 · ") + "수업 시작 30초 전에 ‘자리’ 소리를 5번 들려줘요";
   }
   function seatPeriods(wd){   // 오늘 수업이 있는 교시의 시작 시각(분)
     const subs = (S.tt && S.tt.days && S.tt.days[wd]) || [], times = (S.tt && S.tt.times) || [];
@@ -3478,7 +3516,7 @@
   let breakFired = {}, breakRun = null;
   function renderBreakBtn(){
     const b = $("#breakBtn"); b.classList.toggle("on", S.breakAlert);
-    b.textContent = S.breakAlert ? "🛎️ 쉬는 시간 알림 켬" : "🛎️ 쉬는 시간 알림 끔";
+    b.textContent = "🛎️ 쉬는 시간"; b.title = (S.breakAlert ? "켜져 있어요 · " : "꺼져 있어요 · ") + "교시가 끝나면 종소리와 함께 ‘쉬는 시간’ 화면을 보여 줘요";
   }
   function breakPeriods(wd){   // 오늘 수업이 있는 교시: 끝 시각(분) + 다음 교시
     const subs = (S.tt && S.tt.days && S.tt.days[wd]) || [], times = (S.tt && S.tt.times) || [];
@@ -3689,7 +3727,7 @@
   }
   S.decayOn = S.decayOn === true;   // 예전 버전에서 켜져 있던 것도 처음엔 꺼 둬요 (버튼으로만 켜요)
   if (S.decayOnV !== 1){ S.decayOn = false; S.decayOnV = 1; save(); }
-  function renderDecayBtn(){ const b = $("#decayBtn"); b.classList.toggle("on", S.decayOn); b.textContent = S.decayOn ? "⏳ 자동 줄이기 켬" : "⏳ 자동 줄이기 끔"; }
+  function renderDecayBtn(){ const b = $("#decayBtn"); b.classList.toggle("on", S.decayOn); b.textContent = "⏳ 자동 줄이기"; b.title = (S.decayOn ? "켜져 있어요 · " : "꺼져 있어요 · ") + "1시간 동안 안 눌린 친구는 1개씩 줄어요 (평일 8~17시)"; }
   $("#decayBtn").onclick = () => {
     S.decayOn = !S.decayOn;
     if (S.decayOn){   // 켠 순간부터 1시간을 새로 세요 (꺼 둔 동안의 시간으로 한꺼번에 줄지 않게)
@@ -3947,7 +3985,7 @@
       if (v && window.__hlOff) window.__hlOff();
       on = v; document.body.classList.toggle("hammering", on);
       $("#hamBtn").classList.toggle("on", on);
-      $("#hamBtn").textContent = on ? "🔨 뿅망치 끝내기" : "🔨 뿅망치";
+      $("#hamBtn").textContent = on ? "🔨 끝내기" : "🔨 뿅망치";
       if (on) { place(lastX, lastY); if (typeof closeWhy === "function") closeWhy(); }
     }
     $("#hamBtn").addEventListener("click", e => { e.stopPropagation(); setOn(!on); if (on) place(e.clientX || lastX, e.clientY || lastY); });
@@ -4148,7 +4186,7 @@
       if (v && window.__hlOff) window.__hlOff();
       on = v; document.body.classList.toggle("praising", on);
       $("#prBtn").classList.toggle("on", on);
-      $("#prBtn").textContent = on ? "💮 칭찬 도장 끝내기" : "💮 칭찬 도장";
+      $("#prBtn").textContent = on ? "💮 끝내기" : "💮 칭찬 도장";
       if (on) { place(lastX, lastY); if (typeof closeWhy === "function") closeWhy(); }
     }
     $("#prBtn").addEventListener("click", e => { e.stopPropagation(); setOn(!on); if (on) place(e.clientX || lastX, e.clientY || lastY); });
@@ -4323,7 +4361,7 @@
       if (v && window.__prOff) window.__prOff();
       on = v; document.body.classList.toggle("healing", on);
       $("#hlBtn").classList.toggle("on", on);
-      $("#hlBtn").textContent = on ? "🧴 후시딘 끝내기" : "🧴 후시딘";
+      $("#hlBtn").textContent = on ? "🧴 끝내기" : "🧴 후시딘";
       if (on) { place(lastX, lastY); if (typeof closeWhy === "function") closeWhy(); }
     }
     $("#hlBtn").addEventListener("click", e => { e.stopPropagation(); setOn(!on); if (on) place(e.clientX || lastX, e.clientY || lastY); });
