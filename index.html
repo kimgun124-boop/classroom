@@ -1368,6 +1368,86 @@
     .grid{grid-template-columns:repeat(2,1fr);gap:10px}
     .tt-sub{font-size:28px}
   }
+
+  /* =====================================================================
+     🎮 아케이드 카드: 통통한 입체 게임 슬롯 + 광택 + 물풍선 점 + 입장 이펙트
+     ===================================================================== */
+  .card{--edge:#3f9a6c;--top:#f6fffa;--bot:var(--t0);--glow:rgba(80,200,140,.55);
+    --c3d:inset 0 3px 0 rgba(255,255,255,.95),inset 0 -6px 0 rgba(0,0,0,.07),0 6px 0 var(--edge),0 8px 0 rgba(0,0,0,.12),0 14px 22px rgba(30,40,70,.22);
+    background:linear-gradient(180deg,var(--top) 0%,var(--bot) 58%,color-mix(in srgb,var(--bot) 88%,var(--edge)) 100%);
+    border:3px solid var(--edge);border-radius:24px;box-shadow:var(--c3d);
+    transition:transform .15s cubic-bezier(.3,1.6,.5,1),box-shadow .15s,background .3s,border-color .3s;isolation:isolate}
+  .card.t1{--edge:#d2a10e;--top:#fffdf2;--bot:var(--t1);--glow:rgba(255,200,40,.6)}
+  .card.t2{--edge:#e4733c;--top:#fff7f1;--bot:var(--t2);--glow:rgba(255,130,70,.6)}
+  .card.t3{--edge:#d84a6c;--top:#fff5f7;--bot:var(--t3);--glow:rgba(255,90,130,.6)}
+  .card.t4{--edge:#8457d8;--top:#faf6ff;--bot:var(--t4);--glow:rgba(150,100,255,.6)}
+  .card.t0,.card.t1,.card.t2,.card.t3,.card.t4{background:linear-gradient(180deg,var(--top) 0%,var(--bot) 58%,color-mix(in srgb,var(--bot) 88%,var(--edge)) 100%);border-color:var(--edge)}
+  .card.famed{box-shadow:0 0 0 3px #ffe48a,var(--c3d)}
+  /* 위쪽 유리 광택 (사탕처럼 반짝) */
+  .card::before{content:"";position:absolute;left:5px;right:5px;top:4px;height:42%;border-radius:19px 19px 50% 50%/19px 19px 22px 22px;
+    background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,.12));pointer-events:none;z-index:-1}
+  /* 가끔 지나가는 반짝 빛줄기 */
+  .card::after{content:"";position:absolute;top:-30%;bottom:-30%;width:34%;left:-60%;pointer-events:none;z-index:5;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.7),transparent);transform:skewX(-20deg);
+    animation:cardGleam 7s ease-in-out infinite;animation-delay:var(--gd,0s)}
+  @keyframes cardGleam{0%,86%{left:-60%}100%{left:140%}}
+  @media (hover:hover){ .card:hover{transform:translateY(-4px);box-shadow:inset 0 3px 0 rgba(255,255,255,.95),inset 0 -6px 0 rgba(0,0,0,.07),0 9px 0 var(--edge),0 11px 0 rgba(0,0,0,.12),0 0 0 4px var(--glow),0 20px 26px rgba(30,40,70,.25)} }
+  .card:active{transform:translateY(5px) scale(.99);box-shadow:inset 0 3px 0 rgba(255,255,255,.95),inset 0 -3px 0 rgba(0,0,0,.07),0 1px 0 var(--edge),0 3px 6px rgba(30,40,70,.2)}
+  /* 칭찬 단계 테두리도 입체 그대로 */
+  .card.pr{--edge:var(--p3)}
+  .card.pr8{box-shadow:0 0 0 3px #ffd84d,0 0 0 6px var(--p1),var(--c3d)}
+  .card.pr17{box-shadow:0 0 0 3px #ffd84d,0 0 0 6px var(--p1),0 0 26px 8px var(--pg),var(--c3d)}
+  .card.pr19{border-color:#ffd84d;box-shadow:0 0 0 3px #fff3b0,0 0 0 7px #f0a400,0 0 34px 12px var(--pg),var(--c3d)}
+  .card.dmg{--edge:#8a7a62}
+
+  /* 번호: 동그란 게임 배지 */
+  .card .num{font-size:15px;min-width:30px;height:30px;padding:0 8px;display:inline-grid;place-items:center;border-radius:999px;color:#fff;
+    background:linear-gradient(180deg,color-mix(in srgb,var(--edge) 70%,#fff),var(--edge));border:2.5px solid #fff;
+    box-shadow:0 3px 0 color-mix(in srgb,var(--edge) 70%,#000),0 4px 6px rgba(0,0,0,.18),inset 0 2px 0 rgba(255,255,255,.55);text-shadow:0 1px 0 rgba(0,0,0,.25)}
+  /* 이름: 흰 테두리 통통 글씨 */
+  .card .name .nmt{-webkit-text-stroke:5px #fff;paint-order:stroke fill;filter:drop-shadow(0 2px 0 color-mix(in srgb,var(--edge) 55%,transparent))}
+  .card.pr13 .name .nmt{-webkit-text-stroke:0}
+  /* 횟수: 아케이드 점수판 숫자 */
+  .card .count{color:color-mix(in srgb,var(--edge) 85%,#000);-webkit-text-stroke:6px #fff;paint-order:stroke fill;
+    filter:drop-shadow(0 4px 0 color-mix(in srgb,var(--edge) 60%,transparent)) drop-shadow(0 6px 6px rgba(0,0,0,.12))}
+  .card .count small{-webkit-text-stroke:3px #fff}
+  /* 점: 반짝이는 물풍선 */
+  .card .dot{width:15px;height:15px;border:0;background:radial-gradient(circle at 34% 30%,#fff 0 18%,rgba(255,255,255,.85) 26%,rgba(210,225,240,.9) 70%,rgba(170,190,215,.95));
+    box-shadow:inset 0 -2px 0 rgba(0,0,0,.08),0 1px 0 rgba(0,0,0,.08)}
+  .card .dot.f{background:radial-gradient(circle at 34% 30%,#fff 0 14%,color-mix(in srgb,var(--edge) 45%,#fff) 26%,var(--edge) 68%,color-mix(in srgb,var(--edge) 70%,#000));
+    box-shadow:inset 0 -2px 0 rgba(0,0,0,.18),0 2px 0 rgba(0,0,0,.12)}
+  .card .dot.mark{outline:2px dashed color-mix(in srgb,var(--edge) 60%,transparent)}
+  /* − 버튼: 동그란 사탕 버튼 */
+  .card .minus{border-radius:50%;width:32px;height:32px;background:linear-gradient(180deg,#fff,#e9eef5);border:2.5px solid color-mix(in srgb,var(--edge) 55%,#fff);
+    box-shadow:0 3px 0 color-mix(in srgb,var(--edge) 50%,#888),inset 0 2px 0 #fff;color:var(--edge);font-family:"Jua"}
+  .card .minus:active{transform:translateY(2px);box-shadow:0 1px 0 color-mix(in srgb,var(--edge) 50%,#888)}
+  /* 할 일·상태 띠: 통통한 버튼 */
+  .card .tag{border:2px solid color-mix(in srgb,var(--edge) 35%,#fff);box-shadow:0 3px 0 color-mix(in srgb,var(--edge) 40%,#ccc)}
+  .card .ok,.card > .tags > .ok:first-child:last-child{background:rgba(255,255,255,.75);border-radius:12px;padding:3px 8px;border:2px solid rgba(255,255,255,.95);box-shadow:0 2px 0 color-mix(in srgb,var(--edge) 30%,transparent);white-space:normal;line-height:1.25}
+
+  /* ---------- 🎮 입장 이펙트: '우리 반 입장!' → 카드가 하나씩 쿵! 하고 떨어져요 ---------- */
+  body.entering .card{animation:cardIn .8s cubic-bezier(.25,1,.45,1) both;animation-delay:var(--ed,0s)}
+  @keyframes cardIn{
+    0%{transform:translateY(-140px) scale(.35) rotate(-10deg);opacity:0}
+    45%{transform:translateY(8px) scale(1.04) rotate(2deg);opacity:1}
+    58%{transform:translateY(4px) scale(1.12,.84)}
+    72%{transform:translateY(-12px) scale(.96,1.06) rotate(-1deg)}
+    86%{transform:translateY(0) scale(1.02,.97)}
+    100%{transform:none;opacity:1}}
+  body.entering .card::after{animation:cardFlash .8s ease-out both;animation-delay:calc(var(--ed,0s) + .36s);left:0;width:100%;top:0;bottom:0;transform:none;
+    background:radial-gradient(circle,rgba(255,255,255,.95),rgba(255,255,255,0) 70%)}
+  @keyframes cardFlash{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
+  .enter-dust{position:fixed;z-index:9990;pointer-events:none;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle,#fff,rgba(255,255,255,.4) 60%,transparent 70%)}
+  .enter-banner{position:fixed;inset:0;z-index:9998;display:grid;place-items:center;pointer-events:none;
+    background:radial-gradient(circle,rgba(40,120,220,.0) 0,rgba(20,40,90,.35) 75%)}
+  .enter-banner .eb{font-family:"Jua";font-size:clamp(70px,10vw,180px);line-height:1;white-space:nowrap;color:#ffd84d;
+    -webkit-text-stroke:.1em #1d4fa8;paint-order:stroke fill;text-shadow:0 .08em 0 #0d2f6e,0 0 .4em rgba(120,200,255,.9)}
+  .enter-banner .eb small{display:block;text-align:center;font-size:.36em;color:#fff;-webkit-text-stroke:.12em #1d4fa8;margin-top:.15em}
+  .enter-banner .rays{position:absolute;left:50%;top:50%;width:200vmax;height:200vmax;margin:-100vmax 0 0 -100vmax;
+    background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.18) 0 6deg,transparent 6deg 18deg);animation:spin 10s linear infinite;
+    -webkit-mask:radial-gradient(circle,#000 0,transparent 45%);mask:radial-gradient(circle,#000 0,transparent 45%)}
+  .btn.enterb{color:#1d4fa8}
+  .card:nth-child(5n+1){--gd:0s}.card:nth-child(5n+2){--gd:-2.8s}.card:nth-child(5n+3){--gd:-5.6s}.card:nth-child(5n+4){--gd:-1.4s}.card:nth-child(5n){--gd:-4.2s}
 </style>
 </head>
 <body>
@@ -1588,6 +1668,7 @@
       <div class="tgp g-view"><span class="tgl">보기</span>
         <button class="btn" id="sortBtn" title="정렬 바꾸기">🔢 번호순</button>
         <button class="btn" id="bigBtn" title="전체 화면으로 크게 보기">🖥️ 크게</button>
+        <button class="btn enterb" id="enterBtn" title="우리 반 입장! 카드가 하나씩 쿵 하고 떨어지는 입장 효과를 다시 보여 줘요">🎮 입장</button>
         <button class="btn" id="clockBtn" title="시계만 크게 보기 (5분 동안 아무것도 안 누르면 자동으로 켜져요)">🕐 시계</button>
       </div>
       <div class="tgp g-sound"><span class="tgl">소리</span>
@@ -6146,6 +6227,53 @@
   autoCheck();
   render();
   renderTT();
+
+  /* ---------- 🎮 입장 이펙트: '우리 반 입장!' → 카드가 하나씩 쿵! ---------- */
+  function enterPop(i){
+    if (!S.sound) return;
+    try{
+      if (!ac) return; const C = ac; if (C.state !== "running") return;
+      const t = C.currentTime + .005, o = C.createOscillator(), g = C.createGain();
+      o.type = "sine"; o.frequency.setValueAtTime(520 + (i % 6)*70, t); o.frequency.exponentialRampToValueAtTime(180, t + .12);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.18, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + .16);
+      o.connect(g).connect(C.destination); o.start(t); o.stop(t + .18);
+    }catch(e){}
+  }
+  let enterTimer = null;
+  function enterShow(withSound){
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (withSound && S.sound) { try{ ac = ac || new (window.AudioContext||window.webkitAudioContext)(); if (ac.state === "suspended") ac.resume(); }catch(e){} }
+    document.querySelectorAll(".enter-banner").forEach(el => el.remove());
+    const bn = document.createElement("div"); bn.className = "enter-banner";
+    bn.innerHTML = `<div class="rays"></div><div class="eb">🎮 우리 반 입장!<small>${esc(S.className || "우리 반")} 친구들 준비 완료!</small></div>`;
+    document.body.appendChild(bn);
+    const eb = bn.querySelector(".eb");
+    eb.animate([{transform:"scale(3) rotate(-8deg)", opacity:0},{transform:"scale(.9) rotate(2deg)", opacity:1, offset:.22},{transform:"scale(1.06) rotate(-1deg)", offset:.34},{transform:"scale(1)", opacity:1, offset:.75},{transform:"scale(.6) translateY(-40px)", opacity:0}], {duration:1500, easing:"ease-out", fill:"forwards"});
+    bn.animate([{opacity:0},{opacity:1, offset:.12},{opacity:1, offset:.75},{opacity:0}], {duration:1500, fill:"forwards"});
+    setTimeout(() => bn.remove(), 1550);
+    clearTimeout(enterTimer);
+    setTimeout(() => {
+      const cards = [...document.querySelectorAll("#grid .card")];
+      const step = Math.min(.06, 1.4 / Math.max(1, cards.length));
+      document.body.classList.remove("entering"); void document.body.offsetWidth;
+      cards.forEach((c, i) => c.style.setProperty("--ed", (i*step).toFixed(3) + "s"));
+      document.body.classList.add("entering");
+      cards.forEach((c, i) => setTimeout(() => {
+        if (!c.isConnected) return;
+        enterPop(i);
+        const r = c.getBoundingClientRect();
+        for (let k = 0; k < 6; k++) {
+          const d = document.createElement("div"); d.className = "enter-dust"; document.body.appendChild(d);
+          const sx = r.left + r.width*(k < 3 ? .15 : .85), sy = r.bottom - 6, dx = (k < 3 ? -1 : 1)*(20 + Math.random()*40);
+          d.animate([{transform:`translate(${sx}px,${sy}px) translate(-50%,-50%) scale(.4)`, opacity:.95},{transform:`translate(${sx + dx}px,${sy - 10 - Math.random()*14}px) translate(-50%,-50%) scale(1.4)`, opacity:0}], {duration:520, easing:"ease-out", fill:"forwards"});
+          setTimeout(() => d.remove(), 560);
+        }
+      }, (i*step + .36)*1000));
+      enterTimer = setTimeout(() => document.body.classList.remove("entering"), (cards.length*step + 1)*1000);
+    }, 650);
+  }
+  $("#enterBtn").onclick = () => enterShow(true);
+  enterShow(false);
   setInterval(() => { autoCheck(); renderHeader(); if (!ttEditing) renderTT(); }, 30*1000);
 })();
 </script>
