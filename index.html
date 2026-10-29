@@ -922,6 +922,41 @@
   .pr-row button{background:#fff0f7;color:#d6337f}
   .pr-row.has{border-color:#ffc8e3;background:#fff8fb}
 
+  /* ---------- 😢 실망 도장: 칭찬 도장 횟수 −1 → 카드 장식이 한 단계씩 떨어져요 ---------- */
+  #dstamp{position:fixed;left:0;top:0;z-index:9995;width:150px;height:180px;pointer-events:none;display:none;transform-origin:75px 176px;filter:drop-shadow(0 12px 14px rgba(20,30,60,.35))}
+  #dstamp svg{width:100%;height:100%;display:block}
+  body.sadding #dstamp{display:block}
+  body.sadding:has(.modal.open) #dstamp, body:has(.modal.open) #dsBar{display:none!important}
+  body.sadding, body.sadding *{cursor:none!important}
+  body.sadding .toast, body.sadding .toast *, body.sadding #dsBar, body.sadding #dsBar *, body.sadding .modal, body.sadding .modal *{cursor:auto!important}
+  #dsBar{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9997;display:none;align-items:center;gap:10px;
+    background:#34466b;color:#fff;border-radius:999px;padding:8px 8px 8px 20px;font-family:"Jua";font-size:19px;box-shadow:0 10px 30px rgba(0,0,0,.25);max-width:calc(100% - 24px)}
+  body.sadding #dsBar{display:flex}
+  #dsBar button{font-family:"Jua";font-size:17px;background:#cfe0ff;color:#23345a;border-radius:999px;padding:7px 16px;white-space:nowrap}
+  #dsBar button.w{background:#fff;color:#2e2a26}
+  .btn.dsb{background:#f0f4fb;border-color:#c9d6ee;color:#3f5a8c}
+  .btn.dsb.on{background:#4a6aa5;border-color:#4a6aa5;color:#fff}
+  .tb .btn.dsb{color:#3f5a8c} .tb .btn.dsb.on{background:#4a6aa5;color:#fff}
+  body.sadding .prct{font-size:18px;background:#fff;box-shadow:0 0 0 2px #c9d6ee}
+  .card .dmark{position:absolute;z-index:4;pointer-events:none;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;border:5px double #3b64b0;color:#3b64b0;
+    display:grid;place-items:center;text-align:center;font-family:"Jua";font-size:18px;line-height:1.05;background:rgba(225,235,255,.4);mix-blend-mode:multiply}
+  .card.saddened{animation:saddened 1.6s ease-out}
+  @keyframes saddened{0%{transform:none;filter:none}12%{transform:translateY(6px) scale(.96,.94);filter:grayscale(1) brightness(.85)}
+    30%{transform:translateY(4px) rotate(-2deg);filter:grayscale(1) brightness(.85)}45%{transform:translateY(4px) rotate(1.5deg)}60%{transform:translateY(3px) rotate(-1deg);filter:grayscale(.8) brightness(.9)}100%{transform:none;filter:none}}
+  .card .ds-flash{position:absolute;inset:0;z-index:3;border-radius:inherit;pointer-events:none;background:radial-gradient(circle,rgba(200,215,240,.9) 0,rgba(70,90,130,.75) 80%);animation:hitFlash .9s ease-out forwards}
+  .fx-gloom{position:absolute;inset:0;background:radial-gradient(circle at var(--gx,50%) var(--gy,50%),rgba(40,55,90,0) 0,rgba(30,40,70,.45) 70%);pointer-events:none}
+  .fx-sad{position:absolute;font-family:"Jua";font-weight:400;white-space:nowrap;line-height:1;font-size:clamp(100px,12vw,220px);color:#e9eef8;
+    -webkit-text-stroke:.09em #4a6aa5;paint-order:stroke fill;text-shadow:0 .07em 0 #23345a,0 0 .18em rgba(140,170,220,.8);will-change:transform,opacity}
+  .fx-sname{position:absolute;display:flex;align-items:center;gap:.3em;white-space:nowrap;font-family:"Jua";line-height:1;font-size:clamp(56px,6.5vw,120px);color:#23345a;
+    -webkit-text-stroke:.08em #fff;paint-order:stroke fill;text-shadow:0 6px 0 rgba(46,42,38,.2);will-change:transform,opacity}
+  .fx-sname .fx-nth{font-size:.42em;-webkit-text-stroke:0;color:#fff;background:#6b7fa6;border-radius:999px;padding:.18em .55em .22em;box-shadow:0 4px 0 #34466b}
+  .fx-sname .fx-face{-webkit-text-stroke:0;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+  .fx-sname .fx-photo{filter:grayscale(.7)}
+  .fx-sdown{position:absolute;font-family:"Jua";font-size:clamp(38px,3.8vw,68px);white-space:nowrap;color:#fff;-webkit-text-stroke:.1em #34466b;paint-order:stroke fill;filter:drop-shadow(0 5px 0 rgba(20,30,60,.3))}
+  .fx-cloud{position:absolute;font-size:64px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;filter:drop-shadow(0 4px 4px rgba(0,0,0,.2))}
+  .fx-drop{position:absolute;left:0;top:0;width:5px;height:16px;border-radius:3px;background:linear-gradient(#bcd4ff,#5b8ee0)}
+  .fx-fall{position:absolute;left:0;top:0;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;will-change:transform,opacity}
+
   /* ---------- 🧴 후시딘: 연고 발라 주면 뿅망치 횟수 −1 ---------- */
   #tube{position:fixed;left:0;top:0;z-index:9995;width:130px;height:230px;pointer-events:none;display:none;transform-origin:65px 226px;transform:rotate(-24deg);filter:drop-shadow(0 12px 14px rgba(20,60,50,.3))}
   #tube svg{width:100%;height:100%;display:block}
@@ -1354,6 +1389,16 @@
   <rect x="14" y="144" width="122" height="30" rx="8" fill="#8f1f1f"/>
   <text x="75" y="166" text-anchor="middle" font-family="Jua" font-size="17" fill="#ff9b9b">참 잘했어요</text>
 </svg></div>
+<div id="dstamp" aria-hidden="true"><svg viewBox="0 0 150 180">
+  <ellipse cx="75" cy="26" rx="30" ry="22" fill="#8a8f9c" stroke="#555b68" stroke-width="3"/>
+  <ellipse cx="66" cy="18" rx="10" ry="6" fill="#fff" opacity=".35"/>
+  <path d="M60,44 L90,44 L94,104 L56,104 Z" fill="#9aa1af" stroke="#555b68" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="18" y="102" width="114" height="44" rx="10" fill="#3b64b0" stroke="#22407a" stroke-width="3"/>
+  <rect x="26" y="108" width="40" height="8" rx="4" fill="#fff" opacity=".35"/>
+  <text x="108" y="132" text-anchor="middle" font-size="22">😢</text>
+  <rect x="14" y="144" width="122" height="30" rx="8" fill="#22407a"/>
+  <text x="75" y="166" text-anchor="middle" font-family="Jua" font-size="17" fill="#a9c4ff">실망이에요</text>
+</svg></div>
 <div id="tube" aria-hidden="true"><svg viewBox="0 0 130 230">
   <path d="M30,8 L36,2 L42,8 L48,2 L54,8 L60,2 L66,8 L72,2 L78,8 L84,2 L90,8 L96,2 L100,8 L100,20 L30,20 Z" fill="#d9e4e0" stroke="#9fb3ad" stroke-width="2.5" stroke-linejoin="round"/>
   <path d="M30,20 L100,20 L104,150 C104,166 92,172 82,176 L48,176 C38,172 26,166 26,150 Z" fill="#fbfdfc" stroke="#9fb3ad" stroke-width="3" stroke-linejoin="round"/>
@@ -1367,6 +1412,7 @@
 </svg></div>
 <div id="hlBar" role="status"><span>🧴 후시딘 시간! 다친 친구 카드에 연고 발라 주세요</span><button id="hlList" class="w">📋 맞은 횟수</button><button id="hlOff">끝내기 (Esc)</button></div>
 <div id="prBar" role="status"><span>💮 칭찬 도장 시간! 친구 카드에 꾹 찍어 주세요</span><button id="prList" class="w">📋 도장 횟수</button><button id="prOff">끝내기 (Esc)</button></div>
+<div id="dsBar" role="status"><span>😢 실망 도장 시간… 약속을 안 지킨 친구 카드에 찍어요 (칭찬 장식이 한 단계 떨어져요)</span><button id="dsList" class="w">📋 도장 횟수</button><button id="dsOff">끝내기 (Esc)</button></div>
 <div id="hamBar" role="status"><span>🔨 뿅망치 시간! 친구 카드를 눌러 보세요</span><button id="hamList" style="background:#fff;color:#2e2a26">📋 맞은 횟수</button><button id="hamOff">끝내기 (Esc)</button></div>
 <div id="breakCall" role="alertdialog" aria-label="쉬는 시간 알림">
   <div class="bk-ic" id="bkIc" aria-hidden="true">🛎️</div>
@@ -1528,6 +1574,7 @@
         <span class="split"><button class="btn hamb" id="hamBtn" title="뿅망치를 들고 친구 카드를 눌러요 (손들기 횟수는 올라가지 않아요)">🔨 뿅망치</button><button class="btn mini" id="hamEdit" title="뿅망치 맞은 횟수 보기·고치기" aria-label="뿅망치 맞은 횟수 보기·고치기">📋</button></span>
         <button class="btn hlb" id="hlBtn" title="연고를 발라 주면 뿅망치 맞은 횟수가 1번씩 줄고 카드가 나아요">🧴 후시딘</button>
         <span class="split"><button class="btn prb" id="prBtn" title="칭찬 도장을 들고 친구 카드를 눌러요 (많이 받을수록 카드가 멋지게 변신해요)">💮 칭찬 도장</button><button class="btn mini" id="prEdit" title="칭찬 도장 횟수·남녀 보기·고치기" aria-label="칭찬 도장 횟수 보기·고치기">📋</button></span>
+        <button class="btn dsb" id="dsBtn" title="실망 도장을 찍으면 칭찬 도장이 1개 줄고 카드 장식이 한 단계씩 떨어져요">😢 실망 도장</button>
         <button class="btn pickb" id="vbBtn" title="우리 반 친구 얼굴로 하는 배구 게임">🏐 얼굴 배구</button>
         <button class="btn pickb" id="whBtn" title="친구 사진 돌림판을 돌려서 뽑아요">🎡 돌림판</button>
         <button class="btn pickb" id="mbBtn" title="친구 얼굴 구슬을 굴려서 뽑아요 (마블 레이스)">🔮 구슬 뽑기</button>
@@ -4381,6 +4428,7 @@
     function setOn(v){
       if (v && window.__prOff) window.__prOff();
       if (v && window.__hlOff) window.__hlOff();
+      if (v && window.__dsOff) window.__dsOff();
       on = v; document.body.classList.toggle("hammering", on);
       $("#hamBtn").classList.toggle("on", on);
       $("#hamBtn").textContent = on ? "🔨 끝내기" : "🔨 뿅망치";
@@ -4391,7 +4439,7 @@
     document.addEventListener("pointermove", e => { if (on) place(e.clientX, e.clientY); }, {passive:true});
     document.addEventListener("pointerdown", e => {
       if (!on || e.button > 0) return;
-      if (document.querySelector(".modal.open") || e.target.closest("#hamBar, #hamBtn, #hamEdit, #prBtn, #prEdit, #hlBtn, .toast, .modal, #pick, #marble, #mbBtn, #bigClock, #seatCall, #breakCall")) return;
+      if (document.querySelector(".modal.open") || e.target.closest("#hamBar, #hamBtn, #hamEdit, #prBtn, #prEdit, #hlBtn, #dsBtn, .toast, .modal, #pick, #marble, #mbBtn, #bigClock, #seatCall, #breakCall")) return;
       place(e.clientX, e.clientY); swing();
       const card = e.target.closest("#grid .card");
       if (card) {
@@ -4698,6 +4746,7 @@
     function setOn(v){
       if (v && window.__hamOff) window.__hamOff();
       if (v && window.__hlOff) window.__hlOff();
+      if (v && window.__dsOff) window.__dsOff();
       on = v; document.body.classList.toggle("praising", on);
       $("#prBtn").classList.toggle("on", on);
       $("#prBtn").textContent = on ? "💮 끝내기" : "💮 칭찬 도장";
@@ -4708,7 +4757,180 @@
     document.addEventListener("pointermove", e => { if (on) place(e.clientX, e.clientY); }, {passive:true});
     document.addEventListener("pointerdown", e => {
       if (!on || e.button > 0) return;
-      if (document.querySelector(".modal.open") || e.target.closest("#prBar, #prBtn, #prEdit, #hamBtn, #hamEdit, #hlBtn, .toast, .modal, #pick, #marble, #mbBtn, #bigClock, #seatCall, #breakCall")) return;
+      if (document.querySelector(".modal.open") || e.target.closest("#prBar, #prBtn, #prEdit, #hamBtn, #hamEdit, #hlBtn, #dsBtn, .toast, .modal, #pick, #marble, #mbBtn, #bigClock, #seatCall, #breakCall")) return;
+      place(e.clientX, e.clientY); stampDown();
+      const card = e.target.closest("#grid .card");
+      if (card) { e.stopPropagation(); e.preventDefault(); setTimeout(() => press(card, e.clientX, e.clientY), HIT); }
+    }, true);
+    document.addEventListener("click", e => { if (on && e.target.closest("#grid .card")) { e.stopPropagation(); e.preventDefault(); } }, true);
+    document.addEventListener("keydown", e => { if (on && e.key === "Escape" && !document.querySelector(".modal.open")) setOn(false); }, true);
+  })();
+
+
+  /* ---------- 😢 실망 도장: 칭찬 도장 횟수 −1 → 카드 장식이 한 단계씩 떨어져요 (손들기 횟수는 그대로) ---------- */
+  (function(){
+    const P = $("#dstamp"), PX = 75, PY = 176;
+    let on = false, lastX = innerWidth/2, lastY = innerHeight/2, bus = null;
+    const place = (x, y) => { lastX = x; lastY = y; P.style.left = (x - PX) + "px"; P.style.top = (y - PY) + "px"; };
+    const rnd = (a, b) => a + Math.random()*(b-a);
+    const kill = (el, ms) => setTimeout(() => el.remove(), ms);
+    function fxAt(cls, html){ const el = document.createElement("div"); el.className = cls; if (html != null) el.innerHTML = html; $("#fx").appendChild(el); return el; }
+    function A(){ ac = ac || new (window.AudioContext||window.webkitAudioContext)(); if (ac.state === "suspended") ac.resume(); return ac; }
+    function out(C){
+      if (bus && bus.ctx === C) return bus.in;
+      const inp = C.createGain(); inp.gain.value = 3;
+      const comp = C.createDynamicsCompressor(); comp.threshold.value = -10; comp.knee.value = 2; comp.ratio.value = 20; comp.attack.value = .001; comp.release.value = .15;
+      const trim = C.createGain(); trim.gain.value = .9;
+      inp.connect(comp).connect(trim).connect(C.destination); bus = {ctx: C, in: inp}; return inp;
+    }
+    function wahwah(){   // 꾹… + 뿌우 뿌우 뿌우 뿌우우~ (실망 트롬본)
+      try{
+        const C = A(), t = C.currentTime + .005, o = out(C);
+        const k = C.createOscillator(), kg = C.createGain();
+        k.type = "sine"; k.frequency.setValueAtTime(150, t); k.frequency.exponentialRampToValueAtTime(55, t+.14);
+        kg.gain.setValueAtTime(.9, t); kg.gain.exponentialRampToValueAtTime(.0001, t+.18); k.connect(kg).connect(o); k.start(t); k.stop(t+.2);
+        const N = [[392, 349.2, .1, .3], [370, 329.6, .45, .3], [349.2, 311.1, .8, .3], [329.6, 246.9, 1.15, 1.1]];
+        N.forEach(([f0, f1, d, dur], i) => {
+          const at = t + d, x = C.createOscillator(), lp = C.createBiquadFilter(), g = C.createGain();
+          x.type = "sawtooth"; x.frequency.setValueAtTime(f0, at); x.frequency.linearRampToValueAtTime(f1, at + dur);
+          if (i === 3) { const v = C.createOscillator(), vg = C.createGain(); v.frequency.value = 6; vg.gain.setValueAtTime(0, at); vg.gain.linearRampToValueAtTime(12, at + .3); v.connect(vg).connect(x.frequency); v.start(at); v.stop(at + dur + .05); }
+          lp.type = "lowpass"; lp.Q.value = 6; lp.frequency.setValueAtTime(500, at); lp.frequency.linearRampToValueAtTime(1500, at + .08); lp.frequency.linearRampToValueAtTime(450, at + dur);
+          g.gain.setValueAtTime(.0001, at); g.gain.exponentialRampToValueAtTime(.22, at + .04); g.gain.setValueAtTime(.22, at + dur*.7); g.gain.exponentialRampToValueAtTime(.0001, at + dur);
+          x.connect(lp).connect(g).connect(o); x.start(at); x.stop(at + dur + .05);
+        });
+      }catch(e){}
+    }
+    const WORDS = ["아쉬워요…", "실망이야…", "속상해요…", "에휴…", "아이고…", "다음엔 잘하자…"];
+    const lostSay = (T, L) => (T.say[L] || "").replace(/!+$/, "").trim();
+    const combo = new Map();
+    function press(card, x, y){
+      const id = card.dataset.id, stu = S.students.find(z => z.id === id); if (!stu) return;
+      const now = Date.now(), c0 = combo.get(id), n = c0 && now - c0.t < 1500 ? c0.n + 1 : 1; combo.set(id, {n, t: now});
+      const before = prN(id), g = genderOf(id), T = PR_TH[g];
+      const L0 = prLevel(before);
+      if (before > 0) { S.praise = S.praise || {}; if (before - 1) S.praise[id] = before - 1; else delete S.praise[id]; save(); }
+      const pn = prN(id), L1 = prLevel(pn);
+      wahwah();
+      // 카드: 털썩 + 회색으로 + 파란 실망 도장 자국 + 장식 한 단계 빠짐
+      applyWear(card, id);
+      let pc = card.querySelector(".prct");
+      if (pn) {
+        if (!pc) { pc = document.createElement("span"); pc.className = "prct"; pc.title = "칭찬 도장"; const hd = card.querySelector(".head"); if (hd) hd.insertBefore(pc, hd.querySelector(".hamct")); }
+        pc.textContent = `💮${pn}`; pc.classList.remove("pop"); void pc.offsetWidth; pc.classList.add("pop");
+      } else if (pc) pc.remove();
+      const fc = card.querySelector(".name .face");
+      if (fc) { setFace(fc, id); fc.classList.remove("swap"); void fc.offsetWidth; fc.classList.add("swap"); }
+      card.classList.remove("saddened", "praised"); void card.offsetWidth; card.classList.add("saddened");
+      setTimeout(() => card.classList.remove("saddened"), 1650);
+      card.querySelectorAll(".ds-flash,.dmark,.cwing").forEach(el => el.remove());
+      const fl = document.createElement("div"); fl.className = "ds-flash"; card.appendChild(fl); kill(fl, 950);
+      const rc = card.getBoundingClientRect(), mk = document.createElement("div"); mk.className = "dmark"; mk.innerHTML = "실망<br>이에요";
+      mk.style.left = (x - rc.left) + "px"; mk.style.top = (y - rc.top) + "px";
+      const rot = rnd(-18, 18);
+      mk.animate([{transform:`rotate(${rot}deg) scale(1.6)`, opacity:0},{transform:`rotate(${rot}deg) scale(.95)`, opacity:.95, offset:.12},{transform:`rotate(${rot}deg) scale(1)`, opacity:.95, offset:.7},{transform:`rotate(${rot}deg) scale(1)`, opacity:0}], {duration:2000, fill:"forwards"});
+      card.appendChild(mk); kill(mk, 2050);
+      if ($("#prModal").classList.contains("open") && window.renderPr) window.renderPr();
+
+      const vw = innerWidth, vh = innerHeight;
+      // 화면이 잠깐 어두워져요
+      const gl = fxAt("fx-gloom"); gl.style.setProperty("--gx", x + "px"); gl.style.setProperty("--gy", y + "px");
+      $("#fx").insertBefore(gl, $("#fx").firstChild);
+      gl.animate([{opacity:0},{opacity:1, offset:.15},{opacity:1, offset:.7},{opacity:0}], {duration:2300, fill:"forwards"}); kill(gl, 2350);
+      // 먹구름 + 빗방울 (카드 위)
+      const cx = rc.left + rc.width/2, cy = Math.max(40, rc.top - 10);
+      const cl = fxAt("fx-cloud"); cl.textContent = "🌧️";
+      cl.animate([{transform:`translate(${cx}px,${cy - 60}px) translate(-50%,-50%) scale(.4)`, opacity:0},{transform:`translate(${cx}px,${cy}px) translate(-50%,-50%) scale(1.1)`, opacity:1, offset:.15},
+        {transform:`translate(${cx - 6}px,${cy}px) translate(-50%,-50%) scale(1)`, opacity:1, offset:.5},{transform:`translate(${cx + 6}px,${cy}px) translate(-50%,-50%) scale(1)`, opacity:1, offset:.8},{transform:`translate(${cx}px,${cy - 20}px) translate(-50%,-50%) scale(.9)`, opacity:0}], {duration:2200, fill:"forwards"});
+      kill(cl, 2250);
+      for (let i = 0; i < 16; i++) {
+        const d = fxAt("fx-drop"), dx = cx + rnd(-rc.width*.4, rc.width*.4), dl = 250 + rnd(0, 1300);
+        d.animate([{transform:`translate(${dx}px,${cy + 20}px)`, opacity:0},{transform:`translate(${dx}px,${cy + 30}px)`, opacity:1, offset:.1},{transform:`translate(${dx}px,${cy + 20 + rc.height*.9}px)`, opacity:0}], {duration:600, delay:dl, easing:"ease-in", fill:"both"});
+        kill(d, 650 + dl);
+      }
+      // 장식이 툭툭 떨어져요 (칭찬 장식이 있을 때)
+      if (before > 0) {
+        const items = [...T.part, T.corner, L0 >= 6 ? T.badge : "✨", L0 >= 12 ? T.crown : "⭐", L0 >= 8 ? T.gem : "💫"];
+        const many = 10 + Math.min(L0, 10);
+        for (let i = 0; i < many; i++) {
+          const el = fxAt("fx-fall"); el.textContent = items[i % items.length]; el.style.fontSize = rnd(26, 48) + "px";
+          const sx = rc.left + rnd(10, rc.width - 10), sy = rc.top + rnd(10, rc.height*.6), dx = rnd(-90, 90), rt = rnd(-240, 240), dl = rnd(0, 250);
+          el.animate([
+            {transform:`translate(${sx}px,${sy}px) translate(-50%,-50%) rotate(0deg)`, opacity:1},
+            {transform:`translate(${sx + dx*.3}px,${sy - rnd(20, 50)}px) translate(-50%,-50%) rotate(${rt*.2}deg)`, opacity:1, offset:.18},
+            {transform:`translate(${sx + dx}px,${vh + 60}px) translate(-50%,-50%) rotate(${rt}deg)`, opacity:.5}
+          ], {duration:rnd(1300, 1900), delay:dl, easing:"cubic-bezier(.45,0,.9,.6)", fill:"both"});
+          kill(el, 2000 + dl);
+        }
+      }
+      // 큰 실망 글씨 (축 처지며 떨어져요)
+      let txt = WORDS[Math.floor(Math.random()*WORDS.length)];
+      if (n === 3) txt = "또 실망…"; else if (n >= 5) txt = "실망 폭발…";
+      const word = fxAt("fx-sad"); word.textContent = txt;
+      if (word.offsetWidth > vw*.9) word.style.fontSize = (parseFloat(getComputedStyle(word).fontSize) * vw*.9 / word.offsetWidth) + "px";
+      const ww = word.offsetWidth, wh = word.offsetHeight;
+      const wx = Math.min(Math.max(x, ww/2 + 16), vw - ww/2 - 16), wy = Math.min(Math.max(y - wh*.6, wh/2 + 16), vh - wh/2 - 16);
+      word.animate([
+        {transform:`translate(${wx}px,${wy - 60}px) translate(-50%,-50%) scale(1.15)`, opacity:0},
+        {transform:`translate(${wx}px,${wy}px) translate(-50%,-50%) scale(1)`, opacity:1, offset:.14},
+        {transform:`translate(${wx}px,${wy + 10}px) translate(-50%,-50%) rotate(-3deg) scaleY(.97)`, opacity:1, offset:.45},
+        {transform:`translate(${wx}px,${wy + 30}px) translate(-50%,-50%) rotate(4deg) scaleY(.93)`, opacity:1, offset:.8},
+        {transform:`translate(${wx}px,${wy + 90}px) translate(-50%,-50%) rotate(8deg) scaleY(.9)`, opacity:0}
+      ], {duration:2300, easing:"ease-in-out", fill:"forwards"});
+      kill(word, 2350);
+      $("#fx").querySelectorAll(".fx-sad,.fx-sname,.fx-praise,.fx-pname,.fx-word,.fx-name,.fx-wing,.fx-crown").forEach(o => { if (o !== word) o.style.opacity = ".2"; });
+      // 이름 + 남은 칭찬 도장
+      const left = before > 0 ? (pn ? `💮 ${pn}개 남았어요` : "💮 0개… 장식이 다 떨어졌어요") : "💮 0개 · 더 떨어질 장식이 없어요";
+      const nm = fxAt("fx-sname", `${photoOf(id) ? `<img class="fx-photo" src="${photoOf(id)}" alt="">` : `<span class="fx-face">${faceOf(id)}</span>`}<span>${esc(stu.name)}</span><span class="fx-nth">${left}</span>`);
+      if (nm.offsetWidth > vw*.92) nm.style.fontSize = (parseFloat(getComputedStyle(nm).fontSize) * vw*.92 / nm.offsetWidth) + "px";
+      const nw = nm.offsetWidth, nh = nm.offsetHeight;
+      let ny = wy - wh*.5 - nh*.55 - 10; if (ny < nh/2 + 12) ny = wy + wh*.5 + nh*.6 + 10;
+      const nx = Math.min(Math.max(wx, nw/2 + 12), vw - nw/2 - 12);
+      nm.animate([
+        {transform:`translate(${nx}px,${ny - 30}px) translate(-50%,-50%) scale(.8)`, opacity:0},
+        {transform:`translate(${nx}px,${ny}px) translate(-50%,-50%) scale(1)`, opacity:1, offset:.15},
+        {transform:`translate(${nx}px,${ny + 15}px) translate(-50%,-50%) scale(1)`, opacity:1, offset:.82},
+        {transform:`translate(${nx}px,${ny + 50}px) translate(-50%,-50%) scale(.96)`, opacity:0}
+      ], {duration:2300, easing:"ease-out", fill:"forwards"});
+      kill(nm, 2350);
+      // 단계가 내려가면 무엇을 잃었는지 알려 줘요
+      if (L1 < L0) setTimeout(() => {
+        const b = card.getBoundingClientRect(), el = fxAt("fx-sdown"); el.textContent = `💔 ${lostSay(T, L0)} 잃었어요…`;
+        const ex = Math.min(Math.max(b.left + b.width/2, el.offsetWidth/2 + 12), vw - el.offsetWidth/2 - 12), ey = Math.min(b.bottom - 20, vh - 50);
+        el.animate([{transform:`translate(${ex}px,${ey-20}px) translate(-50%,-50%) scale(.6)`,opacity:0},{transform:`translate(${ex}px,${ey}px) translate(-50%,-50%) scale(1.05)`,opacity:1,offset:.15},{transform:`translate(${ex}px,${ey+8}px) translate(-50%,-50%) scale(1)`,opacity:1,offset:.8},{transform:`translate(${ex}px,${ey+40}px) translate(-50%,-50%) scale(1) rotate(4deg)`,opacity:0}], {duration:2000, easing:"ease-in", fill:"forwards"});
+        kill(el, 2050);
+      }, 520);
+    }
+    let stampAnim = null;
+    function stampDown(){
+      if (stampAnim) stampAnim.cancel();
+      stampAnim = P.animate([
+        {transform:"translateY(-46px) rotate(-14deg)"},
+        {transform:"translateY(-60px) rotate(-18deg)", offset:.25},
+        {transform:"translateY(4px) rotate(0deg) scale(1.04,.9)", offset:.45},
+        {transform:"translateY(0) rotate(0deg) scale(1)", offset:.62},
+        {transform:"translateY(-46px) rotate(-14deg)"}
+      ], {duration:460, easing:"ease-out"});
+    }
+    P.style.transform = "translateY(-46px) rotate(-14deg)";
+    const HIT = 205;
+
+    $("#dsList").onclick = () => $("#prEdit").click();
+    window.__dsOff = () => { if (on) setOn(false); };
+    function setOn(v){
+      if (v && window.__hamOff) window.__hamOff();
+      if (v && window.__hlOff) window.__hlOff();
+      if (v && window.__prOff) window.__prOff();
+      on = v; document.body.classList.toggle("sadding", on);
+      $("#dsBtn").classList.toggle("on", on);
+      $("#dsBtn").textContent = on ? "😢 끝내기" : "😢 실망 도장";
+      if (on) { place(lastX, lastY); if (typeof closeWhy === "function") closeWhy(); }
+    }
+    $("#dsBtn").addEventListener("click", e => { e.stopPropagation(); setOn(!on); if (on) place(e.clientX || lastX, e.clientY || lastY); });
+    $("#dsOff").onclick = () => setOn(false);
+    document.addEventListener("pointermove", e => { if (on) place(e.clientX, e.clientY); }, {passive:true});
+    document.addEventListener("pointerdown", e => {
+      if (!on || e.button > 0) return;
+      if (document.querySelector(".modal.open") || e.target.closest("#dsBar, #dsBtn, #prBtn, #prEdit, #hamBtn, #hamEdit, #hlBtn, .toast, .modal, #pick, #marble, #mbBtn, #bigClock, #seatCall, #breakCall")) return;
       place(e.clientX, e.clientY); stampDown();
       const card = e.target.closest("#grid .card");
       if (card) { e.stopPropagation(); e.preventDefault(); setTimeout(() => press(card, e.clientX, e.clientY), HIT); }
@@ -4873,6 +5095,7 @@
     function setOn(v){
       if (v && window.__hamOff) window.__hamOff();
       if (v && window.__prOff) window.__prOff();
+      if (v && window.__dsOff) window.__dsOff();
       on = v; document.body.classList.toggle("healing", on);
       $("#hlBtn").classList.toggle("on", on);
       $("#hlBtn").textContent = on ? "🧴 끝내기" : "🧴 후시딘";
@@ -4884,7 +5107,7 @@
     document.addEventListener("pointermove", e => { if (on) place(e.clientX, e.clientY); }, {passive:true});
     document.addEventListener("pointerdown", e => {
       if (!on || e.button > 0) return;
-      if (document.querySelector(".modal.open") || e.target.closest("#hlBar, #hlBtn, #hamBtn, #hamEdit, #prBtn, #prEdit, .toast, .modal, #pick, #marble, #mbBtn, #bigClock, #seatCall, #breakCall")) return;
+      if (document.querySelector(".modal.open") || e.target.closest("#hlBar, #hlBtn, #hamBtn, #hamEdit, #prBtn, #prEdit, #dsBtn, .toast, .modal, #pick, #marble, #mbBtn, #bigClock, #seatCall, #breakCall")) return;
       place(e.clientX, e.clientY);
       const card = e.target.closest("#grid .card");
       if (card) { e.stopPropagation(); e.preventDefault(); apply(card, e.clientX, e.clientY); }
