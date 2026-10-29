@@ -1486,6 +1486,58 @@
   .card.t0 .name .face.ph::before{bottom:-8px}
   body.big .card .name .face{width:86px;height:86px;font-size:52px}
   body.big .card .name .nmt{font-size:23px}
+
+  /* =====================================================================
+     🎨 아케이드 테마 (게임 대기방 느낌): 진한 파란 기계 패널 · 하늘색 테두리 · 들어간 칸 · 주황 버튼
+     ===================================================================== */
+  body.arcade{--ab0:#0a2b6b;--ab1:#1450b4;--ab2:#1f66d6;--ab3:#3f8cf0;--al:#7fc6ff;--al2:#bfe6ff;--ao1:#ffc53d;--ao2:#ff8a00;
+    background-color:#0b3384;
+    background-image:radial-gradient(circle at 50% -10%,rgba(120,200,255,.45),transparent 55%),
+      repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 2px,transparent 2px 4px),
+      linear-gradient(180deg,#1a5ccc,#0b3384 60%,#082a6e);
+    background-size:auto;background-attachment:fixed}
+  /* 바깥 큰 기계 틀 */
+  body.arcade .wrap{position:relative;margin-top:14px;background:linear-gradient(180deg,var(--ab2),var(--ab1));border:4px solid var(--al);border-radius:20px;
+    box-shadow:0 0 0 4px var(--ab0),inset 0 2px 0 rgba(255,255,255,.5),inset 0 -4px 0 rgba(0,0,0,.2),0 20px 50px rgba(0,10,40,.5);padding-top:38px}
+  /* 위쪽 전광판 */
+  body.arcade .wrap::before{content:"";position:absolute;left:18%;right:18%;top:8px;height:20px;border-radius:6px;background:#0a1a3a;
+    background-image:radial-gradient(circle,#24508f 1.2px,transparent 1.6px);background-size:6px 6px;
+    box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 0 0 2px var(--ab0),0 2px 0 rgba(255,255,255,.35)}
+  /* 패널: 하늘색 테두리 + 진한 바깥선 + 안쪽 빛 */
+  body.arcade header.top{background:linear-gradient(180deg,#2c7ae6,#1858c2);border:4px solid var(--al);box-shadow:0 0 0 3px var(--ab0),inset 0 2px 0 rgba(255,255,255,.45),inset 0 -4px 0 rgba(0,0,0,.18)}
+  body.arcade .stat{background:#0e3a88;border:2px solid #4f9cf0;box-shadow:inset 0 3px 6px rgba(0,0,0,.35)}
+  body.arcade .stat b{color:#ffd84d;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+  body.arcade .clock{background:#0a1a3a;border:4px solid var(--al);box-shadow:0 0 0 3px var(--ab0),inset 0 3px 8px rgba(0,0,0,.6)}
+  body.arcade .clock .hm,body.arcade .clock .sec,body.arcade .clock .ap{color:#7dffb0;text-shadow:0 0 10px rgba(80,255,160,.6)}
+  /* 탭 */
+  body.arcade .tabnav button{background:linear-gradient(180deg,#5fa6f5,#2f74d8);color:#fff;border:3px solid var(--al);border-bottom:0;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+  body.arcade .tabnav button.on{background:linear-gradient(180deg,var(--ao1),var(--ao2));color:#fff;border-color:#ffe9a6;-webkit-text-stroke:3px #a34d00;paint-order:stroke fill;text-shadow:none}
+  body.arcade .view{background:linear-gradient(180deg,#1b5fcc,#1550b6);border:4px solid var(--al);box-shadow:0 0 0 3px var(--ab0),inset 0 2px 0 rgba(255,255,255,.35)}
+  /* 도구 줄 = 들어간 진한 칸 */
+  body.arcade .tgp{background:#0f3c8c;border:2px solid #5aa7f5;box-shadow:inset 0 3px 6px rgba(0,0,0,.4),0 2px 0 rgba(255,255,255,.25)}
+  body.arcade .tgl{background:linear-gradient(180deg,#5fb8ff,#2a7ae0);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 0 var(--ab0);text-shadow:0 1px 0 rgba(0,0,0,.3)}
+  /* 버튼 = 하늘색 사탕 버튼 */
+  body.arcade .btn,body.arcade .tb .btn,body.arcade .tb .btn.sfx{background:linear-gradient(180deg,#ffffff,#d7eeff 55%,#a9d7ff);border:2px solid #2a6fd0;color:#123a80;
+    box-shadow:0 3px 0 var(--ab0),inset 0 2px 0 #fff}
+  body.arcade .btn:hover,body.arcade .tb .btn:hover{background:linear-gradient(180deg,#fff,#e8f6ff 55%,#bfe3ff)}
+  body.arcade .btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ab0),inset 0 2px 0 #fff}
+  /* 주요 버튼·켜진 버튼 = 주황 '준비' 버튼 */
+  body.arcade .btn.primary,body.arcade .tb .btn.primary,body.arcade .tb .btn.on:not(.tg){background:linear-gradient(180deg,#ffe07a,var(--ao1) 35%,var(--ao2));border:2px solid #fff3c4;color:#fff;
+    -webkit-text-stroke:3px #a34d00;paint-order:stroke fill;box-shadow:0 3px 0 #8a3c00,0 0 0 2px #a34d00,inset 0 2px 0 rgba(255,255,255,.6)}
+  body.arcade .rule-chip{background:linear-gradient(180deg,#fff,#dff1ff);border:2px solid #2a6fd0;box-shadow:0 3px 0 var(--ab0)}
+  /* 명예의 전당·온도계·시간표 = 하늘색 틀 패널 */
+  body.arcade .fame,body.arcade .mt,body.arcade .tt{border:4px solid var(--al);box-shadow:0 0 0 3px var(--ab0),inset 0 2px 0 #fff,0 10px 20px rgba(0,10,40,.3)}
+  body.arcade .mt,body.arcade .tt{background:linear-gradient(180deg,#f4fbff,#dceeff)}
+  body.arcade .fame h2,body.arcade .mt h2,body.arcade .tt h2{color:#123a80}
+  /* 학생 칸 = 대기방 슬롯 판 (진한 들어간 칸) */
+  body.arcade #grid{background:#0f3c8c;border:3px solid #5aa7f5;border-radius:18px;padding:12px;
+    box-shadow:inset 0 4px 10px rgba(0,0,0,.45),0 2px 0 rgba(255,255,255,.3);background-image:radial-gradient(circle,rgba(255,255,255,.06) 1.2px,transparent 1.6px);background-size:14px 14px}
+  body.arcade #grid .empty{color:#cfe6ff}
+  /* 슬롯 아래 상태 띠 = 진한 파랑 + 주황 '준비' 글씨 */
+  body.arcade .card .ok,body.arcade .card > .tags > .ok:first-child:last-child{background:#163f91;color:#ffb627;border:2px solid #6fb8ff;justify-content:center;font-family:"Jua";
+    box-shadow:inset 0 2px 4px rgba(0,0,0,.35);text-shadow:0 1px 0 rgba(0,0,0,.4)}
+  body.arcade .card.t0 .ok{color:#ffd23a}
+  body.arcade .hint{background:#eaf6ff;border-color:var(--ao2)}
   .card:nth-child(5n+1){--gd:0s}.card:nth-child(5n+2){--gd:-2.8s}.card:nth-child(5n+3){--gd:-5.6s}.card:nth-child(5n+4){--gd:-1.4s}.card:nth-child(5n){--gd:-4.2s}
 </style>
 </head>
@@ -1707,6 +1759,7 @@
       <div class="tgp g-view"><span class="tgl">보기</span>
         <button class="btn" id="sortBtn" title="정렬 바꾸기">🔢 번호순</button>
         <button class="btn" id="bigBtn" title="전체 화면으로 크게 보기">🖥️ 크게</button>
+        <button class="btn" id="themeBtn" title="게임 대기방 느낌의 파란 아케이드 테마 ↔ 원래 테마">🎨 테마</button>
         <button class="btn enterb" id="enterBtn" title="우리 반 입장! 카드가 하나씩 쿵 하고 떨어지는 입장 효과를 다시 보여 줘요">🎮 입장</button>
         <button class="btn" id="clockBtn" title="시계만 크게 보기 (5분 동안 아무것도 안 누르면 자동으로 켜져요)">🕐 시계</button>
       </div>
@@ -6312,6 +6365,9 @@
     }, 650);
   }
   $("#enterBtn").onclick = () => enterShow(true);
+  function applyTheme(){ const on = S.theme !== "classic"; document.body.classList.toggle("arcade", on); const t = $("#themeBtn"); if (t) t.textContent = on ? "🎨 아케이드" : "🎨 기본"; }
+  $("#themeBtn").onclick = () => { S.theme = S.theme === "classic" ? "arcade" : "classic"; save(); applyTheme(); };
+  applyTheme();
   enterShow(false);
   setInterval(() => { autoCheck(); renderHeader(); if (!ttEditing) renderTT(); }, 30*1000);
 })();
