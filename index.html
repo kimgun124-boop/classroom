@@ -1447,6 +1447,45 @@
     background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.18) 0 6deg,transparent 6deg 18deg);animation:spin 10s linear infinite;
     -webkit-mask:radial-gradient(circle,#000 0,transparent 45%);mask:radial-gradient(circle,#000 0,transparent 45%)}
   .btn.enterb{color:#1d4fa8}
+
+  /* ---------- 🎮 대기방 슬롯 배치: [얼굴 무대 | 횟수] + 팀 색 이름판 + READY ---------- */
+  .card{display:grid;grid-template-columns:1fr auto;column-gap:6px;
+    grid-template-areas:"head head" "face count" "plate plate" "dots dots" "why why" "decay decay" "tags tags";
+    grid-template-rows:auto auto auto auto auto auto 1fr;align-items:center}
+  .card > .head{grid-area:head}
+  .card > .name{display:contents}
+  .card > .count{grid-area:count;justify-self:center;margin:0 6px 0 0;flex-direction:column;align-items:center;gap:0}
+  .card > .count small{font-size:15px;margin-top:-4px}
+  .card > .dots{grid-area:dots;justify-content:center;margin:6px 0 6px}
+  .card > .why{grid-area:why}
+  .card > .decay{grid-area:decay}
+  .card > .tags{grid-area:tags;align-self:end}
+  .card .name > *{position:relative;z-index:3}
+  /* 얼굴 = 하늘색 스포트라이트 무대 위 캐릭터 */
+  .card .name .face, body.has-photos .card .name .face{grid-area:face;justify-self:center;width:74px;height:74px;font-size:44px;margin:2px 0 8px;border-radius:50%;
+    background:radial-gradient(circle at 50% 30%,#ffffff 0 12%,#dff3ff 38%,#9fd6ff 72%,#6cb6f2);border:3px solid #fff;
+    box-shadow:0 4px 0 #3d86cf,0 0 0 2px #3d86cf,inset 0 -8px 0 rgba(30,90,170,.18),0 9px 10px rgba(20,60,120,.25)}
+  .card .name .face::after{content:"";position:absolute;left:50%;bottom:-13px;width:84px;height:16px;margin-left:-42px;border-radius:50%;z-index:-1;
+    background:radial-gradient(ellipse,rgba(20,60,120,.35),rgba(20,60,120,0) 70%)}
+  .card .name .face.ph img{border-radius:50%}
+  .card .name .face.ph .fb{font-size:24px;right:-6px;bottom:-4px}
+  /* 이름 = 팀 색 이름판 */
+  .card .name .nmt{grid-area:plate;justify-self:stretch;text-align:center;font-size:20px;line-height:1.2;padding:4px 8px 5px;border-radius:12px;color:#fff;
+    background:linear-gradient(180deg,color-mix(in srgb,var(--edge) 80%,#fff),color-mix(in srgb,var(--edge) 75%,#000));border:2.5px solid #fff;
+    box-shadow:0 3px 0 color-mix(in srgb,var(--edge) 55%,#000),0 5px 8px rgba(0,0,0,.15),inset 0 2px 0 rgba(255,255,255,.35);
+    -webkit-text-stroke:0;filter:none;text-shadow:0 2px 0 rgba(0,0,0,.3);word-break:keep-all;overflow-wrap:anywhere}
+  .card.pr6 .name .nmt{color:#fff}
+  .card.pr13 .name .nmt{background:linear-gradient(180deg,color-mix(in srgb,var(--edge) 80%,#fff),color-mix(in srgb,var(--edge) 75%,#000));
+    -webkit-background-clip:border-box;background-clip:border-box;color:#ffe45c;animation:none;filter:none;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+  .card.pr .name .nmt,.card.dmg .name .nmt{text-shadow:0 2px 0 rgba(0,0,0,.3)}
+  /* READY! (약속 잘 지키는 친구) */
+  .card.t0 .name .face::before{content:"READY";position:absolute;left:50%;bottom:-6px;transform:translateX(-50%) rotate(-6deg);z-index:2;
+    font-family:"Jua";font-size:17px;line-height:1;letter-spacing:.5px;color:#ffe03a;-webkit-text-stroke:4px #1d4fa8;paint-order:stroke fill;
+    text-shadow:0 2px 0 #0d2f6e;white-space:nowrap;animation:readyBob 1.6s ease-in-out infinite}
+  @keyframes readyBob{0%,100%{transform:translateX(-50%) rotate(-6deg) scale(1)}50%{transform:translateX(-50%) rotate(-6deg) scale(1.12)}}
+  .card.t0 .name .face.ph::before{bottom:-8px}
+  body.big .card .name .face{width:86px;height:86px;font-size:52px}
+  body.big .card .name .nmt{font-size:23px}
   .card:nth-child(5n+1){--gd:0s}.card:nth-child(5n+2){--gd:-2.8s}.card:nth-child(5n+3){--gd:-5.6s}.card:nth-child(5n+4){--gd:-1.4s}.card:nth-child(5n){--gd:-4.2s}
 </style>
 </head>
