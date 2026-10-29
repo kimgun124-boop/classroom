@@ -714,6 +714,37 @@
   #breakCall .bk-left{font-size:clamp(40px,7vw,110px);font-variant-numeric:tabular-nums;background:rgba(255,255,255,.65);border-radius:28px;padding:.6vh 3vw}
   #breakCall .bk-left:empty{display:none}
   #breakCall .bk-hint{position:absolute;bottom:3vh;font-size:clamp(13px,1.4vw,20px);opacity:.5}
+  /* ---------- 🔨 뿅망치 ---------- */
+  #hammer{position:fixed;left:0;top:0;z-index:9995;width:176px;height:121px;pointer-events:none;display:none;
+    transform-origin:165px 66px;transform:rotate(55deg);filter:drop-shadow(0 6px 8px rgba(60,40,20,.3))}
+  body.hammering #hammer{display:block}
+  body.hammering, body.hammering *{cursor:none!important}
+  body.hammering .toast, body.hammering .toast *, body.hammering #hamBar, body.hammering #hamBar *{cursor:pointer!important}
+  #hammer.swing{animation:hamSwing .32s cubic-bezier(.5,0,.6,1)}
+  @keyframes hamSwing{0%{transform:rotate(55deg)}35%{transform:rotate(-6deg)}50%{transform:rotate(2deg)}100%{transform:rotate(55deg)}}
+  #hamBar{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9996;display:none;align-items:center;gap:12px;
+    background:#2e2a26;color:#fff;border-radius:999px;padding:8px 8px 8px 20px;font-family:"Jua";font-size:19px;box-shadow:0 10px 30px rgba(0,0,0,.25);max-width:calc(100% - 24px)}
+  body.hammering #hamBar{display:flex}
+  #hamBar button{font-family:"Jua";font-size:17px;background:#ff8a5b;color:#fff;border-radius:999px;padding:7px 16px;white-space:nowrap}
+  .btn.hamb{background:#ffecec;border-color:#ffc4c4;color:#c23356}
+  .btn.hamb.on{background:#e5484d;border-color:#e5484d;color:#fff}
+  .card.bonk{animation:bonk .6s cubic-bezier(.3,1.4,.5,1);transform-origin:50% 100%}
+  @keyframes bonk{0%{transform:none}12%{transform:scale(1.1,.72)}30%{transform:scale(.94,1.08)}48%{transform:scale(1.04,.96) rotate(-2deg)}66%{transform:rotate(1.5deg)}100%{transform:none}}
+  .bonk-word{position:absolute;z-index:4;pointer-events:none;font-family:"Jua";font-size:46px;color:#fff;
+    -webkit-text-stroke:3px #e5484d;paint-order:stroke fill;text-shadow:0 4px 0 #b3262b;white-space:nowrap;animation:bonkWord .9s ease-out forwards}
+  @keyframes bonkWord{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-14deg)}18%{opacity:1;transform:translate(-50%,-90%) scale(1.25) rotate(-8deg)}70%{opacity:1;transform:translate(-50%,-120%) scale(1) rotate(-6deg)}100%{opacity:0;transform:translate(-50%,-150%) scale(.9) rotate(-6deg)}}
+  .bonk-burst{position:absolute;z-index:3;pointer-events:none;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;
+    background:repeating-conic-gradient(#ffd27a 0 10deg,transparent 10deg 30deg);
+    -webkit-mask:radial-gradient(circle,transparent 30%,#000 32%,#000 60%,transparent 62%);mask:radial-gradient(circle,transparent 30%,#000 32%,#000 60%,transparent 62%);
+    animation:bonkBurst .4s ease-out forwards}
+  @keyframes bonkBurst{0%{opacity:1;transform:scale(.3)}100%{opacity:0;transform:scale(1.5)}}
+  .dizzy{position:absolute;z-index:3;pointer-events:none;left:50%;top:44px;width:120px;height:34px;margin-left:-60px;animation:dizzyOut 1.8s ease forwards}
+  .dizzy span{position:absolute;left:50%;top:50%;font-size:22px;line-height:1;margin:-11px 0 0 -11px;animation:orbit 0.9s linear infinite}
+  .dizzy span:nth-child(2){animation-delay:-.3s} .dizzy span:nth-child(3){animation-delay:-.6s}
+  @keyframes orbit{0%{transform:rotate(0deg) translateX(52px) rotate(0deg) scaleY(2.6)}100%{transform:rotate(360deg) translateX(52px) rotate(-360deg) scaleY(2.6)}}
+  .dizzy{transform:scaleY(.38)}
+  @keyframes dizzyOut{0%,75%{opacity:1}100%{opacity:0}}
+  body.big .bonk-word{font-size:56px}
   /* ---------- 🎤 발표 뽑기 ---------- */
   #pick{position:fixed;inset:0;z-index:9990;display:none;flex-direction:column;gap:2vh;padding:2.4vh 3vw 2vh;
     background:radial-gradient(ellipse at 50% 35%,#46695a 0%,#34503f 65%,#29402f 100%);color:#fdfbf6;
@@ -771,6 +802,15 @@
 </style>
 </head>
 <body>
+<div id="hammer" aria-hidden="true"><svg viewBox="0 0 176 121" width="176" height="121">
+  <rect x="40" y="57" width="128" height="18" rx="9" fill="#ffc83d" stroke="#c98f00" stroke-width="3"/>
+  <rect x="140" y="55" width="30" height="22" rx="10" fill="#3b82c4" stroke="#245d93" stroke-width="3"/>
+  <rect x="4" y="12" width="46" height="104" rx="14" fill="#ff5a5f" stroke="#c2343a" stroke-width="3"/>
+  <rect x="4" y="12" width="46" height="18" rx="9" fill="#ffd84d" stroke="#c98f00" stroke-width="3"/>
+  <rect x="4" y="98" width="46" height="18" rx="9" fill="#ffd84d" stroke="#c98f00" stroke-width="3"/>
+  <rect x="12" y="36" width="9" height="56" rx="4.5" fill="#fff" opacity=".45"/>
+</svg></div>
+<div id="hamBar" role="status"><span>🔨 뿅망치 시간! 친구 카드를 눌러 보세요</span><button id="hamOff">끝내기 (Esc)</button></div>
 <div id="breakCall" role="alertdialog" aria-label="쉬는 시간 알림">
   <div class="bk-ic" id="bkIc" aria-hidden="true">🛎️</div>
   <div class="bk-msg" id="bkMsg">쉬는 시간이에요!</div>
@@ -855,6 +895,7 @@
       <button class="btn" id="decayBtn" title="켜면 1시간 동안 안 눌린 친구는 1개씩 줄어요 (평일 8~17시)">⏳ 자동 줄이기 끔</button>
       <button class="btn" id="breakBtn" title="교시가 끝나면 종소리와 함께 ‘쉬는 시간’ 화면을 보여 줘요 (시간표의 끝 시간 기준)">🛎️ 쉬는 시간 알림</button>
       <button class="btn" id="seatBtn" title="수업 시작 30초 전에 ‘자리’ 소리를 5번 들려줘요 (시간표의 시작 시간 기준)">🪑 자리 알림</button>
+      <button class="btn hamb" id="hamBtn" title="뿅망치를 들고 친구 카드를 눌러요 (횟수는 올라가지 않아요)">🔨 뿅망치</button>
       <button class="btn pickb" id="pickBtn" title="발표할 친구 뽑기 (모두 한 번씩 뽑힐 때까지 겹치지 않아요)">🎤 발표 뽑기</button>
       <button class="btn" id="clockBtn" title="시계만 크게 보기 (5분 동안 아무것도 안 누르면 자동으로 켜져요)">🕐 시계</button>
       <button class="btn" id="whyBtn" title="왜 눌렸는지 모아 보기">💬 이유 모아 보기</button>
@@ -3245,6 +3286,71 @@
   renderDecayBtn();
   setInterval(decayTick, 20*1000);
   decayTick();
+
+
+  /* ---------- 🔨 뿅망치: 카드를 누르면 뿅! (횟수는 그대로) ---------- */
+  (function(){
+    const H = $("#hammer"), HX = 27, HY = 116;   // 망치 머리 아랫면이 손가락(마우스) 끝에 오게
+    let on = false, lastX = innerWidth/2, lastY = innerHeight/2;
+    const place = (x, y) => { lastX = x; lastY = y; H.style.left = (x - HX) + "px"; H.style.top = (y - HY) + "px"; };
+    function squeak(){
+      if (!S.sound) return;
+      try{
+        ac = ac || new (window.AudioContext||window.webkitAudioContext)();
+        if (ac.state === "suspended") ac.resume();
+        const t = ac.currentTime;
+        const o = ac.createOscillator(), g = ac.createGain();   // 삑- 장난감 소리
+        o.type = "triangle";
+        o.frequency.setValueAtTime(700, t); o.frequency.exponentialRampToValueAtTime(1700, t+.07); o.frequency.exponentialRampToValueAtTime(900, t+.2);
+        g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.3, t+.02); g.gain.exponentialRampToValueAtTime(.0001, t+.24);
+        o.connect(g).connect(ac.destination); o.start(t); o.stop(t+.26);
+        const k = ac.createOscillator(), kg = ac.createGain();  // 뽁 하는 바닥 소리
+        k.type = "sine"; k.frequency.setValueAtTime(260, t); k.frequency.exponentialRampToValueAtTime(90, t+.09);
+        kg.gain.setValueAtTime(.35, t); kg.gain.exponentialRampToValueAtTime(.0001, t+.12);
+        k.connect(kg).connect(ac.destination); k.start(t); k.stop(t+.13);
+      }catch(e){}
+    }
+    const WORDS = ["뿅!", "뿅!", "뿅뿅!", "콩!", "띵!"];
+    function bonk(card, x, y){
+      const r = card.getBoundingClientRect(), lx = x - r.left, ly = y - r.top;
+      card.classList.remove("bonk"); void card.offsetWidth; card.classList.add("bonk");
+      card.querySelectorAll(".bonk-word,.bonk-burst,.dizzy").forEach(n => n.remove());
+      const burst = document.createElement("div"); burst.className = "bonk-burst";
+      burst.style.left = lx + "px"; burst.style.top = ly + "px";
+      const w = document.createElement("div"); w.className = "bonk-word";
+      w.textContent = WORDS[Math.floor(Math.random()*WORDS.length)];
+      w.style.left = Math.min(Math.max(lx, 50), r.width - 50) + "px"; w.style.top = Math.max(ly, 40) + "px";
+      const d = document.createElement("div"); d.className = "dizzy";
+      d.innerHTML = "<span>⭐</span><span>💫</span><span>⭐</span>";
+      card.append(burst, w, d);
+      setTimeout(() => { burst.remove(); w.remove(); }, 950);
+      setTimeout(() => d.remove(), 1850);
+    }
+    function swing(){ H.classList.remove("swing"); void H.offsetWidth; H.classList.add("swing"); }
+    function setOn(v){
+      on = v; document.body.classList.toggle("hammering", on);
+      $("#hamBtn").classList.toggle("on", on);
+      $("#hamBtn").textContent = on ? "🔨 뿅망치 끝내기" : "🔨 뿅망치";
+      if (on) { place(lastX, lastY); if (typeof closeWhy === "function") closeWhy(); }
+    }
+    $("#hamBtn").addEventListener("click", e => { e.stopPropagation(); setOn(!on); if (on) place(e.clientX || lastX, e.clientY || lastY); });
+    $("#hamOff").onclick = () => setOn(false);
+    document.addEventListener("pointermove", e => { if (on) place(e.clientX, e.clientY); }, {passive:true});
+    document.addEventListener("pointerdown", e => {
+      if (!on || e.button > 0) return;
+      if (e.target.closest("#hamBar, #hamBtn, .toast, .modal, #pick, #bigClock, #seatCall, #breakCall")) return;
+      place(e.clientX, e.clientY); swing();
+      const card = e.target.closest("#grid .card");
+      if (card) {
+        e.stopPropagation(); e.preventDefault();   // 옮기기·+1 막기
+        setTimeout(() => { squeak(); bonk(card, e.clientX, e.clientY); }, 110);   // 망치가 내려온 순간에
+      }
+    }, true);
+    document.addEventListener("click", e => {
+      if (on && e.target.closest("#grid .card")) { e.stopPropagation(); e.preventDefault(); }
+    }, true);
+    document.addEventListener("keydown", e => { if (on && e.key === "Escape") setOn(false); });
+  })();
 
   /* ---------- 🎤 발표 뽑기: 한 번 뽑힌 친구는 모두 한 번씩 뽑힐 때까지 다시 안 나와요 ---------- */
   S.pick = (S.pick && typeof S.pick === "object") ? S.pick : {};
