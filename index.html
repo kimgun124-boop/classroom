@@ -1093,6 +1093,51 @@
   .split .btn.mini{color:var(--gi)}
   @media (max-width:700px){ .tgl{display:none} .tb .btn{font-size:15px;height:36px;padding:0 10px} }
   @media (prefers-reduced-motion:reduce){body:not(.hammering) *{animation:none!important;transition:none!important}}
+
+  /* ---------- 학생 카드는 조금 작게, 오늘 시간표는 크게 (아이들이 멀리서도 잘 보이게) ---------- */
+  .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .card{min-height:150px;padding:11px 12px 10px}
+  .card .head{min-height:28px}
+  .name{font-size:22px;margin-top:3px}
+  .count{font-size:46px;margin:5px 0 4px}
+  .count small{font-size:17px}
+  .dots{gap:4px;margin-bottom:8px}
+  .dot{width:12px;height:12px}
+  .ok{font-size:13px;letter-spacing:-.4px;gap:4px}
+  .card > .tags > .ok:first-child:last-child{white-space:nowrap}
+  body.big .grid{grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:14px}
+  body.big .name{font-size:25px}
+  body.big .count{font-size:58px}
+
+  .tt-head h2{font-size:32px}
+  .tt-days button{font-size:20px;padding:8px 0}
+  .tt-list{gap:9px}
+  .tt-row{padding:11px 14px;gap:14px;border-radius:18px}
+  .tt-no{width:54px}
+  .tt-no b{font-size:34px}
+  .tt-no small{font-size:13px}
+  .tt-sub{font-size:38px;gap:10px}
+  .tt-sub .em{font-size:32px}
+  .tt-sub.empty{font-size:28px}
+  .tt-time{font-size:16px;font-weight:700;line-height:1.35}
+  .tt-row.now{transform:scale(1.04);border-width:3px}
+  .tt-row.now .tt-time::before{font-size:18px}
+  .tt-row.next .tt-time::before{font-size:16px}
+  .tt-lunch{font-size:21px;padding:8px}
+  body.big .tt-sub{font-size:44px}
+  body.big .tt-no b{font-size:38px}
+  body.big .tt-time{font-size:18px}
+  @media (min-width:1180px){
+    .board-layout{grid-template-columns:240px minmax(0,1fr) 430px}
+  }
+  @media (max-width:1179px) and (min-width:981px){
+    .board-layout{grid-template-columns:minmax(0,1fr) 370px}
+    .tt-sub{font-size:32px}
+  }
+  @media (max-width:560px){
+    .grid{grid-template-columns:repeat(2,1fr);gap:10px}
+    .tt-sub{font-size:28px}
+  }
 </style>
 </head>
 <body>
