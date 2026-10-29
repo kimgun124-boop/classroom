@@ -814,6 +814,94 @@
   .card.dmg .num,.card.dmg .crown{opacity:.85}
   .card.dmg .name,.card.dmg .count{position:relative;z-index:3;pointer-events:none;text-shadow:0 0 2px #fff,0 0 4px #fff,0 0 7px #fff,0 0 10px rgba(255,255,255,.9)}   /* 이름·횟수는 늘 잘 보이게 (흠집 위) */
   .fx-dmg{position:absolute;font-family:"Jua";font-size:clamp(40px,4vw,72px);white-space:nowrap;color:#fff6d8;-webkit-text-stroke:.1em #5a3a1c;paint-order:stroke fill;filter:drop-shadow(0 5px 0 rgba(60,40,20,.35))}
+
+  /* ---------- 💮 칭찬 도장: 많이 받을수록 카드가 멋있게(남)·예쁘게(여) 변신 ---------- */
+  #pstamp{position:fixed;left:0;top:0;z-index:9995;width:150px;height:180px;pointer-events:none;display:none;transform-origin:75px 176px;filter:drop-shadow(0 12px 14px rgba(60,20,20,.35))}
+  #pstamp svg{width:100%;height:100%;display:block}
+  body.praising #pstamp{display:block}
+  body.praising:has(.modal.open) #pstamp, body:has(.modal.open) #prBar{display:none!important}
+  body.praising, body.praising *{cursor:none!important}
+  body.praising .toast, body.praising .toast *, body.praising #prBar, body.praising #prBar *, body.praising .modal, body.praising .modal *{cursor:auto!important}
+  #prBar{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9997;display:none;align-items:center;gap:10px;
+    background:#7a1f5c;color:#fff;border-radius:999px;padding:8px 8px 8px 20px;font-family:"Jua";font-size:19px;box-shadow:0 10px 30px rgba(0,0,0,.25);max-width:calc(100% - 24px)}
+  body.praising #prBar{display:flex}
+  #prBar button{font-family:"Jua";font-size:17px;background:#ffd84d;color:#5a3a00;border-radius:999px;padding:7px 16px;white-space:nowrap}
+  #prBar button.w{background:#fff;color:#2e2a26}
+  .btn.prb{background:#fff4fa;border-color:#ffc8e3;color:#b8326f}
+  .btn.prb.on{background:#d6337f;border-color:#d6337f;color:#fff}
+  .prct{font-family:"Jua";font-size:14px;color:#d6337f;background:rgba(255,255,255,.88);border-radius:9px;padding:1px 7px;white-space:nowrap}
+  .prct.pop{animation:hamctPop .5s cubic-bezier(.3,1.8,.5,1)}
+  body.praising .prct{font-size:18px;background:#fff;box-shadow:0 0 0 2px #ffc8e3}
+  .card .pmark{position:absolute;z-index:4;pointer-events:none;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;border:5px double #e0263a;color:#e0263a;
+    display:grid;place-items:center;text-align:center;font-family:"Jua";font-size:19px;line-height:1.05;background:rgba(255,235,235,.35);mix-blend-mode:multiply}
+  .card.praised{animation:praised .55s cubic-bezier(.3,1.6,.5,1)}
+  @keyframes praised{0%{transform:none}25%{transform:scale(.95,1.04)}55%{transform:scale(1.06)}100%{transform:none}}
+  .card .pr-flash{position:absolute;inset:0;z-index:3;border-radius:inherit;pointer-events:none;background:radial-gradient(circle,#fff 0,var(--p2,#ffd84d) 70%);animation:hitFlash .5s ease-out forwards}
+
+  .card.pr{border-color:var(--p1)}
+  .card.pr3{border-width:4px}
+  .card.pr8{box-shadow:0 0 0 3px #ffd84d,0 0 0 6px var(--p1),var(--shadow)}
+  .card.pr17{box-shadow:0 0 0 3px #ffd84d,0 0 0 6px var(--p1),0 0 26px 8px var(--pg)}
+  .card.pr19{border-color:#ffd84d;box-shadow:0 0 0 3px #fff3b0,0 0 0 7px #f0a400,0 0 34px 12px var(--pg)}
+  .card.pr .name,.card.pr .count{position:relative;z-index:3;pointer-events:none;text-shadow:0 0 2px #fff,0 0 4px #fff,0 0 7px #fff,0 0 10px rgba(255,255,255,.9)}
+  .card.pr .tags,.card.dmg .tags{position:relative;z-index:3}
+  .card.pr .head,.card.dmg .head{position:relative;z-index:3;pointer-events:none}
+  .card.pr .minus,.card.dmg .minus{z-index:4}
+  .card.pr6 .name .nmt{color:var(--p3)}
+  .card.pr13 .name .nmt{background:linear-gradient(100deg,var(--p3),var(--p1) 45%,var(--p2) 70%,var(--p3));-webkit-background-clip:text;background-clip:text;color:transparent;
+    background-size:200% 100%;animation:nameShine 3s linear infinite;text-shadow:none;filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 3px #fff)}
+  @keyframes nameShine{to{background-position:-200% 0}}
+  .card .deco{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;overflow:hidden}
+  .deco > *{position:absolute}
+  .deco .pbg{inset:0;background:linear-gradient(155deg,var(--p2),var(--p1));opacity:var(--pbg,0)}
+  .deco .pat{inset:0;opacity:.9}
+  .deco .pat.b{background:repeating-linear-gradient(135deg,rgba(255,255,255,.22) 0 7px,transparent 7px 18px)}
+  .deco .pat.g{background:radial-gradient(circle,rgba(255,255,255,.6) 2.6px,transparent 3.2px) 0 0/16px 16px,radial-gradient(circle,rgba(255,255,255,.35) 2px,transparent 2.6px) 8px 8px/16px 16px}
+  .deco .pat.n{background:radial-gradient(circle,rgba(255,255,255,.55) 2.4px,transparent 3px) 0 0/18px 18px}
+  .deco .em{line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+  .deco .tw{animation:twinkle 1.6s ease-in-out infinite}
+  @keyframes twinkle{0%,100%{transform:scale(.6) rotate(0);opacity:.4}50%{transform:scale(1.15) rotate(20deg);opacity:1}}
+  .deco .shine{top:-20%;bottom:-20%;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.75),transparent);transform:skewX(-18deg);animation:shine 3.2s ease-in-out infinite}
+  @keyframes shine{0%,55%{left:-60%}100%{left:130%}}
+  .deco .rise{bottom:-30px;font-size:20px;animation:rise 3.4s linear infinite;opacity:0}
+  @keyframes rise{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:.95}100%{transform:translateY(-230px) scale(1.1) rotate(25deg);opacity:0}}
+  .deco .badge{right:10px;top:44%;font-size:40px;filter:drop-shadow(0 3px 3px rgba(0,0,0,.2));animation:bob 2.4s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  .deco .rays{left:50%;top:50%;width:420px;height:420px;margin:-210px 0 0 -210px;opacity:.28;
+    background:repeating-conic-gradient(from 0deg,#fff 0 9deg,transparent 9deg 24deg);animation:spin 14s linear infinite;-webkit-mask:radial-gradient(circle,#000 10%,transparent 62%);mask:radial-gradient(circle,#000 10%,transparent 62%)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .deco .frame{inset:5px;border-radius:16px;border:2.5px solid rgba(255,216,77,.95);box-shadow:inset 0 0 0 2px rgba(255,255,255,.6)}
+  .deco .gem{font-size:18px}
+  .deco .okst{right:10px;bottom:34px;width:58px;height:58px;border-radius:50%;border:3px double #e0263a;color:#e0263a;display:grid;place-items:center;text-align:center;
+    font-family:"Jua";font-size:12px;line-height:1.05;transform:rotate(-16deg);background:rgba(255,240,240,.55)}
+  .deco .flyer{top:30%;left:-50px;font-size:30px;animation:flyer 5.5s linear infinite}
+  @keyframes flyer{0%{transform:translate(0,0) rotate(8deg)}25%{transform:translate(70px,-26px) rotate(-6deg)}50%{transform:translate(140px,6px) rotate(8deg)}75%{transform:translate(210px,-20px) rotate(-6deg)}100%{transform:translate(290px,0) rotate(8deg)}}
+  .deco .holo{inset:0;background:linear-gradient(115deg,rgba(255,0,128,.25),rgba(255,200,0,.25),rgba(0,255,170,.25),rgba(0,140,255,.25),rgba(200,0,255,.25),rgba(255,0,128,.25));
+    background-size:300% 300%;mix-blend-mode:soft-light;animation:holo 4s linear infinite}
+  @keyframes holo{to{background-position:300% 0}}
+  .deco .pcrown{left:12px;top:44px;font-size:28px;transform:rotate(-18deg);filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
+  .deco .bigpal{left:-4px;bottom:-6px;font-size:58px;animation:bob 3s ease-in-out infinite;filter:drop-shadow(0 4px 4px rgba(0,0,0,.2))}
+  .deco .ring{inset:0;border-radius:inherit;padding:4px;background:conic-gradient(from var(--a,0deg),var(--r1),var(--r2),var(--r3),var(--r4),var(--r1));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);animation:ringspin 3s linear infinite}
+  @property --a{syntax:"<angle>";inherits:false;initial-value:0deg}
+  @keyframes ringspin{to{--a:360deg}}
+  .deco .spark{font-size:16px;animation:twinkle 1.2s ease-in-out infinite}
+  .deco .title{left:0;right:0;top:0;height:19px;display:flex;align-items:center;justify-content:center;font-family:"Jua";font-size:13px;color:#fff;letter-spacing:.5px;
+    background:linear-gradient(90deg,var(--p3),var(--p1),var(--p3));text-shadow:0 1px 0 rgba(0,0,0,.25)}
+  .card.pr18 .head{margin-top:6px}
+  .deco .trophy{right:8px;bottom:30px;font-size:46px;animation:bob 1.8s ease-in-out infinite;filter:drop-shadow(0 0 8px rgba(255,216,77,.9))}
+  .deco .gold{inset:0;background:linear-gradient(135deg,rgba(255,236,150,.5),rgba(255,200,60,.15) 40%,rgba(255,240,180,.55) 60%,rgba(240,164,0,.2));mix-blend-mode:screen}
+  .fx-praise{position:absolute;font-family:"Jua";font-weight:400;white-space:nowrap;line-height:1;font-size:clamp(110px,14vw,250px);color:#fff;
+    -webkit-text-stroke:.09em var(--fs,#d6337f);paint-order:stroke fill;text-shadow:0 .07em 0 var(--fd,#8a1450),0 0 .45em var(--fg,rgba(255,170,220,.95))}
+  .fx-pname{position:absolute;display:flex;align-items:center;gap:.3em;white-space:nowrap;font-family:"Jua";line-height:1;font-size:clamp(60px,7.5vw,140px);color:var(--fd,#7a1f5c);
+    -webkit-text-stroke:.08em #fff;paint-order:stroke fill;filter:drop-shadow(0 6px 0 rgba(46,42,38,.2))}
+  .fx-pname .fx-nth{font-size:.42em;-webkit-text-stroke:0;color:#fff;background:var(--fs,#d6337f);border-radius:999px;padding:.18em .55em .22em;box-shadow:0 4px 0 var(--fd,#8a1450)}
+  .fx-pname .fx-face{-webkit-text-stroke:0;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+  .fx-pup{position:absolute;font-family:"Jua";font-size:clamp(40px,4vw,72px);white-space:nowrap;color:#fff;-webkit-text-stroke:.1em var(--fd,#8a1450);paint-order:stroke fill;filter:drop-shadow(0 5px 0 rgba(60,40,20,.3))}
+  .pr-row .gd{font-size:18px;width:auto!important;padding:0 8px;background:#f1ece4!important;color:var(--ink-soft)!important}
+  .pr-row .gd.b{background:#e3efff!important;color:#2f6fdc!important} .pr-row .gd.g{background:#ffe6f2!important;color:#d6337f!important}
+  .pr-row button{background:#fff0f7;color:#d6337f}
+  .pr-row.has{border-color:#ffc8e3;background:#fff8fb}
   /* 이름 옆 얼굴 (모든 카드에서 같은 폭이라 이름이 한 줄로 맞춰져요) */
   .name{display:flex;align-items:center;gap:6px}
   .name .nmt{min-width:0;word-break:keep-all;overflow-wrap:anywhere}
@@ -923,6 +1011,16 @@
   <rect x="12" y="36" width="9" height="56" rx="4.5" fill="#fff" opacity=".45"/>
 </svg></div>
 <div id="fx" aria-hidden="true"></div>
+<div id="pstamp" aria-hidden="true"><svg viewBox="0 0 150 180">
+  <ellipse cx="75" cy="26" rx="30" ry="22" fill="#b07a45" stroke="#7a4f26" stroke-width="3"/>
+  <ellipse cx="66" cy="18" rx="10" ry="6" fill="#fff" opacity=".35"/>
+  <path d="M60,44 L90,44 L94,104 L56,104 Z" fill="#c48a52" stroke="#7a4f26" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="18" y="102" width="114" height="44" rx="10" fill="#d23b3b" stroke="#8f1f1f" stroke-width="3"/>
+  <rect x="26" y="108" width="40" height="8" rx="4" fill="#fff" opacity=".35"/>
+  <rect x="14" y="144" width="122" height="30" rx="8" fill="#8f1f1f"/>
+  <text x="75" y="166" text-anchor="middle" font-family="Jua" font-size="17" fill="#ff9b9b">참 잘했어요</text>
+</svg></div>
+<div id="prBar" role="status"><span>💮 칭찬 도장 시간! 친구 카드에 꾹 찍어 주세요</span><button id="prList" class="w">📋 도장 횟수</button><button id="prOff">끝내기 (Esc)</button></div>
 <div id="hamBar" role="status"><span>🔨 뿅망치 시간! 친구 카드를 눌러 보세요</span><button id="hamList" style="background:#fff;color:#2e2a26">📋 맞은 횟수</button><button id="hamOff">끝내기 (Esc)</button></div>
 <div id="breakCall" role="alertdialog" aria-label="쉬는 시간 알림">
   <div class="bk-ic" id="bkIc" aria-hidden="true">🛎️</div>
@@ -1009,6 +1107,8 @@
       <button class="btn" id="breakBtn" title="교시가 끝나면 종소리와 함께 ‘쉬는 시간’ 화면을 보여 줘요 (시간표의 끝 시간 기준)">🛎️ 쉬는 시간 알림</button>
       <button class="btn" id="seatBtn" title="수업 시작 30초 전에 ‘자리’ 소리를 5번 들려줘요 (시간표의 시작 시간 기준)">🪑 자리 알림</button>
       <button class="btn hamb" id="hamBtn" title="뿅망치를 들고 친구 카드를 눌러요 (손들기 횟수는 올라가지 않아요)">🔨 뿅망치</button>
+      <button class="btn prb" id="prBtn" title="칭찬 도장을 들고 친구 카드를 눌러요 (많이 받을수록 카드가 멋지게 변신해요)">💮 칭찬 도장</button>
+      <button class="btn sfx-ed" id="prEdit" title="칭찬 도장 횟수·남녀 보기·고치기" aria-label="칭찬 도장 횟수 보기·고치기">💮📋</button>
       <button class="btn sfx-ed" id="hamEdit" title="뿅망치 맞은 횟수 보기·고치기" aria-label="뿅망치 맞은 횟수 보기·고치기">🔨📋</button>
       <button class="btn pickb" id="pickBtn" title="발표할 친구 뽑기 (모두 한 번씩 뽑힐 때까지 겹치지 않아요)">🎤 발표 뽑기</button>
       <button class="btn" id="clockBtn" title="시계만 크게 보기 (5분 동안 아무것도 안 누르면 자동으로 켜져요)">🕐 시계</button>
@@ -1297,6 +1397,21 @@
   </div>
 </div>
 
+<div class="modal" id="prModal" aria-modal="true" role="dialog">
+  <div class="sheet ham-sheet">
+    <h2>💮 칭찬 도장 받은 횟수 <button class="x" data-close>×</button></h2>
+    <p class="desc">도장을 찍을 때마다 1번씩 올라가요. <b>👦/👧</b> 를 눌러 남녀를 정하면 남자는 <b>멋있게</b>, 여자는 <b>예쁘게</b> 카드가 꾸며져요. (정하지 않으면 ⭐ 금빛) 숫자는 − + 나 바로 써서 고쳐요.</p>
+    <div class="ham-top">
+      <span class="tot" id="prTot"></span>
+      <div class="row">
+        <button class="btn" id="prSort">🔢 번호순</button>
+        <button class="btn danger" id="prZero">모두 0번으로</button>
+      </div>
+    </div>
+    <div class="ham-list" id="prRows"></div>
+    <div class="actions"><button class="btn primary" data-close>다 했어요</button></div>
+  </div>
+</div>
 <div class="modal" id="hamModal" aria-modal="true" role="dialog">
   <div class="sheet ham-sheet">
     <h2>🔨 뿅망치 맞은 횟수 <button class="x" data-close>×</button></h2>
@@ -1392,7 +1507,7 @@
   const faceHash = id => { let h = 7; for (const ch of String(id)) h = (h*31 + ch.charCodeAt(0)) >>> 0; return h; };
   function faceOf(sid){
     const n = hamN(sid), h = faceHash(sid);
-    if (!n) return FACE_OK[h % FACE_OK.length];
+    if (!n) { const pl = prLevel(prN(sid)), th = PR_TH[genderOf(sid)]; return pl >= 19 ? th.face2 : pl >= 9 ? th.face1 : FACE_OK[h % FACE_OK.length]; }
     let set = FACE_UGLY[0][1]; for (const [at, arr] of FACE_UGLY) if (n >= at) set = arr;
     return set[h % set.length];
   }
@@ -1450,14 +1565,65 @@
     }
     return {L, cls:` dmg dmg${L}`, style: Object.entries(v).map(([k, x]) => `${k}:${x}`).join(";") + ";" + clip, html:`<div class="wear" aria-hidden="true">${h}</div>`};
   }
+  /* ---------- 💮 칭찬 도장 단계 (뿅망치와 같은 1~100번, 19단계) ---------- */
+  const prN = sid => ((S.praise||{})[sid] || 0);
+  const genderOf = sid => { const g = (S.gender||{})[sid]; return g === "b" || g === "g" ? g : "n"; };
+  const prLevel = n => DMG_AT.filter(a => n >= a).length;
+  const PR_TH = {
+    b: {p1:"#2f6fdc", p2:"#7fd3ff", p3:"#14306e", pg:"rgba(80,170,255,.75)", pat:"b", corner:"⚡", part:["⭐","⚡","🌟"], badge:"🛡️", fly:"🚀", big:"🐉", crown:"👑", gem:"💎",
+        ring:["#00e5ff","#2f6fdc","#8a5cff","#00e5ff"], title:"🦸 우리 반 영웅", title2:"🏆 전설의 영웅", face1:"😎", face2:"🤩", fs:"#2f6fdc", fd:"#14306e", fg:"rgba(110,190,255,.95)",
+        conf:["#2f6fdc","#7fd3ff","#ffd84d","#00c2a8","#ffffff"],
+        say:["", "✨ 반짝!", "⚡ 번개 장식!", "💙 파란 카드!", "🔷 멋진 무늬!", "⭐ 별이 솟아요!", "🛡️ 방패 획득!", "🌟 빛이 나요!", "💎 보석 테두리!", "💮 참 잘했어요 도장!", "🚀 로켓 출동!", "🌌 홀로그램!", "👑 왕관!", "🥇 빛나는 이름!", "🐉 드래곤 소환!", "⚡ 번개 테두리!", "🎆 불꽃놀이!", "✨ 눈부신 카드!", "🦸 우리 반 영웅!", "🏆 전설의 카드!"]},
+    g: {p1:"#ff5fa2", p2:"#ffc4e6", p3:"#a0287a", pg:"rgba(255,140,200,.8)", pat:"g", corner:"🎀", part:["💖","🌸","✨"], badge:"🌸", fly:"🦋", big:"🦄", crown:"👑", gem:"💎",
+        ring:["#ff7eb9","#ffd36e","#9ee6ff","#c79bff"], title:"👸 우리 반 프린세스", title2:"🏆 전설의 프린세스", face1:"🥰", face2:"😍", fs:"#ff4f9a", fd:"#9c1f6a", fg:"rgba(255,170,220,.95)",
+        conf:["#ff5fa2","#ffc4e6","#c79bff","#ffd84d","#ffffff"],
+        say:["", "✨ 반짝!", "🎀 리본 장식!", "💗 분홍 카드!", "💕 땡땡이 무늬!", "💖 하트가 솟아요!", "🌸 꽃 장식!", "🌟 빛이 나요!", "💎 보석 테두리!", "💮 참 잘했어요 도장!", "🦋 나비가 날아요!", "🌈 홀로그램!", "👑 티아라!", "💜 반짝이는 이름!", "🦄 유니콘 소환!", "🌈 무지개 테두리!", "🎆 불꽃놀이!", "✨ 눈부신 카드!", "👸 우리 반 프린세스!", "🏆 전설의 카드!"]},
+    n: {p1:"#f0a400", p2:"#ffe27a", p3:"#7a5200", pg:"rgba(255,200,60,.8)", pat:"n", corner:"⭐", part:["⭐","✨","🌟"], badge:"🏅", fly:"🌠", big:"🦁", crown:"👑", gem:"💎",
+        ring:["#ffd84d","#ff9b3d","#ffe9a6","#f0a400"], title:"🌟 우리 반 스타", title2:"🏆 전설의 스타", face1:"😊", face2:"🤩", fs:"#e08a00", fd:"#7a4a00", fg:"rgba(255,210,100,.95)",
+        conf:["#f0a400","#ffe27a","#ff8a5b","#7cc7a0","#ffffff"],
+        say:["", "✨ 반짝!", "⭐ 별 장식!", "💛 금빛 카드!", "🔸 반짝 무늬!", "⭐ 별이 솟아요!", "🏅 메달 획득!", "🌟 빛이 나요!", "💎 보석 테두리!", "💮 참 잘했어요 도장!", "🌠 별똥별!", "🌈 홀로그램!", "👑 왕관!", "🥇 빛나는 이름!", "🦁 사자 소환!", "🌈 무지개 테두리!", "🎆 불꽃놀이!", "✨ 눈부신 카드!", "🌟 우리 반 스타!", "🏆 전설의 카드!"]}
+  };
+  function decoOf(sid){
+    const L = prLevel(prN(sid));
+    if (!L) return {L, cls:"", style:"", html:""};
+    const g = genderOf(sid), T = PR_TH[g], r = seeded(faceHash(sid) ^ 0x51ed270b);
+    const st = `--p1:${T.p1};--p2:${T.p2};--p3:${T.p3};--pg:${T.pg};--pbg:${[0,.12,.18,.3,.36,.42,.46,.5,.54,.56,.58,.6,.62,.64,.66,.68,.7,.72,.74,.76][L]};--r1:${T.ring[0]};--r2:${T.ring[1]};--r3:${T.ring[2]};--r4:${T.ring[3]};`;
+    const E = (cls, txt, sty) => `<div class="em ${cls}" style="${sty}">${txt}</div>`;
+    let h = `<div class="pbg"></div>`;
+    if (L >= 7) h += `<div class="rays"></div>`;
+    if (L >= 4) h += `<div class="pat ${T.pat}"></div>`;
+    if (L >= 19) h += `<div class="gold"></div>`;
+    if (L >= 11) h += `<div class="holo"></div>`;
+    if (L >= 2) h += `<div class="shine"></div>`;
+    h += E("tw", "✨", "right:16px;top:52px;font-size:22px");
+    if (L >= 2) h += E("", T.corner, `right:${L >= 9 ? 74 : 10}px;bottom:8px;font-size:28px;transform:rotate(${(r()*30-15).toFixed(0)}deg)`);
+    if (L >= 5) h += [0,1,2,3].map(k => E("rise", T.part[k % T.part.length], `left:${(12 + k*22 + r()*8).toFixed(0)}%;animation-delay:${(k*.85).toFixed(2)}s`)).join("");
+    if (L >= 6) h += E("badge", T.badge, "");
+    if (L >= 8) h += `<div class="frame"></div>` + E("gem", T.gem, "left:2px;top:2px") + E("gem", T.gem, "left:2px;bottom:2px");
+    if (L >= 9) h += `<div class="okst">참<br>잘했어요</div>`;
+    if (L >= 10) h += E("flyer", T.fly, `animation-delay:${(-r()*5).toFixed(2)}s`);
+    if (L >= 12) h += E("pcrown", T.crown, "");
+    if (L >= 14) h += E("bigpal", T.big, "");
+    if (L >= 15) h += `<div class="ring"></div>`;
+    if (L >= 16) h += [0,1,2,3,4,5].map(k => E("spark", ["✨","🌟","✨","💫","✨","⭐"][k], `left:${(8 + r()*80).toFixed(0)}%;top:${(10 + r()*75).toFixed(0)}%;animation-delay:${(r()*1.2).toFixed(2)}s`)).join("");
+    if (L >= 18) h += `<div class="title">${L >= 19 ? T.title2 : T.title}</div>`;
+    if (L >= 19) h += E("trophy", "🏆", "");
+    const cls = " pr pr-" + g + DMG_AT.slice(0, L).map((_, i) => " pr" + (i + 1)).join("");
+    return {L, cls, style: st, html:`<div class="deco" aria-hidden="true">${h}</div>`};
+  }
+  function lookOf(sid){
+    const w = wearOf(sid), d = decoOf(sid);
+    return {cls: w.cls + d.cls, style: w.style + d.style, html: w.html + d.html, wL: w.L, pL: d.L};
+  }
   function applyWear(card, sid){
-    const w = wearOf(sid);
-    card.querySelectorAll(".wear").forEach(el => el.remove());
-    [...card.classList].filter(c => /^dmg\d*$/.test(c)).forEach(c => card.classList.remove(c));
+    const w = lookOf(sid);
+    card.querySelectorAll(".wear,.deco").forEach(el => el.remove());
+    [...card.classList].filter(c => /^(dmg\d*|pr\d*|pr-[bgn])$/.test(c)).forEach(c => card.classList.remove(c));
     card.style.cssText = w.style;
-    if (w.cls) card.classList.add(...w.cls.trim().split(" "));
+    if (w.cls) card.classList.add(...w.cls.trim().split(/\s+/));
     if (w.html) { const hit = card.querySelector(".hit"); (hit || card.firstChild).insertAdjacentHTML(hit ? "afterend" : "beforebegin", w.html); }
-    return w.L;
+    const fc = card.querySelector(".name .face"); if (fc && !fc.classList.contains("swap")) fc.textContent = faceOf(sid);
+    return w.wL;
   }
   const faceHTML = sid => `<span class="face${hamN(sid) ? " ugly" : ""}" aria-hidden="true">${faceOf(sid)}</span>`;
   const stampN = sid => (S.stamps||[]).filter(x => x.sid===sid).length;
@@ -1581,11 +1747,11 @@
       const next = r.find(x=>c<x.at);
       tags = next ? `<div class="ok" style="color:var(--t1-ink)">⚠️ ${next.at-c}번 더 하면 ${esc(next.emoji)} ${esc(next.label)}</div>` : "";
     }
-    const W = wearOf(s.id);
+    const W = lookOf(s.id);
     return `<article class="card t${t}${isFamed(s.id)?" famed":""}${W.cls}" data-id="${s.id}" style="${W.style}">
       <button class="hit" data-plus="${s.id}" aria-label="${esc(s.name)} 한 번 추가"></button>${W.html}
       <button class="minus" data-minus="${s.id}" aria-label="${esc(s.name)} 한 번 빼기" title="한 번 빼기">−</button>
-      <div class="head"><span class="num">${idx+1}</span>${isFamed(s.id) ? `<span class="crown" title="명예의 전당">👑</span>` : ""}${stampN(s.id) ? `<span class="stampct" title="칭찬도장">🌟${stampN(s.id)}</span>` : ""}${hamN(s.id) ? `<span class="hamct" title="뿅망치 맞은 횟수">🔨${hamN(s.id)}</span>` : ""}</div>
+      <div class="head"><span class="num">${idx+1}</span>${isFamed(s.id) ? `<span class="crown" title="명예의 전당">👑</span>` : ""}${stampN(s.id) ? `<span class="stampct" title="칭찬도장">🌟${stampN(s.id)}</span>` : ""}${prN(s.id) ? `<span class="prct" title="칭찬 도장">💮${prN(s.id)}</span>` : ""}${hamN(s.id) ? `<span class="hamct" title="뿅망치 맞은 횟수">🔨${hamN(s.id)}</span>` : ""}</div>
       <div class="name">${faceHTML(s.id)}<span class="nmt">${esc(s.name)}</span></div>
       <div class="count">${c}<small>회</small></div>
       <div class="dots">${dots}</div>
@@ -3731,7 +3897,9 @@
     $("#hamEdit").onclick = openHam;
     $("#hamList").onclick = openHam;
 
+    window.__hamOff = () => { if (on) setOn(false); };
     function setOn(v){
+      if (v && window.__prOff) window.__prOff();
       on = v; document.body.classList.toggle("hammering", on);
       $("#hamBtn").classList.toggle("on", on);
       $("#hamBtn").textContent = on ? "🔨 뿅망치 끝내기" : "🔨 뿅망치";
@@ -3742,7 +3910,7 @@
     document.addEventListener("pointermove", e => { if (on) place(e.clientX, e.clientY); }, {passive:true});
     document.addEventListener("pointerdown", e => {
       if (!on || e.button > 0) return;
-      if (document.querySelector(".modal.open") || e.target.closest("#hamBar, #hamBtn, #hamEdit, .toast, .modal, #pick, #bigClock, #seatCall, #breakCall")) return;
+      if (document.querySelector(".modal.open") || e.target.closest("#hamBar, #hamBtn, #hamEdit, #prBtn, #prEdit, .toast, .modal, #pick, #bigClock, #seatCall, #breakCall")) return;
       place(e.clientX, e.clientY); swing();
       const card = e.target.closest("#grid .card");
       if (card) {
@@ -3753,6 +3921,201 @@
     document.addEventListener("click", e => {
       if (on && e.target.closest("#grid .card")) { e.stopPropagation(); e.preventDefault(); }
     }, true);
+    document.addEventListener("keydown", e => { if (on && e.key === "Escape" && !document.querySelector(".modal.open")) setOn(false); }, true);
+  })();
+
+
+  /* ---------- 💮 칭찬 도장: 카드를 누르면 꾹! (손들기 횟수는 그대로) ---------- */
+  (function(){
+    const P = $("#pstamp"), PX = 75, PY = 176;
+    let on = false, lastX = innerWidth/2, lastY = innerHeight/2, bus = null;
+    const place = (x, y) => { lastX = x; lastY = y; P.style.left = (x - PX) + "px"; P.style.top = (y - PY) + "px"; };
+    const rnd = (a, b) => a + Math.random()*(b-a);
+    const kill = (el, ms) => setTimeout(() => el.remove(), ms);
+    function fxAt(cls, html){ const el = document.createElement("div"); el.className = cls; if (html != null) el.innerHTML = html; $("#fx").appendChild(el); return el; }
+    function A(){ ac = ac || new (window.AudioContext||window.webkitAudioContext)(); if (ac.state === "suspended") ac.resume(); return ac; }
+    function out(C){
+      if (bus && bus.ctx === C) return bus.in;
+      const inp = C.createGain(); inp.gain.value = 3.2;
+      const comp = C.createDynamicsCompressor(); comp.threshold.value = -10; comp.knee.value = 2; comp.ratio.value = 20; comp.attack.value = .001; comp.release.value = .15;
+      const trim = C.createGain(); trim.gain.value = .9;
+      inp.connect(comp).connect(trim).connect(C.destination); bus = {ctx: C, in: inp}; return inp;
+    }
+    function ding(power){   // 꾹! + 띠리링~ (높은 단계일수록 길게)
+      try{
+        const C = A(), t = C.currentTime + .005, o = out(C);
+        const k = C.createOscillator(), kg = C.createGain();
+        k.type = "sine"; k.frequency.setValueAtTime(190, t); k.frequency.exponentialRampToValueAtTime(70, t+.1);
+        kg.gain.setValueAtTime(.9, t); kg.gain.exponentialRampToValueAtTime(.0001, t+.14); k.connect(kg).connect(o); k.start(t); k.stop(t+.16);
+        const notes = power >= 3 ? [1046.5,1318.5,1568,2093,2637] : power >= 2 ? [1046.5,1318.5,1568,2093] : [1318.5,1568,2093];
+        notes.forEach((f, i) => {
+          [1, 2].forEach((m, j) => {
+            const x = C.createOscillator(), g = C.createGain(), at = t + .06 + i*.075;
+            x.type = j ? "sine" : "triangle"; x.frequency.setValueAtTime(f*m, at);
+            g.gain.setValueAtTime(.0001, at); g.gain.exponentialRampToValueAtTime(j ? .08 : .3, at+.01); g.gain.exponentialRampToValueAtTime(.0001, at+.7);
+            x.connect(g).connect(o); x.start(at); x.stop(at+.72);
+          });
+        });
+      }catch(e){}
+    }
+    const WORDS = ["참 잘했어요!", "최고야!", "멋져요!", "훌륭해요!", "대단해!", "짱이야!", "잘했어!", "감동이야!"];
+    const combo = new Map();
+    function press(card, x, y){
+      const id = card.dataset.id, stu = S.students.find(z => z.id === id); if (!stu) return;
+      const now = Date.now(), c0 = combo.get(id), n = c0 && now - c0.t < 1500 ? c0.n + 1 : 1; combo.set(id, {n, t: now});
+      const power = n >= 5 ? 3 : n >= 3 ? 2 : 1;
+      S.praise = S.praise || {}; S.praise[id] = prN(id) + 1; save();
+      const pn = S.praise[id], g = genderOf(id), T = PR_TH[g];
+      ding(power);
+      // 카드: 꾹 눌림 + 번쩍 + 빨간 도장 자국 + 변신
+      const L0 = prLevel(pn - 1);
+      applyWear(card, id);
+      const L1 = prLevel(pn);
+      let pc = card.querySelector(".prct");
+      if (!pc) { pc = document.createElement("span"); pc.className = "prct"; pc.title = "칭찬 도장"; const hd = card.querySelector(".head"); if (hd) hd.insertBefore(pc, hd.querySelector(".hamct")); }
+      pc.textContent = `💮${pn}`; pc.classList.remove("pop"); void pc.offsetWidth; pc.classList.add("pop");
+      const fc = card.querySelector(".name .face");
+      if (fc) { fc.textContent = faceOf(id); fc.classList.remove("swap"); void fc.offsetWidth; fc.classList.add("swap"); }
+      card.classList.remove("praised"); void card.offsetWidth; card.classList.add("praised");
+      card.querySelectorAll(".pr-flash,.pmark").forEach(el => el.remove());
+      const fl = document.createElement("div"); fl.className = "pr-flash"; fl.style.setProperty("--p2", T.p2); card.appendChild(fl); kill(fl, 520);
+      const rc = card.getBoundingClientRect(), mk = document.createElement("div"); mk.className = "pmark"; mk.innerHTML = "참<br>잘했어요";
+      mk.style.left = (x - rc.left) + "px"; mk.style.top = (y - rc.top) + "px";
+      const rot = rnd(-24, 12);
+      mk.animate([{transform:`rotate(${rot}deg) scale(1.6)`, opacity:0},{transform:`rotate(${rot}deg) scale(.95)`, opacity:.95, offset:.12},{transform:`rotate(${rot}deg) scale(1)`, opacity:.95, offset:.7},{transform:`rotate(${rot}deg) scale(1)`, opacity:0}], {duration:1800, fill:"forwards"});
+      card.appendChild(mk); kill(mk, 1850);
+      if ($("#prModal").classList.contains("open")) renderPr();
+
+      const vw = innerWidth, vh = innerHeight, fs = el => { el.style.setProperty("--fs", T.fs); el.style.setProperty("--fd", T.fd); el.style.setProperty("--fg", T.fg); };
+      // 빛 고리
+      for (let i = 0; i < 2 + power; i++){
+        const ring = fxAt("fx-ring"); ring.style.left = x + "px"; ring.style.top = y + "px"; ring.style.borderColor = T.conf[i % T.conf.length];
+        ring.animate([{transform:"scale(.3)",opacity:1,borderWidth:"14px"},{transform:`scale(${6 + i*2.4})`,opacity:0,borderWidth:"2px"}], {duration:600 + i*150, delay:i*80, easing:"ease-out", fill:"forwards"});
+        kill(ring, 1000 + i*150);
+      }
+      // 반짝이·색종이 (남: 파랑·금 별, 여: 분홍 하트·꽃)
+      const many = 22 + power*10;
+      for (let i = 0; i < many; i++){
+        const emo = i % 3 !== 2, el = fxAt("fx-p");
+        if (emo){ el.textContent = T.part[i % T.part.length]; el.style.fontSize = rnd(30, 64) + "px"; }
+        else { const z = rnd(12, 24); Object.assign(el.style, {width:z+"px", height:(z*.6)+"px", borderRadius:"3px", background:T.conf[i % T.conf.length]}); }
+        const ang = rnd(0, Math.PI*2), dist = rnd(180, 440) * (1 + (power-1)*.3), dx = Math.cos(ang)*dist, dy = Math.sin(ang)*dist - rnd(60, 140), rt = rnd(-400, 400);
+        el.animate([
+          {transform:`translate(${x}px,${y}px) translate(-50%,-50%) scale(.3) rotate(0deg)`, opacity:1},
+          {transform:`translate(${x+dx*.7}px,${y+dy*.7}px) translate(-50%,-50%) scale(1.1) rotate(${rt*.6}deg)`, opacity:1, offset:.45},
+          {transform:`translate(${x+dx}px,${y+dy+160}px) translate(-50%,-50%) scale(.7) rotate(${rt}deg)`, opacity:0}
+        ], {duration:rnd(1000, 1500), easing:"cubic-bezier(.15,.7,.4,1)", fill:"forwards"});
+        kill(el, 1550);
+      }
+      // 큰 칭찬 글씨
+      let txt = WORDS[Math.floor(Math.random()*WORDS.length)];
+      if (n === 3) txt = "최고 최고!!"; else if (n >= 5) txt = "칭찬 폭발!!";
+      const word = fxAt("fx-praise"); word.textContent = txt; fs(word);
+      if (word.offsetWidth > vw*.9) word.style.fontSize = (parseFloat(getComputedStyle(word).fontSize) * vw*.9 / word.offsetWidth) + "px";
+      const ww = word.offsetWidth, wh = word.offsetHeight;
+      const wx = Math.min(Math.max(x, ww/2 + 16), vw - ww/2 - 16), wy = Math.min(Math.max(y - wh*.6, wh/2 + 16), vh - wh/2 - 16), tilt = rnd(-6, 2);
+      word.animate([
+        {transform:`translate(${wx}px,${wy}px) translate(-50%,-50%) scale(.2) rotate(${tilt-12}deg)`, opacity:0},
+        {transform:`translate(${wx}px,${wy}px) translate(-50%,-50%) scale(1.25) rotate(${tilt+3}deg)`, opacity:1, offset:.14},
+        {transform:`translate(${wx}px,${wy}px) translate(-50%,-50%) scale(.95) rotate(${tilt}deg)`, opacity:1, offset:.26},
+        {transform:`translate(${wx}px,${wy - 30}px) translate(-50%,-50%) scale(1) rotate(${tilt}deg)`, opacity:1, offset:.8},
+        {transform:`translate(${wx}px,${wy - 70}px) translate(-50%,-50%) scale(.95) rotate(${tilt}deg)`, opacity:0}
+      ], {duration:1500, easing:"ease-out", fill:"forwards"});
+      kill(word, 1550);
+      $("#fx").querySelectorAll(".fx-praise,.fx-pname,.fx-word,.fx-name").forEach(o => { if (o !== word) o.style.opacity = ".2"; });
+      // 이름 + 몇 번째
+      const nm = fxAt("fx-pname", `<span class="fx-face">${faceOf(id)}</span><span>${esc(stu.name)}</span><span class="fx-nth">💮 ${pn}번째</span>`); fs(nm);
+      if (nm.offsetWidth > vw*.92) nm.style.fontSize = (parseFloat(getComputedStyle(nm).fontSize) * vw*.92 / nm.offsetWidth) + "px";
+      const nw = nm.offsetWidth, nh = nm.offsetHeight;
+      let ny = wy - wh*.5 - nh*.55 - 10; if (ny < nh/2 + 12) ny = wy + wh*.5 + nh*.6 + 10;
+      const nx = Math.min(Math.max(wx, nw/2 + 16), vw - nw/2 - 16);
+      nm.animate([
+        {transform:`translate(${nx}px,${ny + 40}px) translate(-50%,-50%) scale(.5)`, opacity:0},
+        {transform:`translate(${nx}px,${ny}px) translate(-50%,-50%) scale(1.1)`, opacity:1, offset:.15},
+        {transform:`translate(${nx}px,${ny}px) translate(-50%,-50%) scale(1)`, opacity:1, offset:.25},
+        {transform:`translate(${nx}px,${ny - 20}px) translate(-50%,-50%) scale(1)`, opacity:1, offset:.82},
+        {transform:`translate(${nx}px,${ny - 50}px) translate(-50%,-50%) scale(.96)`, opacity:0}
+      ], {duration:1600, easing:"ease-out", fill:"forwards"});
+      kill(nm, 1650);
+      // 새 단계 알림
+      if (L1 > L0) setTimeout(() => {
+        const b = card.getBoundingClientRect(), el = fxAt("fx-pup"); el.textContent = T.say[L1] || ""; fs(el);
+        const ex = Math.min(Math.max(b.left + b.width/2, el.offsetWidth/2 + 12), vw - el.offsetWidth/2 - 12), ey = Math.min(b.bottom - 20, vh - 50);
+        el.animate([{transform:`translate(${ex}px,${ey+30}px) translate(-50%,-50%) scale(.4)`,opacity:0},{transform:`translate(${ex}px,${ey}px) translate(-50%,-50%) scale(1.15)`,opacity:1,offset:.15},{transform:`translate(${ex}px,${ey}px) translate(-50%,-50%) scale(1)`,opacity:1,offset:.8},{transform:`translate(${ex}px,${ey-25}px) translate(-50%,-50%) scale(1)`,opacity:0}], {duration:1800, easing:"ease-out", fill:"forwards"});
+        kill(el, 1850);
+      }, 420);
+      if (g === "n" && !S.genderHint) { S.genderHint = 1; save(); setTimeout(() => toast("💮📋 에서 👦/👧 를 정하면 남자는 멋있게, 여자는 예쁘게 꾸며져요", false), 1600); }
+    }
+    let stampAnim = null;
+    function stampDown(){
+      if (stampAnim) stampAnim.cancel();
+      stampAnim = P.animate([
+        {transform:"translateY(-46px) rotate(-14deg)"},
+        {transform:"translateY(-60px) rotate(-18deg)", offset:.25},
+        {transform:"translateY(4px) rotate(0deg) scale(1.04,.9)", offset:.45},
+        {transform:"translateY(0) rotate(0deg) scale(1)", offset:.62},
+        {transform:"translateY(-46px) rotate(-14deg)"}
+      ], {duration:460, easing:"ease-out"});
+    }
+    P.style.transform = "translateY(-46px) rotate(-14deg)";
+    const HIT = 205;
+
+    /* 횟수·남녀 창 */
+    let sortBy = "num";
+    function renderPr(){
+      S.praise = S.praise || {}; S.gender = S.gender || {};
+      let list = S.students.map((st, i) => ({st, i, n: prN(st.id)}));
+      if (sortBy === "most") list.sort((a, b) => b.n - a.n || a.i - b.i);
+      const max = Math.max(0, ...list.map(r => r.n)), tot = list.reduce((a, r) => a + r.n, 0);
+      const nb = S.students.filter(x => genderOf(x.id) === "b").length, ng = S.students.filter(x => genderOf(x.id) === "g").length;
+      $("#prTot").innerHTML = `모두 <b style="color:#d6337f">${tot}</b>번 · 👦 ${nb}명 · 👧 ${ng}명${S.students.length - nb - ng ? ` · 안 정함 ${S.students.length - nb - ng}명` : ""}`;
+      $("#prSort").textContent = sortBy === "num" ? "🔢 번호순" : "📊 많이 받은 순";
+      $("#prRows").innerHTML = list.map(({st, i, n}) => { const g = genderOf(st.id); return `<div class="ham-row pr-row${n ? " has" : ""}${n && n === max ? " lead" : ""}" data-sid="${st.id}">
+        <span class="nm"><i>${i+1}</i>${faceHTML(st.id)}${esc(st.name)}</span>
+        <button class="gd ${g}" data-gd title="누를 때마다 👦 → 👧 → 안 정함">${g === "b" ? "👦" : g === "g" ? "👧" : "❔"}</button>
+        <button data-pd="-1" ${n ? "" : "disabled"} aria-label="${esc(st.name)} 1번 빼기">−</button>
+        <input type="number" min="0" max="999" value="${n}" aria-label="${esc(st.name)} 칭찬 도장 횟수">
+        <button data-pd="1" aria-label="${esc(st.name)} 1번 더하기">+</button></div>`; }).join("")
+        || `<div class="empty">설정에서 학생 명단을 입력해 주세요.</div>`;
+    }
+    window.renderPr = renderPr;
+    function setPr(sid, v){ S.praise = S.praise || {}; v = Math.max(0, Math.min(999, Math.floor(+v || 0))); if (v) S.praise[sid] = v; else delete S.praise[sid]; save(); }
+    $("#prRows").addEventListener("click", e => {
+      const row = e.target.closest(".pr-row"); if (!row) return; const sid = row.dataset.sid;
+      if (e.target.closest("[data-gd]")) { S.gender = S.gender || {}; const g = genderOf(sid); if (g === "n") S.gender[sid] = "b"; else if (g === "b") S.gender[sid] = "g"; else delete S.gender[sid]; save(); renderPr(); render(); return; }
+      const b = e.target.closest("[data-pd]"); if (!b) return;
+      setPr(sid, prN(sid) + (+b.dataset.pd)); renderPr(); render();
+    });
+    $("#prRows").addEventListener("change", e => { const inp = e.target.closest("input"); if (!inp) return; setPr(inp.closest(".pr-row").dataset.sid, inp.value); renderPr(); render(); });
+    $("#prRows").addEventListener("keydown", e => { if (e.key === "Enter" && e.target.matches("input")) e.target.blur(); });
+    $("#prSort").onclick = () => { sortBy = sortBy === "num" ? "most" : "num"; renderPr(); };
+    $("#prZero").onclick = () => {
+      if (!Object.values(S.praise || {}).some(Boolean)) return;
+      if (!confirm("모든 친구의 칭찬 도장 횟수를 0번으로 할까요? (남녀 설정은 남아요)")) return;
+      S.praise = {}; save(); renderPr(); render(); toast("💮 칭찬 도장 횟수를 모두 0번으로 했어요", false);
+    };
+    const openPr = () => { renderPr(); openM("#prModal"); };
+    $("#prEdit").onclick = openPr; $("#prList").onclick = openPr;
+
+    window.__prOff = () => { if (on) setOn(false); };
+    function setOn(v){
+      if (v && window.__hamOff) window.__hamOff();
+      on = v; document.body.classList.toggle("praising", on);
+      $("#prBtn").classList.toggle("on", on);
+      $("#prBtn").textContent = on ? "💮 칭찬 도장 끝내기" : "💮 칭찬 도장";
+      if (on) { place(lastX, lastY); if (typeof closeWhy === "function") closeWhy(); }
+    }
+    $("#prBtn").addEventListener("click", e => { e.stopPropagation(); setOn(!on); if (on) place(e.clientX || lastX, e.clientY || lastY); });
+    $("#prOff").onclick = () => setOn(false);
+    document.addEventListener("pointermove", e => { if (on) place(e.clientX, e.clientY); }, {passive:true});
+    document.addEventListener("pointerdown", e => {
+      if (!on || e.button > 0) return;
+      if (document.querySelector(".modal.open") || e.target.closest("#prBar, #prBtn, #prEdit, #hamBtn, #hamEdit, .toast, .modal, #pick, #bigClock, #seatCall, #breakCall")) return;
+      place(e.clientX, e.clientY); stampDown();
+      const card = e.target.closest("#grid .card");
+      if (card) { e.stopPropagation(); e.preventDefault(); setTimeout(() => press(card, e.clientX, e.clientY), HIT); }
+    }, true);
+    document.addEventListener("click", e => { if (on && e.target.closest("#grid .card")) { e.stopPropagation(); e.preventDefault(); } }, true);
     document.addEventListener("keydown", e => { if (on && e.key === "Escape" && !document.querySelector(".modal.open")) setOn(false); }, true);
   })();
 
