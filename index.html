@@ -746,8 +746,10 @@
     font-size:clamp(64px,8vw,150px);color:#2e2a26;-webkit-text-stroke:.08em #fff;paint-order:stroke fill;filter:drop-shadow(0 6px 0 rgba(46,42,38,.25))}
   .fx-name .fx-nth{font-size:.42em;-webkit-text-stroke:0;color:#fff;background:#e5484d;border-radius:999px;padding:.18em .55em .22em;box-shadow:0 4px 0 #a3171d}
   /* ---------- 🔨 뿅망치를 많이 맞은 카드: 점점 낡고 찌그러져요 ---------- */
-  .card.dmg{rotate:var(--rot,0deg);scale:1 var(--sy,1);translate:0 var(--ty,0px);
-    filter:sepia(var(--sep,0)) saturate(var(--sat,1)) brightness(var(--bri,1)) contrast(var(--con,1))}
+  .card.dmg{rotate:var(--rot,0deg);scale:1 var(--sy,1);translate:0 var(--ty,0px)}
+  /* 카드 바탕만 바래게 (반창고·껌·버섯 같은 흠집은 제 색 그대로 보이게) */
+  .wear .fade{inset:0;background:rgb(128,128,128);opacity:var(--gray,0);mix-blend-mode:saturation}
+  .wear .tint{inset:0;background:rgb(var(--tr,150),var(--tg,118),var(--tb,70));opacity:var(--tint,0);mix-blend-mode:multiply}
   .card .wear{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;overflow:hidden}
   .wear > *{position:absolute}
   .wear .grime{inset:0;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .35  0 0 0 0 .25  0 0 0 0 .12  0 0 0 1.1 -.35'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");background-size:160px;mix-blend-mode:multiply;opacity:var(--grime,0)}
@@ -784,8 +786,33 @@
   @keyframes stink{0%{opacity:0;transform:translateY(30px) scaleX(.8)}30%{opacity:.85}100%{opacity:0;transform:translateY(-6px) scaleX(1.15)}}
   .wear .rstamp{left:50%;top:52%;transform:translate(-50%,-50%) rotate(-17deg);border:4px double #d63b3b;color:#d63b3b;border-radius:10px;padding:2px 10px 4px;
     font-family:"Jua";font-size:27px;white-space:nowrap;background:rgba(255,255,255,.25);opacity:.88;mix-blend-mode:multiply;letter-spacing:1px}
+  .wear .burn{inset:0;border-radius:inherit;box-shadow:inset 0 0 26px 10px rgba(50,22,6,.75),inset 0 0 6px 2px rgba(20,8,0,.9);
+    background:radial-gradient(circle at 0 0,rgba(25,10,0,.85),transparent 30%),radial-gradient(circle at 100% 100%,rgba(25,10,0,.8),transparent 32%),radial-gradient(circle at 100% 0,rgba(40,18,4,.55),transparent 24%)}
+  .wear svg.doodle{inset:0;width:100%;height:100%}
+  .wear svg.doodle path{fill:none;stroke:#2f55c8;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;opacity:.8}
+  .wear .hole{border-radius:50%;background:radial-gradient(circle,#efe6d6 0 46%,#3b2a1a 52%,#6a4a2a 58%,rgba(90,60,30,.35) 66%,transparent 72%);transform:translate(-50%,-50%) rotate(20deg) scale(1,.85)}
+  .wear .water{inset:0;background:radial-gradient(ellipse at 60% 75%,transparent 38%,rgba(70,110,150,.28) 41%,rgba(70,110,150,.08) 46%,transparent 52%),
+    radial-gradient(ellipse at 25% 30%,transparent 30%,rgba(70,110,150,.22) 33%,transparent 40%),linear-gradient(to top,rgba(80,120,160,.28),transparent 35%)}
+  .wear .drip{bottom:-4px;width:7px;border-radius:0 0 6px 6px;background:linear-gradient(to bottom,rgba(80,120,160,.0),rgba(80,120,160,.55));animation:drip 2.4s ease-in infinite}
+  @keyframes drip{0%{transform:translateY(-10px);opacity:0}30%{opacity:1}100%{transform:translateY(6px);opacity:.2}}
+  .wear svg.shoe{width:64px;height:138px;opacity:.42;mix-blend-mode:multiply}
+  .wear svg.shoe path{fill:#3d3328} .wear svg.shoe .tread path{fill:none;stroke:#efe6d6;stroke-width:3.5;stroke-dasharray:5 3}
+  .wear svg.gum{width:70px;height:60px;filter:drop-shadow(0 2px 2px rgba(120,20,70,.3))}
+  .wear svg.gum .g{fill:#ff8ec6;stroke:#e5609f;stroke-width:2} .wear svg.gum .hi{fill:none;stroke:#ffd3ea;stroke-width:3;stroke-linecap:round}
+  .wear svg.gum .str{fill:none;stroke:#ff8ec6;stroke-width:2;stroke-linecap:round}
+  .wear .shroom{font-size:38px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;transform-origin:50% 100%;animation:shroom 3s ease-in-out infinite}
+  .wear .shroom.s2{font-size:26px;animation-delay:-1.2s}
+  @keyframes shroom{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+  .wear .bite{right:0;top:28%;width:22px;height:56%;background:radial-gradient(circle at 100% 18%,rgba(60,35,15,.55) 0 8px,transparent 12px),radial-gradient(circle at 100% 74%,rgba(60,35,15,.55) 0 9px,transparent 14px)}
+  .wear .haz{left:-15%;width:130%;height:26px;background:repeating-linear-gradient(45deg,#f5c400 0 14px,#1f1f1f 14px 28px);box-shadow:0 2px 4px rgba(0,0,0,.35);opacity:.92}
+  .wear .fly.f4{animation:flyB 2.3s ease-in-out infinite reverse;top:25%} .wear .fly.f5{animation:flyA 1.9s ease-in-out infinite reverse;top:60%} .wear .fly.f6{animation:flyC 2.8s ease-in-out infinite reverse;left:30%}
+  .wear .xstamp{left:50%;top:74%;transform:translate(-50%,-50%) rotate(14deg);border:6px solid #c21818;color:#c21818;border-radius:12px;padding:0 12px 4px;
+    font-family:"Jua";font-size:38px;white-space:nowrap;letter-spacing:2px;background:rgba(255,230,230,.35);opacity:.92;mix-blend-mode:multiply}
+  .wear .skull{right:10px;bottom:30px;font-size:34px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;animation:shroom 1.6s ease-in-out infinite}
+  .card.dmg19 .name .face{animation:tremble .18s linear infinite}
+  @keyframes tremble{0%{transform:translate(0,0) rotate(0)}25%{transform:translate(-1px,1px) rotate(-3deg)}50%{transform:translate(1px,-1px) rotate(2deg)}75%{transform:translate(-1px,-1px) rotate(-2deg)}100%{transform:translate(1px,1px) rotate(3deg)}}
   .card.dmg .num,.card.dmg .crown{opacity:.85}
-  .card.dmg .name,.card.dmg .count{position:relative;z-index:3;pointer-events:none}   /* 이름·횟수는 늘 잘 보이게 (흠집 위) */
+  .card.dmg .name,.card.dmg .count{position:relative;z-index:3;pointer-events:none;text-shadow:0 0 2px #fff,0 0 4px #fff,0 0 7px #fff,0 0 10px rgba(255,255,255,.9)}   /* 이름·횟수는 늘 잘 보이게 (흠집 위) */
   .fx-dmg{position:absolute;font-family:"Jua";font-size:clamp(40px,4vw,72px);white-space:nowrap;color:#fff6d8;-webkit-text-stroke:.1em #5a3a1c;paint-order:stroke fill;filter:drop-shadow(0 5px 0 rgba(60,40,20,.35))}
   /* 이름 옆 얼굴 (모든 카드에서 같은 폭이라 이름이 한 줄로 맞춰져요) */
   .name{display:flex;align-items:center;gap:6px}
@@ -1371,8 +1398,9 @@
   }
 
   /* ---------- 뿅망치를 많이 맞을수록 카드가 낡아요 (맞은 횟수로 단계가 정해져요) ---------- */
-  const DMG_AT = [1, 3, 5, 7, 10, 13, 16, 20, 25];
-  const DMG_SAY = ["", "💥 금 갔다!", "🩹 반창고 붙였다!", "☕ 얼룩졌다!", "📄 찢어졌다!", "🩶 테이프로 붙였다!", "🕸️ 거미줄 쳤다!", "💔 쩍 갈라졌다!", "💨 냄새 난다!", "🔧 수리 필요!"];
+  const DMG_AT = [1, 3, 5, 7, 10, 13, 16, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100];
+  const DMG_SAY = ["", "💥 금 갔다!", "🩹 반창고 붙였다!", "☕ 얼룩졌다!", "📄 찢어졌다!", "🩶 테이프로 붙였다!", "🕸️ 거미줄 쳤다!", "💔 쩍 갈라졌다!", "💨 냄새 난다!", "🔧 수리 필요!",
+    "🔥 불에 그을렸다!", "✏️ 낙서 당했다!", "🕳️ 구멍 뚫렸다!", "💧 물에 젖었다!", "👟 발에 밟혔다!", "🍬 껌 붙었다!", "🍄 버섯 자랐다!", "🐭 쥐가 갉아먹었다!", "🚧 출입 금지!", "☠️ 완전 폐기!"];
   const dmgLevel = n => DMG_AT.filter(a => n >= a).length;
   function seeded(seed){ let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
   const CRK = {
@@ -1386,14 +1414,16 @@
     const L = dmgLevel(hamN(sid));
     if (!L) return {L, cls:"", style:"", html:""};
     const r = seeded(faceHash(sid) ^ 0x9e3779b9), sgn = r() < .5 ? -1 : 1, pct = (a, b) => (a + r()*(b-a)).toFixed(1) + "%";
-    const rot  = [0, .7, 1.1, 1.5, 1.9, 2.3, 2.8, 3.3, 3.8, 4.4][L] * sgn;
+    const rot  = [0, .7, 1.1, 1.5, 1.9, 2.3, 2.8, 3.3, 3.8, 4.4, 4.8, 5.2, 5.6, 6, 6.4, 6.8, 7.2, 7.6, 8, 9][L] * sgn;
     const v = {
-      "--rot": rot + "deg", "--sy": [1,1,.992,.986,.98,.974,.966,.958,.95,.94][L], "--ty": [0,0,1,2,3,4,5,6,7,8][L] + "px",
-      "--sep": [0,0,.05,.15,.28,.38,.48,.58,.66,.75][L], "--sat": [1,1,.95,.85,.75,.65,.55,.48,.42,.35][L],
-      "--bri": [1,1,.99,.97,.95,.93,.9,.87,.84,.8][L], "--con": [1,1,1,1.02,1.04,1.06,1.08,1.1,1.12,1.15][L],
-      "--grime": [0,0,.12,.22,.32,.42,.52,.62,.72,.82][L]
+      "--rot": rot + "deg", "--sy": [1,1,.992,.986,.98,.974,.966,.958,.95,.94,.935,.93,.925,.915,.905,.895,.885,.875,.865,.85][L], "--ty": [0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,19][L] + "px",
+      "--sep": [0,0,.05,.15,.28,.38,.48,.58,.66,.75,.8,.83,.86,.88,.9,.92,.94,.96,.98,1][L], "--sat": [1,1,.95,.85,.75,.65,.55,.48,.42,.35,.32,.3,.28,.26,.24,.22,.2,.18,.15,.1][L],
+      "--bri": [1,1,.99,.97,.95,.93,.9,.87,.84,.8,.78,.76,.74,.72,.7,.68,.66,.64,.61,.57][L], "--con": [1,1,1,1.02,1.04,1.06,1.08,1.1,1.12,1.15,1.17,1.19,1.21,1.23,1.25,1.27,1.29,1.31,1.33,1.36][L],
+      "--grime": [0,0,.12,.22,.32,.42,.52,.62,.72,.82,.85,.88,.9,.92,.94,.96,.97,.98,.99,1][L],
+      "--gray": [0,0,.08,.2,.32,.42,.52,.6,.66,.72,.75,.78,.8,.82,.84,.86,.88,.9,.92,.95][L],
+      "--tint": [0,0,.06,.14,.22,.3,.36,.42,.48,.54,.58,.62,.65,.68,.71,.74,.77,.8,.83,.88][L]
     };
-    let h = `<div class="grime"></div>` + crk(CRK.a);
+    let h = `<div class="fade"></div><div class="tint"></div><div class="grime"></div>` + crk(CRK.a);
     if (L >= 2) h += `<div class="crease"></div><div class="band" style="right:${pct(4,14)};top:${pct(36,52)};transform:rotate(${(-30 + r()*14).toFixed(0)}deg)"></div>`;
     if (L >= 3) h += `<div class="stain" style="left:${pct(30,58)};top:${pct(4,26)}"></div><div class="stain s2" style="left:${pct(6,20)};top:${pct(58,72)}"></div>`;
     if (L >= 4) h += crk(CRK.b) + crk(CRK.c);
@@ -1403,8 +1433,21 @@
     if (L >= 8) h += `<div class="fly"></div><div class="fly f2"></div><div class="fly f3"></div>` +
       [0,1,2].map(k => `<svg class="stink" viewBox="0 0 26 48" style="left:${30 + k*18}%;animation-delay:${k*.7}s"><path d="M13,46 C3,38 23,30 13,22 C3,14 23,8 13,2"/></svg>`).join("");
     if (L >= 9) h += `<div class="rstamp">🔧 수리 필요</div>`;
+    if (L >= 10) h += `<div class="burn"></div>`;
+    if (L >= 11) h += `<svg class="doodle" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M${(8+r()*10).toFixed(0)},62 q4,-8 8,0 t8,0 t8,0 t8,0 t8,0" /><path d="M78,74 m-7,0 a7,7 0 1,0 14,0 a5,5 0 1,0 -10,0 a3,3 0 1,0 6,0"/><path d="M14,86 l10,-7 l6,8 l9,-9 l7,9 l9,-8"/><path d="M60,18 l6,6 m0,-6 l-6,6"/></svg>`;
+    if (L >= 12) h += [[pct(64,78), pct(56,66), 30], [pct(8,20), pct(40,50), 22], [pct(40,55), pct(74,84), 18]].map(([x, y, z]) => `<div class="hole" style="left:${x};top:${y};width:${z}px;height:${z}px"></div>`).join("");
+    if (L >= 13) h += `<div class="water"></div>` + [12, 30, 55, 77].map((x, k) => `<div class="drip" style="left:${x + r()*6}%;height:${14 + r()*22}px;animation-delay:${(k*.55).toFixed(2)}s"></div>`).join("");
+    if (L >= 14) h += `<svg class="shoe" viewBox="0 0 60 130" style="left:${pct(26,46)};top:${pct(-4,8)};transform:rotate(${(sgn*(18 + r()*16)).toFixed(0)}deg)"><path d="M30,4 C46,4 54,22 52,44 C50,62 42,70 40,78 L20,78 C18,70 10,62 8,44 C6,22 14,4 30,4 Z"/><path d="M18,88 L42,88 C46,98 46,116 40,124 C34,128 26,128 20,124 C14,116 14,98 18,88 Z"/><g class="tread"><path d="M14,20 H46 M11,30 H49 M10,40 H50 M11,50 H49 M14,60 H46 M18,96 H42 M17,106 H43 M18,116 H42"/></g></svg>`;
+    if (L >= 15) h += `<svg class="gum" viewBox="0 0 70 60" style="left:${pct(56,70)};top:${pct(66,76)}"><path class="g" d="M10,30 C4,14 22,4 34,10 C46,2 66,12 60,28 C68,42 52,56 38,50 C26,58 6,50 10,30 Z"/><path class="hi" d="M22,18 C28,14 34,15 38,18"/><path class="str" d="M14,42 C8,52 6,58 2,60 M56,44 C62,52 64,57 68,60"/></svg>`;
+    if (L >= 16) h += `<div class="shroom" style="right:${pct(6,16)};bottom:-6px">🍄</div><div class="shroom s2" style="right:${pct(26,34)};bottom:-4px">🍄</div><div class="mold" style="right:-10px;top:${pct(20,34)}"></div>`;
+    if (L >= 17) h += `<div class="bite"></div>`;
+    if (L >= 18) h += `<div class="haz" style="top:${pct(60,68)};transform:rotate(${(-sgn*(14 + r()*6)).toFixed(1)}deg)"></div><div class="fly f4"></div><div class="fly f5"></div><div class="fly f6"></div>`;
+    if (L >= 19) h += `<div class="xstamp">폐기 처분</div><div class="skull">💀</div>`;
     let clip = "";
-    if (L >= 4) clip = `clip-path:polygon(0 24px,5px 18px,3px 12px,10px 9px,7px 3px,15px 3px,19px 0,100% 0,${L >= 5 ? "100% calc(100% - 32px),calc(100% - 32px) 100%" : "100% 100%"},0 100%);`;
+    if (L >= 4) {
+      const bite = L >= 17 ? ",100% 30%,calc(100% - 9px) 32%,calc(100% - 15px) 37%,calc(100% - 10px) 42%,100% 45%,100% 63%,calc(100% - 12px) 65%,calc(100% - 19px) 70%,calc(100% - 13px) 75%,calc(100% - 7px) 78%,100% 80%" : "";
+      clip = `clip-path:polygon(0 24px,5px 18px,3px 12px,10px 9px,7px 3px,15px 3px,19px 0,100% 0${bite},${L >= 5 ? "100% calc(100% - 32px),calc(100% - 32px) 100%" : "100% 100%"},${L >= 17 ? "30% 100%,26% calc(100% - 10px),21% calc(100% - 4px),16% calc(100% - 12px),11% 100%," : ""}0 100%);`;
+    }
     return {L, cls:` dmg dmg${L}`, style: Object.entries(v).map(([k, x]) => `${k}:${x}`).join(";") + ";" + clip, html:`<div class="wear" aria-hidden="true">${h}</div>`};
   }
   function applyWear(card, sid){
