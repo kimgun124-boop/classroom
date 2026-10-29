@@ -741,6 +741,7 @@
   .fx-star{position:absolute;width:320px;height:320px;margin:-160px 0 0 -160px}
   .fx-ring{position:absolute;border-radius:50%;border:10px solid #ffd27a;width:60px;height:60px;margin:-30px 0 0 -30px}
   .fx-p{position:absolute;left:0;top:0;line-height:1;will-change:transform,opacity}
+  .fx-word,.fx-name,.fx-crown,.fx-heal,.fx-hname{will-change:transform,opacity}
   .fx-flash{position:absolute;inset:0;background:radial-gradient(circle at var(--fx-x) var(--fx-y),rgba(255,255,255,.85),rgba(255,240,200,.35) 22%,transparent 50%)}
   .fx-name{position:absolute;display:flex;align-items:center;gap:.3em;white-space:nowrap;font-family:"Jua";font-weight:400;line-height:1;
     font-size:clamp(64px,8vw,150px);color:#2e2a26;-webkit-text-stroke:.08em #fff;paint-order:stroke fill;filter:drop-shadow(0 6px 0 rgba(46,42,38,.25))}
@@ -892,9 +893,9 @@
   .deco .trophy{right:8px;bottom:30px;font-size:46px;animation:bob 1.8s ease-in-out infinite;filter:drop-shadow(0 0 8px rgba(255,216,77,.9))}
   .deco .gold{inset:0;background:linear-gradient(135deg,rgba(255,236,150,.5),rgba(255,200,60,.15) 40%,rgba(255,240,180,.55) 60%,rgba(240,164,0,.2));mix-blend-mode:screen}
   .fx-praise{position:absolute;font-family:"Jua";font-weight:400;white-space:nowrap;line-height:1;font-size:clamp(110px,14vw,250px);color:#fff;
-    -webkit-text-stroke:.09em var(--fs,#d6337f);paint-order:stroke fill;text-shadow:0 .07em 0 var(--fd,#8a1450),0 0 .45em var(--fg,rgba(255,170,220,.95))}
+    -webkit-text-stroke:.09em var(--fs,#d6337f);paint-order:stroke fill;text-shadow:0 .07em 0 var(--fd,#8a1450),0 0 .18em var(--fg,rgba(255,170,220,.95));will-change:transform,opacity}
   .fx-pname{position:absolute;display:flex;align-items:center;gap:.3em;white-space:nowrap;font-family:"Jua";line-height:1;font-size:clamp(60px,7.5vw,140px);color:var(--fd,#7a1f5c);
-    -webkit-text-stroke:.08em #fff;paint-order:stroke fill;filter:drop-shadow(0 6px 0 rgba(46,42,38,.2))}
+    -webkit-text-stroke:.08em #fff;paint-order:stroke fill;text-shadow:0 6px 0 rgba(46,42,38,.2);will-change:transform,opacity}
   .fx-pname .fx-nth{font-size:.42em;-webkit-text-stroke:0;color:#fff;background:var(--fs,#d6337f);border-radius:999px;padding:.18em .55em .22em;box-shadow:0 4px 0 var(--fd,#8a1450)}
   .fx-pname .fx-face{-webkit-text-stroke:0;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
   .fx-pup{position:absolute;font-family:"Jua";font-size:clamp(40px,4vw,72px);white-space:nowrap;color:#fff;-webkit-text-stroke:.1em var(--fd,#8a1450);paint-order:stroke fill;filter:drop-shadow(0 5px 0 rgba(60,40,20,.3))}
@@ -1008,6 +1009,22 @@
   .mb-wbtns button{font-family:"Jua";font-size:20px;background:#fff;color:#2e2a26;border-radius:16px;padding:10px 18px}
   .mb-wbtns button.p{background:#ff8a5b;color:#fff}
   @media (max-width:800px){ .mb-side{display:none} }
+
+  /* ---------- 💮 칭찬 도장: 날개·후광·불꽃놀이·꽃가루 ---------- */
+  .fx-glory{position:absolute;left:0;top:0;width:1200px;height:1200px;margin:-600px 0 0 -600px;border-radius:50%;pointer-events:none;will-change:transform,opacity;
+    background:radial-gradient(circle,rgba(255,250,215,.9) 0,rgba(255,224,130,.5) 9%,rgba(255,205,90,.14) 24%,transparent 46%),
+      repeating-conic-gradient(rgba(255,236,150,.5) 0 5deg,transparent 5deg 15deg);
+    -webkit-mask:radial-gradient(circle,#000 0,#000 22%,transparent 50%);mask:radial-gradient(circle,#000 0,#000 22%,transparent 50%)}
+  .fx-wing{position:absolute;pointer-events:none;will-change:transform,opacity;filter:drop-shadow(0 0 8px rgba(255,236,160,.9))}
+  .fx-wing svg{width:100%;height:100%;display:block;overflow:visible}
+  .fx-wing.l svg{transform:scaleX(-1)}
+  .fx-crown{position:absolute;font-size:110px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;filter:drop-shadow(0 0 20px rgba(255,216,77,.95)) drop-shadow(0 6px 4px rgba(0,0,0,.25))}
+  .fx-fw{position:absolute;left:0;top:0;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;will-change:transform,opacity}
+  .fx-cf{position:absolute;left:0;top:0;border-radius:2px;will-change:transform}
+  .card .cwing{position:absolute;z-index:4;pointer-events:none;width:46px;height:34px;filter:drop-shadow(0 0 6px rgba(255,236,160,.95))}
+  .card .cwing svg{width:100%;height:100%;display:block;overflow:visible}
+  .card .cwing.l svg{transform:scaleX(-1)}
+  .fx-pname{z-index:2}
   /* 이름 옆 얼굴 (모든 카드에서 같은 폭이라 이름이 한 줄로 맞춰져요) */
   .name{display:flex;align-items:center;gap:6px}
   .name .nmt{min-width:0;word-break:keep-all;overflow-wrap:anywhere}
@@ -4230,6 +4247,32 @@
         });
       }catch(e){}
     }
+
+    /* 날개 그림 (오른쪽 날개, 왼쪽은 뒤집어서) */
+    let wingN = 0;
+    function wingSVG(c1, c2){
+      const id = "wg" + (++wingN);
+      return `<svg viewBox="0 0 200 140"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs>
+        <path d="M0,62 C40,18 118,-2 198,4 C190,20 180,28 168,33 C178,44 168,55 150,56 C158,68 146,79 128,79 C134,93 118,101 100,99 C104,113 86,119 70,115 C70,127 48,129 34,121 C24,127 8,119 4,105 C-2,93 -2,77 0,62 Z" fill="url(#${id})" stroke="#e8b830" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M14,72 C60,46 112,26 176,14 M16,86 C58,70 100,56 150,48 M20,98 C54,88 84,80 120,76 M26,108 C48,104 66,100 90,98" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" opacity=".85"/></svg>`;
+    }
+    function fanfareBig(){   // 빰빠라밤~
+      try{
+        const C = A(), t = C.currentTime + .02, o = out(C);
+        const brass = (f, at, dur, vol) => {
+          const x = C.createOscillator(), x2 = C.createOscillator(), lp = C.createBiquadFilter(), g = C.createGain(), vib = C.createOscillator(), vg = C.createGain();
+          x.type = "sawtooth"; x2.type = "square"; x.frequency.value = f; x2.frequency.value = f*1.003;
+          vib.frequency.value = 5.5; vg.gain.value = f*.006; vib.connect(vg); vg.connect(x.frequency); vg.connect(x2.frequency);
+          lp.type = "lowpass"; lp.frequency.setValueAtTime(900, at); lp.frequency.linearRampToValueAtTime(2600, at+.08); lp.Q.value = 1.2;
+          g.gain.setValueAtTime(.0001, at); g.gain.exponentialRampToValueAtTime(vol, at+.03); g.gain.setValueAtTime(vol, at+dur*.7); g.gain.exponentialRampToValueAtTime(.0001, at+dur);
+          x.connect(lp); x2.connect(lp); lp.connect(g).connect(o); [x, x2, vib].forEach(n => { n.start(at); n.stop(at+dur+.05); });
+        };
+        brass(392, t, .16, .14); brass(523.25, t+.15, .16, .14); brass(659.25, t+.3, .16, .14);
+        [523.25, 659.25, 783.99, 1046.5].forEach(f => brass(f, t+.46, 1.1, .1));
+        [2093, 2637, 3136, 4186].forEach((f, i) => { const x = C.createOscillator(), g = C.createGain(), at = t + .5 + i*.07; x.type = "sine"; x.frequency.value = f;
+          g.gain.setValueAtTime(.0001, at); g.gain.exponentialRampToValueAtTime(.08, at+.01); g.gain.exponentialRampToValueAtTime(.0001, at+.6); x.connect(g).connect(o); x.start(at); x.stop(at+.62); });
+      }catch(e){}
+    }
     const WORDS = ["참 잘했어요!", "최고야!", "멋져요!", "훌륭해요!", "대단해!", "짱이야!", "잘했어!", "감동이야!"];
     const combo = new Map();
     function press(card, x, y){
@@ -4292,23 +4335,113 @@
         {transform:`translate(${wx}px,${wy}px) translate(-50%,-50%) scale(.95) rotate(${tilt}deg)`, opacity:1, offset:.26},
         {transform:`translate(${wx}px,${wy - 30}px) translate(-50%,-50%) scale(1) rotate(${tilt}deg)`, opacity:1, offset:.8},
         {transform:`translate(${wx}px,${wy - 70}px) translate(-50%,-50%) scale(.95) rotate(${tilt}deg)`, opacity:0}
-      ], {duration:1500, easing:"ease-out", fill:"forwards"});
-      kill(word, 1550);
-      $("#fx").querySelectorAll(".fx-praise,.fx-pname,.fx-word,.fx-name").forEach(o => { if (o !== word) o.style.opacity = ".2"; });
+      ], {duration:2100, easing:"ease-out", fill:"forwards"});
+      kill(word, 2150);
+      $("#fx").querySelectorAll(".fx-praise,.fx-pname,.fx-word,.fx-name,.fx-wing,.fx-crown").forEach(o => { if (o !== word) o.style.opacity = ".2"; });
       // 이름 + 몇 번째
       const nm = fxAt("fx-pname", `${photoOf(id) ? `<img class="fx-photo" src="${photoOf(id)}" alt="">` : `<span class="fx-face">${faceOf(id)}</span>`}<span>${esc(stu.name)}</span><span class="fx-nth">💮 ${pn}번째</span>`); fs(nm);
       if (nm.offsetWidth > vw*.92) nm.style.fontSize = (parseFloat(getComputedStyle(nm).fontSize) * vw*.92 / nm.offsetWidth) + "px";
       const nw = nm.offsetWidth, nh = nm.offsetHeight;
       let ny = wy - wh*.5 - nh*.55 - 10; if (ny < nh/2 + 12) ny = wy + wh*.5 + nh*.6 + 10;
-      const nx = Math.min(Math.max(wx, nw/2 + 16), vw - nw/2 - 16);
+      const wmg = Math.min(nh*2.1*(200/140)*.75, Math.max(16, (vw - nw)/2 - 4));   // 날개 펼칠 자리
+      const nx = Math.min(Math.max(wx, nw/2 + wmg), vw - nw/2 - wmg);
       nm.animate([
         {transform:`translate(${nx}px,${ny + 40}px) translate(-50%,-50%) scale(.5)`, opacity:0},
         {transform:`translate(${nx}px,${ny}px) translate(-50%,-50%) scale(1.1)`, opacity:1, offset:.15},
         {transform:`translate(${nx}px,${ny}px) translate(-50%,-50%) scale(1)`, opacity:1, offset:.25},
         {transform:`translate(${nx}px,${ny - 20}px) translate(-50%,-50%) scale(1)`, opacity:1, offset:.82},
         {transform:`translate(${nx}px,${ny - 50}px) translate(-50%,-50%) scale(.96)`, opacity:0}
-      ], {duration:1600, easing:"ease-out", fill:"forwards"});
-      kill(nm, 1650);
+      ], {duration:2200, easing:"ease-out", fill:"forwards"});
+      kill(nm, 2250);
+
+      /* ✨ 여기부터 칭찬만의 화려한 이펙트 */
+      const busy = $("#fx").childElementCount > 450;   // 너무 빨리 연타하면 무거운 것은 건너뛰어요
+      fanfareBig();
+      // 후광 (빛줄기 빙글빙글)
+      const glory = fxAt("fx-glory"); glory.style.left = nx + "px"; glory.style.top = ny + "px";
+      $("#fx").insertBefore(glory, $("#fx").firstChild);
+      glory.animate([{opacity:0, transform:"rotate(0deg) scale(.6)"},{opacity:1, transform:"rotate(15deg) scale(1)", offset:.15},{opacity:1, transform:"rotate(55deg) scale(1.05)", offset:.75},{opacity:0, transform:"rotate(75deg) scale(1.1)"}], {duration:2400, easing:"linear", fill:"forwards"});
+      kill(glory, 2450);
+      // 날개 (이름 양쪽에서 펼쳐지고 파닥파닥)
+      const wc = g === "g" ? ["#ffd1ea", "#ff8ec6"] : g === "b" ? ["#d6ecff", "#ffd84d"] : ["#fff3b0", "#f0b400"];
+      const wH = nh * 2.1, wW = wH * 200/140;
+      [["r", 1], ["l", -1]].forEach(([side, sg]) => {
+        const wg = fxAt("fx-wing " + side, wingSVG(wc[0], wc[1]));
+        wg.style.width = wW + "px"; wg.style.height = wH + "px";
+        const rootX = nx + sg*(nw/2 - nh*.25);
+        wg.style.left = (side === "r" ? rootX : rootX - wW) + "px"; wg.style.top = (ny - wH*.5) + "px";
+        wg.style.transformOrigin = side === "r" ? "0% 46%" : "100% 46%";
+        $("#fx").insertBefore(wg, nm);
+        const R = d => `rotate(${d*sg}deg)`;
+        wg.animate([
+          {transform:`translateY(40px) scale(.1) ${R(50)}`, opacity:0},
+          {transform:`translateY(0) scale(1.08) ${R(-16)}`, opacity:1, offset:.14},
+          {transform:`translateY(0) scale(1) ${R(10)}`, offset:.24},
+          {transform:`translateY(-4px) scale(1) ${R(-14)}`, offset:.34},
+          {transform:`translateY(-8px) scale(1) ${R(10)}`, offset:.44},
+          {transform:`translateY(-11px) scale(1) ${R(-12)}`, offset:.54},
+          {transform:`translateY(-14px) scale(1) ${R(8)}`, offset:.64},
+          {transform:`translateY(-20px) scale(1) ${R(-6)}`, opacity:1, offset:.82},
+          {transform:`translateY(-50px) scale(.95) ${R(4)}`, opacity:0}
+        ], {duration:2200, easing:"linear", fill:"both"});
+        kill(wg, 2250);
+      });
+      // 왕관이 위에서 쏙
+      const cr = fxAt("fx-crown"); cr.textContent = g === "g" ? "👑" : g === "b" ? "👑" : "🌟";
+      const crx = nx - nw/2 + nh*.65, cry = ny - nh*.62;
+      cr.animate([
+        {transform:`translate(${crx}px,${cry - 260}px) translate(-50%,-50%) rotate(-30deg) scale(.6)`, opacity:0},
+        {transform:`translate(${crx}px,${cry + 8}px) translate(-50%,-50%) rotate(-12deg) scale(1.1)`, opacity:1, offset:.22},
+        {transform:`translate(${crx}px,${cry}px) translate(-50%,-50%) rotate(-14deg) scale(1)`, opacity:1, offset:.3},
+        {transform:`translate(${crx}px,${cry - 20}px) translate(-50%,-50%) rotate(-14deg) scale(1)`, opacity:1, offset:.82},
+        {transform:`translate(${crx}px,${cry - 50}px) translate(-50%,-50%) rotate(-14deg) scale(.95)`, opacity:0}
+      ], {duration:2200, easing:"ease-out", fill:"both"});
+      kill(cr, 2250);
+      // 카드 얼굴에도 작은 날개
+      const fcEl = card.querySelector(".name .face");
+      if (fcEl) {
+        const fr = fcEl.getBoundingClientRect(), cr2 = card.getBoundingClientRect();
+        card.querySelectorAll(".cwing").forEach(el => el.remove());
+        [["r", 1], ["l", -1]].forEach(([side, sg]) => {
+          const w2 = document.createElement("div"); w2.className = "cwing " + side; w2.innerHTML = wingSVG(wc[0], wc[1]);
+          const cxp = fr.left - cr2.left + fr.width/2, cyp = fr.top - cr2.top + fr.height/2;
+          w2.style.left = (side === "r" ? cxp + fr.width*.35 : cxp - fr.width*.35 - 46) + "px"; w2.style.top = (cyp - 20) + "px";
+          w2.style.transformOrigin = side === "r" ? "0% 46%" : "100% 46%";
+          card.appendChild(w2);
+          w2.animate([{transform:`scale(0) rotate(${30*sg}deg)`,opacity:0},{transform:`scale(1.1) rotate(${-14*sg}deg)`,opacity:1,offset:.15},{transform:`rotate(${10*sg}deg)`,offset:.3},{transform:`rotate(${-12*sg}deg)`,offset:.45},{transform:`rotate(${8*sg}deg)`,offset:.6},{transform:`rotate(${-8*sg}deg)`,opacity:1,offset:.8},{transform:`scale(.9) rotate(0deg)`,opacity:0}], {duration:2400, easing:"linear", fill:"both"});
+          kill(w2, 2450);
+        });
+      }
+      if (!busy) {
+        // 불꽃놀이 (화면 여기저기 펑펑)
+        const nFw = 3 + power;
+        for (let f = 0; f < nFw; f++) {
+          const fx0 = rnd(vw*.08, vw*.92), fy0 = rnd(vh*.1, vh*.55), delay = 150 + f*rnd(160, 300), cols = T.conf;
+          setTimeout(() => { if (!on) return; try{ const C = A(), tt = C.currentTime, o2 = out(C); const len = Math.floor(C.sampleRate*.25), nb = C.createBuffer(1, len, C.sampleRate), d = nb.getChannelData(0); for (let i = 0; i < len; i++) d[i] = (Math.random()*2-1)*Math.pow(1-i/len, 3); const src = C.createBufferSource(), bp = C.createBiquadFilter(), gg = C.createGain(); src.buffer = nb; bp.type = "bandpass"; bp.frequency.value = 900 + rnd(900); gg.gain.value = .35; src.connect(bp).connect(gg).connect(o2); src.start(tt); }catch(e){} }, delay);
+          for (let i = 0; i < 26; i++) {
+            const el = fxAt("fx-fw"), col = cols[i % cols.length]; el.style.background = `radial-gradient(circle,#fff 0 18%,${col} 34%,transparent 70%)`;
+            const ang = i/26*Math.PI*2 + rnd(.2), dist = rnd(110, 190);
+            el.animate([
+              {transform:`translate(${fx0}px,${fy0}px) scale(.4)`, opacity:1},
+              {transform:`translate(${fx0 + Math.cos(ang)*dist}px,${fy0 + Math.sin(ang)*dist}px) scale(1)`, opacity:1, offset:.55},
+              {transform:`translate(${fx0 + Math.cos(ang)*dist*1.15}px,${fy0 + Math.sin(ang)*dist*1.15 + 70}px) scale(.3)`, opacity:0}
+            ], {duration:1100, delay, easing:"cubic-bezier(.1,.7,.3,1)", fill:"both"});
+            kill(el, 1100 + delay + 50);
+          }
+        }
+        // 꽃가루 비 (화면 전체에서 떨어져요)
+        for (let i = 0; i < 70; i++) {
+          const el = fxAt("fx-cf"), w0 = rnd(8, 16); Object.assign(el.style, {width:w0 + "px", height:(w0*rnd(.4, .7)) + "px", background:T.conf[i % T.conf.length]});
+          if (i % 5 === 0) { el.textContent = T.part[i % T.part.length]; el.style.background = "none"; el.style.width = el.style.height = "auto"; el.style.fontSize = rnd(22, 40) + "px"; }
+          const sx = rnd(0, vw), dx = rnd(-120, 120), dl = rnd(0, 700), rt = rnd(-720, 720);
+          el.animate([
+            {transform:`translate(${sx}px,-40px) rotate(0deg)`, opacity:1},
+            {transform:`translate(${sx + dx*.5}px,${vh*.5}px) rotate(${rt*.5}deg)`, opacity:1, offset:.5},
+            {transform:`translate(${sx + dx}px,${vh + 40}px) rotate(${rt}deg)`, opacity:.8}
+          ], {duration:rnd(2200, 3200), delay:dl, easing:"linear", fill:"both"});
+          kill(el, 3300 + dl);
+        }
+      }
       // 새 단계 알림
       if (L1 > L0) setTimeout(() => {
         const b = card.getBoundingClientRect(), el = fxAt("fx-pup"); el.textContent = T.say[L1] || ""; fs(el);
