@@ -1068,6 +1068,65 @@
   body.fx-shake2 .wrap{animation:fxShake2 .45s linear}
   @keyframes fxShake{0%,100%{transform:none}20%{transform:translate(-7px,5px)}40%{transform:translate(6px,-6px)}60%{transform:translate(-5px,-3px)}80%{transform:translate(4px,4px)}}
   @keyframes fxShake2{0%,100%{transform:none}15%{transform:translate(-14px,8px) rotate(-.4deg)}30%{transform:translate(12px,-10px) rotate(.4deg)}45%{transform:translate(-10px,-6px)}60%{transform:translate(9px,7px)}80%{transform:translate(-4px,3px)}}
+  /* ---------- 🏐 우리반 얼굴 배구 ---------- */
+  #volley{position:fixed;inset:0;z-index:9990;display:none;flex-direction:column;background:linear-gradient(180deg,#1e3a5f,#16304f);color:#fff;font-family:"Jua";user-select:none}
+  #volley.open{display:flex;animation:bcIn .3s ease}
+  .vb-top{display:flex;align-items:center;gap:12px;padding:10px 18px;flex-wrap:wrap}
+  .vb-top h2{font-weight:400;font-size:clamp(22px,2.4vw,34px);margin:0;flex:1}
+  .vb-top .pk-x{background:rgba(255,255,255,.14)}
+  .vb-keys{font-family:"Gowun Dodum";font-size:14px;opacity:.85}
+  .vb-keys kbd{font-family:"Jua";background:#fff;color:#1e3a5f;border-radius:6px;padding:1px 7px;margin:0 1px;box-shadow:0 2px 0 rgba(0,0,0,.3)}
+  .vb-stage{position:relative;flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:0 12px 12px}
+  #vbCanvas{display:block;border-radius:18px;box-shadow:0 14px 40px rgba(0,0,0,.45);background:#8fd3ff}
+  .vb-sel{position:absolute;inset:0;z-index:4;overflow:auto;padding:6px 16px 16px;background:linear-gradient(180deg,rgba(22,48,79,.97),rgba(18,38,64,.98))}
+  .vb-sel[hidden]{display:none}
+  .vb-opts{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:center;margin:2px 0 12px;font-size:17px}
+  .vb-seg{display:inline-flex;gap:4px;background:rgba(255,255,255,.12);border-radius:14px;padding:4px}
+  .vb-seg button{font-family:"Jua";font-size:17px;color:#fff;padding:7px 14px;border-radius:10px}
+  .vb-seg button.on{background:#ffd84d;color:#3a2a00}
+  .vb-picks{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:stretch;max-width:1100px;margin:0 auto 12px}
+  .vb-slot{background:rgba(255,255,255,.08);border:3px solid rgba(255,255,255,.18);border-radius:22px;padding:10px 14px;display:flex;align-items:center;gap:14px;cursor:pointer;min-height:118px}
+  .vb-slot.cur{border-color:#ffd84d;box-shadow:0 0 0 4px rgba(255,216,77,.25)}
+  .vb-slot.p1{--pc:#ff7a59} .vb-slot.p2{--pc:#4dabf7}
+  .vb-slot .tag{font-size:15px;background:var(--pc);border-radius:10px;padding:2px 10px;display:inline-block;margin-bottom:4px}
+  .vb-slot .who{font-size:30px;line-height:1.1}
+  .vb-slot .ty{font-size:15px;color:#ffd84d}
+  .vb-av{width:86px;height:86px;flex:none;border-radius:50%;object-fit:cover;border:4px solid #fff;background:#fff;display:grid;place-items:center;font-size:52px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;box-shadow:0 0 0 3px var(--pc,#ffd84d)}
+  .vb-vs{align-self:center;font-size:44px;color:#ffd84d;text-shadow:0 4px 0 rgba(0,0,0,.3)}
+  .vb-bars{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;font-size:14px;align-items:center;margin-top:4px;min-width:170px}
+  .vb-bar{display:flex;gap:3px}
+  .vb-bar i{width:15px;height:11px;border-radius:4px;background:rgba(255,255,255,.18)}
+  .vb-bar i.f{background:var(--bc,#ffd84d)}
+  .vb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;max-width:1300px;margin:0 auto}
+  .vb-ch{position:relative;background:rgba(255,255,255,.1);border:3px solid transparent;border-radius:18px;padding:8px 8px 9px;color:#fff;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;transition:transform .12s,background .15s}
+  .vb-ch:hover{background:rgba(255,255,255,.18);transform:translateY(-3px)}
+  .vb-ch.s1{border-color:#ff7a59;background:rgba(255,122,89,.22)}
+  .vb-ch.s2{border-color:#4dabf7;background:rgba(77,171,247,.22)}
+  .vb-ch .mk{position:absolute;top:6px;left:6px;font-size:13px;border-radius:8px;padding:1px 7px;background:#ff7a59}
+  .vb-ch.s2 .mk{background:#4dabf7}
+  .vb-ch .ph{width:64px;height:64px;border-radius:50%;object-fit:cover;border:3px solid #fff;background:#fff;display:grid;place-items:center;font-size:40px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+  .vb-ch .nm{font-size:19px;line-height:1.1}
+  .vb-ch .ty{font-size:12.5px;color:#ffd84d}
+  .vb-ch .vb-bars{min-width:0;width:100%;font-size:12px;gap:1px 5px}
+  .vb-ch .vb-bar i{width:11px;height:8px}
+  .vb-go{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:14px 0 6px}
+  .vb-go button{font-family:"Jua";font-size:18px;background:rgba(255,255,255,.14);color:#fff;border-radius:14px;padding:9px 16px}
+  .vb-go button.p{font-size:30px;background:#ff8a5b;padding:10px 44px;border-radius:22px;box-shadow:0 6px 0 #c9603a}
+  .vb-go button.p:active{transform:translateY(4px);box-shadow:0 2px 0 #c9603a}
+  .vb-help{max-width:1000px;margin:8px auto 0;font-family:"Gowun Dodum";font-size:14px;opacity:.85;text-align:center;line-height:1.7}
+  .vb-help kbd{font-family:"Jua";background:#fff;color:#1e3a5f;border-radius:6px;padding:0 6px}
+  .vb-end{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;background:radial-gradient(ellipse,rgba(60,40,0,.55),rgba(10,20,40,.88));text-align:center}
+  .vb-end[hidden]{display:none}
+  .vb-end h3{font-weight:400;font-size:clamp(40px,6vw,90px);margin:0;color:#ffd84d;text-shadow:0 6px 0 rgba(0,0,0,.3)}
+  .vb-end .big{width:clamp(160px,30vh,320px);height:clamp(160px,30vh,320px);border-radius:50%;object-fit:cover;border:10px solid #ffd84d;box-shadow:0 0 70px rgba(255,216,77,.75);background:#fff;display:grid;place-items:center;font-size:clamp(90px,16vh,180px);line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;animation:pkWin .8s cubic-bezier(.2,1.6,.4,1) both}
+  .vb-end .nm{font-size:clamp(40px,6vw,96px);line-height:1;text-shadow:0 6px 0 rgba(0,0,0,.35)}
+  .vb-end .sc{font-size:clamp(22px,2.6vw,36px);opacity:.9}
+  .vb-pause{position:absolute;inset:0;z-index:4;display:grid;place-items:center;background:rgba(10,20,40,.6);font-size:clamp(40px,6vw,80px);text-align:center}
+  .vb-pause small{display:block;font-size:.35em;opacity:.85;margin-top:10px}
+  .vb-pause[hidden]{display:none}
+  .vb-touch{display:none}
+  @media (max-width:900px){ .vb-picks{grid-template-columns:1fr} .vb-vs{text-align:center} .vb-keys{display:none} }
+
   /* ---------- 🎡 사진 돌림판 ---------- */
   #wheel{position:fixed;inset:0;z-index:9990;display:none;flex-direction:column;background:radial-gradient(ellipse at 50% 40%,#3f2f6b 0%,#2a1f4c 60%,#1c1536 100%);color:#fff;font-family:"Jua";user-select:none}
   #wheel.open{display:flex;animation:bcIn .3s ease}
@@ -1336,6 +1395,40 @@
     </div>
   </div>
 </div>
+<div id="volley" role="dialog" aria-label="우리반 얼굴 배구">
+  <div class="vb-top">
+    <h2>🏐 우리반 얼굴 배구</h2>
+    <span class="vb-keys" id="vbKeys"></span>
+    <button class="pk-x" id="vbClose" title="닫기" aria-label="얼굴 배구 닫기">×</button>
+  </div>
+  <div class="vb-stage" id="vbStage">
+    <canvas id="vbCanvas" width="900" height="500"></canvas>
+    <div class="vb-pause" id="vbPause" hidden><div>⏸️ 잠깐 멈춤<small>P 를 누르면 다시 해요 · Esc 는 캐릭터 고르기</small></div></div>
+    <div class="vb-end" id="vbEnd" hidden>
+      <div class="wh-conf" id="vbConf"></div>
+      <h3>🏆 이겼어요!</h3>
+      <div id="vbEndPh"></div>
+      <div class="nm" id="vbEndName"></div>
+      <div class="sc" id="vbEndScore"></div>
+      <div class="mb-wbtns"><button class="p" id="vbRe">🔁 한 판 더</button><button id="vbToSel">👫 캐릭터 다시 고르기</button><button id="vbClose2">닫기</button></div>
+    </div>
+    <div class="vb-sel" id="vbSel">
+      <div class="vb-opts">
+        <div class="vb-seg" id="vbMode"><button data-m="cpu">🧒 vs 🤖 컴퓨터</button><button data-m="2p">🧒 vs 🧒 둘이서</button></div>
+        <div class="vb-seg" id="vbLv"><button data-l="0">🐣 쉬움</button><button data-l="1">🐥 보통</button><button data-l="2">🦅 어려움</button></div>
+        <div class="vb-seg" id="vbPts"><button data-p="5">5점</button><button data-p="10">10점</button><button data-p="15">15점</button></div>
+      </div>
+      <div class="vb-picks">
+        <div class="vb-slot p1" id="vbSlot1"></div>
+        <div class="vb-vs">VS</div>
+        <div class="vb-slot p2" id="vbSlot2"></div>
+      </div>
+      <div class="vb-go"><button id="vbRand">🎲 둘 다 아무나</button><button class="p" id="vbStart">🏐 시작!</button><button id="vbReroll" title="모든 친구의 능력치를 새로 정해요">🔄 능력치 새로 섞기</button></div>
+      <div class="vb-help" id="vbHelp"></div>
+      <div class="vb-grid" id="vbGrid"></div>
+    </div>
+  </div>
+</div>
 <div id="wheel" role="dialog" aria-label="사진 돌림판">
   <div class="wh-top"><h2>🎡 사진 돌림판</h2><span class="pk-meta" id="whMeta"></span><button class="pk-x" id="whClose" title="닫기 (Esc)" aria-label="돌림판 닫기">×</button></div>
   <div class="wh-main">
@@ -1417,6 +1510,7 @@
         <span class="split"><button class="btn hamb" id="hamBtn" title="뿅망치를 들고 친구 카드를 눌러요 (손들기 횟수는 올라가지 않아요)">🔨 뿅망치</button><button class="btn mini" id="hamEdit" title="뿅망치 맞은 횟수 보기·고치기" aria-label="뿅망치 맞은 횟수 보기·고치기">📋</button></span>
         <button class="btn hlb" id="hlBtn" title="연고를 발라 주면 뿅망치 맞은 횟수가 1번씩 줄고 카드가 나아요">🧴 후시딘</button>
         <span class="split"><button class="btn prb" id="prBtn" title="칭찬 도장을 들고 친구 카드를 눌러요 (많이 받을수록 카드가 멋지게 변신해요)">💮 칭찬 도장</button><button class="btn mini" id="prEdit" title="칭찬 도장 횟수·남녀 보기·고치기" aria-label="칭찬 도장 횟수 보기·고치기">📋</button></span>
+        <button class="btn pickb" id="vbBtn" title="우리 반 친구 얼굴로 하는 배구 게임">🏐 얼굴 배구</button>
         <button class="btn pickb" id="whBtn" title="친구 사진 돌림판을 돌려서 뽑아요">🎡 돌림판</button>
         <button class="btn pickb" id="mbBtn" title="친구 얼굴 구슬을 굴려서 뽑아요 (마블 레이스)">🔮 구슬 뽑기</button>
         <button class="btn pickb" id="pickBtn" title="발표할 친구 뽑기 (모두 한 번씩 뽑힐 때까지 겹치지 않아요)">🎤 발표 뽑기</button>
@@ -5362,6 +5456,449 @@
       if (e.key === "Escape"){ e.stopPropagation(); closeWh(); }
       else if (e.key === " " || e.code === "Space"){ e.preventDefault(); e.stopPropagation(); getAC(); if (!$("#whWin").hidden) $("#whWin").hidden = true; spin(); }
     }, true);
+  })();
+
+
+  /* ---------- 🏐 우리반 얼굴 배구 (직접 만든 2D 배구: 점프·스파이크·컴퓨터 상대) ---------- */
+  (function(){
+    const W = 900, H = 500, GROUND = 446, NET_X = W/2, NET_W = 14, NET_TOP = 278, BR = 21, BG = .34, PG = .62;
+    const cv = $("#vbCanvas"), g = cv.getContext("2d");
+    const STAT = ["스피드","점프","파워","몸집"], STAT_C = ["#69db7c","#4dabf7","#ff6b6b","#ffd43b"];
+    const TYPE = ["⚡ 번개 스피드형","🦘 점프왕","💥 강스파이크형","🛡️ 든든 몸집형"];
+    const COLORS = ["#ff6b6b","#ffa94d","#f59f00","#40c057","#12b886","#228be6","#4c6ef5","#ae3ec9","#e64980","#82c91e","#15aabf","#fa5252"];
+    let open = false, raf = 0, last = 0, acc = 0, state = "sel";   // sel | play | point | pause | end
+    let mode = "cpu", lv = 1, target = 10, pick = [null, null], cur = 0;
+    let lastCross = 0, ballSide = 0;
+    let P = [], ball = null, score = [0, 0], server = 0, pointT = 0, scorer = -1, frame = 0, trail = [], fx = [], shake = 0;
+    const keys = new Set(), pressed = new Set();
+    const imgs = {};
+    const noOf = sid => S.students.findIndex(x => x.id === sid) + 1;
+    const stu = sid => S.students.find(x => x.id === sid);
+    const colOf = sid => COLORS[(noOf(sid) - 1 + COLORS.length) % COLORS.length];
+    const rnd = n => { try{ const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] / 4294967296 * n; }catch(e){ return Math.random() * n; } };
+
+    /* ---- 능력치: 스피드·점프·파워·몸집 (1~5, 합은 모두 12로 공평하게, 친구마다 다른 조합) ---- */
+    const COMBOS = [];
+    for (let a = 1; a <= 5; a++) for (let b = 1; b <= 5; b++) for (let c = 1; c <= 5; c++){ const d = 12 - a - b - c; if (d >= 1 && d <= 5) COMBOS.push([a, b, c, d]); }
+    function ensureStats(force){
+      S.vb = (S.vb && typeof S.vb === "object") ? S.vb : {};
+      if (force || !S.vb.stats || typeof S.vb.stats !== "object") S.vb.stats = {};
+      const st = S.vb.stats, used = new Set();
+      S.students.forEach(x => { if (Array.isArray(st[x.id]) && st[x.id].length === 4) used.add(st[x.id].join()); });
+      let pool = COMBOS.filter(c => !used.has(c.join()));
+      let changed = false;
+      S.students.forEach(x => {
+        if (Array.isArray(st[x.id]) && st[x.id].length === 4) return;
+        if (!pool.length) pool = COMBOS.slice();
+        const k = Math.floor(rnd(pool.length)); st[x.id] = pool.splice(k, 1)[0]; changed = true;
+      });
+      if (changed || force) save();
+    }
+    const statsOf = sid => (S.vb && S.vb.stats && S.vb.stats[sid]) || [3, 3, 3, 3];
+    const typeOf = sid => { const s = statsOf(sid), m = Math.max(...s); return TYPE[s.indexOf(m)]; };
+    function barsHTML(sid){
+      const s = statsOf(sid);
+      return `<div class="vb-bars">${s.map((v, k) => `<span>${STAT[k]}</span><span class="vb-bar" style="--bc:${STAT_C[k]}">${[1,2,3,4,5].map(n => `<i class="${n <= v ? "f" : ""}"></i>`).join("")}</span>`).join("")}</div>`;
+    }
+    const avHTML = (sid, cls) => photoOf(sid) ? `<img class="${cls}" src="${photoOf(sid)}" alt="">` : `<span class="${cls}">${faceOf(sid)}</span>`;
+    function image(sid){
+      const src = photoOf(sid); if (!src) return null;
+      let m = imgs[sid]; if (!m || m.src !== src){ m = imgs[sid] = new Image(); m.src = src; }
+      return m.complete && m.naturalWidth ? m : null;
+    }
+
+    /* ---- 소리 ---- */
+    function snd(kind){
+      if (!S.sound) return;
+      try{
+        const C = getAC(), t = C.currentTime + .005;
+        const tone = (f1, f2, d, type, vol, at = 0) => { const o = C.createOscillator(), gn = C.createGain(); o.type = type; o.frequency.setValueAtTime(f1, t+at); o.frequency.exponentialRampToValueAtTime(f2, t+at+d); gn.gain.setValueAtTime(vol, t+at); gn.gain.exponentialRampToValueAtTime(.0001, t+at+d); o.connect(gn).connect(C.destination); o.start(t+at); o.stop(t+at+d+.02); };
+        if (kind === "hit") tone(520, 300, .09, "triangle", .25);
+        else if (kind === "spike"){ tone(900, 120, .22, "sawtooth", .16); const n = C.createBufferSource(), b = C.createBuffer(1, C.sampleRate*.15, C.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random()*2-1) * (1 - i/d.length); n.buffer = b; const gn = C.createGain(); gn.gain.value = .25; n.connect(gn).connect(C.destination); n.start(t); }
+        else if (kind === "jump") tone(300, 520, .1, "sine", .08);
+        else if (kind === "wall") tone(260, 200, .06, "triangle", .12);
+        else if (kind === "point"){ tone(660, 660, .12, "triangle", .2); tone(880, 880, .2, "triangle", .2, .12); }
+        else if (kind === "win") [523.25, 659.25, 783.99, 1046.5].forEach((f, k) => tone(f, f, k === 3 ? .55 : .15, "triangle", .22, k*.14));
+      }catch(e){}
+    }
+
+    /* ---- 선수 만들기 ---- */
+    function mkPlayer(sid, side, ctl){
+      const s = statsOf(sid);
+      const r = 25 + s[3] * 3.6;                     // 몸집: 클수록 공에 잘 닿아요
+      return {sid, side, ctl, r, spd: 3.6 + s[0] * .72, jump: 10.6 + s[1] * .82, pow: 13 + s[2] * 1.9,
+        x: side ? W*.78 : W*.22, y: GROUND, vx: 0, vy: 0, ground: true, cool: 0, spikeT: 0, swing: 0, squash: 0,
+        col: colOf(sid), ai: {tx: side ? W*.78 : W*.22, think: 0, err: 0}};
+    }
+    const homeX = p => p.side ? W*.78 : W*.22;
+    const minX = p => p.side ? NET_X + NET_W/2 + p.r*.85 : p.r*.85;
+    const maxX = p => p.side ? W - p.r*.85 : NET_X - NET_W/2 - p.r*.85;
+    const hitC = p => ({x: p.x, y: p.y - p.r*1.35, r: p.r*1.22});   // 머리+몸 맞는 곳
+
+    function serve(who){
+      server = who; scorer = -1;
+      P.forEach(p => { p.x = homeX(p); p.y = GROUND; p.vx = p.vy = 0; p.ground = true; p.cool = 0; p.spikeT = 0; p.swing = 0; });
+      ball = {x: who ? W*.78 + 6 : W*.22 - 6, y: 110, vx: 0, vy: 0, spin: 0, spiked: 0};
+      trail = []; state = "play"; lastCross = frame; ballSide = who;
+    }
+    function startMatch(){
+      ensureStats();
+      const a = pick[0] || randPick(null), b = pick[1] || randPick(a);
+      pick = [a, b];
+      P = [mkPlayer(a, 0, "p1"), mkPlayer(b, 1, mode === "cpu" ? "cpu" : "p2")];
+      score = [0, 0]; fx = [];
+      $("#vbSel").hidden = true; $("#vbEnd").hidden = true; $("#vbPause").hidden = true;
+      renderKeys(); serve(Math.floor(rnd(2))); getAC();
+    }
+    function randPick(not){ const l = S.students.filter(x => x.id !== not); return l.length ? l[Math.floor(rnd(l.length))].id : null; }
+
+    /* ---- 입력 ---- */
+    const KEYMAP = {
+      p1: {l:["KeyA"], r:["KeyD"], u:["KeyW"], d:["KeyS"], s:["KeyF","KeyZ","KeyG"]},
+      p2: {l:["ArrowLeft"], r:["ArrowRight"], u:["ArrowUp"], d:["ArrowDown"], s:["Enter","NumpadEnter","Slash","Numpad0","ShiftRight"]}
+    };
+    const GAMEKEYS = new Set([].concat(...Object.values(KEYMAP.p1), ...Object.values(KEYMAP.p2), "Space", "KeyP"));
+    function ctlState(p){
+      const sets = p.ctl === "p1" && mode === "cpu" ? [KEYMAP.p1, KEYMAP.p2] : [KEYMAP[p.ctl]];
+      const any = (k, set) => sets.some(m => m[k].some(c => set.has(c)));
+      return {l: any("l", keys), r: any("r", keys), u: any("u", keys), d: any("d", keys), s: any("s", keys), sp: any("s", pressed), up: any("u", pressed)};
+    }
+
+    /* ---- 컴퓨터 ---- */
+    function predict(px){   // 공이 그 높이까지 내려올 때 x 위치 (선수는 빼고 계산)
+      let x = ball.x, y = ball.y, vx = ball.vx, vy = ball.vy;
+      for (let i = 0; i < 260; i++){
+        vy += BG; x += vx; y += vy;
+        if (x < BR){ x = BR; vx = Math.abs(vx); } if (x > W - BR){ x = W - BR; vx = -Math.abs(vx); }
+        if (y + BR > NET_TOP && Math.abs(x - NET_X) < NET_W/2 + BR){ if (y < NET_TOP + 6){ y = NET_TOP - BR; vy = -Math.abs(vy)*.7; } else { x = x < NET_X ? NET_X - NET_W/2 - BR : NET_X + NET_W/2 + BR; vx = -vx*.7; } }
+        if (vy > 0 && y >= px) return {x, t: i};
+      }
+      return {x, t: 260};
+    }
+    function cpu(p){
+      const L = [{react: 9, err: 70, jumpP: .35, spikeP: .25, spd: .72}, {react: 5, err: 30, jumpP: .65, spikeP: .4, spd: .88}, {react: 2, err: 8, jumpP: .95, spikeP: .85, spd: 1}][lv];
+      const a = p.ai, c = {l: false, r: false, u: false, d: false, s: false, sp: false, up: false};
+      if (--a.think <= 0){
+        a.think = L.react;
+        const hc = GROUND - p.r*1.35 - p.r*.4;
+        const pr = predict(hc);
+        const mine = p.side ? pr.x > NET_X : pr.x < NET_X;
+        if (mine && state === "play"){
+          a.err = a.err && Math.abs(a.err) < L.err ? a.err : (rnd(2) - 1) * L.err * .5;
+          a.tx = pr.x + (p.side ? 1 : -1) * p.r * .55 + a.err;   // 공이 네트 쪽으로 가게 바깥쪽에서 받아요
+          a.jumpOk = rnd(1) < L.jumpP; a.spikeOk = rnd(1) < L.spikeP;
+        } else { a.tx = homeX(p) + (p.side ? -1 : 1) * 30; a.err = 0; }
+      }
+      const dx = a.tx - p.x;
+      if (Math.abs(dx) > 5){ c.l = dx < 0; c.r = dx > 0; }
+      const hc = hitC(p), bx = ball.x - p.x, by = hc.y - ball.y;
+      const mineNow = p.side ? ball.x > NET_X - 10 : ball.x < NET_X + 10;
+      if (p.ground && mineNow && a.jumpOk && Math.abs(bx) < p.r*1.6 && by > p.r*1.2 && by < p.jump*p.jump/(2*PG) + p.r && ball.vy > -2){ c.u = true; c.up = true; }
+      if (!p.ground && a.spikeOk && Math.hypot(ball.x - hc.x, ball.y - hc.y) < hc.r + BR + 28){ c.s = c.sp = true; c.d = rnd(1) < .6; }
+      c.spdMul = L.spd;
+      return c;
+    }
+
+    /* ---- 한 칸(1/60초) 움직이기 ---- */
+    function step(){
+      frame++;
+      if (shake > 0) shake *= .85;
+      fx = fx.filter(f => (f.t -= 1) > 0);
+      if (state === "point"){
+        if (--pointT <= 0){
+          if (score[scorer] >= target && score[scorer] - score[1-scorer] >= 1) return endMatch(scorer);
+          serve(scorer);
+        }
+        ball.vy += BG*.5; ball.y = Math.min(ball.y + ball.vy*.3, GROUND - BR*.6);
+        return;
+      }
+      if (state !== "play") return;
+      P.forEach(p => {
+        const c = p.ctl === "cpu" ? cpu(p) : ctlState(p);
+        const sp = p.spd * (c.spdMul || 1);
+        p.vx = (c.r ? sp : 0) - (c.l ? sp : 0);
+        if ((c.u || c.up) && p.ground){ p.vy = -p.jump; p.ground = false; p.squash = 6; snd("jump"); }
+        if (c.sp) p.spikeT = 10;                       // 스파이크는 누르고 조금 뒤까지 먹혀요
+        p.spikeDir = c.d ? 1 : c.u ? -1 : 0;
+        if (p.spikeT > 0) p.spikeT--;
+        if (p.cool > 0) p.cool--;
+        if (p.swing > 0) p.swing--;
+        p.x += p.vx;
+        if (!p.ground){ p.vy += PG + (c.d ? .35 : 0); p.y += p.vy; if (p.y >= GROUND){ p.y = GROUND; p.vy = 0; p.ground = true; p.squash = 6; } }
+        if (p.squash > 0) p.squash--;
+        p.x = Math.max(minX(p), Math.min(maxX(p), p.x));
+      });
+      pressed.clear();
+      // 공
+      ball.vy += BG; ball.x += ball.vx; ball.y += ball.vy; ball.spin += ball.vx * .02;
+      if (ball.spiked > 0) ball.spiked--;
+      const sideNow = ball.x < NET_X ? 0 : 1; if (sideNow !== ballSide){ ballSide = sideNow; lastCross = frame; }
+      if (ball.spiked > 0 || Math.hypot(ball.vx, ball.vy) > 13) trail.push({x: ball.x, y: ball.y}); else if (trail.length) trail.shift();
+      if (trail.length > 10) trail.shift();
+      if (ball.x < BR){ ball.x = BR; ball.vx = Math.abs(ball.vx)*.95; snd("wall"); }
+      if (ball.x > W - BR){ ball.x = W - BR; ball.vx = -Math.abs(ball.vx)*.95; snd("wall"); }
+      // 네트
+      if (ball.y + BR > NET_TOP && Math.abs(ball.x - NET_X) < NET_W/2 + BR){
+        if (ball.y < NET_TOP + 8 && ball.vy > 0){ ball.y = NET_TOP - BR; ball.vy = -Math.abs(ball.vy)*.72; if (Math.abs(ball.vx) < 1.2) ball.vx = (ball.x < NET_X ? -1 : 1) * (1.2 + rnd(1)); }
+        else { const left = ball.x < NET_X; ball.x = left ? NET_X - NET_W/2 - BR : NET_X + NET_W/2 + BR; ball.vx = (left ? -1 : 1) * Math.max(2, Math.abs(ball.vx)*.7); }
+        snd("wall");
+      }
+      // 선수와 부딪히기
+      P.forEach(p => {
+        const h = hitC(p), dx = ball.x - h.x, dy = ball.y - h.y, d = Math.hypot(dx, dy) || 1;
+        if (d < h.r + BR && p.cool === 0){
+          const nx = dx/d, ny = dy/d;
+          ball.x = h.x + nx*(h.r + BR + 1); ball.y = h.y + ny*(h.r + BR + 1);
+          const toward = p.side ? -1 : 1;
+          if (!p.ground && p.spikeT > 0){                          // 💥 스파이크!
+            const v = p.pow;
+            ball.vx = toward * v * .92;
+            ball.vy = p.spikeDir > 0 ? v*.55 : p.spikeDir < 0 ? -v*.5 : v*.16;
+            ball.spiked = 22; p.swing = 14; shake = 10;
+            fx.push({k: "pang", x: ball.x, y: ball.y, t: 24, side: p.side});
+            snd("spike");
+          } else {
+            const stuck = frame - lastCross > 480;            // 한쪽에서만 8초 넘게 놀면 넘어가게 도와줘요
+            ball.vx = Math.max(-9.5, Math.min(9.5, nx*8 + p.vx*.45 + toward*1.2));
+            if (stuck || (ball.vx * toward < 1.5 && Math.abs(p.x - NET_X) < 140)) ball.vx = toward * (stuck ? 6.5 : 3 + rnd(2));   // 네트 바로 앞에선 네트 쪽으로
+            ball.vy = -Math.max(10.6, Math.abs(ny)*11.5 + (p.ground ? 0 : 1));
+            p.swing = 8;
+            snd("hit");
+          }
+          p.cool = 9; p.spikeT = 0;
+        }
+      });
+      // 땅에 닿으면 점수
+      if (ball.y + BR >= GROUND){
+        ball.y = GROUND - BR;
+        scorer = ball.x < NET_X ? 1 : 0;
+        score[scorer]++;
+        state = "point"; pointT = 75; ball.vy = -3; shake = 6;
+        fx.push({k: "score", x: ball.x, y: GROUND - 20, t: 60, side: scorer});
+        snd("point");
+      }
+    }
+    function endMatch(w){
+      state = "end";
+      const st = stu(P[w].sid);
+      $("#vbEndPh").innerHTML = avHTML(P[w].sid, "big");
+      $("#vbEndName").textContent = st ? st.name : "";
+      $("#vbEndScore").textContent = `${score[0]} : ${score[1]}` + (P[1].ctl === "cpu" ? (w === 0 ? " · 컴퓨터를 이겼어요!" : " · 컴퓨터가 이겼어요. 다시 도전!") : "");
+      $("#vbEnd").querySelector("h3").textContent = P[w].ctl === "cpu" ? "🤖 컴퓨터 승리!" : "🏆 이겼어요!";
+      $("#vbConf").innerHTML = Array.from({length: 80}, () => `<i style="left:${rnd(100)}%;background:${COLORS[Math.floor(rnd(COLORS.length))]};animation-duration:${2.2 + rnd(2.4)}s;animation-delay:${rnd(.9)}s"></i>`).join("");
+      $("#vbEnd").hidden = false; snd("win");
+    }
+
+    /* ---- 그리기 ---- */
+    function drawBg(){
+      const sky = g.createLinearGradient(0, 0, 0, GROUND);
+      sky.addColorStop(0, "#6ec6ff"); sky.addColorStop(1, "#c9ecff");
+      g.fillStyle = sky; g.fillRect(0, 0, W, H);
+      // 해·구름
+      g.fillStyle = "rgba(255,236,140,.9)"; g.beginPath(); g.arc(W*.66, 118, 30, 0, Math.PI*2); g.fill();
+      g.fillStyle = "rgba(255,255,255,.9)";
+      [[120, 90, 1], [380, 60, .8], [640, 110, 1.1]].forEach(([x, y, s], k) => {
+        x = (x + frame * (.12 + k*.05)) % (W + 160) - 80;
+        [[0,0,28],[26,-10,24],[50,0,26],[24,8,26]].forEach(([dx, dy, r]) => { g.beginPath(); g.arc(x + dx*s, y + dy*s, r*s, 0, Math.PI*2); g.fill(); });
+      });
+      // 모래
+      const sand = g.createLinearGradient(0, GROUND, 0, H);
+      sand.addColorStop(0, "#ffd98a"); sand.addColorStop(1, "#f0b95a");
+      g.fillStyle = sand; g.fillRect(0, GROUND, W, H - GROUND);
+      g.fillStyle = "rgba(160,110,30,.18)";
+      for (let i = 0; i < 60; i++){ g.fillRect((i*97) % W, GROUND + 8 + (i*37) % (H - GROUND - 12), 3, 2); }
+      g.fillStyle = "#e9a94a"; g.fillRect(0, GROUND, W, 4);
+      // 네트
+      g.fillStyle = "#555"; g.fillRect(NET_X - 3, NET_TOP - 4, 6, GROUND - NET_TOP + 4);
+      g.fillStyle = "rgba(255,255,255,.92)"; g.fillRect(NET_X - NET_W/2, NET_TOP, NET_W, 12);
+      g.strokeStyle = "rgba(40,40,40,.45)"; g.lineWidth = 1;
+      for (let y = NET_TOP + 14; y < GROUND - 60; y += 10){ g.beginPath(); g.moveTo(NET_X - NET_W/2, y); g.lineTo(NET_X + NET_W/2, y); g.stroke(); }
+      g.beginPath(); g.moveTo(NET_X - NET_W/2, NET_TOP); g.lineTo(NET_X - NET_W/2, GROUND - 60); g.moveTo(NET_X + NET_W/2, NET_TOP); g.lineTo(NET_X + NET_W/2, GROUND - 60); g.stroke();
+      g.fillStyle = "#ff6b6b"; g.beginPath(); g.arc(NET_X, NET_TOP - 4, 6, 0, Math.PI*2); g.fill();
+    }
+    function drawPlayer(p){
+      const r = p.r, sq = p.squash > 0 ? Math.sin(p.squash/6*Math.PI)*.12 : 0, stretch = p.ground ? 0 : Math.min(.1, Math.abs(p.vy)*.008);
+      // 그림자
+      const air = GROUND - p.y;
+      g.fillStyle = `rgba(120,80,20,${.28 - Math.min(.18, air/600)})`;
+      g.beginPath(); g.ellipse(p.x, GROUND + 4, r*(1 - Math.min(.4, air/500)), 7, 0, 0, Math.PI*2); g.fill();
+      g.save(); g.translate(p.x, p.y); g.scale(1 + sq - stretch, 1 - sq + stretch);
+      // 발
+      g.fillStyle = "#3a3a3a";
+      const step = p.ground && Math.abs(p.vx) > .1 ? Math.sin(frame*.4)*r*.18 : 0;
+      g.beginPath(); g.ellipse(-r*.32 + step, -4, r*.26, r*.14, 0, 0, Math.PI*2); g.fill();
+      g.beginPath(); g.ellipse(r*.32 - step, -4, r*.26, r*.14, 0, 0, Math.PI*2); g.fill();
+      // 몸
+      g.fillStyle = p.col; g.beginPath(); g.ellipse(0, -r*.62, r*.72, r*.62, 0, 0, Math.PI*2); g.fill();
+      g.fillStyle = "rgba(255,255,255,.35)"; g.beginPath(); g.ellipse(0, -r*.55, r*.42, r*.38, 0, 0, Math.PI*2); g.fill();
+      g.fillStyle = "#fff"; g.font = `${Math.round(r*.42)}px "Jua",sans-serif`; g.textAlign = "center"; g.textBaseline = "middle";
+      g.fillText(String(noOf(p.sid)), 0, -r*.46);
+      // 팔 (스파이크 때 휘둘러요)
+      const toward = p.side ? -1 : 1, sw = p.swing > 0 ? p.swing/14 : 0;
+      g.strokeStyle = p.col; g.lineWidth = r*.24; g.lineCap = "round";
+      g.beginPath(); g.moveTo(-toward*r*.55, -r*.8); g.lineTo(-toward*r*.95, -r*(p.ground ? .45 : 1.15)); g.stroke();
+      g.beginPath(); g.moveTo(toward*r*.55, -r*.8);
+      if (sw > 0) g.lineTo(toward*r*(.6 + 1.0*sw), -r*(1.9 - 1.2*sw)); else g.lineTo(toward*r*.95, -r*(p.ground ? .45 : 1.25));
+      g.stroke();
+      // 얼굴 (사진)
+      const hy = -r*1.78, hr = r*.8, m = image(p.sid);
+      g.save(); g.beginPath(); g.arc(0, hy, hr, 0, Math.PI*2); g.fillStyle = "#fff"; g.fill();
+      if (m){ g.clip(); const sc = Math.max(hr*2/m.naturalWidth, hr*2/m.naturalHeight), w = m.naturalWidth*sc, h = m.naturalHeight*sc; g.drawImage(m, -w/2, hy - h/2, w, h); }
+      else { g.font = `${Math.round(hr*1.3)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(faceOf(p.sid), 0, hy + hr*.06); }
+      g.restore();
+      g.lineWidth = Math.max(3, r*.12); g.strokeStyle = "#fff"; g.beginPath(); g.arc(0, hy, hr, 0, Math.PI*2); g.stroke();
+      g.lineWidth = 2.5; g.strokeStyle = p.col; g.beginPath(); g.arc(0, hy, hr + r*.08, 0, Math.PI*2); g.stroke();
+      g.restore();
+      // 머리 위 표시
+      const tag = p.ctl === "cpu" ? "🤖" : p.side ? "2P" : "1P";
+      g.font = `16px "Jua",sans-serif`; g.textAlign = "center"; g.textBaseline = "bottom";
+      g.fillStyle = p.side ? "#1971c2" : "#e8590c";
+      g.fillText(tag, p.x, p.y - r*2.6 - 4);
+    }
+    function drawBall(){
+      if (!ball) return;
+      // 공 그림자
+      g.fillStyle = "rgba(120,80,20,.22)"; g.beginPath(); g.ellipse(ball.x, GROUND + 3, BR*.9, 5, 0, 0, Math.PI*2); g.fill();
+      trail.forEach((t, k) => { g.fillStyle = `rgba(255,${120 + k*10},60,${(k+1)/trail.length*.35})`; g.beginPath(); g.arc(t.x, t.y, BR*(.5 + k/trail.length*.5), 0, Math.PI*2); g.fill(); });
+      g.save(); g.translate(ball.x, ball.y); g.rotate(ball.spin);
+      g.beginPath(); g.arc(0, 0, BR, 0, Math.PI*2); g.fillStyle = "#fff"; g.fill(); g.clip();
+      // 배구공 무늬: 노랑·파랑 띠 세 줄
+      [["#ffd43b", 0], ["#339af0", Math.PI*2/3], ["#ffd43b", Math.PI*4/3]].forEach(([c, a]) => {
+        g.save(); g.rotate(a); g.strokeStyle = c; g.lineWidth = BR*.42;
+        g.beginPath(); g.arc(0, BR*1.25, BR*1.05, Math.PI*1.18, Math.PI*1.82); g.stroke(); g.restore();
+      });
+      g.strokeStyle = "rgba(40,40,60,.55)"; g.lineWidth = 1.6;
+      [0, Math.PI*2/3, Math.PI*4/3].forEach(a => { g.save(); g.rotate(a); g.beginPath(); g.arc(0, BR*1.25, BR*.83, Math.PI*1.15, Math.PI*1.85); g.stroke(); g.beginPath(); g.arc(0, BR*1.25, BR*1.27, Math.PI*1.22, Math.PI*1.78); g.stroke(); g.restore(); });
+      g.fillStyle = "rgba(255,255,255,.35)"; g.beginPath(); g.arc(-BR*.35, -BR*.4, BR*.35, 0, Math.PI*2); g.fill();
+      g.restore();
+      g.strokeStyle = "rgba(0,0,0,.3)"; g.lineWidth = 2; g.beginPath(); g.arc(ball.x, ball.y, BR, 0, Math.PI*2); g.stroke();
+      if (ball.y < -BR){   // 화면 위로 나가면 위치 표시
+        g.fillStyle = "#e63946"; g.beginPath(); g.moveTo(ball.x, 6); g.lineTo(ball.x - 10, 22); g.lineTo(ball.x + 10, 22); g.closePath(); g.fill();
+      }
+    }
+    function drawHud(){
+      P.forEach((p, k) => {
+        const st = stu(p.sid), x = k ? W - 20 : 20, al = k ? "right" : "left";
+        g.textAlign = al; g.textBaseline = "top";
+        g.font = `56px "Jua",sans-serif`; g.lineWidth = 7; g.strokeStyle = "rgba(0,0,0,.25)"; g.fillStyle = k ? "#1971c2" : "#e8590c";
+        g.strokeText(String(score[k]), x, 8); g.fillText(String(score[k]), x, 8);
+        g.font = `20px "Jua",sans-serif`; g.fillStyle = "#123"; g.fillText(`${st ? st.name : ""}${p.ctl === "cpu" ? " 🤖" : ""}`, k ? x - 52 : x + 52, 18);
+        g.font = `14px "Jua",sans-serif`; g.fillStyle = "rgba(0,40,80,.7)"; g.fillText(typeOf(p.sid), k ? x - 52 : x + 52, 42);
+      });
+      g.textAlign = "center"; g.textBaseline = "top"; g.font = `16px "Jua",sans-serif`; g.fillStyle = "rgba(0,40,80,.6)";
+      g.fillText(`${target}점 먼저 내면 승리`, W/2, 10);
+      fx.forEach(f => {
+        if (f.k === "pang"){ const a = f.t/24; g.save(); g.globalAlpha = a; g.font = `${Math.round(38 + (1-a)*30)}px "Jua",sans-serif`; g.fillStyle = "#ff3b3b"; g.strokeStyle = "#fff"; g.lineWidth = 6; g.textAlign = "center"; g.textBaseline = "middle"; g.strokeText("팡!", f.x, f.y - 30); g.fillText("팡!", f.x, f.y - 30); g.restore(); }
+        if (f.k === "score"){ const a = Math.min(1, f.t/20); g.save(); g.globalAlpha = a; g.font = `64px "Jua",sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.lineWidth = 8; g.strokeStyle = "#fff"; g.fillStyle = f.side ? "#1971c2" : "#e8590c"; const tx = f.side ? W*.75 : W*.25; g.strokeText("득점!", tx, 180 - (60 - f.t)*.5); g.fillText("득점!", tx, 180 - (60 - f.t)*.5); g.restore(); }
+      });
+      if (state === "play" && ball && ball.vx === 0 && ball.vy < 4 && ball.y < 200){
+        g.font = `22px "Jua",sans-serif`; g.textAlign = "center"; g.fillStyle = "#fff"; g.strokeStyle = "rgba(0,0,0,.35)"; g.lineWidth = 5;
+        const t = `${stu(P[server].sid) ? stu(P[server].sid).name : ""} 서브!`; g.strokeText(t, ball.x, 60); g.fillText(t, ball.x, 60);
+      }
+    }
+    function draw(){
+      g.save();
+      if (shake > .5) g.translate((Math.random()-.5)*shake, (Math.random()-.5)*shake);
+      drawBg(); P.forEach(drawPlayer); drawBall(); drawHud();
+      g.restore();
+    }
+    function loop(now){
+      if (!open) return;
+      if (!last) last = now;
+      acc += Math.min(100, now - last); last = now;
+      while (acc >= 1000/60){ if (state !== "pause" && state !== "sel" && state !== "end") step(); acc -= 1000/60; }
+      draw();
+      raf = requestAnimationFrame(loop);
+    }
+
+    /* ---- 화면 맞추기 ---- */
+    function fit(){
+      const st = $("#vbStage"), w = st.clientWidth - 24, h = st.clientHeight - 12;
+      const sc = Math.max(.3, Math.min(w / W, h / H));
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      cv.style.width = Math.round(W*sc) + "px"; cv.style.height = Math.round(H*sc) + "px";
+      cv.width = Math.round(W*sc*dpr); cv.height = Math.round(H*sc*dpr);
+      g.setTransform(sc*dpr, 0, 0, sc*dpr, 0, 0);
+    }
+
+    /* ---- 캐릭터 고르기 화면 ---- */
+    function renderKeys(){
+      $("#vbKeys").innerHTML = mode === "cpu"
+        ? `이동 <kbd>A</kbd><kbd>D</kbd> 또는 <kbd>←</kbd><kbd>→</kbd> · 점프 <kbd>W</kbd>/<kbd>↑</kbd> · 스파이크 <kbd>F</kbd>/<kbd>Enter</kbd> · 멈춤 <kbd>P</kbd>`
+        : `1P <kbd>A</kbd><kbd>D</kbd> 이동 <kbd>W</kbd> 점프 <kbd>F</kbd> 스파이크 · 2P <kbd>←</kbd><kbd>→</kbd> 이동 <kbd>↑</kbd> 점프 <kbd>Enter</kbd> 스파이크 · 멈춤 <kbd>P</kbd>`;
+    }
+    function slotHTML(k){
+      const sid = pick[k], st = sid && stu(sid);
+      const tag = k === 0 ? "🧒 1P" : mode === "cpu" ? "🤖 컴퓨터" : "🧒 2P";
+      if (!st) return `<span class="vb-av">❔</span><div><span class="tag">${tag}</span><div class="who">${cur === k ? "아래에서 골라 주세요" : "아무나 (랜덤)"}</div></div>`;
+      return `${avHTML(sid, "vb-av")}<div><span class="tag">${tag}</span><div class="who">${esc(st.name)}</div><div class="ty">${typeOf(sid)}</div>${barsHTML(sid)}</div>`;
+    }
+    function renderSel(){
+      ensureStats();
+      document.querySelectorAll("#vbMode button").forEach(b => b.classList.toggle("on", b.dataset.m === mode));
+      document.querySelectorAll("#vbLv button").forEach(b => b.classList.toggle("on", +b.dataset.l === lv));
+      document.querySelectorAll("#vbPts button").forEach(b => b.classList.toggle("on", +b.dataset.p === target));
+      $("#vbLv").style.display = mode === "cpu" ? "" : "none";
+      [0, 1].forEach(k => { const el = $("#vbSlot" + (k+1)); el.innerHTML = slotHTML(k); el.classList.toggle("cur", cur === k); });
+      $("#vbGrid").innerHTML = S.students.map((st, i) => {
+        const s1 = pick[0] === st.id, s2 = pick[1] === st.id;
+        return `<button class="vb-ch${s1 ? " s1" : ""}${s2 ? " s2" : ""}" data-vb="${st.id}">${s1 ? `<span class="mk">1P</span>` : s2 ? `<span class="mk">${mode === "cpu" ? "🤖" : "2P"}</span>` : ""}${avHTML(st.id, "ph")}<span class="nm">${i+1}. ${esc(st.name)}</span><span class="ty">${typeOf(st.id)}</span>${barsHTML(st.id)}</button>`;
+      }).join("");
+      $("#vbHelp").innerHTML = `위 칸(1P·${mode === "cpu" ? "컴퓨터" : "2P"})을 누르고 아래에서 친구를 고르세요. 능력치는 친구마다 다르고 합은 모두 12로 똑같아요.<br>
+        <b>스피드</b> 빨리 달리기 · <b>점프</b> 높이 뛰기 · <b>파워</b> 스파이크 세기 · <b>몸집</b> 클수록 공에 잘 닿아요 · 공중에서 공에 닿을 때 스파이크 키를 누르면 <b>💥 스파이크</b> (↓ 같이 누르면 내리꽂기)`;
+      renderKeys();
+    }
+    function toSel(){ state = "sel"; $("#vbEnd").hidden = true; $("#vbPause").hidden = true; $("#vbSel").hidden = false; renderSel(); }
+    function openVb(){
+      open = true; ensureStats();
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+      $("#volley").classList.add("open");
+      requestAnimationFrame(() => { fit(); });
+      if (!P.length){ P = [mkPlayer(S.students[0] ? S.students[0].id : "", 0, "p1"), mkPlayer(S.students[1] ? S.students[1].id : "", 1, "cpu")]; ball = {x: W*.22, y: 110, vx: 0, vy: 0, spin: 0, spiked: 0}; }
+      toSel(); last = 0; cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
+    }
+    function closeVb(){ open = false; cancelAnimationFrame(raf); keys.clear(); $("#volley").classList.remove("open"); state = "sel"; }
+
+    $("#vbBtn").onclick = openVb;
+    $("#vbClose").onclick = closeVb; $("#vbClose2").onclick = closeVb;
+    $("#vbMode").addEventListener("click", e => { const b = e.target.closest("[data-m]"); if (b){ mode = b.dataset.m; renderSel(); } });
+    $("#vbLv").addEventListener("click", e => { const b = e.target.closest("[data-l]"); if (b){ lv = +b.dataset.l; renderSel(); } });
+    $("#vbPts").addEventListener("click", e => { const b = e.target.closest("[data-p]"); if (b){ target = +b.dataset.p; renderSel(); } });
+    $("#vbSlot1").onclick = () => { cur = 0; renderSel(); };
+    $("#vbSlot2").onclick = () => { cur = 1; renderSel(); };
+    $("#vbGrid").addEventListener("click", e => {
+      const b = e.target.closest("[data-vb]"); if (!b) return;
+      const id = b.dataset.vb;
+      if (pick[1 - cur] === id) pick[1 - cur] = null;   // 같은 친구끼리는 못 붙어요
+      pick[cur] = id;
+      if (cur === 0 && !pick[1]) cur = 1;
+      renderSel();
+    });
+    $("#vbRand").onclick = () => { pick[0] = randPick(null); pick[1] = randPick(pick[0]); renderSel(); };
+    $("#vbStart").onclick = () => { if (S.students.length < 2){ toast("학생이 2명 이상 있어야 해요", false); return; } startMatch(); };
+    $("#vbReroll").onclick = () => { if (!confirm("모든 친구의 능력치를 새로 섞을까요?")) return; ensureStats(true); renderSel(); toast("🔄 능력치를 새로 섞었어요", false); };
+    $("#vbRe").onclick = startMatch;
+    $("#vbToSel").onclick = toSel;
+    window.addEventListener("resize", () => { if (open) fit(); });
+    window.addEventListener("keydown", e => {
+      if (!open) return;
+      if (e.key === "Escape"){
+        e.preventDefault(); e.stopPropagation();
+        if (state === "sel") closeVb(); else toSel();
+        return;
+      }
+      if (state === "sel" && (e.code === "Enter" || e.code === "Space") && !e.repeat && !document.querySelector(".modal.open")){ e.preventDefault(); $("#vbStart").click(); return; }
+      if (e.code === "KeyP" && (state === "play" || state === "point" || state === "pause")){
+        e.preventDefault();
+        if (state === "pause"){ state = $("#vbPause").dataset.prev || "play"; $("#vbPause").hidden = true; }
+        else { $("#vbPause").dataset.prev = state; state = "pause"; $("#vbPause").hidden = false; }
+        return;
+      }
+      if (GAMEKEYS.has(e.code)){ e.preventDefault(); if (!e.repeat) pressed.add(e.code); keys.add(e.code); }
+    }, true);
+    window.addEventListener("keyup", e => { if (open){ keys.delete(e.code); } }, true);
+    window.addEventListener("blur", () => keys.clear());
+    window.__vbTest = { get state(){ return state; }, get score(){ return score; }, get P(){ return P; }, get ball(){ return ball; }, setMode(m){ mode = m; }, setPick(a, b){ pick = [a, b]; }, start: startMatch, step, cpuBoth(){ P[0].ctl = "cpu"; }, setTarget(n){ target = n; }, setLv(n){ lv = n; } };
   })();
 
   tickClock(); setInterval(tickClock, 1000);
