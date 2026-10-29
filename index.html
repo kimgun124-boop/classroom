@@ -1068,6 +1068,58 @@
   body.fx-shake2 .wrap{animation:fxShake2 .45s linear}
   @keyframes fxShake{0%,100%{transform:none}20%{transform:translate(-7px,5px)}40%{transform:translate(6px,-6px)}60%{transform:translate(-5px,-3px)}80%{transform:translate(4px,4px)}}
   @keyframes fxShake2{0%,100%{transform:none}15%{transform:translate(-14px,8px) rotate(-.4deg)}30%{transform:translate(12px,-10px) rotate(.4deg)}45%{transform:translate(-10px,-6px)}60%{transform:translate(9px,7px)}80%{transform:translate(-4px,3px)}}
+  /* ---------- 🎡 사진 돌림판 ---------- */
+  #wheel{position:fixed;inset:0;z-index:9990;display:none;flex-direction:column;background:radial-gradient(ellipse at 50% 40%,#3f2f6b 0%,#2a1f4c 60%,#1c1536 100%);color:#fff;font-family:"Jua";user-select:none}
+  #wheel.open{display:flex;animation:bcIn .3s ease}
+  #wheel::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,.5) 1px,transparent 1.5px),radial-gradient(rgba(255,216,77,.45) 1px,transparent 1.5px);background-size:90px 90px,140px 140px;background-position:0 0,40px 60px;opacity:.5}
+  .wh-top{position:relative;display:flex;align-items:center;gap:12px;padding:12px 18px;flex-wrap:wrap}
+  .wh-top h2{font-weight:400;font-size:clamp(24px,2.6vw,38px);margin:0;flex:1}
+  .wh-top .pk-x{background:rgba(255,255,255,.14)}
+  .wh-main{position:relative;flex:1;min-height:0;display:flex;gap:16px;padding:0 16px 16px}
+  .wh-stage{position:relative;flex:1;min-width:0;display:flex;align-items:center;justify-content:center}
+  .wh-wrap{position:relative;width:var(--wd,600px);height:var(--wd,600px)}
+  #whCanvas{display:block;width:100%;height:100%;border-radius:50%;box-shadow:0 0 0 10px #ffd84d,0 0 0 18px #c98a1a,0 20px 60px rgba(0,0,0,.55),0 0 80px rgba(255,216,77,.35)}
+  .wh-lights{position:absolute;inset:-14px;pointer-events:none}
+  .wh-lights i{position:absolute;left:50%;top:50%;width:12px;height:12px;margin:-6px;border-radius:50%;background:#fff6c8;box-shadow:0 0 10px #ffe680}
+  #wheel.spinning .wh-lights i{animation:whBlink .5s steps(2) infinite}
+  #wheel.spinning .wh-lights i:nth-child(odd){animation-delay:-.25s}
+  @keyframes whBlink{0%{opacity:1}100%{opacity:.25}}
+  .wh-ptr{position:absolute;left:50%;top:-34px;width:62px;height:76px;margin-left:-31px;z-index:3;transform-origin:50% 22%;filter:drop-shadow(0 5px 4px rgba(0,0,0,.4))}
+  .wh-ptr.flick{animation:whFlick .12s ease-out}
+  @keyframes whFlick{0%{transform:rotate(0)}40%{transform:rotate(-18deg)}100%{transform:rotate(0)}}
+  .wh-hub{position:absolute;left:50%;top:50%;width:var(--hub,120px);height:var(--hub,120px);margin:calc(var(--hub,120px)/-2);border-radius:50%;z-index:2;
+    font-family:"Jua";font-size:calc(var(--hub,120px)*.26);color:#fff;background:radial-gradient(circle at 35% 30%,#ff9d7a,#ff6a3d 60%,#d9481d);box-shadow:0 0 0 6px #fff,0 0 0 10px #ffd84d,0 8px 20px rgba(0,0,0,.4);line-height:1.05}
+  .wh-hub:active{transform:scale(.96)}
+  .wh-hub[disabled]{filter:saturate(.4) brightness(.9);cursor:default}
+  .wh-side{position:relative;width:270px;display:flex;flex-direction:column;gap:10px;min-height:0}
+  .wh-box{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.14);border-radius:18px;padding:10px 12px;min-height:0;display:flex;flex-direction:column}
+  .wh-box h3{font-weight:400;font-size:18px;margin:0 0 4px}
+  .wh-box p{font-family:"Gowun Dodum";font-size:13px;opacity:.75;margin:0 0 8px}
+  .wh-people{flex:1;min-height:0;overflow:auto;display:flex;flex-wrap:wrap;gap:5px;align-content:flex-start}
+  .wh-people button{display:inline-flex;align-items:center;gap:5px;font-family:"Jua";font-size:15px;color:#2e2a26;background:#fff;border-radius:999px;padding:2px 10px 2px 3px;border:2px solid transparent}
+  .wh-people button.off{opacity:.4;text-decoration:line-through;background:#ddd}
+  .wh-people .mb-av{width:26px;height:26px;font-size:15px}
+  .wh-acts{display:flex;gap:6px;flex-wrap:wrap}
+  .wh-acts button{flex:1;font-family:"Jua";font-size:15px;background:rgba(255,255,255,.14);color:#fff;border-radius:12px;padding:8px 6px;white-space:nowrap}
+  .wh-acts button:hover{background:rgba(255,255,255,.24)}
+  .wh-hist{display:flex;flex-direction:column;gap:4px;overflow:auto;max-height:24vh}
+  .wh-hist div{display:flex;align-items:center;gap:7px;font-size:16px;background:rgba(255,255,255,.08);border-radius:10px;padding:3px 8px}
+  .wh-hist b{font-weight:400;color:#ffd84d;min-width:22px}
+  .wh-win{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vh;background:radial-gradient(ellipse,rgba(60,40,0,.55),rgba(15,10,30,.88));text-align:center}
+  .wh-win[hidden]{display:none}
+  .wh-win h3{font-weight:400;font-size:clamp(36px,5vw,80px);margin:0;color:#ffd84d;text-shadow:0 6px 0 rgba(0,0,0,.3)}
+  .wh-wph{width:clamp(170px,34vh,380px);height:clamp(170px,34vh,380px);border-radius:50%;object-fit:cover;border:10px solid #ffd84d;box-shadow:0 0 70px rgba(255,216,77,.75);background:#fff;display:grid;place-items:center;
+    font-size:clamp(90px,18vh,200px);line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;animation:pkWin .8s cubic-bezier(.2,1.6,.4,1) both}
+  .wh-wname{font-size:clamp(48px,8vw,130px);line-height:1;text-shadow:0 6px 0 rgba(0,0,0,.35);animation:pkWin .8s .12s cubic-bezier(.2,1.6,.4,1) both}
+  .wh-wname small{font-size:.4em;color:#ffd84d;margin-right:.3em;vertical-align:.35em}
+  .wh-win .mb-wbtns{animation:bcIn .4s .5s both}
+  .wh-conf{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+  .wh-conf i{position:absolute;top:-20px;width:12px;height:18px;border-radius:3px;animation:whFall linear forwards}
+  @keyframes whFall{to{transform:translateY(110vh) rotate(720deg)}}
+  .wh-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;font-size:26px;z-index:4;pointer-events:none;text-shadow:0 3px 0 rgba(0,0,0,.4)}
+  .wh-empty[hidden]{display:none}
+  @media (max-width:860px){ .wh-side{display:none} }
+
   /* ---------- 🎤 발표 뽑기 ---------- */
   #pick{position:fixed;inset:0;z-index:9990;display:none;flex-direction:column;gap:2vh;padding:2.4vh 3vw 2vh;
     background:radial-gradient(ellipse at 50% 35%,#46695a 0%,#34503f 65%,#29402f 100%);color:#fdfbf6;
@@ -1284,6 +1336,34 @@
     </div>
   </div>
 </div>
+<div id="wheel" role="dialog" aria-label="사진 돌림판">
+  <div class="wh-top"><h2>🎡 사진 돌림판</h2><span class="pk-meta" id="whMeta"></span><button class="pk-x" id="whClose" title="닫기 (Esc)" aria-label="돌림판 닫기">×</button></div>
+  <div class="wh-main">
+    <div class="wh-stage" id="whStage">
+      <div class="wh-wrap" id="whWrap">
+        <svg class="wh-ptr" id="whPtr" viewBox="0 0 62 76" aria-hidden="true"><path d="M31 74 L6 22 A26 26 0 1 1 56 22 Z" fill="#ff4d6d" stroke="#fff" stroke-width="5" stroke-linejoin="round"/><circle cx="31" cy="24" r="9" fill="#fff"/></svg>
+        <canvas id="whCanvas"></canvas>
+        <div class="wh-lights" id="whLights"></div>
+        <button class="wh-hub" id="whGo" title="돌리기 (스페이스 바)">돌려!</button>
+        <div class="wh-empty" id="whEmpty" hidden>돌림판에 친구가 없어요<br>오른쪽에서 친구를 넣어 주세요</div>
+      </div>
+    </div>
+    <div class="wh-side">
+      <div class="wh-box" style="flex:1"><h3>👫 돌림판에 넣을 친구</h3><p>눌러서 빼고 넣어요 (오늘 없는 친구는 빼 주세요)</p>
+        <div class="wh-people" id="whPeople"></div>
+        <div class="wh-acts" style="margin-top:8px"><button id="whAll">모두 넣기</button><button id="whPhotoOnly" title="사진이 있는 친구만">📷 사진 있는 친구만</button></div>
+      </div>
+      <div class="wh-box"><h3>📜 뽑힌 순서</h3><div class="wh-hist" id="whHist"></div></div>
+    </div>
+    <div class="wh-win" id="whWin" hidden>
+      <div class="wh-conf" id="whConf"></div>
+      <h3>🎉 축하해요!</h3>
+      <div id="whWPh"></div>
+      <div class="wh-wname" id="whWName"></div>
+      <div class="mb-wbtns"><button class="p" id="whAgain">🎡 한 번 더</button><button id="whAgainX">➖ 이 친구 빼고 다시</button><button id="whClose2">닫기</button></div>
+    </div>
+  </div>
+</div>
 <div id="pick" role="dialog" aria-label="발표 뽑기">
   <div class="pk-top">
     <h2>🎤 발표 뽑기</h2>
@@ -1337,6 +1417,7 @@
         <span class="split"><button class="btn hamb" id="hamBtn" title="뿅망치를 들고 친구 카드를 눌러요 (손들기 횟수는 올라가지 않아요)">🔨 뿅망치</button><button class="btn mini" id="hamEdit" title="뿅망치 맞은 횟수 보기·고치기" aria-label="뿅망치 맞은 횟수 보기·고치기">📋</button></span>
         <button class="btn hlb" id="hlBtn" title="연고를 발라 주면 뿅망치 맞은 횟수가 1번씩 줄고 카드가 나아요">🧴 후시딘</button>
         <span class="split"><button class="btn prb" id="prBtn" title="칭찬 도장을 들고 친구 카드를 눌러요 (많이 받을수록 카드가 멋지게 변신해요)">💮 칭찬 도장</button><button class="btn mini" id="prEdit" title="칭찬 도장 횟수·남녀 보기·고치기" aria-label="칭찬 도장 횟수 보기·고치기">📋</button></span>
+        <button class="btn pickb" id="whBtn" title="친구 사진 돌림판을 돌려서 뽑아요">🎡 돌림판</button>
         <button class="btn pickb" id="mbBtn" title="친구 얼굴 구슬을 굴려서 뽑아요 (마블 레이스)">🔮 구슬 뽑기</button>
         <button class="btn pickb" id="pickBtn" title="발표할 친구 뽑기 (모두 한 번씩 뽑힐 때까지 겹치지 않아요)">🎤 발표 뽑기</button>
       </div>
@@ -5132,6 +5213,156 @@
     if (e.key === "Escape") { closePick(); return; }
     if (e.key === " " || e.code === "Space") { e.preventDefault(); pickDraw(); }
   });
+
+
+  /* ---------- 🎡 사진 돌림판 ---------- */
+  (function(){
+    const COLORS = ["#ff6b6b","#ffa94d","#ffd43b","#69db7c","#38d9a9","#4dabf7","#748ffc","#da77f2","#f783ac","#a9e34b","#3bc9db","#ff8787"];
+    const cv = $("#whCanvas"), g = cv.getContext("2d");
+    let open = false, spinning = false, rot = 0, out = new Set(), hist = [], imgs = {}, size = 600, raf = 0, lastIdx = -1;
+    const people = () => S.students.filter(st => !out.has(st.id));
+    const rnd = n => { try{ const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] / 4294967296 * n; }catch(e){ return Math.random() * n; } };
+    const noOf = sid => S.students.findIndex(x => x.id === sid) + 1;
+    function img(sid){
+      const src = photoOf(sid); if (!src) return null;
+      let m = imgs[sid];
+      if (!m || m.src !== src){ m = imgs[sid] = new Image(); m.onload = () => { if (open && !spinning) draw(); }; m.src = src; }
+      return m.complete && m.naturalWidth ? m : null;
+    }
+    function resize(){
+      const st = $("#whStage"), w = st.clientWidth, h = st.clientHeight;
+      size = Math.max(260, Math.floor(Math.min(w - 40, h - 70)));
+      $("#whWrap").style.setProperty("--wd", size + "px");
+      $("#whWrap").style.setProperty("--hub", Math.round(size * .2) + "px");
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
+      cv.width = cv.height = Math.round(size * dpr);
+      g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const L = $("#whLights"), n = 24, R = size/2 + 14 - 6;
+      L.innerHTML = Array.from({length:n}, (_, i) => { const a = i / n * Math.PI * 2; return `<i style="transform:translate(${Math.cos(a)*R}px,${Math.sin(a)*R}px)"></i>`; }).join("");
+      draw();
+    }
+    function draw(){
+      const list = people(), n = list.length, R = size/2, c = R;
+      g.clearRect(0, 0, size, size);
+      $("#whEmpty").hidden = n > 0; $("#whGo").disabled = n < 1 || spinning;
+      if (!n){ g.beginPath(); g.arc(c, c, R, 0, Math.PI*2); g.fillStyle = "#3a2f5e"; g.fill(); return; }
+      const a = Math.PI * 2 / n;
+      const imgR = Math.min(R * .17, Math.sin(a/2) * R * .78 * .92);
+      const fs = Math.max(11, Math.min(R * .085, Math.sin(a/2) * R * .5 * 1.25, 34));
+      list.forEach((st, i) => {
+        const a0 = rot + i * a - Math.PI/2, a1 = a0 + a, mid = a0 + a/2, col = COLORS[noOf(st.id) % COLORS.length];
+        g.beginPath(); g.moveTo(c, c); g.arc(c, c, R, a0, a1); g.closePath();
+        g.fillStyle = col; g.fill();
+        if (n > 1){ g.lineWidth = 2; g.strokeStyle = "rgba(255,255,255,.85)"; g.stroke(); }
+        // 사진(또는 얼굴)은 바깥쪽에 동그랗게
+        const pr = R * .78, px = c + Math.cos(mid) * pr, py = c + Math.sin(mid) * pr, m = img(st.id);
+        g.save(); g.beginPath(); g.arc(px, py, imgR, 0, Math.PI*2); g.fillStyle = "#fff"; g.fill();
+        if (m){ g.clip(); const sc = Math.max(imgR*2 / m.naturalWidth, imgR*2 / m.naturalHeight), w = m.naturalWidth*sc, h = m.naturalHeight*sc; g.drawImage(m, px - w/2, py - h/2, w, h); }
+        else { g.font = `${Math.round(imgR*1.25)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(faceOf(st.id), px, py + imgR*.06); }
+        g.restore();
+        g.beginPath(); g.arc(px, py, imgR, 0, Math.PI*2); g.lineWidth = Math.max(2, imgR*.12); g.strokeStyle = "#fff"; g.stroke();
+        // 이름은 가운데에서 바깥쪽으로
+        g.save(); g.translate(c, c); g.rotate(mid);
+        let flip = Math.cos(mid) < 0;   // 왼쪽 절반은 뒤집어서 바로 읽히게
+        g.font = `${Math.round(fs)}px "Jua", sans-serif`; g.textBaseline = "middle"; g.fillStyle = "#fff";
+        g.lineWidth = Math.max(3, fs * .18); g.strokeStyle = "rgba(0,0,0,.35)"; g.lineJoin = "round";
+        let name = st.name; const maxW = pr - imgR - R*.2 - 8;
+        while (name.length > 1 && g.measureText(name).width > maxW) name = name.slice(0, -1);
+        if (name !== st.name) name = name.slice(0, -1) + "…";
+        const tx = pr - imgR - 8;
+        if (flip){ g.rotate(Math.PI); g.textAlign = "left"; g.strokeText(name, -tx, 0); g.fillText(name, -tx, 0); }
+        else { g.textAlign = "right"; g.strokeText(name, tx, 0); g.fillText(name, tx, 0); }
+        g.restore();
+      });
+      // 바깥 테두리 점
+      g.beginPath(); g.arc(c, c, R - 2, 0, Math.PI*2); g.lineWidth = 4; g.strokeStyle = "rgba(255,255,255,.9)"; g.stroke();
+    }
+    function idxAtPointer(n){
+      const a = Math.PI * 2 / n; let t = (-rot) % (Math.PI*2); if (t < 0) t += Math.PI*2;
+      return Math.floor(t / a) % n;
+    }
+    function tick(){
+      if (!S.sound) return;
+      try{ const C = getAC(), t = C.currentTime, o = C.createOscillator(), gn = C.createGain();
+        o.type = "square"; o.frequency.setValueAtTime(1500, t); o.frequency.exponentialRampToValueAtTime(700, t + .03);
+        gn.gain.setValueAtTime(.06, t); gn.gain.exponentialRampToValueAtTime(.0001, t + .05);
+        o.connect(gn).connect(C.destination); o.start(t); o.stop(t + .06); }catch(e){}
+    }
+    function tada(){
+      if (!S.sound) return;
+      try{ const C = getAC(), t0 = C.currentTime + .02;
+        [[523.25,0,.14],[659.25,.13,.14],[783.99,.26,.14],[1046.5,.39,.5]].forEach(([f, at, d]) => {
+          const o = C.createOscillator(), gn = C.createGain(); o.type = "triangle"; o.frequency.value = f;
+          gn.gain.setValueAtTime(.0001, t0+at); gn.gain.exponentialRampToValueAtTime(.22, t0+at+.02); gn.gain.exponentialRampToValueAtTime(.0001, t0+at+d);
+          o.connect(gn).connect(C.destination); o.start(t0+at); o.stop(t0+at+d+.05); });
+      }catch(e){}
+    }
+    function spin(){
+      const list = people(), n = list.length;
+      if (spinning || !n || !open) return;
+      $("#whWin").hidden = true;
+      spinning = true; $("#wheel").classList.add("spinning"); $("#whGo").disabled = true;
+      const a = Math.PI * 2 / n, win = Math.floor(rnd(n));
+      // 뽑힌 칸 가운데쯤(가장자리 피해서)이 맨 위 바늘에 오도록
+      const off = (rnd(.7) - .35) * a;
+      let target = -(win * a + a/2 + off);
+      const turns = 6 + Math.floor(rnd(3));
+      while (target > rot - turns * Math.PI * 2) target -= Math.PI * 2;
+      const from = rot, dur = 5200 + rnd(1600), t0 = performance.now();
+      lastIdx = idxAtPointer(n);
+      const ease = x => 1 - Math.pow(1 - x, 4);
+      const step = now => {
+        const x = Math.min(1, (now - t0) / dur);
+        rot = from + (target - from) * ease(x);
+        draw();
+        const k = idxAtPointer(n);
+        if (k !== lastIdx){ lastIdx = k; tick(); const p = $("#whPtr"); p.classList.remove("flick"); void p.offsetWidth; p.classList.add("flick"); }
+        if (x < 1 && open) raf = requestAnimationFrame(step);
+        else done(list[win]);
+      };
+      raf = requestAnimationFrame(step);
+    }
+    function done(st){
+      spinning = false; $("#wheel").classList.remove("spinning"); draw();
+      if (!open || !st) return;
+      hist.unshift(st.id); renderSide();
+      const ph = photoOf(st.id);
+      $("#whWPh").innerHTML = ph ? `<img class="wh-wph" src="${ph}" alt="">` : `<div class="wh-wph">${faceOf(st.id)}</div>`;
+      $("#whWName").innerHTML = `<small>${noOf(st.id)}번</small>${esc(st.name)}`;
+      $("#whAgainX").dataset.id = st.id;
+      $("#whConf").innerHTML = Array.from({length:70}, () => `<i style="left:${rnd(100)}%;background:${COLORS[Math.floor(rnd(COLORS.length))]};animation-duration:${2.2 + rnd(2.2)}s;animation-delay:${rnd(.8)}s"></i>`).join("");
+      $("#whWin").hidden = false; tada();
+    }
+    function renderSide(){
+      const n = people().length;
+      $("#whMeta").textContent = `${n}명`;
+      $("#whPeople").innerHTML = S.students.map((st, i) => `<button data-wh="${st.id}" class="${out.has(st.id) ? "off" : ""}">${photoOf(st.id) ? `<img class="mb-av" src="${photoOf(st.id)}" alt="">` : `<span class="mb-av">${faceOf(st.id)}</span>`}${i+1} ${esc(st.name)}</button>`).join("");
+      $("#whHist").innerHTML = hist.length ? hist.map((id, k) => { const st = S.students.find(x => x.id === id); return st ? `<div><b>${hist.length - k}</b>${photoOf(id) ? `<img class="mb-av" src="${photoOf(id)}" alt="">` : `<span class="mb-av">${faceOf(id)}</span>`}${esc(st.name)}</div>` : ""; }).join("") : `<div style="opacity:.6">아직 없어요</div>`;
+    }
+    function openWh(){
+      open = true;
+      const ids = new Set(S.students.map(x => x.id));
+      out = new Set([...out].filter(id => ids.has(id)));
+      try{ pickState().absent.ids.forEach(id => out.add(id)); }catch(e){}   // 발표 뽑기에서 '오늘 없음'으로 뺀 친구는 여기서도 빼요
+      $("#wheel").classList.add("open"); $("#whWin").hidden = true;
+      renderSide(); requestAnimationFrame(resize);
+    }
+    function closeWh(){ open = false; spinning = false; cancelAnimationFrame(raf); $("#wheel").classList.remove("open","spinning"); $("#whWin").hidden = true; }
+    $("#whBtn").onclick = openWh;
+    $("#whClose").onclick = closeWh; $("#whClose2").onclick = closeWh;
+    $("#whGo").onclick = () => { getAC(); spin(); };
+    $("#whAgain").onclick = () => { $("#whWin").hidden = true; spin(); };
+    $("#whAgainX").onclick = e => { const id = e.currentTarget.dataset.id; if (id) out.add(id); $("#whWin").hidden = true; renderSide(); draw(); if (people().length) setTimeout(spin, 250); };
+    $("#whPeople").addEventListener("click", e => { const b = e.target.closest("[data-wh]"); if (!b || spinning) return; const id = b.dataset.wh; out.has(id) ? out.delete(id) : out.add(id); renderSide(); draw(); });
+    $("#whAll").onclick = () => { if (spinning) return; out.clear(); renderSide(); draw(); };
+    $("#whPhotoOnly").onclick = () => { if (spinning) return; S.students.forEach(st => { if (!photoOf(st.id)) out.add(st.id); }); renderSide(); draw(); if (!people().length) toast("사진이 있는 친구가 없어요. 📷 학생 사진을 먼저 넣어 주세요.", false); };
+    window.addEventListener("resize", () => { if (open) resize(); });
+    document.addEventListener("keydown", e => {
+      if (!open) return;
+      if (e.key === "Escape"){ e.stopPropagation(); closeWh(); }
+      else if (e.key === " " || e.code === "Space"){ e.preventDefault(); e.stopPropagation(); getAC(); if (!$("#whWin").hidden) $("#whWin").hidden = true; spin(); }
+    }, true);
+  })();
 
   tickClock(); setInterval(tickClock, 1000);
 
