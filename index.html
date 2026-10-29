@@ -722,7 +722,7 @@
   body.hammering .toast, body.hammering .toast *, body.hammering #hamBar, body.hammering #hamBar *{cursor:pointer!important}
   #hammer.swing{animation:hamSwing .32s cubic-bezier(.5,0,.6,1)}
   @keyframes hamSwing{0%{transform:rotate(55deg)}35%{transform:rotate(-6deg)}50%{transform:rotate(2deg)}100%{transform:rotate(55deg)}}
-  #hamBar{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9996;display:none;align-items:center;gap:12px;
+  #hamBar{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:9997;display:none;align-items:center;gap:12px;
     background:#2e2a26;color:#fff;border-radius:999px;padding:8px 8px 8px 20px;font-family:"Jua";font-size:19px;box-shadow:0 10px 30px rgba(0,0,0,.25);max-width:calc(100% - 24px)}
   body.hammering #hamBar{display:flex}
   #hamBar button{font-family:"Jua";font-size:17px;background:#ff8a5b;color:#fff;border-radius:999px;padding:7px 16px;white-space:nowrap}
@@ -730,21 +730,34 @@
   .btn.hamb.on{background:#e5484d;border-color:#e5484d;color:#fff}
   .card.bonk{animation:bonk .6s cubic-bezier(.3,1.4,.5,1);transform-origin:50% 100%}
   @keyframes bonk{0%{transform:none}12%{transform:scale(1.1,.72)}30%{transform:scale(.94,1.08)}48%{transform:scale(1.04,.96) rotate(-2deg)}66%{transform:rotate(1.5deg)}100%{transform:none}}
-  .bonk-word{position:absolute;z-index:4;pointer-events:none;font-family:"Jua";font-size:46px;color:#fff;
-    -webkit-text-stroke:3px #e5484d;paint-order:stroke fill;text-shadow:0 4px 0 #b3262b;white-space:nowrap;animation:bonkWord .9s ease-out forwards}
-  @keyframes bonkWord{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-14deg)}18%{opacity:1;transform:translate(-50%,-90%) scale(1.25) rotate(-8deg)}70%{opacity:1;transform:translate(-50%,-120%) scale(1) rotate(-6deg)}100%{opacity:0;transform:translate(-50%,-150%) scale(.9) rotate(-6deg)}}
-  .bonk-burst{position:absolute;z-index:3;pointer-events:none;width:110px;height:110px;margin:-55px 0 0 -55px;border-radius:50%;
-    background:repeating-conic-gradient(#ffd27a 0 10deg,transparent 10deg 30deg);
-    -webkit-mask:radial-gradient(circle,transparent 30%,#000 32%,#000 60%,transparent 62%);mask:radial-gradient(circle,transparent 30%,#000 32%,#000 60%,transparent 62%);
-    animation:bonkBurst .4s ease-out forwards}
-  @keyframes bonkBurst{0%{opacity:1;transform:scale(.3)}100%{opacity:0;transform:scale(1.5)}}
-  .dizzy{position:absolute;z-index:3;pointer-events:none;left:50%;top:44px;width:120px;height:34px;margin-left:-60px;animation:dizzyOut 1.8s ease forwards}
-  .dizzy span{position:absolute;left:50%;top:50%;font-size:22px;line-height:1;margin:-11px 0 0 -11px;animation:orbit 0.9s linear infinite}
-  .dizzy span:nth-child(2){animation-delay:-.3s} .dizzy span:nth-child(3){animation-delay:-.6s}
-  @keyframes orbit{0%{transform:rotate(0deg) translateX(52px) rotate(0deg) scaleY(2.6)}100%{transform:rotate(360deg) translateX(52px) rotate(-360deg) scaleY(2.6)}}
-  .dizzy{transform:scaleY(.38)}
-  @keyframes dizzyOut{0%,75%{opacity:1}100%{opacity:0}}
-  body.big .bonk-word{font-size:56px}
+  /* 화려한 이펙트는 화면 맨 위 층(#fx)에 그려요 */
+  #fx{position:fixed;inset:0;z-index:9996;pointer-events:none;overflow:hidden}
+  .fx-word{position:absolute;font-family:"Jua";font-weight:400;white-space:nowrap;line-height:1;color:#fff;
+    font-size:clamp(84px,10vw,170px);-webkit-text-stroke:.09em #e5484d;paint-order:stroke fill;
+    text-shadow:0 .07em 0 #a3171d,0 .14em 0 rgba(120,0,0,.25),0 0 .4em rgba(255,210,122,.9);letter-spacing:.02em}
+  .fx-word.c2{color:#ffe66b;-webkit-text-stroke-color:#ff6a00;text-shadow:0 .07em 0 #b34400,0 0 .5em rgba(255,140,0,.9)}
+  .fx-word.c3{color:#fff;-webkit-text-stroke-color:#7b3fe4;text-shadow:0 .07em 0 #4b1fa0,0 0 .5em rgba(170,120,255,.95)}
+  .fx-combo{position:absolute;font-family:"Jua";font-size:clamp(36px,4vw,64px);color:#fff;-webkit-text-stroke:.1em #2e2a26;paint-order:stroke fill;white-space:nowrap}
+  .fx-star{position:absolute;width:320px;height:320px;margin:-160px 0 0 -160px}
+  .fx-ring{position:absolute;border-radius:50%;border:10px solid #ffd27a;width:60px;height:60px;margin:-30px 0 0 -30px}
+  .fx-p{position:absolute;left:0;top:0;line-height:1;will-change:transform,opacity}
+  .fx-flash{position:absolute;inset:0;background:radial-gradient(circle at var(--fx-x) var(--fx-y),rgba(255,255,255,.85),rgba(255,240,200,.35) 22%,transparent 50%)}
+  .card .hit-flash{position:absolute;inset:0;z-index:3;border-radius:inherit;background:#fff;pointer-events:none;animation:hitFlash .35s ease-out forwards}
+  @keyframes hitFlash{0%{opacity:.95}100%{opacity:0}}
+  .card .daze{position:absolute;z-index:3;pointer-events:none;left:0;right:0;top:4px;height:70px}
+  .card .daze span{position:absolute;left:50%;top:50%;font-size:30px;line-height:1;margin:-15px 0 0 -15px;animation:orbit2 .8s linear infinite}
+  .card .daze span:nth-child(2){animation-delay:-.2s}.card .daze span:nth-child(3){animation-delay:-.4s}.card .daze span:nth-child(4){animation-delay:-.6s}
+  @keyframes orbit2{0%{transform:rotate(0deg) translateX(70px) rotate(0deg) scale(1,1)}25%{transform:rotate(90deg) translateX(70px) rotate(-90deg) scale(.8)}50%{transform:rotate(180deg) translateX(70px) rotate(-180deg) scale(1.15)}100%{transform:rotate(360deg) translateX(70px) rotate(-360deg) scale(1)}}
+  .card .daze{transform:scaleY(.36);animation:dazeOut 2.2s ease forwards}
+  @keyframes dazeOut{0%,80%{opacity:1}100%{opacity:0}}
+  .card .ouch{position:absolute;z-index:3;pointer-events:none;right:8px;bottom:8px;font-size:44px;line-height:1;animation:ouch 2.2s cubic-bezier(.3,1.6,.5,1) forwards}
+  @keyframes ouch{0%{transform:scale(0) rotate(-30deg)}15%{transform:scale(1.2) rotate(8deg)}25%{transform:scale(1) rotate(0)}85%{opacity:1}100%{opacity:0;transform:scale(.9)}}
+  .card.bonk2{animation:bonk2 .7s cubic-bezier(.3,1.5,.5,1);transform-origin:50% 100%}
+  @keyframes bonk2{0%{transform:none}10%{transform:scale(1.22,.55)}26%{transform:scale(.88,1.14)}42%{transform:scale(1.08,.92) rotate(-3deg)}58%{transform:scale(.98,1.03) rotate(2deg)}76%{transform:rotate(-1deg)}100%{transform:none}}
+  body.fx-shake .wrap{animation:fxShake .32s linear}
+  body.fx-shake2 .wrap{animation:fxShake2 .45s linear}
+  @keyframes fxShake{0%,100%{transform:none}20%{transform:translate(-7px,5px)}40%{transform:translate(6px,-6px)}60%{transform:translate(-5px,-3px)}80%{transform:translate(4px,4px)}}
+  @keyframes fxShake2{0%,100%{transform:none}15%{transform:translate(-14px,8px) rotate(-.4deg)}30%{transform:translate(12px,-10px) rotate(.4deg)}45%{transform:translate(-10px,-6px)}60%{transform:translate(9px,7px)}80%{transform:translate(-4px,3px)}}
   /* ---------- 🎤 발표 뽑기 ---------- */
   #pick{position:fixed;inset:0;z-index:9990;display:none;flex-direction:column;gap:2vh;padding:2.4vh 3vw 2vh;
     background:radial-gradient(ellipse at 50% 35%,#46695a 0%,#34503f 65%,#29402f 100%);color:#fdfbf6;
@@ -810,6 +823,7 @@
   <rect x="4" y="98" width="46" height="18" rx="9" fill="#ffd84d" stroke="#c98f00" stroke-width="3"/>
   <rect x="12" y="36" width="9" height="56" rx="4.5" fill="#fff" opacity=".45"/>
 </svg></div>
+<div id="fx" aria-hidden="true"></div>
 <div id="hamBar" role="status"><span>🔨 뿅망치 시간! 친구 카드를 눌러 보세요</span><button id="hamOff">끝내기 (Esc)</button></div>
 <div id="breakCall" role="alertdialog" aria-label="쉬는 시간 알림">
   <div class="bk-ic" id="bkIc" aria-hidden="true">🛎️</div>
@@ -3293,38 +3307,148 @@
     const H = $("#hammer"), HX = 27, HY = 116;   // 망치 머리 아랫면이 손가락(마우스) 끝에 오게
     let on = false, lastX = innerWidth/2, lastY = innerHeight/2;
     const place = (x, y) => { lastX = x; lastY = y; H.style.left = (x - HX) + "px"; H.style.top = (y - HY) + "px"; };
-    function squeak(){
-      if (!S.sound) return;
+    let actx = () => { ac = ac || new (window.AudioContext||window.webkitAudioContext)(); if (ac.state === "suspended") ac.resume(); return ac; };
+    let hamOut = null;   // 뿅망치 전용 큰 소리 통로 (소리 켬/끔과 상관없이 크게)
+    function hamBus(A){
+      if (hamOut && hamOut.ctx === A) return hamOut.in;
+      const inp = A.createGain(); inp.gain.value = 4;   // 크게!
+      const comp = A.createDynamicsCompressor();          // 크게 하되 스피커에서 지직거리지 않게 꽉 눌러 줘요
+      comp.threshold.value = -10; comp.knee.value = 2; comp.ratio.value = 20; comp.attack.value = .001; comp.release.value = .12;
+      const trim = A.createGain(); trim.gain.value = .92;
+      inp.connect(comp).connect(trim).connect(A.destination);
+      hamOut = {ctx: A, in: inp};
+      return inp;
+    }
+    function squeak(power){
       try{
-        ac = ac || new (window.AudioContext||window.webkitAudioContext)();
-        if (ac.state === "suspended") ac.resume();
-        const t = ac.currentTime;
-        const o = ac.createOscillator(), g = ac.createGain();   // 삑- 장난감 소리
-        o.type = "triangle";
-        o.frequency.setValueAtTime(700, t); o.frequency.exponentialRampToValueAtTime(1700, t+.07); o.frequency.exponentialRampToValueAtTime(900, t+.2);
-        g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.3, t+.02); g.gain.exponentialRampToValueAtTime(.0001, t+.24);
-        o.connect(g).connect(ac.destination); o.start(t); o.stop(t+.26);
-        const k = ac.createOscillator(), kg = ac.createGain();  // 뽁 하는 바닥 소리
-        k.type = "sine"; k.frequency.setValueAtTime(260, t); k.frequency.exponentialRampToValueAtTime(90, t+.09);
-        kg.gain.setValueAtTime(.35, t); kg.gain.exponentialRampToValueAtTime(.0001, t+.12);
-        k.connect(kg).connect(ac.destination); k.start(t); k.stop(t+.13);
+        const A = actx(), t = A.currentTime + .005, out = hamBus(A);
+        // ① 퍽! — 플라스틱 망치가 부딪히는 소리 (잡음 + 낮은 쿵)
+        const len = Math.floor(A.sampleRate*.09), nb = A.createBuffer(1, len, A.sampleRate), d = nb.getChannelData(0);
+        for (let i = 0; i < len; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, 4);
+        const ns = A.createBufferSource(), bp = A.createBiquadFilter(), ng = A.createGain();
+        ns.buffer = nb; bp.type = "bandpass"; bp.frequency.value = 1400; bp.Q.value = .8; ng.gain.value = 1.6;
+        ns.connect(bp).connect(ng).connect(out); ns.start(t);
+        const k = A.createOscillator(), kg = A.createGain();
+        k.type = "sine"; k.frequency.setValueAtTime(320, t); k.frequency.exponentialRampToValueAtTime(70, t+.12);
+        kg.gain.setValueAtTime(1, t); kg.gain.exponentialRampToValueAtTime(.0001, t+.16);
+        k.connect(kg).connect(out); k.start(t); k.stop(t+.18);
+
+        // ② 뿅~ — 장난감 망치 속 삑삑이 (공기 빠지는 높은 소리, 살짝 떨림)
+        const sq = (at, f0, fPeak, fEnd, dur, vol) => {
+          const o = A.createOscillator(), o2 = A.createOscillator(), lfo = A.createOscillator(), lg = A.createGain();
+          const f = A.createBiquadFilter(), g = A.createGain();
+          o.type = "sawtooth"; o2.type = "square";
+          [o, o2].forEach((x, j) => {
+            x.frequency.setValueAtTime(f0*(j?1.005:1), t+at);
+            x.frequency.exponentialRampToValueAtTime(fPeak*(j?1.005:1), t+at+dur*.22);
+            x.frequency.exponentialRampToValueAtTime(fEnd*(j?1.005:1), t+at+dur);
+          });
+          lfo.frequency.value = 38; lg.gain.value = fPeak*.035; lfo.connect(lg); lg.connect(o.frequency); lg.connect(o2.frequency);
+          f.type = "bandpass"; f.frequency.setValueAtTime(fPeak*1.1, t+at); f.Q.value = 2.2;
+          g.gain.setValueAtTime(.0001, t+at); g.gain.exponentialRampToValueAtTime(vol, t+at+.02);
+          g.gain.setValueAtTime(vol, t+at+dur*.55); g.gain.exponentialRampToValueAtTime(.0001, t+at+dur);
+          o.connect(f); o2.connect(f); f.connect(g).connect(out);
+          [o, o2, lfo].forEach(x => { x.start(t+at); x.stop(t+at+dur+.03); });
+        };
+        sq(.012, 900, 2100, 1250, .30, .9);
+        if (power >= 2) sq(.20, 1000, 2400, 1400, .26, .75);           // 뿅뿅
+        if (power >= 3) { sq(.38, 1100, 2700, 1500, .24, .7);           // 뿅뿅뿅 + 보잉~
+          const bo = A.createOscillator(), bg = A.createGain(), bl = A.createOscillator(), blg = A.createGain();
+          bo.type = "sine"; bo.frequency.setValueAtTime(180, t+.5); bo.frequency.exponentialRampToValueAtTime(520, t+.75);
+          bl.frequency.value = 14; blg.gain.value = 60; bl.connect(blg).connect(bo.frequency);
+          bg.gain.setValueAtTime(.0001, t+.5); bg.gain.exponentialRampToValueAtTime(.8, t+.53); bg.gain.exponentialRampToValueAtTime(.0001, t+1.1);
+          bo.connect(bg).connect(out); [bo, bl].forEach(x => { x.start(t+.5); x.stop(t+1.15); });
+        }
       }catch(e){}
     }
-    const WORDS = ["뿅!", "뿅!", "뿅뿅!", "콩!", "띵!"];
+    const WORDS = ["뿅!!", "뿅!!", "뿅!!", "콩!!", "따끔!", "정신 번쩍!", "집중!!", "조용히!!", "손 들고 말해요!", "약속 지켜요!"];
+    const PARTS = ["⭐","✨","💥","⭐","💫","🌟"], DOTS = ["#ff5a5f","#ffd27a","#6aa9ff","#7cc7a0","#c79bff","#ff8a5b"];
+    const combo = new Map();   // 카드별 연타 세기
+    const rnd = (a, b) => a + Math.random()*(b-a);
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function fxAt(cls, x, y, html){ const el = document.createElement("div"); el.className = cls; el.style.left = x + "px"; el.style.top = y + "px"; if (html != null) el.innerHTML = html; $("#fx").appendChild(el); return el; }
+    const kill = (el, ms) => setTimeout(() => el.remove(), ms);
     function bonk(card, x, y){
-      const r = card.getBoundingClientRect(), lx = x - r.left, ly = y - r.top;
-      card.classList.remove("bonk"); void card.offsetWidth; card.classList.add("bonk");
-      card.querySelectorAll(".bonk-word,.bonk-burst,.dizzy").forEach(n => n.remove());
-      const burst = document.createElement("div"); burst.className = "bonk-burst";
-      burst.style.left = lx + "px"; burst.style.top = ly + "px";
-      const w = document.createElement("div"); w.className = "bonk-word";
-      w.textContent = WORDS[Math.floor(Math.random()*WORDS.length)];
-      w.style.left = Math.min(Math.max(lx, 50), r.width - 50) + "px"; w.style.top = Math.max(ly, 40) + "px";
-      const d = document.createElement("div"); d.className = "dizzy";
-      d.innerHTML = "<span>⭐</span><span>💫</span><span>⭐</span>";
-      card.append(burst, w, d);
-      setTimeout(() => { burst.remove(); w.remove(); }, 950);
-      setTimeout(() => d.remove(), 1850);
+      const id = card.dataset.id, now = Date.now(), c0 = combo.get(id);
+      const n = c0 && now - c0.t < 1300 ? c0.n + 1 : 1; combo.set(id, {n, t: now});
+      const power = n >= 5 ? 3 : n >= 3 ? 2 : 1;
+      squeak(power);
+
+      // 카드: 찌그러짐 + 하얗게 번쩍 + 별 빙빙 + 아야
+      card.classList.remove("bonk2"); void card.offsetWidth; card.classList.add("bonk2");
+      card.querySelectorAll(".hit-flash,.daze,.ouch").forEach(el => el.remove());
+      const fl = document.createElement("div"); fl.className = "hit-flash"; card.appendChild(fl); kill(fl, 400);
+      const dz = document.createElement("div"); dz.className = "daze";
+      dz.innerHTML = "<span>⭐</span><span>💫</span><span>⭐</span><span>✨</span>"; card.appendChild(dz); kill(dz, 2250);
+      const ou = document.createElement("div"); ou.className = "ouch"; ou.textContent = n >= 5 ? "😵‍💫" : n >= 3 ? "😵" : "🤕"; card.appendChild(ou); kill(ou, 2250);
+
+      if (reduced) return;
+      // 화면 흔들림
+      document.body.classList.remove("fx-shake","fx-shake2"); void document.body.offsetWidth;
+      document.body.classList.add(power >= 2 ? "fx-shake2" : "fx-shake");
+      setTimeout(() => document.body.classList.remove("fx-shake","fx-shake2"), 500);
+
+      // 번쩍 빛
+      const flash = fxAt("fx-flash", 0, 0); flash.style.setProperty("--fx-x", x+"px"); flash.style.setProperty("--fx-y", y+"px");
+      flash.animate([{opacity:1},{opacity:0}], {duration:280, easing:"ease-out"}); kill(flash, 300);
+
+      // 만화 별 모양 터짐
+      const pts = []; const R = 150, r = 82, k = 14;
+      for (let i = 0; i < k*2; i++){ const a = Math.PI*i/k - Math.PI/2, rr = i%2 ? r*rnd(.85,1.1) : R*rnd(.85,1.05); pts.push(`${160+Math.cos(a)*rr},${160+Math.sin(a)*rr}`); }
+      const col = power === 3 ? ["#c79bff","#7b3fe4"] : power === 2 ? ["#ffb84d","#ff6a00"] : ["#ffe066","#ff5a5f"];
+      const star = fxAt("fx-star", x, y, `<svg viewBox="0 0 320 320" width="320" height="320"><polygon points="${pts.join(" ")}" fill="${col[0]}" stroke="${col[1]}" stroke-width="9" stroke-linejoin="round"/><circle cx="160" cy="160" r="46" fill="#fff" opacity=".85"/></svg>`);
+      const sc = .75 + power*.2;
+      star.animate([{transform:`scale(.15) rotate(-25deg)`,opacity:1},{transform:`scale(${sc}) rotate(6deg)`,opacity:1,offset:.25},{transform:`scale(${sc*.95}) rotate(0deg)`,opacity:1,offset:.6},{transform:`scale(${sc*1.25}) rotate(4deg)`,opacity:0}], {duration:620, easing:"cubic-bezier(.2,1.2,.4,1)", fill:"forwards"});
+      kill(star, 650);
+
+      // 충격파 고리
+      for (let i = 0; i < power; i++){
+        const ring = fxAt("fx-ring", x, y); ring.style.borderColor = DOTS[(i*2) % DOTS.length];
+        ring.animate([{transform:"scale(.3)",opacity:1,borderWidth:"14px"},{transform:`scale(${6+i*2.5})`,opacity:0,borderWidth:"2px"}], {duration:520+i*140, delay:i*70, easing:"ease-out", fill:"forwards"});
+        kill(ring, 800+i*140);
+      }
+
+      // 사방으로 튀는 별·조각
+      const many = 14 + power*8;
+      for (let i = 0; i < many; i++){
+        const emo = i % 3 !== 2, el = fxAt("fx-p", 0, 0);
+        if (emo){ el.textContent = PARTS[i % PARTS.length]; el.style.fontSize = rnd(24, 48) + "px"; }
+        else { const s2 = rnd(10, 20); Object.assign(el.style, {width:s2+"px", height:s2+"px", borderRadius: i%2 ? "50%" : "4px", background: DOTS[i % DOTS.length]}); }
+        const ang = rnd(0, Math.PI*2), dist = rnd(120, 260) * (1 + (power-1)*.35), dx = Math.cos(ang)*dist, dy = Math.sin(ang)*dist - rnd(30, 90);
+        const rot = rnd(-540, 540);
+        el.animate([
+          {transform:`translate(${x}px,${y}px) translate(-50%,-50%) scale(.3) rotate(0deg)`, opacity:1},
+          {transform:`translate(${x+dx*.75}px,${y+dy*.75}px) translate(-50%,-50%) scale(1.15) rotate(${rot*.7}deg)`, opacity:1, offset:.45},
+          {transform:`translate(${x+dx}px,${y+dy+120}px) translate(-50%,-50%) scale(.6) rotate(${rot}deg)`, opacity:0}
+        ], {duration:rnd(750, 1150), easing:"cubic-bezier(.15,.7,.4,1)", fill:"forwards"});
+        kill(el, 1200);
+      }
+
+      // 큰 글씨
+      let txt = WORDS[Math.floor(Math.random()*WORDS.length)];
+      if (n === 2) txt = "뿅뿅!!"; else if (n >= 3) txt = n >= 5 ? "정신 차려!!" : "뿅뿅뿅!!!";
+      const word = fxAt(`fx-word${power>1?" c"+power:""}`, 0, 0); word.textContent = txt;
+      const vw = innerWidth, vh = innerHeight, ww = word.offsetWidth, wh = word.offsetHeight;
+      const wx = Math.min(Math.max(x, ww/2 + 16), vw - ww/2 - 16), wy = Math.min(Math.max(y - wh*.7, wh/2 + 16), vh - wh/2 - 16);
+      const big = 1 + (power-1)*.15, tilt = rnd(-12, -4);
+      word.animate([
+        {transform:`translate(${wx}px,${wy}px) translate(-50%,-50%) scale(.2) rotate(${tilt-20}deg)`, opacity:0},
+        {transform:`translate(${wx}px,${wy}px) translate(-50%,-50%) scale(${1.35*big}) rotate(${tilt+4}deg)`, opacity:1, offset:.14},
+        {transform:`translate(${wx}px,${wy}px) translate(-50%,-50%) scale(${.92*big}) rotate(${tilt}deg)`, opacity:1, offset:.26},
+        {transform:`translate(${wx}px,${wy}px) translate(-50%,-50%) scale(${1.04*big}) rotate(${tilt}deg)`, opacity:1, offset:.38},
+        {transform:`translate(${wx}px,${wy - 30}px) translate(-50%,-50%) scale(${big}) rotate(${tilt}deg)`, opacity:1, offset:.78},
+        {transform:`translate(${wx}px,${wy - 70}px) translate(-50%,-50%) scale(${big*.95}) rotate(${tilt}deg)`, opacity:0}
+      ], {duration:1300, easing:"ease-out", fill:"forwards"});
+      kill(word, 1350);
+      $("#fx").querySelectorAll(".fx-word").forEach(o => { if (o !== word) o.style.opacity = ".25"; });
+
+      // 연타 표시
+      if (n >= 2){
+        const cb = fxAt("fx-combo", 0, 0); cb.textContent = `${n}연타!`;
+        const cx = Math.min(wx + ww*.45, vw - 90), cy = Math.max(wy - wh*.55, 40);
+        cb.animate([{transform:`translate(${cx}px,${cy}px) translate(-50%,-50%) scale(.3) rotate(10deg)`,opacity:0},{transform:`translate(${cx}px,${cy}px) translate(-50%,-50%) scale(1.3) rotate(10deg)`,opacity:1,offset:.2},{transform:`translate(${cx}px,${cy}px) translate(-50%,-50%) scale(1) rotate(10deg)`,opacity:1,offset:.7},{transform:`translate(${cx}px,${cy-30}px) translate(-50%,-50%) scale(1) rotate(10deg)`,opacity:0}], {duration:1100, fill:"forwards"});
+        kill(cb, 1150);
+      }
     }
     function swing(){ H.classList.remove("swing"); void H.offsetWidth; H.classList.add("swing"); }
     function setOn(v){
@@ -3343,7 +3467,7 @@
       const card = e.target.closest("#grid .card");
       if (card) {
         e.stopPropagation(); e.preventDefault();   // 옮기기·+1 막기
-        setTimeout(() => { squeak(); bonk(card, e.clientX, e.clientY); }, 110);   // 망치가 내려온 순간에
+        setTimeout(() => bonk(card, e.clientX, e.clientY), 110);   // 망치가 내려온 순간에
       }
     }, true);
     document.addEventListener("click", e => {
