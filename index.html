@@ -1078,6 +1078,36 @@
   .card .cwing svg{width:100%;height:100%;display:block;overflow:visible}
   .card .cwing.l svg{transform:scaleX(-1)}
   .fx-pname{z-index:2}
+
+  /* ---------- 👕 아바타 (직접 꾸미는 우리 반 캐릭터) ---------- */
+  .face.av{position:relative;width:2em;height:2em;border-radius:50%}
+  .face.av svg.avs{width:100%;height:100%;display:block;border-radius:50%;overflow:hidden}
+  .face.av .fb{position:absolute;right:-.28em;bottom:-.22em;font-size:.55em;line-height:1;font-style:normal;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+  .card .name .face.av .fb{font-size:24px;right:-6px;bottom:-4px}
+  .card.t0 .name .face.av::before{bottom:-8px}
+  .fame-chip .face.av{width:1.4em;height:1.4em}
+  .ham-row .face.av{width:1.7em;height:1.7em;margin-right:6px}
+  .av-sheet{max-width:1040px}
+  .av-wrap{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px}
+  .av-left{display:flex;flex-direction:column;align-items:center;gap:10px;background:linear-gradient(180deg,#eaf6ff,#cfe8ff);border:3px solid #7fc6ff;border-radius:22px;padding:14px}
+  .av-stage{width:230px;height:230px;border-radius:50%;background:radial-gradient(circle at 50% 30%,#ffffff 0 12%,#dff3ff 38%,#9fd6ff 72%,#6cb6f2);border:5px solid #fff;
+    box-shadow:0 6px 0 #3d86cf,0 0 0 3px #3d86cf,0 14px 18px rgba(20,60,120,.25);overflow:hidden}
+  .av-stage svg{width:100%;height:100%;display:block}
+  .av-who{display:flex;align-items:center;gap:6px;width:100%}
+  .av-who select{flex:1;min-width:0;font-family:"Jua";font-size:20px;border:2px solid #7fc6ff;border-radius:12px;padding:6px 8px;background:#fff;color:#123a80}
+  .av-who button,.av-acts button{font-family:"Jua";font-size:17px;border-radius:12px;padding:7px 12px;background:#fff;border:2px solid #7fc6ff;color:#123a80}
+  .av-acts{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+  .av-acts .p{background:linear-gradient(180deg,#ffe07a,#ffc53d 35%,#ff8a00);border-color:#d96d00;color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.3)}
+  .av-show{display:flex;align-items:center;gap:6px;font-size:15px;color:#123a80}
+  .av-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .av-tabs button{font-family:"Jua";font-size:17px;padding:7px 13px;border-radius:999px;background:#eef6ff;border:2px solid #bfe0ff;color:#2a5aa0}
+  .av-tabs button.on{background:linear-gradient(180deg,#5fb8ff,#2a7ae0);border-color:#1f66d6;color:#fff}
+  .av-opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;max-height:52vh;overflow:auto;padding:2px}
+  .av-opt{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px 5px;border-radius:16px;background:#fff;border:3px solid #e3eefb;font-family:"Jua";font-size:14px;color:#2a5aa0}
+  .av-opt svg{width:70px;height:70px;border-radius:50%;background:radial-gradient(circle at 50% 30%,#fff 0 15%,#dff3ff 45%,#a8dbff)}
+  .av-opt.on{border-color:#ff8a00;background:#fff7e8;box-shadow:0 0 0 2px #ffc53d}
+  .av-opt .sw{width:54px;height:54px;border-radius:50%;border:3px solid rgba(0,0,0,.08);margin:8px 0}
+  @media (max-width:820px){ .av-wrap{grid-template-columns:1fr} }
   /* 이름 옆 얼굴 (모든 카드에서 같은 폭이라 이름이 한 줄로 맞춰져요) */
   .name{display:flex;align-items:center;gap:6px}
   .name .nmt{min-width:0;word-break:keep-all;overflow-wrap:anywhere}
@@ -1759,6 +1789,7 @@
       <div class="tgp g-view"><span class="tgl">보기</span>
         <button class="btn" id="sortBtn" title="정렬 바꾸기">🔢 번호순</button>
         <button class="btn" id="bigBtn" title="전체 화면으로 크게 보기">🖥️ 크게</button>
+        <button class="btn" id="avBtn" title="친구들 아바타 꾸미기 (머리·눈·입·모자·옷)">👕 아바타</button>
         <button class="btn" id="themeBtn" title="게임 대기방 느낌의 파란 아케이드 테마 ↔ 원래 테마">🎨 테마</button>
         <button class="btn enterb" id="enterBtn" title="우리 반 입장! 카드가 하나씩 쿵 하고 떨어지는 입장 효과를 다시 보여 줘요">🎮 입장</button>
         <button class="btn" id="clockBtn" title="시계만 크게 보기 (5분 동안 아무것도 안 누르면 자동으로 켜져요)">🕐 시계</button>
@@ -2059,6 +2090,25 @@
   </div>
 </div>
 
+<div class="modal" id="avModal" aria-modal="true" role="dialog">
+  <div class="sheet av-sheet">
+    <h2>👕 아바타 꾸미기 <button class="x" data-close>×</button></h2>
+    <div class="av-wrap">
+      <div class="av-left">
+        <div class="av-who"><button id="avPrev" aria-label="앞 친구">◀</button><select id="avWho" aria-label="꾸밀 친구"></select><button id="avNext" aria-label="다음 친구">▶</button></div>
+        <div class="av-stage" id="avStage"></div>
+        <label class="av-show"><input type="checkbox" id="avShow"> 학생 카드에 아바타로 보이기</label>
+        <div class="av-acts"><button class="p" id="avRand">🎲 랜덤</button><button id="avAllRand" title="아바타가 없는 친구 모두 랜덤으로 만들기">🎲 모두 만들기</button><button id="avReset">🗑 지우기</button></div>
+      </div>
+      <div>
+        <div class="av-tabs" id="avTabs"></div>
+        <div class="av-opts" id="avOpts"></div>
+      </div>
+    </div>
+    <p class="desc" style="margin-top:12px">고른 것은 바로 저장돼요. 뿅망치를 맞으면 아픈 표정, 칭찬 도장을 많이 받으면 별 눈으로 저절로 바뀌어요.</p>
+    <div class="actions"><button class="btn primary" data-close>다 했어요</button></div>
+  </div>
+</div>
 <div class="modal" id="phModal" aria-modal="true" role="dialog">
   <div class="sheet ph-sheet">
     <h2>📷 학생 사진 <button class="x" data-close>×</button></h2>
@@ -2304,6 +2354,138 @@
     const fc = card.querySelector(".name .face"); if (fc && !fc.classList.contains("swap")) setFace(fc, sid);
     return w.wL;
   }
+
+  /* ---------- 👕 아바타: 부위별로 골라서 SVG로 그려요 ---------- */
+  const AV = {
+    skin: [["#ffe0c7","밝은"],["#f9cfa8","보통"],["#eab88f","살구"],["#d39a6a","구릿빛"],["#a8754b","갈색"]],
+    hair: [["short","짧은 머리"],["bowl","바가지"],["spiky","뾰족"],["curly","곱슬"],["bob","단발"],["twin","양갈래"],["pony","포니테일"],["long","긴 머리"],["bald","민머리"]],
+    hairC: [["#2b2420","검정"],["#5a3a22","갈색"],["#9a6a3c","밤색"],["#e8b84a","금발"],["#e5484d","빨강"],["#ff8ec6","분홍"],["#4dabf7","파랑"],["#7c5cff","보라"],["#38b27a","초록"],["#e9edf3","하양"]],
+    eyes: [["dot","동글"],["big","반짝"],["happy","웃는 눈"],["sleepy","졸린"],["wink","윙크"],["star","별 눈"],["cool","멋진"]],
+    mouth: [["smile","미소"],["grin","활짝"],["tongue","메롱"],["o","오!"],["cat","고양이"],["teeth","이빨"],["flat","새침"]],
+    cheek: [["none","없음"],["pink","분홍 볼"],["freckle","주근깨"],["star","별 스티커"]],
+    hat: [["none","없음"],["cap","야구모자"],["beanie","털모자"],["crown","왕관"],["ribbon","리본"],["cat","고양이 귀"],["bunny","토끼 귀"],["phones","헤드폰"],["flower","꽃핀"],["goggle","고글"],["horn","도깨비 뿔"]],
+    glasses: [["none","없음"],["round","동그란"],["square","네모"],["sun","선글라스"],["heart","하트"]],
+    top: [["tee","티셔츠"],["hoodie","후드티"],["shirt","셔츠"],["overall","멜빵"],["cape","망토"]],
+    topC: [["#ff6b6b","빨강"],["#ffa94d","주황"],["#ffd43b","노랑"],["#69db7c","초록"],["#4dabf7","파랑"],["#3b5bdb","남색"],["#da77f2","보라"],["#f783ac","분홍"],["#ffffff","하양"],["#343a40","검정"]],
+    pat: [["none","민무늬"],["stripe","줄무늬"],["dots","땡땡이"],["star","별"],["heart","하트"]]
+  };
+  const AV_KEYS = ["skin","hair","hairC","eyes","mouth","cheek","hat","glasses","top","topC","pat"];
+  const avatarOf = sid => { const a = (S.avatars||{})[sid]; return a && a.on !== false ? a : null; };
+  function avRandom(sid){
+    const pick = k => { const arr = AV[k]; return arr[Math.floor(Math.random()*arr.length)][0]; };
+    const a = {}; AV_KEYS.forEach(k => a[k] = pick(k));
+    const g = typeof genderOf === "function" ? genderOf(sid) : "n";
+    const hairs = g === "b" ? ["short","bowl","spiky","curly"] : g === "g" ? ["bob","twin","pony","long","curly"] : AV.hair.map(h => h[0]).filter(h => h !== "bald");
+    a.hair = hairs[Math.floor(Math.random()*hairs.length)];
+    if (Math.random() < .45) a.hat = "none"; if (Math.random() < .6) a.glasses = "none"; if (Math.random() < .5) a.pat = "none";
+    a.on = true; return a;
+  }
+  let avN = 0;
+  function avatarSVG(a, mood){
+    const id = "av" + (++avN), sk = a.skin, hc = a.hairC, tc = a.topC, dk = "#2b2420";
+    const shade = (c, k) => { const m = /^#([0-9a-f]{6})$/i.exec(c); if (!m) return c; const n = parseInt(m[1], 16), f = k/100; return `rgb(${Math.round((n>>16&255)*f)},${Math.round((n>>8&255)*f)},${Math.round((n&255)*f)})`; };
+    let defs = `<clipPath id="${id}c"><circle cx="50" cy="50" r="50"/></clipPath>`;
+    // 옷 무늬
+    const patFill = {stripe:`<pattern id="${id}p" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="4" fill="rgba(255,255,255,.45)"/></pattern>`,
+      dots:`<pattern id="${id}p" width="9" height="9" patternUnits="userSpaceOnUse"><circle cx="4.5" cy="4.5" r="1.8" fill="rgba(255,255,255,.65)"/></pattern>`,
+      star:`<pattern id="${id}p" width="13" height="13" patternUnits="userSpaceOnUse"><path d="M6.5,1.5 L8,5 L11.7,5.2 L8.8,7.5 L9.8,11.2 L6.5,9.1 L3.2,11.2 L4.2,7.5 L1.3,5.2 L5,5 Z" fill="rgba(255,240,140,.85)"/></pattern>`,
+      heart:`<pattern id="${id}p" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M6,10 C1,6.5 1.5,2.5 4,2.5 C5,2.5 5.7,3.2 6,4 C6.3,3.2 7,2.5 8,2.5 C10.5,2.5 11,6.5 6,10 Z" fill="rgba(255,255,255,.6)"/></pattern>`}[a.pat];
+    if (patFill) defs += patFill;
+    let g = "";
+    // 뒷머리
+    const back = {
+      bob:`<path d="M19,46 C17,20 33,11 50,11 C67,11 83,20 81,46 L83,70 C75,74 67,72 65,66 L35,66 C33,72 25,74 17,70 Z" fill="${hc}"/>`,
+      long:`<path d="M19,46 C17,18 33,9 50,9 C67,9 83,18 81,46 L86,96 L66,96 L66,62 L34,62 L34,96 L14,96 Z" fill="${hc}"/>`,
+      twin:`<circle cx="15" cy="58" r="11" fill="${hc}"/><circle cx="85" cy="58" r="11" fill="${hc}"/><circle cx="20" cy="47" r="3.5" fill="#ff6b9a"/><circle cx="80" cy="47" r="3.5" fill="#ff6b9a"/>`,
+      pony:`<path d="M70,22 C92,18 96,44 86,60 C84,46 80,36 70,32 Z" fill="${hc}"/><circle cx="72" cy="24" r="4" fill="#ff6b9a"/>`
+    }[a.hair] || "";
+    if (a.top === "cape") g += `<path d="M14,100 C14,78 30,70 50,70 C70,70 86,78 86,100 Z" fill="${shade(tc,70)}"/>`;
+    g += back;
+    // 몸·옷
+    g += `<rect x="45" y="68" width="10" height="9" fill="${sk}"/>`;
+    const body = `M16,100 C18,82 32,75 50,75 C68,75 82,82 84,100 Z`;
+    g += `<path d="${body}" fill="${tc}" stroke="${shade(tc,75)}" stroke-width="1.5"/>`;
+    if (patFill) g += `<path d="${body}" fill="url(#${id}p)"/>`;
+    if (a.top === "hoodie") g += `<path d="M30,79 C38,86 62,86 70,79 C64,76 36,76 30,79 Z" fill="${shade(tc,82)}"/><path d="M45,82 L44,94 M55,82 L56,94" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>`;
+    if (a.top === "shirt") g += `<path d="M50,76 L40,76 L44,86 Z M50,76 L60,76 L56,86 Z" fill="#fff" stroke="#ccd" stroke-width="1"/><circle cx="50" cy="90" r="1.4" fill="#fff"/><circle cx="50" cy="96" r="1.4" fill="#fff"/>`;
+    if (a.top === "overall") g += `<path d="M30,100 L32,86 L68,86 L70,100 Z" fill="#3b6fd8"/><path d="M36,78 L38,88 M64,78 L62,88" stroke="#3b6fd8" stroke-width="4" stroke-linecap="round"/><circle cx="38" cy="88" r="1.8" fill="#ffd43b"/><circle cx="62" cy="88" r="1.8" fill="#ffd43b"/>`;
+    if (a.top === "cape") g += `<path d="M36,76 L50,86 L64,76" fill="none" stroke="#ffd43b" stroke-width="2.5"/><circle cx="50" cy="86" r="3" fill="#ffd43b"/>`;
+    if (a.top === "tee") g += `<path d="M40,76 C44,80 56,80 60,76" fill="none" stroke="${shade(tc,70)}" stroke-width="2"/>`;
+    // 머리(얼굴)
+    g += `<circle cx="22" cy="49" r="5" fill="${sk}"/><circle cx="78" cy="49" r="5" fill="${sk}"/>`;
+    g += `<ellipse cx="50" cy="47" rx="28" ry="27" fill="${sk}"/>`;
+    // 볼
+    if (a.cheek === "pink") g += `<ellipse cx="34" cy="56" rx="5" ry="3" fill="#ff8fa3" opacity=".55"/><ellipse cx="66" cy="56" rx="5" ry="3" fill="#ff8fa3" opacity=".55"/>`;
+    if (a.cheek === "freckle") g += [[32,54],[35,56],[30,57],[68,54],[65,56],[70,57]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r=".9" fill="#a0603a"/>`).join("");
+    if (a.cheek === "star") g += `<path d="M68,55 L69.3,57.8 L72.3,58 L70,60 L70.8,63 L68,61.4 L65.2,63 L66,60 L63.7,58 L66.7,57.8 Z" fill="#ffd43b" stroke="#e8a400" stroke-width=".6"/>`;
+    // 눈
+    let eyes = a.eyes;
+    if (mood === "hurt") eyes = "hurt"; else if (mood === "star") eyes = "star";
+    const E = {
+      dot:`<circle cx="40" cy="48" r="3.6" fill="${dk}"/><circle cx="60" cy="48" r="3.6" fill="${dk}"/><circle cx="41.2" cy="46.8" r="1.2" fill="#fff"/><circle cx="61.2" cy="46.8" r="1.2" fill="#fff"/>`,
+      big:`<ellipse cx="40" cy="48" rx="4.8" ry="5.8" fill="${dk}"/><ellipse cx="60" cy="48" rx="4.8" ry="5.8" fill="${dk}"/><circle cx="41.6" cy="46" r="1.9" fill="#fff"/><circle cx="61.6" cy="46" r="1.9" fill="#fff"/><circle cx="38.6" cy="50.6" r=".9" fill="#fff"/><circle cx="58.6" cy="50.6" r=".9" fill="#fff"/>`,
+      happy:`<path d="M35,50 Q40,43.5 45,50 M55,50 Q60,43.5 65,50" fill="none" stroke="${dk}" stroke-width="2.6" stroke-linecap="round"/>`,
+      sleepy:`<path d="M35,48.5 Q40,52 45,48.5 M55,48.5 Q60,52 65,48.5" fill="none" stroke="${dk}" stroke-width="2.4" stroke-linecap="round"/>`,
+      wink:`<circle cx="40" cy="48" r="3.6" fill="${dk}"/><circle cx="41.2" cy="46.8" r="1.2" fill="#fff"/><path d="M55,48 L64,46 M55,48 L64,51" stroke="${dk}" stroke-width="2.4" stroke-linecap="round"/>`,
+      star:`<path d="M40,42.5 L41.6,46.2 L45.6,46.5 L42.5,49 L43.5,53 L40,50.8 L36.5,53 L37.5,49 L34.4,46.5 L38.4,46.2 Z M60,42.5 L61.6,46.2 L65.6,46.5 L62.5,49 L63.5,53 L60,50.8 L56.5,53 L57.5,49 L54.4,46.5 L58.4,46.2 Z" fill="#ffd43b" stroke="#e08a00" stroke-width="1"/>`,
+      cool:`<path d="M35,49 L45,49 M55,49 L65,49" stroke="${dk}" stroke-width="2.8" stroke-linecap="round"/><path d="M34,44 L45,45.5 M55,45.5 L66,44" stroke="${dk}" stroke-width="2" stroke-linecap="round"/>`,
+      hurt:`<path d="M36,45 L44,49 L36,53 M64,45 L56,49 L64,53" fill="none" stroke="${dk}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`
+    };
+    g += E[eyes] || E.dot;
+    // 입
+    let mouth = a.mouth; if (mood === "hurt") mouth = "hurt";
+    const M = {
+      smile:`<path d="M43,59 Q50,65.5 57,59" fill="none" stroke="#8a3b2a" stroke-width="2.4" stroke-linecap="round"/>`,
+      grin:`<path d="M42,58 Q50,70 58,58 Z" fill="#c2413a"/><path d="M45,62.5 Q50,66.5 55,62.5 Q50,64 45,62.5 Z" fill="#ff8fa3"/>`,
+      tongue:`<path d="M43,59 Q50,64 57,59" fill="none" stroke="#8a3b2a" stroke-width="2.2" stroke-linecap="round"/><path d="M48,61.5 Q50,68 53,61.5 Z" fill="#ff6b8a"/>`,
+      o:`<ellipse cx="50" cy="61" rx="3.6" ry="4.3" fill="#c2413a"/>`,
+      cat:`<path d="M42,59 Q46,63.5 50,59 Q54,63.5 58,59" fill="none" stroke="#8a3b2a" stroke-width="2.2" stroke-linecap="round"/>`,
+      teeth:`<path d="M41,58 L59,58 Q57,67 50,67 Q43,67 41,58 Z" fill="#c2413a"/><rect x="43" y="58" width="14" height="3.4" fill="#fff"/>`,
+      flat:`<path d="M45,61 L55,61" stroke="#8a3b2a" stroke-width="2.4" stroke-linecap="round"/>`,
+      hurt:`<path d="M42,62 q4,-3.5 8,0 q4,3.5 8,0" fill="none" stroke="#8a3b2a" stroke-width="2.3" stroke-linecap="round"/>`
+    };
+    g += M[mouth] || M.smile;
+    // 앞머리
+    const front = {
+      short:`<path d="M21,45 C19,20 35,12 50,12 C66,12 81,20 79,45 C73,33 62,29 50,30 C39,29 28,33 21,45 Z" fill="${hc}"/>`,
+      bowl:`<path d="M20,46 C18,18 34,10 50,10 C66,10 82,18 80,46 L80,41 C70,38 30,38 20,41 Z" fill="${hc}"/>`,
+      spiky:`<path d="M21,44 L18,27 L29,31 L30,13 L41,24 L50,6 L59,24 L70,13 L71,31 L82,27 L79,44 C71,34 29,34 21,44 Z" fill="${hc}"/>`,
+      curly:[[26,30],[34,21],[44,16],[56,16],[66,21],[74,30],[22,40],[78,40],[50,13]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="9" fill="${hc}"/>`).join(""),
+      bob:`<path d="M22,43 C21,23 35,15 50,15 C65,15 79,23 78,43 C72,33 61,29 50,31 C40,29 28,33 22,43 Z" fill="${hc}"/>`,
+      twin:`<path d="M22,43 C21,23 35,15 50,15 C65,15 79,23 78,43 C70,35 60,32 50,34 C40,32 30,35 22,43 Z" fill="${hc}"/>`,
+      pony:`<path d="M22,43 C21,23 35,15 50,15 C65,15 79,23 78,43 C72,31 58,27 44,33 C36,30 28,35 22,43 Z" fill="${hc}"/>`,
+      long:`<path d="M22,44 C21,22 35,13 50,13 C65,13 79,22 78,44 C72,34 62,29 50,30 C38,29 28,34 22,44 Z" fill="${hc}"/>`,
+      bald:`<ellipse cx="42" cy="28" rx="7" ry="3" fill="#fff" opacity=".45"/>`
+    };
+    g += front[a.hair] || "";
+    // 안경
+    const GL = {
+      round:`<g fill="rgba(255,255,255,.18)" stroke="#333" stroke-width="2"><circle cx="40" cy="48" r="7"/><circle cx="60" cy="48" r="7"/></g><path d="M47,48 L53,48" stroke="#333" stroke-width="2"/>`,
+      square:`<g fill="rgba(255,255,255,.18)" stroke="#1d3d7a" stroke-width="2.2"><rect x="32" y="42" width="15" height="11" rx="3"/><rect x="53" y="42" width="15" height="11" rx="3"/></g><path d="M47,47 L53,47" stroke="#1d3d7a" stroke-width="2"/>`,
+      sun:`<path d="M31,43 L47,43 L46,51 Q40,55 33,51 Z M53,43 L69,43 L67,51 Q60,55 54,51 Z" fill="#222" stroke="#000" stroke-width="1"/><path d="M47,45 L53,45" stroke="#000" stroke-width="2"/><path d="M34,45 L39,45" stroke="#fff" stroke-width="1.4" opacity=".7"/>`,
+      heart:`<path d="M40,55 C30,48 32,40 37,40 C39,40 40,41.5 40,42.5 C40,41.5 41,40 43,40 C48,40 50,48 40,55 Z M60,55 C50,48 52,40 57,40 C59,40 60,41.5 60,42.5 C60,41.5 61,40 63,40 C68,40 70,48 60,55 Z" fill="rgba(255,90,150,.75)" stroke="#d6336c" stroke-width="1.4"/>`
+    };
+    g += GL[a.glasses] || "";
+    // 모자·장식
+    const H = {
+      cap:`<path d="M21,36 C22,14 78,14 79,36 Z" fill="${tc === "#ffffff" ? "#4dabf7" : tc}" stroke="rgba(0,0,0,.2)" stroke-width="1.2"/><path d="M50,35 L93,38 C92,43 62,42 50,40 Z" fill="${shade(tc === "#ffffff" ? "#4dabf7" : tc,75)}"/><circle cx="50" cy="16" r="2.6" fill="#fff"/>`,
+      beanie:`<path d="M20,40 C20,12 80,12 80,40 Z" fill="#ff6b6b"/><rect x="18" y="35" width="64" height="9" rx="4.5" fill="#fff"/><circle cx="50" cy="11" r="6" fill="#fff"/>`,
+      crown:`<path d="M28,30 L30,12 L40,22 L50,8 L60,22 L70,12 L72,30 Z" fill="#ffd43b" stroke="#e08a00" stroke-width="1.6" stroke-linejoin="round"/><circle cx="50" cy="22" r="3" fill="#e5484d"/><circle cx="38" cy="25" r="2.2" fill="#4dabf7"/><circle cx="62" cy="25" r="2.2" fill="#69db7c"/>`,
+      ribbon:`<path d="M62,20 L50,12 L52,28 Z M62,20 L74,12 L72,28 Z" fill="#ff6b9a" stroke="#d6336c" stroke-width="1.2"/><circle cx="62" cy="20" r="3.6" fill="#ff8ec6" stroke="#d6336c" stroke-width="1.2"/>`,
+      cat:`<path d="M22,30 L26,8 L40,20 Z M78,30 L74,8 L60,20 Z" fill="${hc}"/><path d="M26,24 L28,13 L35,20 Z M74,24 L72,13 L65,20 Z" fill="#ffb3c6"/>`,
+      bunny:`<ellipse cx="38" cy="8" rx="6" ry="16" fill="#fff" stroke="#ddd" stroke-width="1"/><ellipse cx="62" cy="8" rx="6" ry="16" fill="#fff" stroke="#ddd" stroke-width="1"/><ellipse cx="38" cy="9" rx="3" ry="11" fill="#ffc9d6"/><ellipse cx="62" cy="9" rx="3" ry="11" fill="#ffc9d6"/>`,
+      phones:`<path d="M20,48 C18,10 82,10 80,48" fill="none" stroke="#343a40" stroke-width="5"/><rect x="14" y="40" width="11" height="17" rx="5" fill="#e5484d"/><rect x="75" y="40" width="11" height="17" rx="5" fill="#e5484d"/>`,
+      flower:[0,72,144,216,288].map(d => `<circle cx="${(68 + Math.cos(d*Math.PI/180)*5).toFixed(1)}" cy="${(24 + Math.sin(d*Math.PI/180)*5).toFixed(1)}" r="4.4" fill="#ffd1e6" stroke="#f783ac" stroke-width=".8"/>`).join("") + `<circle cx="68" cy="24" r="3.2" fill="#ffd43b"/>`,
+      goggle:`<rect x="18" y="26" width="64" height="7" rx="3.5" fill="#343a40"/><circle cx="39" cy="29.5" r="8" fill="#9ee6ff" stroke="#495057" stroke-width="3"/><circle cx="61" cy="29.5" r="8" fill="#9ee6ff" stroke="#495057" stroke-width="3"/><path d="M35,26 L38,24" stroke="#fff" stroke-width="2" stroke-linecap="round"/>`,
+      horn:`<path d="M33,24 L37,6 L43,22 Z M67,24 L63,6 L57,22 Z" fill="#ffd43b" stroke="#e08a00" stroke-width="1.4" stroke-linejoin="round"/>`
+    };
+    g += H[a.hat] || "";
+    // 아픔 표시 (뿅망치)
+    if (mood === "hurt") g += `<g transform="rotate(-25 66 30)"><rect x="57" y="26" width="18" height="7" rx="3" fill="#f1c79b"/><rect x="63" y="26" width="6" height="7" fill="#fbe7d2"/></g><path d="M78,36 C76,41 80,43 80,40 C80,38 79,37 78,36 Z" fill="#9ee6ff" stroke="#4dabf7" stroke-width=".8"/>`;
+    if (mood === "star") g += `<path d="M14,24 L15.5,28 L19.5,29.5 L15.5,31 L14,35 L12.5,31 L8.5,29.5 L12.5,28 Z M86,18 L87,21 L90,22 L87,23 L86,26 L85,23 L82,22 L85,21 Z" fill="#ffd43b"/>`;
+    return `<svg class="avs" viewBox="0 0 100 100" aria-hidden="true"><defs>${defs}</defs><g clip-path="url(#${id}c)">${g}</g></svg>`;
+  }
+  const avMood = sid => hamN(sid) ? "hurt" : (typeof prLevel === "function" && prLevel(prN(sid)) >= 9 ? "star" : "");
   /* ---------- 📷 학생 사진: 브라우저에만 따로 저장 (기록과 따로 두어 저장이 가벼워요) ---------- */
   const PKEY = KEY + ".photos";
   let PH = {};
@@ -2314,11 +2496,16 @@
     catch(e) { alert("사진을 저장할 자리가 부족해요. 사진 몇 장을 지우고 다시 해 주세요."); return false; }
   }
   const markPhotos = () => document.body.classList.toggle("has-photos", S.students.some(x => PH[x.id]));
-  const faceHTML = sid => photoOf(sid)
+  const faceHTML = sid => avatarOf(sid)
+    ? `<span class="face av${hamN(sid) ? " ugly" : ""}" aria-hidden="true">${avatarSVG(avatarOf(sid), avMood(sid))}<i class="fb">${faceOf(sid)}</i></span>`
+    : photoOf(sid)
     ? `<span class="face ph${hamN(sid) ? " ugly" : ""}" aria-hidden="true"><img src="${photoOf(sid)}" alt=""><i class="fb">${faceOf(sid)}</i></span>`
     : `<span class="face${hamN(sid) ? " ugly" : ""}" aria-hidden="true">${faceOf(sid)}</span>`;
   function setFace(fc, sid){   // 사진이 있으면 사진은 그대로 두고 작은 표정만 바꿔요
     if (!fc) return;
+    const av = avatarOf(sid);
+    if (av) { fc.classList.remove("ph"); fc.classList.add("av"); fc.innerHTML = `${avatarSVG(av, avMood(sid))}<i class="fb">${faceOf(sid)}</i>`; return; }
+    if (fc.classList.contains("av")) { fc.classList.remove("av"); fc.innerHTML = ""; }
     const ph = photoOf(sid), has = fc.classList.contains("ph");
     if (ph && has) { const b = fc.querySelector(".fb"); if (b) b.textContent = faceOf(sid); return; }
     if (ph) { fc.classList.add("ph"); fc.innerHTML = `<img src="${ph}" alt=""><i class="fb">${faceOf(sid)}</i>`; return; }
@@ -5290,6 +5477,46 @@
     document.addEventListener("keydown", e => { if (on && e.key === "Escape" && !document.querySelector(".modal.open")) setOn(false); }, true);
   })();
 
+
+
+  /* ---------- 👕 아바타 꾸미기 창 ---------- */
+  (function(){
+    let cur = null, tab = "hair";
+    const TABS = [["skin","🙂 피부"],["hair","💇 머리"],["hairC","🎨 머리색"],["eyes","👀 눈"],["mouth","👄 입"],["cheek","☺️ 볼"],["hat","🎩 모자·장식"],["glasses","👓 안경"],["top","👕 옷"],["topC","🌈 옷 색"],["pat","✨ 무늬"]];
+    const COLOR = {skin:1, hairC:1, topC:1};
+    const BASE = {skin:"#f9cfa8", hair:"short", hairC:"#2b2420", eyes:"dot", mouth:"smile", cheek:"pink", hat:"none", glasses:"none", top:"tee", topC:"#4dabf7", pat:"none", on:true};
+    const has = sid => !!(S.avatars||{})[sid];
+    const cfgOf = sid => { S.avatars = S.avatars || {}; if (!S.avatars[sid]) S.avatars[sid] = Object.assign({}, BASE); return S.avatars[sid]; };
+    function draw(){
+      if (!cur) return;
+      const a = has(cur) ? S.avatars[cur] : BASE;
+      $("#avStage").innerHTML = has(cur) ? avatarSVG(a, "") : `<div style="height:100%;display:grid;place-items:center;text-align:center;font-family:Jua;color:#2a5aa0;font-size:18px;line-height:1.4"><span style="font-size:80px">${faceOf(cur)}</span>아직 아바타가 없어요<br>아래에서 골라 보세요</div>`;
+      $("#avShow").checked = has(cur) && a.on !== false; $("#avShow").disabled = !has(cur);
+      $("#avTabs").innerHTML = TABS.map(([k, l]) => `<button data-avt="${k}" class="${k === tab ? "on" : ""}">${l}</button>`).join("");
+      $("#avOpts").innerHTML = AV[tab].map(([v, l]) => {
+        const on = a[tab] === v;
+        const look = COLOR[tab] ? `<span class="sw" style="background:${v}"></span>` : avatarSVG(Object.assign({}, a, {[tab]: v}), "");
+        return `<button class="av-opt${on ? " on" : ""}" data-avv="${v}">${look}<span>${l}</span></button>`;
+      }).join("");
+    }
+    function fill(){
+      $("#avWho").innerHTML = S.students.map((st, i) => `<option value="${st.id}">${i+1}. ${esc(st.name)}${(S.avatars||{})[st.id] ? " 👕" : ""}</option>`).join("");
+      if (cur) $("#avWho").value = cur;
+    }
+    function go(sid){ cur = sid; fill(); draw(); }
+    function changed(){ save(); render(); fill(); draw(); }
+    $("#avBtn").onclick = () => { if (!S.students.length) { alert("설정에서 학생 명단을 먼저 입력해 주세요."); return; } go(cur && S.students.some(x => x.id === cur) ? cur : S.students[0].id); openM("#avModal"); };
+    $("#avWho").onchange = e => go(e.target.value);
+    const step = d => { const i = S.students.findIndex(x => x.id === cur); go(S.students[(i + d + S.students.length) % S.students.length].id); };
+    $("#avPrev").onclick = () => step(-1); $("#avNext").onclick = () => step(1);
+    $("#avTabs").addEventListener("click", e => { const b = e.target.closest("[data-avt]"); if (!b) return; tab = b.dataset.avt; draw(); });
+    $("#avOpts").addEventListener("click", e => { const b = e.target.closest("[data-avv]"); if (!b || !cur) return; cfgOf(cur)[tab] = b.dataset.avv; cfgOf(cur).on = true; changed(); });
+    $("#avShow").onchange = e => { cfgOf(cur).on = e.target.checked; changed(); };
+    $("#avRand").onclick = () => { S.avatars = S.avatars || {}; S.avatars[cur] = avRandom(cur); changed(); };
+    $("#avAllRand").onclick = () => { let n = 0; S.avatars = S.avatars || {}; S.students.forEach(st => { if (!S.avatars[st.id]) { S.avatars[st.id] = avRandom(st.id); n++; } }); changed(); toast(n ? `🎲 ${n}명 아바타를 만들었어요` : "모두 아바타가 있어요", false); };
+    $("#avReset").onclick = () => { if (!has(cur) || !confirm("이 친구 아바타를 지울까요? (카드는 원래 얼굴로 돌아가요)")) return; delete S.avatars[cur]; changed(); };
+    document.addEventListener("keydown", e => { if (!$("#avModal").classList.contains("open")) return; if (e.key === "ArrowLeft" && e.target.tagName !== "SELECT") step(-1); if (e.key === "ArrowRight" && e.target.tagName !== "SELECT") step(1); });
+  })();
 
   /* ---------- 📷 사진 넣기·짝짓기 창 ---------- */
   (function(){
