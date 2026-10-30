@@ -1579,6 +1579,55 @@
   body.arcade .card.t0 .ok{color:#ffd23a}
   body.arcade .hint{background:#eaf6ff;border-color:var(--ao2)}
   .card:nth-child(5n+1){--gd:0s}.card:nth-child(5n+2){--gd:-2.8s}.card:nth-child(5n+3){--gd:-5.6s}.card:nth-child(5n+4){--gd:-1.4s}.card:nth-child(5n){--gd:-4.2s}
+
+  /* ---------- 학생 카드 크게 · 아바타 크게 · 배지 정렬 · 시간표 작게 (+ 눌러서 크게) ---------- */
+  .grid{grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:14px}
+  body.big .grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+  .card .name .face, body.has-photos .card .name .face{width:104px;height:104px;font-size:62px}
+  .card .name .face::after{width:110px;margin-left:-55px}
+  body.big .card .name .face{width:118px;height:118px;font-size:70px}
+  .card .name .nmt{font-size:22px}
+  .card > .count{font-size:52px}
+  /* 머리줄: [번호 👑] ……… [−]  /  배지는 아래 한 줄에 같은 크기로 */
+  .card > .head{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding-right:40px;min-height:30px}
+  .card > .head .bdg{display:flex;flex-wrap:wrap;gap:4px;flex-basis:100%;order:5;min-height:0}
+  .card > .head .bdg:empty{display:none}
+  .card .stampct,.card .prct,.card .hamct{display:inline-flex;align-items:center;justify-content:center;gap:2px;height:24px;min-width:48px;padding:0 8px;
+    border-radius:999px;font-size:15px;line-height:1;font-variant-numeric:tabular-nums;background:#fff;box-shadow:0 2px 0 rgba(0,0,0,.12),inset 0 0 0 1.5px rgba(0,0,0,.06)}
+  .card .stampct{color:#d63b3b} .card .prct{color:#d6337f} .card .hamct{color:#5a6372}
+  /* 시간표: 폭·글씨 줄이기 */
+  @media (min-width:1180px){ .board-layout{grid-template-columns:230px minmax(0,1fr) 330px} }
+  @media (max-width:1179px) and (min-width:981px){ .board-layout{grid-template-columns:minmax(0,1fr) 310px} }
+  .tt-head h2{font-size:26px}
+  .tt-days button{font-size:17px;padding:6px 0}
+  .tt-list{gap:7px}
+  .tt-row{padding:7px 10px;gap:10px;border-radius:15px}
+  .tt-no{width:42px} .tt-no b{font-size:26px} .tt-no small{font-size:11px}
+  .tt-sub{font-size:27px;gap:7px} .tt-sub .em{font-size:23px} .tt-sub.empty{font-size:21px}
+  .tt-time{font-size:13px}
+  .tt-row.now .tt-time::before{font-size:15px} .tt-row.next .tt-time::before{font-size:13px}
+  .tt-lunch{font-size:17px;padding:6px}
+  body.big .tt-sub{font-size:31px} body.big .tt-no b{font-size:29px} body.big .tt-time{font-size:14px}
+  #ttList{cursor:zoom-in}
+  .tt-zoom{width:36px;height:36px;border-radius:12px;background:#f7efe3;font-size:17px;display:grid;place-items:center}
+  body.big .tt-zoom{display:grid}
+  /* 크게 보기 */
+  #ttBig{position:fixed;inset:0;z-index:9989;display:none;align-items:center;justify-content:center;padding:3vh 3vw;background:rgba(10,25,60,.72);cursor:zoom-out}
+  #ttBig.open{display:flex;animation:bcIn .25s ease}
+  .ttb-box{width:min(1100px,94vw);max-height:94vh;overflow:auto;background:#fffdf8;border:6px solid #f1dcc4;border-radius:34px;padding:2.4vh 2.4vw;box-shadow:0 30px 80px rgba(0,0,0,.4);cursor:default;position:relative}
+  .ttb-box::before{content:"";position:absolute;left:0;right:0;top:0;height:12px;border-radius:28px 28px 0 0;background:repeating-linear-gradient(90deg,#ff8a5b 0 40px,#ffd27a 40px 80px,#7cc7a0 80px 120px,#6aa9ff 120px 160px,#c79bff 160px 200px)}
+  .ttb-head{display:flex;align-items:center;justify-content:space-between;margin:6px 4px 1.6vh}
+  .ttb-head h2{font-family:"Jua";font-weight:400;font-size:min(4vw,6vh);margin:0;color:var(--ink)}
+  .ttb-head button{font-size:30px;width:56px;height:56px;border-radius:16px;background:#f7efe3}
+  #ttBigList{display:flex;flex-direction:column;gap:.9vh}
+  #ttBigList .tt-row{padding:.9vh 1.6vw;gap:1.6vw;border-radius:24px}
+  #ttBigList .tt-no{width:clamp(70px,7vw,110px)} #ttBigList .tt-no b{font-size:min(4.6vw,6vh)} #ttBigList .tt-no small{font-size:clamp(14px,1.4vw,20px)}
+  #ttBigList .tt-sub{font-size:min(5.6vw,7.2vh);gap:1vw} #ttBigList .tt-sub .em{font-size:.85em} #ttBigList .tt-sub.empty{font-size:clamp(30px,3.4vw,50px)}
+  #ttBigList .tt-time{font-size:clamp(18px,1.9vw,28px)}
+  #ttBigList .tt-row.now .tt-time::before{font-size:clamp(22px,2.2vw,32px)} #ttBigList .tt-row.next .tt-time::before{font-size:clamp(18px,1.8vw,26px)}
+  #ttBigList .tt-row.now{transform:scale(1.02);border-width:4px}
+  #ttBigList .tt-lunch{font-size:min(2.8vw,4vh);padding:.6vh;border-radius:20px}
+  body.arcade .ttb-box{border-color:#7fc6ff;box-shadow:0 0 0 4px #0a2b6b,0 30px 80px rgba(0,0,0,.45)}
 </style>
 </head>
 <body>
@@ -1639,6 +1688,7 @@
   <div class="sc-dots" id="scDots"></div>
   <div class="sc-hint">화면을 누르면 닫혀요</div>
 </div>
+<div id="ttBig" role="dialog" aria-label="시간표 크게 보기"><div class="ttb-box"><div class="ttb-head"><h2 id="ttBigT">📅 오늘 시간표</h2><button id="ttBigX" aria-label="닫기">×</button></div><div id="ttBigList"></div></div></div>
 <div id="bigClock" role="button" aria-label="시계 화면 닫기">
   <div class="bc-date" id="bcDate"></div>
   <div class="bc-time"><span class="bc-ap" id="bcAp"></span><span class="bc-hm" id="bcHm"></span><span class="bc-sec" id="bcSec"></span></div>
@@ -1844,6 +1894,7 @@
     <aside class="tt" id="tt" aria-label="시간표">
       <div class="tt-head">
         <h2>📅 오늘 시간표</h2>
+        <button class="tt-zoom" id="ttZoom" title="시간표 크게 보기" aria-label="시간표 크게 보기">🔍</button>
         <button class="tt-edit" id="ttEdit" title="시간표 고치기" aria-label="시간표 고치기">✏️</button>
       </div>
       <div class="tt-days" id="ttDays"></div>
@@ -2747,7 +2798,7 @@
     return `<article class="card t${t}${isFamed(s.id)?" famed":""}${W.cls}" data-id="${s.id}" style="${W.style}">
       <button class="hit" data-plus="${s.id}" aria-label="${esc(s.name)} 한 번 추가"></button>${W.html}
       <button class="minus" data-minus="${s.id}" aria-label="${esc(s.name)} 한 번 빼기" title="한 번 빼기">−</button>
-      <div class="head"><span class="num">${idx+1}</span>${isFamed(s.id) ? `<span class="crown" title="명예의 전당">👑</span>` : ""}${stampN(s.id) ? `<span class="stampct" title="칭찬도장">🌟${stampN(s.id)}</span>` : ""}${prN(s.id) ? `<span class="prct" title="칭찬 도장">💮${prN(s.id)}</span>` : ""}${hamN(s.id) ? `<span class="hamct" title="뿅망치 맞은 횟수">🔨${hamN(s.id)}</span>` : ""}</div>
+      <div class="head"><span class="num">${idx+1}</span>${isFamed(s.id) ? `<span class="crown" title="명예의 전당">👑</span>` : ""}<span class="bdg">${stampN(s.id) ? `<span class="stampct" title="칭찬도장">🌟${stampN(s.id)}</span>` : ""}${prN(s.id) ? `<span class="prct" title="칭찬 도장">💮${prN(s.id)}</span>` : ""}${hamN(s.id) ? `<span class="hamct" title="뿅망치 맞은 횟수">🔨${hamN(s.id)}</span>` : ""}</span></div>
       <div class="name">${faceHTML(s.id)}<span class="nmt">${esc(s.name)}</span></div>
       <div class="count">${c}<small>회</small></div>
       <div class="dots">${dots}</div>
@@ -4728,7 +4779,7 @@
       S.hammer = S.hammer || {}; S.hammer[id] = hamN(id) + 1; save();
       const hn = S.hammer[id];
       let hc = card.querySelector(".hamct");
-      if (!hc) { hc = document.createElement("span"); hc.className = "hamct"; hc.title = "뿅망치 맞은 횟수"; const hd = card.querySelector(".head"); if (hd) hd.appendChild(hc); }
+      if (!hc) { hc = document.createElement("span"); hc.className = "hamct"; hc.title = "뿅망치 맞은 횟수"; const hd = card.querySelector(".head .bdg") || card.querySelector(".head"); if (hd) hd.appendChild(hc); }
       hc.textContent = `🔨${hn}`; hc.classList.remove("pop"); void hc.offsetWidth; hc.classList.add("pop");
       const fc = card.querySelector(".name .face");
       if (fc) { setFace(fc, id); fc.classList.add("ugly"); fc.classList.remove("swap"); void fc.offsetWidth; fc.classList.add("swap"); }
@@ -4997,7 +5048,7 @@
       applyWear(card, id);
       const L1 = prLevel(pn);
       let pc = card.querySelector(".prct");
-      if (!pc) { pc = document.createElement("span"); pc.className = "prct"; pc.title = "칭찬 도장"; const hd = card.querySelector(".head"); if (hd) hd.insertBefore(pc, hd.querySelector(".hamct")); }
+      if (!pc) { pc = document.createElement("span"); pc.className = "prct"; pc.title = "칭찬 도장"; const hd = card.querySelector(".head .bdg") || card.querySelector(".head"); if (hd) hd.insertBefore(pc, hd.querySelector(".hamct")); }
       pc.textContent = `💮${pn}`; pc.classList.remove("pop"); void pc.offsetWidth; pc.classList.add("pop");
       const fc = card.querySelector(".name .face");
       if (fc) { setFace(fc, id); fc.classList.remove("swap"); void fc.offsetWidth; fc.classList.add("swap"); }
@@ -5285,7 +5336,7 @@
       applyWear(card, id);
       let pc = card.querySelector(".prct");
       if (pn) {
-        if (!pc) { pc = document.createElement("span"); pc.className = "prct"; pc.title = "칭찬 도장"; const hd = card.querySelector(".head"); if (hd) hd.insertBefore(pc, hd.querySelector(".hamct")); }
+        if (!pc) { pc = document.createElement("span"); pc.className = "prct"; pc.title = "칭찬 도장"; const hd = card.querySelector(".head .bdg") || card.querySelector(".head"); if (hd) hd.insertBefore(pc, hd.querySelector(".hamct")); }
         pc.textContent = `💮${pn}`; pc.classList.remove("pop"); void pc.offsetWidth; pc.classList.add("pop");
       } else if (pc) pc.remove();
       const fc = card.querySelector(".name .face");
@@ -5938,6 +5989,19 @@
       else if ((e.key === " " || e.code === "Space") && (state === "setup" || state === "end")) { e.preventDefault(); start(); }
     }, true);
     window.__mbTest = { step, afterFrame, get balls(){ return balls; }, get finished(){ return finished; }, get state(){ return state; } };
+  })();
+
+
+  /* ---------- 📅 시간표 크게 보기 ---------- */
+  (function(){
+    let iv = 0;
+    const copy = () => { $("#ttBigList").innerHTML = $("#ttList").innerHTML; const d = document.querySelector("#ttDays .sel"); $("#ttBigT").textContent = `📅 ${d ? d.textContent.replace("오늘","").trim() + "요일 " : ""}시간표`; };
+    const open = () => { if (typeof ttEditing !== "undefined" && ttEditing) return; copy(); $("#ttBig").classList.add("open"); clearInterval(iv); iv = setInterval(copy, 1000); };
+    const close = () => { $("#ttBig").classList.remove("open"); clearInterval(iv); };
+    $("#ttZoom").onclick = e => { e.stopPropagation(); open(); };
+    $("#ttList").addEventListener("click", e => { if (e.target.closest("input,button,select,textarea")) return; open(); });
+    $("#ttBig").addEventListener("click", e => { if (!e.target.closest(".ttb-box") || e.target.closest("#ttBigX")) close(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape" && $("#ttBig").classList.contains("open")) { e.stopPropagation(); close(); } }, true);
   })();
 
   /* ---------- 🎤 발표 뽑기: 한 번 뽑힌 친구는 모두 한 번씩 뽑힐 때까지 다시 안 나와요 ---------- */
