@@ -2326,7 +2326,7 @@
   const faceHash = id => { let h = 7; for (const ch of String(id)) h = (h*31 + ch.charCodeAt(0)) >>> 0; return h; };
   function faceOf(sid){
     const n = hamN(sid), h = faceHash(sid);
-    if (!n) { const pl = prLevel(prN(sid)), th = PR_TH[genderOf(sid)]; return pl >= 19 ? th.face2 : pl >= 9 ? th.face1 : FACE_OK[h % FACE_OK.length]; }
+    if (!n) { const pl = prLevel(glowN(sid)), th = PR_TH[genderOf(sid)]; return pl >= 19 ? th.face2 : pl >= 9 ? th.face1 : FACE_OK[h % FACE_OK.length]; }
     let set = FACE_UGLY[0][1]; for (const [at, arr] of FACE_UGLY) if (n >= at) set = arr;
     return set[h % set.length];
   }
@@ -2385,6 +2385,7 @@
   }
   /* ---------- 💮 칭찬 도장 단계 (뿅망치와 같은 1~100번, 19단계) ---------- */
   const prN = sid => ((S.praise||{})[sid] || 0);
+  const glowN = sid => prN(sid) + (S.stamps||[]).filter(x => x.sid===sid).length;   // 💮 + ⭐ 합쳐서 카드 변신
   const genderOf = sid => { const g = (S.gender||{})[sid]; return g === "b" || g === "g" ? g : "n"; };
   const prLevel = n => DMG_AT.filter(a => n >= a).length;
   const PR_TH = {
@@ -2402,7 +2403,7 @@
         say:["", "✨ 반짝!", "⭐ 별 장식!", "💛 금빛 카드!", "🔸 반짝 무늬!", "⭐ 별이 솟아요!", "🏅 메달 획득!", "🌟 빛이 나요!", "💎 보석 테두리!", "💮 참 잘했어요 도장!", "🌠 별똥별!", "🌈 홀로그램!", "👑 왕관!", "🥇 빛나는 이름!", "🦁 사자 소환!", "🌈 무지개 테두리!", "🎆 불꽃놀이!", "✨ 눈부신 카드!", "🌟 우리 반 스타!", "🏆 전설의 카드!"]}
   };
   function decoOf(sid){
-    const L = prLevel(prN(sid));
+    const L = prLevel(glowN(sid));
     if (!L) return {L, cls:"", style:"", html:""};
     const g = genderOf(sid), T = PR_TH[g], r = seeded(faceHash(sid) ^ 0x51ed270b);
     const st = `--p1:${T.p1};--p2:${T.p2};--p3:${T.p3};--pg:${T.pg};--pbg:${[0,.12,.18,.3,.36,.42,.46,.5,.54,.56,.58,.6,.62,.64,.66,.68,.7,.72,.74,.76][L]};--r1:${T.ring[0]};--r2:${T.ring[1]};--r3:${T.ring[2]};--r4:${T.ring[3]};`;
@@ -2607,7 +2608,7 @@
     // 눈
     const tl = /^t(\d+)$/.test(mood || "") ? +mood.slice(1) : 0;   // 선생님 마음 온도계 단계
     let eyes = a.eyes; if (mood === "hurt") eyes = "hurt"; else if (mood === "star") eyes = "star";
-    if (tl) eyes = tl <= 2 ? "happy" : tl <= 4 ? a.eyes : tl === 5 ? "dot" : tl <= 7 ? "worry" : "angry";
+    if (tl >= 6) eyes = tl <= 7 ? "worry" : "angry";
     const E = {
       dot:`<circle cx="40" cy="48" r="3.6" fill="${dk}"/><circle cx="60" cy="48" r="3.6" fill="${dk}"/><circle cx="41.2" cy="46.8" r="1.2" fill="#fff"/><circle cx="61.2" cy="46.8" r="1.2" fill="#fff"/>`,
       big:`<ellipse cx="40" cy="48" rx="4.8" ry="5.8" fill="${dk}"/><ellipse cx="60" cy="48" rx="4.8" ry="5.8" fill="${dk}"/><circle cx="41.6" cy="46" r="1.9" fill="#fff"/><circle cx="61.6" cy="46" r="1.9" fill="#fff"/><circle cx="38.6" cy="50.6" r=".9" fill="#fff"/><circle cx="58.6" cy="50.6" r=".9" fill="#fff"/>`,
@@ -2624,7 +2625,7 @@
     };
     g += E[eyes] || E.dot;
     let mouth = a.mouth; if (mood === "hurt") mouth = "hurt";
-    if (tl) mouth = tl === 1 ? "grin" : tl === 2 ? "teeth" : tl <= 4 ? "smile" : tl === 5 ? "flat" : tl <= 7 ? "sad" : tl <= 9 ? "angry" : "rage";
+    if (tl >= 6) mouth = tl <= 7 ? "sad" : tl <= 9 ? "angry" : "rage";
     const M = {
       smile:`<path d="M43,59 Q50,65.5 57,59" fill="none" stroke="#8a3b2a" stroke-width="2.4" stroke-linecap="round"/>`,
       grin:`<path d="M42,58 Q50,70 58,58 Z" fill="#c2413a"/><path d="M45,62.5 Q50,66.5 55,62.5 Q50,64 45,62.5 Z" fill="#ff8fa3"/>`,
@@ -2766,7 +2767,7 @@
     const frame = FR[fr] || FR.basic;
     return `<svg class="avs" viewBox="${vb || "0 0 100 100"}" aria-hidden="true"><defs>${defs}</defs><g clip-path="url(#${id}c)">${g}</g>${frame}</svg>`;
   }
-  const avMood = sid => hamN(sid) ? "hurt" : (typeof prLevel === "function" && prLevel(prN(sid)) >= 9 ? "star" : "");
+  const avMood = sid => hamN(sid) ? "hurt" : (typeof prLevel === "function" && prLevel(glowN(sid)) >= 9 ? "star" : "");
   /* ---------- 📷 학생 사진: 브라우저에만 따로 저장 (기록과 따로 두어 저장이 가벼워요) ---------- */
   const PKEY = KEY + ".photos";
   let PH = {};
@@ -5168,9 +5169,9 @@
       const pn = S.praise[id], g = genderOf(id), T = PR_TH[g];
       ding(power);
       // 카드: 꾹 눌림 + 번쩍 + 빨간 도장 자국 + 변신
-      const L0 = prLevel(pn - 1);
+      const L0 = prLevel(glowN(id) - 1);
       applyWear(card, id);
-      const L1 = prLevel(pn);
+      const L1 = prLevel(glowN(id));
       let pc = card.querySelector(".prct");
       if (!pc) { pc = document.createElement("span"); pc.className = "prct"; pc.title = "칭찬 도장"; const hd = card.querySelector(".head .bdg") || card.querySelector(".head"); if (hd) hd.insertBefore(pc, hd.querySelector(".hamct")); }
       pc.textContent = `💮${pn}`; pc.classList.remove("pop"); void pc.offsetWidth; pc.classList.add("pop");
@@ -5452,9 +5453,9 @@
       const id = card.dataset.id, stu = S.students.find(z => z.id === id); if (!stu) return;
       const now = Date.now(), c0 = combo.get(id), n = c0 && now - c0.t < 1500 ? c0.n + 1 : 1; combo.set(id, {n, t: now});
       const before = prN(id), g = genderOf(id), T = PR_TH[g];
-      const L0 = prLevel(before);
+      const L0 = prLevel(glowN(id));
       if (before > 0) { S.praise = S.praise || {}; if (before - 1) S.praise[id] = before - 1; else delete S.praise[id]; save(); }
-      const pn = prN(id), L1 = prLevel(pn);
+      const pn = prN(id), L1 = prLevel(glowN(id));
       wahwah();
       // 카드: 털썩 + 회색으로 + 파란 실망 도장 자국 + 장식 한 단계 빠짐
       applyWear(card, id);
@@ -5780,10 +5781,10 @@
     const tabsFor = sid => { if (isT(sid)) return [...BASIC, ...TEACH, ...HERO, ...IDOL]; const gd = genderOf(sid); return gd === "g" ? [...BASIC, ...IDOL, ...HERO] : [...BASIC, ...HERO, ...IDOL]; };
     function draw(){
       if (!cur) return;
-      const a = has(cur) ? Object.assign({}, BASE, S.avatars[cur]) : BASE, pn = isT(cur) ? 999 : prN(cur);
+      const a = has(cur) ? Object.assign({}, BASE, S.avatars[cur]) : BASE, pn = isT(cur) ? 999 : glowN(cur);
       $("#avStage").innerHTML = has(cur) ? avatarSVG(a, isT(cur) ? "t" + (S.mood || 1) : "") : isT(cur) ? `<div style="height:100%;display:grid;place-items:center;text-align:center;font-family:Jua;color:#2a5aa0;font-size:18px;line-height:1.4"><span style="font-size:80px">🧑‍🏫</span>선생님 아바타를<br>만들어 보세요</div>` : `<div style="height:100%;display:grid;place-items:center;text-align:center;font-family:Jua;color:#2a5aa0;font-size:18px;line-height:1.4"><span style="font-size:80px">${faceOf(cur)}</span>아직 아바타가 없어요<br>아래에서 골라 보세요</div>`;
       $("#avShow").checked = has(cur) && a.on !== false; $("#avShow").disabled = !has(cur);
-      $("#avStamps").innerHTML = isT(cur) ? `🧑‍🏫 선생님은 <b>모든 장비</b>를 입을 수 있어요` : `💮 칭찬 도장 <b>${pn}</b>개`;
+      $("#avStamps").innerHTML = isT(cur) ? `🧑‍🏫 선생님은 <b>모든 장비</b>를 입을 수 있어요` : `💮+⭐ 칭찬 도장 <b>${pn}</b>개`;
       $("#avShow").parentElement.lastChild.textContent = isT(cur) ? " 마음 온도계에 아바타로 보이기" : " 학생 카드에 아바타로 보이기";
       const tabs = tabsFor(cur);
       $("#avTabs").innerHTML = tabs.map(([k, l], i) => `${i === BASIC.length ? `<span class="av-sep">${isT(cur) ? "🧑‍🏫 선생님 전용 · 특별 장비" : "💮 칭찬 도장으로 열어요"}</span>` : ""}<button data-avt="${k}" class="${k === tab ? "on" : ""}${AV_UNLOCK[k] ? " sp" : ""}">${l}</button>`).join("");
@@ -5811,7 +5812,7 @@
     $("#avOpts").addEventListener("click", e => {
       const b = e.target.closest("[data-avv]"); if (!b || !cur) return;
       const n = +b.dataset.need;
-      if (!free && n > prN(cur)) { toast(`🔒 칭찬 도장 ${n}개를 모으면 입을 수 있어요 (지금 ${prN(cur)}개)`, false); b.animate([{transform:"translateX(0)"},{transform:"translateX(-6px)"},{transform:"translateX(6px)"},{transform:"translateX(0)"}], {duration:300}); return; }
+      if (!free && n > glowN(cur)) { toast(`🔒 칭찬 도장 ${n}개를 모으면 입을 수 있어요 (지금 ${glowN(cur)}개)`, false); b.animate([{transform:"translateX(0)"},{transform:"translateX(-6px)"},{transform:"translateX(6px)"},{transform:"translateX(0)"}], {duration:300}); return; }
       const c = cfgOf(cur), v = b.dataset.avv;
       if (tab === "hero") { c.hero = v; if (v !== "none") { c.idol = "none"; c.tout = "none"; } }
       else if (tab === "idol") { c.idol = v; if (v !== "none") { c.hero = "none"; c.tout = "none"; } }
@@ -6161,9 +6162,9 @@
     const b = e.target.closest("[data-prplus]"); if (!b) return;
     e.stopPropagation();
     const id = b.dataset.prplus, st = S.students.find(x => x.id === id); if (!st) return;
-    const L0 = prLevel(prN(id));
+    const L0 = prLevel(glowN(id));
     S.praise = S.praise || {}; S.praise[id] = prN(id) + 1; save();
-    const n = S.praise[id], L1 = prLevel(n);
+    const n = S.praise[id], L1 = prLevel(glowN(id));
     render();
     const card = document.querySelector(`.card[data-id="${id}"]`);
     if (card) {
