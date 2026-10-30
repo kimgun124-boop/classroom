@@ -1631,6 +1631,11 @@
   .vb-phbar{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;max-width:1100px;margin:0 auto 10px;background:#fff3c4;color:#5a3a00;border-radius:16px;padding:8px 14px;font-size:17px}
   .vb-phbar[hidden]{display:none}
   .vb-phbar button{font-family:"Jua";font-size:18px;background:linear-gradient(180deg,#ffe07a,#ffc53d 35%,#ff8a00);color:#fff;border-radius:12px;padding:7px 16px;text-shadow:0 1px 0 rgba(0,0,0,.3);box-shadow:0 3px 0 #b85d00}
+  .mt-face.av{width:118px;height:118px;border-radius:50%;margin:0 auto;font-size:0;line-height:0;background:radial-gradient(circle at 50% 30%,#fff 0 12%,#dff3ff 38%,#9fd6ff 72%,#6cb6f2);
+    border:4px solid #fff;box-shadow:0 4px 0 var(--mc),0 0 0 2px var(--mc),0 8px 14px rgba(0,0,0,.18);overflow:hidden;filter:none}
+  .mt-face.av svg{width:100%;height:100%;display:block}
+  body.big .mt-face.av{width:140px;height:140px}
+  @media (max-width:1179px){ .mt-face.av{width:96px;height:96px} }
 </style>
 </head>
 <body>
@@ -1885,7 +1890,7 @@
   </section>
   <div class="board-layout">
     <aside class="mt" id="mt" aria-label="선생님 마음 온도계">
-      <div class="mt-head"><h2>🌡️ 선생님<br>마음 온도계</h2></div>
+      <div class="mt-head"><h2>🌡️ 선생님<br>마음 온도계</h2><button class="tt-edit" id="mtAv" title="선생님 아바타 꾸미기" aria-label="선생님 아바타 꾸미기">👕</button></div>
       <div class="mt-now"><div class="mt-face" id="mtFace">🥰</div><span class="mt-lvl" id="mtLvl">1단계</span><div class="mt-msg" id="mtMsg"></div></div>
       <div class="mt-ctl"><button id="mtDown" title="온도 내리기">▼ 내리기</button><button id="mtUp" title="온도 올리기">▲ 올리기</button></div>
       <div class="mt-recbar"><button id="mtYT" aria-label="유튜브 목소리 설정">▶️</button><button id="mtRec">🎙️ 10단계 목소리 녹음</button><button id="mtRecDel" title="녹음 지우기" aria-label="녹음 지우기" hidden>🗑️</button></div>
@@ -2440,6 +2445,9 @@
     helm: [["none","없음"],["viking","바이킹 투구"],["knight","기사 투구"],["spartan","장군 투구"],["spacehelm","우주 헬멧"],["dragon","드래곤 투구"]],
     weapon: [["none","없음"],["woodsword","나무칼"],["shield","방패"],["sword","강철 검"],["staff","마법 지팡이"],["bow","활"],["lightblade","빛의 검"],["legend","전설의 검·방패"]],
     idol: [["none","없음"],["ghoodie","반짝 후드"],["schoolidol","교복 아이돌"],["tweed","트위드 재킷"],["sequin","시퀸 크롭"],["stagedress","무대 드레스"],["diamond","다이아 드레스"]],
+    tout: [["none","없음"],["suit","멋진 정장"],["cardigan","카디건"],["labcoat","실험 가운"],["track","체육복"],["tux","턱시도"],["wizard","대마법사 로브"],["king","왕의 망토"],["captain","선장 제복"],["general","장군 제복"]],
+    thead: [["none","없음"],["gradcap","학사모"],["wizhat","마법사 모자"],["captainhat","선장 모자"],["kingcrown","황금 왕관"],["laurel","월계관"],["halo","천사 링"]],
+    tacc: [["none","없음"],["pointer","지시봉"],["book","출석부"],["mug","커피 한 잔"],["whistle","호루라기"],["wand","마법 지팡이"],["trophy","트로피"],["chalk","분필"]],
     acc: [["none","없음"],["starpins","별 핀"],["earrings","하트 귀걸이"],["headset","무대 마이크"],["choker","진주 초커"],["glitter","반짝 스티커"],["butterfly","나비 핀"],["tiara","티아라"],["crystal","크리스탈 왕관"]]
   };
   const AV_UNLOCK = {
@@ -2467,7 +2475,7 @@
   function avatarSVG(a, mood, vb){
     const id = "av" + (++avN), sk = a.skin, hc = a.hairC, tc = a.topC, dk = "#2b2420";
     const shade = (c, k) => hexMix(c, "#000000", k), light = (c, k) => hexMix(c, "#ffffff", 100 - k);
-    const outfit = (a.hero && a.hero !== "none") ? a.hero : (a.idol && a.idol !== "none") ? a.idol : "";
+    const outfit = (a.tout && a.tout !== "none") ? "t_" + a.tout : (a.hero && a.hero !== "none") ? a.hero : (a.idol && a.idol !== "none") ? a.idol : "";
     let defs = `<clipPath id="${id}c"><circle cx="50" cy="50" r="50"/></clipPath>
       <radialGradient id="${id}sk" cx="40%" cy="32%" r="75%"><stop offset="0" stop-color="${light(sk,30)}"/><stop offset=".6" stop-color="${sk}"/><stop offset="1" stop-color="${shade(sk,90)}"/></radialGradient>
       <linearGradient id="${id}hr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${light(hc,25)}"/><stop offset=".55" stop-color="${hc}"/><stop offset="1" stop-color="${shade(hc,78)}"/></linearGradient>
@@ -2486,6 +2494,8 @@
     const body = `M16,100 C18,82 32,75 50,75 C68,75 82,82 84,100 Z`;
     // 망토 (뒤)
     if (!outfit && a.top === "cape") g += `<path d="M12,100 C12,78 30,70 50,70 C70,70 88,78 88,100 Z" fill="${shade(tc,70)}"/>`;
+    if (outfit === "t_wizard") g += `<path d="M8,100 C10,74 30,66 50,66 C70,66 90,74 92,100 Z" fill="#3b2a7a"/>`;
+    if (outfit === "t_king") g += `<path d="M6,100 C8,72 28,64 50,64 C72,64 92,72 94,100 Z" fill="#a61e4d"/><path d="M6,100 C8,72 28,64 50,64 C72,64 92,72 94,100" fill="none" stroke="#fff" stroke-width="5" stroke-dasharray="2 4"/>`;
     if (outfit === "hero") g += `<path d="M8,100 C10,76 30,68 50,68 C70,68 90,76 92,100 Z" fill="#b5161b"/>`;
     if (outfit === "stagedress" || outfit === "diamond") g += `<path d="M6,100 C14,84 30,79 50,79 C70,79 86,84 94,100 Z" fill="${outfit === "diamond" ? "#f8f0d0" : "#c56cf0"}" opacity=".9"/>`;
     // 뒷머리
@@ -2524,6 +2534,15 @@
         goldarmor:`<path d="${body}" fill="${GD}" stroke="#b07000" stroke-width="1.6"/><path d="M36,78 Q50,84 64,78" fill="none" stroke="#fff6c2" stroke-width="2.4"/>
           <ellipse cx="22" cy="85" rx="11" ry="8" fill="${GD}" stroke="#b07000" stroke-width="1.4"/><ellipse cx="78" cy="85" rx="11" ry="8" fill="${GD}" stroke="#b07000" stroke-width="1.4"/>
           <path d="M50,84 L56,90 L50,97 L44,90 Z" fill="#e5484d" stroke="#fff" stroke-width="1"/><circle cx="36" cy="92" r="2" fill="#4dabf7"/><circle cx="64" cy="92" r="2" fill="#69db7c"/>`,
+        t_suit:`<path d="${body}" fill="#2b3a55" stroke="#141c2c" stroke-width="1.5"/><path d="M50,76 L40,76 L46,100 L50,100 Z M50,76 L60,76 L54,100 L50,100 Z" fill="#fff"/><path d="M38,76 L46,96 L42,100 L28,100 Z M62,76 L54,96 L58,100 L72,100 Z" fill="#33456a"/><path d="M50,78 L47,82 L49,96 L50,99 L51,96 L53,82 Z" fill="#e5484d"/><path d="M47,78 L53,78 L50,82 Z" fill="#b5161b"/><path d="M30,86 L36,86" stroke="#fff" stroke-width="1.6"/>`,
+        t_cardigan:`<path d="${body}" fill="#c08a5a" stroke="#7a5230" stroke-width="1.5"/><path d="M42,76 L50,100 L58,76" fill="#ffffff"/><path d="M42,76 Q50,84 58,76" fill="none" stroke="#e9ecef" stroke-width="2"/>${[86,92,98].map(y => `<circle cx="${y === 98 ? 47 : 45 + (y-86)/6}" cy="${y}" r="1.5" fill="#5a3a22"/>`).join("")}<path d="M24,94 L34,94" stroke="#7a5230" stroke-width="2"/>`,
+        t_labcoat:`<path d="${body}" fill="#f8f9fa" stroke="#adb5bd" stroke-width="1.5"/><path d="M42,76 L50,92 L58,76" fill="#74c0fc"/><path d="M50,92 L50,100" stroke="#adb5bd" stroke-width="1.2"/><rect x="58" y="88" width="10" height="9" rx="1.5" fill="none" stroke="#adb5bd" stroke-width="1.2"/><path d="M60,86 L60,90 M63,85 L63,90" stroke="#e5484d" stroke-width="1.6" stroke-linecap="round"/><path d="M60,86 L60,88" stroke="#4dabf7" stroke-width="1.6"/>`,
+        t_track:`<path d="${body}" fill="#1c7ed6" stroke="#0b4f8a" stroke-width="1.5"/><path d="M28,82 L30,100 M72,82 L70,100" stroke="#fff" stroke-width="3"/><path d="M42,75 L50,82 L58,75" fill="none" stroke="#fff" stroke-width="2.4"/><path d="M50,82 L50,100" stroke="#0b4f8a" stroke-width="1.4"/><circle cx="50" cy="84" r="1.6" fill="#ffd43b"/>`,
+        t_tux:`<path d="${body}" fill="#16161d" stroke="#000" stroke-width="1.5"/><path d="M42,76 L50,100 L58,76 Z" fill="#fff"/><path d="M42,79 L50,82 L42,85 Z M58,79 L50,82 L58,85 Z" fill="#16161d"/><circle cx="50" cy="82" r="1.6" fill="#16161d"/><circle cx="50" cy="90" r="1.1" fill="#16161d"/><circle cx="50" cy="96" r="1.1" fill="#16161d"/><path d="M28,88 C31,85 34,85 36,88" fill="#e5484d"/>`,
+        t_wizard:`<path d="${body}" fill="#4c2fa0" stroke="#2a1a63" stroke-width="1.5"/>${[[30,88],[66,84],[58,96],[38,97],[74,94]].map(([x,y]) => `<path d="M${x},${y-3} L${x+1},${y-1} L${x+3},${y} L${x+1},${y+1} L${x},${y+3} L${x-1},${y+1} L${x-3},${y} L${x-1},${y-1} Z" fill="#ffd43b"/>`).join("")}<path d="M40,76 Q50,84 60,76" fill="none" stroke="${GD}" stroke-width="3"/><circle cx="50" cy="82" r="2.6" fill="#9ee6ff" stroke="#fff" stroke-width=".8"/>`,
+        t_king:`<path d="${body}" fill="#c92a2a" stroke="#7a1414" stroke-width="1.5"/><path d="M36,76 Q50,86 64,76 L64,82 Q50,90 36,82 Z" fill="#fff"/>${[40,46,52,58].map(x => `<circle cx="${x}" cy="${83 + Math.abs(x-49)/6}" r=".9" fill="#222"/>`).join("")}<path d="M50,88 L50,100" stroke="${GD}" stroke-width="3"/><circle cx="50" cy="93" r="3" fill="${GD}" stroke="#b07000" stroke-width=".8"/>`,
+        t_captain:`<path d="${body}" fill="#f8f9fa" stroke="#adb5bd" stroke-width="1.5"/><path d="M50,76 L50,100" stroke="#adb5bd" stroke-width="1.2"/>${[84,90,96].map(y => `<circle cx="46" cy="${y}" r="1.5" fill="${GD}"/><circle cx="54" cy="${y}" r="1.5" fill="${GD}"/>`).join("")}<path d="M20,84 L32,82 M68,82 L80,84" stroke="${GD}" stroke-width="3" stroke-linecap="round"/><path d="M28,88 L36,88" stroke="#1c7ed6" stroke-width="3"/>`,
+        t_general:`<path d="${body}" fill="#3d5a3a" stroke="#22351f" stroke-width="1.5"/><path d="M42,76 L50,84 L58,76" fill="none" stroke="${GD}" stroke-width="2.4"/>${[86,92,98].map(y => `<circle cx="50" cy="${y}" r="1.5" fill="${GD}"/>`).join("")}<rect x="16" y="80" width="16" height="5" rx="2" fill="${GD}"/><rect x="68" y="80" width="16" height="5" rx="2" fill="${GD}"/><rect x="30" y="86" width="12" height="6" rx="1" fill="#e5484d"/><path d="M31,86 L31,92 M34,86 L34,92 M37,86 L37,92 M40,86 L40,92" stroke="#ffd43b" stroke-width=".8"/>`,
         ghoodie:`<path d="${body}" fill="#c9a7ff" stroke="#8f6ad6" stroke-width="1.5"/><path d="${body}" fill="url(#${id}sq)" opacity=".7"/><path d="M30,79 C38,86 62,86 70,79 C64,76 36,76 30,79 Z" fill="#b08af0"/><path d="M45,82 L44,93 M55,82 L56,93" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><circle cx="44" cy="94" r="1.4" fill="#ffd43b"/><circle cx="56" cy="94" r="1.4" fill="#ffd43b"/>`,
         schoolidol:`<path d="${body}" fill="#22305e" stroke="#121a38" stroke-width="1.5"/><path d="M50,76 L38,77 L46,90 Z M50,76 L62,77 L54,90 Z" fill="#fff"/><path d="M50,80 L45,86 L50,84 L55,86 Z M50,84 L47,94 L50,92 L53,94 Z" fill="#e5484d"/><circle cx="40" cy="94" r="1.4" fill="#ffd43b"/><circle cx="60" cy="94" r="1.4" fill="#ffd43b"/><path d="M26,92 L34,92" stroke="#ffd43b" stroke-width="1.2"/>`,
         tweed:`<path d="${body}" fill="#ffc9de" stroke="#d68aa8" stroke-width="1.5"/><path d="${body}" fill="url(#${id}tw)"/><path d="M38,76 L46,100 M62,76 L54,100" stroke="#2b2420" stroke-width="2.2"/><path d="M42,76 Q50,82 58,76" fill="#fff"/>${[86,92,98].map(y => `<circle cx="44" cy="${y}" r="1.6" fill="#fff" stroke="#ccc" stroke-width=".5"/><circle cx="56" cy="${y}" r="1.6" fill="#fff" stroke="#ccc" stroke-width=".5"/>`).join("")}`,
@@ -2542,7 +2561,9 @@
     if (a.cheek === "freckle") g += [[32,54],[35,56],[30,57],[68,54],[65,56],[70,57]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r=".9" fill="#a0603a"/>`).join("");
     if (a.cheek === "star") g += `<path d="M68,55 L69.3,57.8 L72.3,58 L70,60 L70.8,63 L68,61.4 L65.2,63 L66,60 L63.7,58 L66.7,57.8 Z" fill="#ffd43b" stroke="#e8a400" stroke-width=".6"/>`;
     // 눈
+    const tl = /^t(\d+)$/.test(mood || "") ? +mood.slice(1) : 0;   // 선생님 마음 온도계 단계
     let eyes = a.eyes; if (mood === "hurt") eyes = "hurt"; else if (mood === "star") eyes = "star";
+    if (tl) eyes = tl <= 2 ? "happy" : tl <= 4 ? a.eyes : tl === 5 ? "dot" : tl <= 7 ? "worry" : "angry";
     const E = {
       dot:`<circle cx="40" cy="48" r="3.6" fill="${dk}"/><circle cx="60" cy="48" r="3.6" fill="${dk}"/><circle cx="41.2" cy="46.8" r="1.2" fill="#fff"/><circle cx="61.2" cy="46.8" r="1.2" fill="#fff"/>`,
       big:`<ellipse cx="40" cy="48" rx="4.8" ry="5.8" fill="${dk}"/><ellipse cx="60" cy="48" rx="4.8" ry="5.8" fill="${dk}"/><circle cx="41.6" cy="46" r="1.9" fill="#fff"/><circle cx="61.6" cy="46" r="1.9" fill="#fff"/><circle cx="38.6" cy="50.6" r=".9" fill="#fff"/><circle cx="58.6" cy="50.6" r=".9" fill="#fff"/>`,
@@ -2553,10 +2574,13 @@
       star:`<path d="M40,42.5 L41.6,46.2 L45.6,46.5 L42.5,49 L43.5,53 L40,50.8 L36.5,53 L37.5,49 L34.4,46.5 L38.4,46.2 Z M60,42.5 L61.6,46.2 L65.6,46.5 L62.5,49 L63.5,53 L60,50.8 L56.5,53 L57.5,49 L54.4,46.5 L58.4,46.2 Z" fill="#ffd43b" stroke="#e08a00" stroke-width="1"/>`,
       cool:`<path d="M35,49 L45,49 M55,49 L65,49" stroke="${dk}" stroke-width="2.8" stroke-linecap="round"/><path d="M34,44 L45,45.5 M55,45.5 L66,44" stroke="${dk}" stroke-width="2" stroke-linecap="round"/>`,
       fierce:`<path d="M34,43 L45,46 M66,43 L55,46" stroke="${dk}" stroke-width="2.4" stroke-linecap="round"/><ellipse cx="40" cy="49.5" rx="3.6" ry="3.3" fill="${dk}"/><ellipse cx="60" cy="49.5" rx="3.6" ry="3.3" fill="${dk}"/><circle cx="41.2" cy="48.4" r="1.1" fill="#fff"/><circle cx="61.2" cy="48.4" r="1.1" fill="#fff"/>`,
+      worry:`<path d="M34,43 L44,41 M66,43 L56,41" stroke="${dk}" stroke-width="2" stroke-linecap="round"/><circle cx="40" cy="49" r="3.4" fill="${dk}"/><circle cx="60" cy="49" r="3.4" fill="${dk}"/><circle cx="41" cy="48" r="1.1" fill="#fff"/><circle cx="61" cy="48" r="1.1" fill="#fff"/>`,
+      angry:`<path d="M33,41 L46,46 M67,41 L54,46" stroke="${dk}" stroke-width="3" stroke-linecap="round"/><ellipse cx="40" cy="50" rx="3.6" ry="2.8" fill="${dk}"/><ellipse cx="60" cy="50" rx="3.6" ry="2.8" fill="${dk}"/>`,
       hurt:`<path d="M36,45 L44,49 L36,53 M64,45 L56,49 L64,53" fill="none" stroke="${dk}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>`
     };
     g += E[eyes] || E.dot;
     let mouth = a.mouth; if (mood === "hurt") mouth = "hurt";
+    if (tl) mouth = tl === 1 ? "grin" : tl === 2 ? "teeth" : tl <= 4 ? "smile" : tl === 5 ? "flat" : tl <= 7 ? "sad" : tl <= 9 ? "angry" : "rage";
     const M = {
       smile:`<path d="M43,59 Q50,65.5 57,59" fill="none" stroke="#8a3b2a" stroke-width="2.4" stroke-linecap="round"/>`,
       grin:`<path d="M42,58 Q50,70 58,58 Z" fill="#c2413a"/><path d="M45,62.5 Q50,66.5 55,62.5 Q50,64 45,62.5 Z" fill="#ff8fa3"/>`,
@@ -2566,6 +2590,9 @@
       teeth:`<path d="M41,58 L59,58 Q57,67 50,67 Q43,67 41,58 Z" fill="#c2413a"/><rect x="43" y="58" width="14" height="3.4" fill="#fff"/>`,
       flat:`<path d="M45,61 L55,61" stroke="#8a3b2a" stroke-width="2.4" stroke-linecap="round"/>`,
       smirk:`<path d="M44,61 Q52,64 58,58" fill="none" stroke="#8a3b2a" stroke-width="2.4" stroke-linecap="round"/>`,
+      sad:`<path d="M43,63 Q50,57.5 57,63" fill="none" stroke="#8a3b2a" stroke-width="2.4" stroke-linecap="round"/>`,
+      angry:`<path d="M42,63 Q50,57 58,63 Z" fill="#8a3b2a"/>`,
+      rage:`<path d="M40,58 L60,58 Q60,68 50,68 Q40,68 40,58 Z" fill="#7a1d1d"/><path d="M41,58 L59,58 L58,61 L42,61 Z" fill="#fff"/><path d="M43,66 L57,66 L55,68 L45,68 Z" fill="#fff"/>`,
       hurt:`<path d="M42,62 q4,-3.5 8,0 q4,3.5 8,0" fill="none" stroke="#8a3b2a" stroke-width="2.3" stroke-linecap="round"/>`
     };
     g += M[mouth] || M.smile;
@@ -2645,6 +2672,30 @@
       legend: sword("#fff6c2", "#ffd43b") + shield("#c92a2a", "#ffd43b")
     };
     if (a.weapon && a.weapon !== "none") g += W[a.weapon] || "";
+    const TH = {
+      gradcap:`<path d="M22,26 L50,14 L78,26 L50,38 Z" fill="#212529"/><path d="M32,30 L32,38 Q50,46 68,38 L68,30 L50,38 Z" fill="#343a40"/><path d="M78,26 L80,40" stroke="${GD}" stroke-width="1.6"/><circle cx="80" cy="42" r="2.6" fill="${GD}"/>`,
+      wizhat:`<path d="M20,36 Q50,30 80,36 L72,40 Q50,35 28,40 Z" fill="#3b2a7a"/><path d="M30,36 Q42,14 50,2 Q54,12 66,22 Q60,30 70,36 Q50,32 30,36 Z" fill="#4c2fa0" stroke="#2a1a63" stroke-width="1"/><path d="M48,14 L49.2,17 L52.4,17.3 L50,19.3 L50.8,22.4 L48,20.7 L45.2,22.4 L46,19.3 L43.6,17.3 L46.8,17 Z" fill="#ffd43b"/><circle cx="58" cy="26" r="1.5" fill="#fff"/>`,
+      captainhat:`<path d="M20,34 C20,14 80,14 80,34 Z" fill="#f8f9fa" stroke="#adb5bd" stroke-width="1.2"/><rect x="20" y="30" width="60" height="7" rx="2" fill="#212529"/><path d="M22,37 L78,37 L72,42 L28,42 Z" fill="#212529"/><path d="M44,22 Q50,16 56,22 Q50,27 44,22 Z" fill="${GD}"/><path d="M34,33 L66,33" stroke="${GD}" stroke-width="1.4"/>`,
+      kingcrown:`<path d="M24,32 L26,8 L37,20 L44,4 L50,18 L56,4 L63,20 L74,8 L76,32 Z" fill="${GD}" stroke="#b07000" stroke-width="1.6" stroke-linejoin="round"/><rect x="24" y="28" width="52" height="6" rx="2" fill="${GD}" stroke="#b07000" stroke-width="1"/><circle cx="50" cy="22" r="3.4" fill="#e5484d" stroke="#fff" stroke-width=".8"/><circle cx="36" cy="25" r="2.4" fill="#4dabf7"/><circle cx="64" cy="25" r="2.4" fill="#69db7c"/><circle cx="26" cy="8" r="2" fill="#fff"/><circle cx="74" cy="8" r="2" fill="#fff"/><circle cx="44" cy="4" r="2" fill="#fff"/><circle cx="56" cy="4" r="2" fill="#fff"/>`,
+      laurel:[...Array(6)].map((_, i) => `<ellipse cx="${26 + i*4}" cy="${30 - i*3}" rx="4" ry="2" transform="rotate(${-30 - i*8} ${26 + i*4} ${30 - i*3})" fill="#69a84f"/><ellipse cx="${74 - i*4}" cy="${30 - i*3}" rx="4" ry="2" transform="rotate(${30 + i*8} ${74 - i*4} ${30 - i*3})" fill="#69a84f"/>`).join("") + `<circle cx="50" cy="13" r="2.4" fill="${GD}"/>`,
+      halo:`<ellipse cx="50" cy="10" rx="20" ry="5" fill="none" stroke="#ffe066" stroke-width="4"/><ellipse cx="50" cy="10" rx="20" ry="5" fill="none" stroke="#fff" stroke-width="1.2" opacity=".8"/>`
+    };
+    if (a.thead && a.thead !== "none") g += TH[a.thead] || "";
+    const TA = {
+      pointer:`<path d="M66,100 L94,56" stroke="#8d5a2b" stroke-width="3.2" stroke-linecap="round"/><circle cx="94" cy="56" r="2.6" fill="#e5484d"/>`,
+      book:`<g transform="rotate(-10 78 88)"><rect x="66" y="78" width="24" height="20" rx="2" fill="#1c7ed6" stroke="#0b4f8a" stroke-width="1"/><rect x="69" y="81" width="18" height="5" rx="1" fill="#fff"/><path d="M71,83.5 L85,83.5" stroke="#1c7ed6" stroke-width="1"/></g>`,
+      mug:`<rect x="70" y="80" width="16" height="17" rx="3" fill="#fff" stroke="#adb5bd" stroke-width="1"/><path d="M86,84 C92,84 92,93 86,93" fill="none" stroke="#adb5bd" stroke-width="2"/><path d="M72,83 L84,83" stroke="#8a5a2b" stroke-width="2.4"/><path d="M75,77 Q73,73 76,70 M80,77 Q78,73 81,70" fill="none" stroke="#ced4da" stroke-width="1.4" stroke-linecap="round"/><path d="M76,89 C74,87 75.5,85.5 76.5,86.3 C77.5,85.5 79,87 77,89 L76.5,89.6 Z" fill="#e5484d"/>`,
+      whistle:`<path d="M44,74 Q50,86 56,74" fill="none" stroke="#e5484d" stroke-width="1.4"/><rect x="52" y="84" width="12" height="7" rx="3.5" fill="${MT}" stroke="#868e96" stroke-width="1"/><circle cx="55" cy="87.5" r="2" fill="#495057"/>`,
+      wand:`<path d="M66,100 L90,66" stroke="#2b2420" stroke-width="3.2" stroke-linecap="round"/><path d="M90,58 L92.2,63 L97.5,63.4 L93.4,66.8 L94.7,72 L90,69.2 L85.3,72 L86.6,66.8 L82.5,63.4 L87.8,63 Z" fill="#ffd43b" stroke="#fff" stroke-width=".8"/>`,
+      trophy:`<path d="M72,74 L88,74 L87,84 Q80,90 73,84 Z" fill="${GD}" stroke="#b07000" stroke-width="1"/><path d="M72,76 C66,76 66,83 73,83 M88,76 C94,76 94,83 87,83" fill="none" stroke="#b07000" stroke-width="1.4"/><rect x="78" y="87" width="4" height="5" fill="${GD}"/><rect x="73" y="92" width="14" height="4" rx="1" fill="#7a4f26"/>`,
+      chalk:`<g transform="rotate(-30 80 88)"><rect x="72" y="85" width="18" height="5" rx="2" fill="#fff" stroke="#dee2e6" stroke-width=".8"/></g><path d="M84,80 L86,78 M88,82 L91,81" stroke="#fff" stroke-width="1" opacity=".8"/>`
+    };
+    if (a.tacc && a.tacc !== "none") g += TA[a.tacc] || "";
+    if (tl === 1) g += `<path d="M14,30 C9,26 10.5,22 13,22 C14,22 14.6,22.7 15,23.4 C15.4,22.7 16,22 17,22 C19.5,22 21,26 14,30 Z M86,26 C81,22 82.5,18 85,18 C86,18 86.6,18.7 87,19.4 C87.4,18.7 88,18 89,18 C91.5,18 93,22 86,26 Z" fill="#ff5c85"/>`;
+    if (tl === 7) g += `<path d="M76,34 C74,40 79,42 79,38 C79,36 78,35 76,34 Z" fill="#9ee6ff" stroke="#4dabf7" stroke-width=".8"/>`;
+    if (tl >= 8) g += `<path d="M70,24 L74,28 M78,22 L74,28 M70,32 L74,28 M78,32 L74,28" stroke="#e5484d" stroke-width="2.6" stroke-linecap="round"/>`;
+    if (tl >= 9) g += `<ellipse cx="50" cy="47" rx="28" ry="27" fill="#ff3b3b" opacity="${tl === 10 ? .42 : .2}"/>`;
+    if (tl === 10) g += `<path d="M16,26 Q10,18 16,12 Q22,6 16,0 M84,26 Q90,18 84,12 Q78,6 84,0" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".9"/>`;
     // 기분
     if (mood === "hurt") g += `<g transform="rotate(-25 66 30)"><rect x="57" y="26" width="18" height="7" rx="3" fill="#f1c79b"/><rect x="63" y="26" width="6" height="7" fill="#fbe7d2"/></g><path d="M78,36 C76,41 80,43 80,40 C80,38 79,37 78,36 Z" fill="#9ee6ff" stroke="#4dabf7" stroke-width=".8"/>`;
     if (mood === "star") g += `<path d="M14,24 L15.5,28 L19.5,29.5 L15.5,31 L14,35 L12.5,31 L8.5,29.5 L12.5,28 Z M86,18 L87,21 L90,22 L87,23 L86,26 L85,23 L82,22 L85,21 Z" fill="#ffd43b"/>`;
@@ -4157,8 +4208,9 @@
     const lv = S.mood, m = MOOD[lv-1], box = $("#mt");
     box.style.setProperty("--mc", m.c); box.style.setProperty("--mbg", m.bg);
     box.className = "mt lv" + lv + (lv >= 8 ? " hot" : "");
-    const face = $("#mtFace");
-    face.textContent = m.e;
+    const face = $("#mtFace"), tav = typeof avatarOf === "function" ? avatarOf("__teacher") : null;
+    face.classList.toggle("av", !!tav);
+    if (tav) face.innerHTML = avatarSVG(tav, "t" + lv); else face.textContent = m.e;
     if (mtLast && mtLast !== lv){ face.classList.remove("mt-bounce"); void face.offsetWidth; face.classList.add("mt-bounce"); }
     mtLast = lv;
     $("#mtLvl").textContent = lv + "단계";
@@ -4172,6 +4224,8 @@
     fill.style.setProperty("--fullh", tube.clientHeight + "px");
     fill.style.height = ((lv - 0.5) / 10 * 100) + "%";
   }
+  window.renderMood = renderMood;
+  $("#mtAv").onclick = () => window.__avOpenTeacher && window.__avOpenTeacher();
   function setMood(n){
     n = Math.max(1, Math.min(10, n));
     if (n === S.mood) return;
@@ -5650,38 +5704,42 @@
     const BASIC = [["skin","🙂 피부"],["hair","💇 머리"],["hairC","🎨 머리색"],["eyes","👀 눈"],["mouth","👄 입"],["cheek","☺️ 볼"],["hat","🎩 모자"],["glasses","👓 안경"],["top","👕 옷"],["topC","🌈 옷 색"],["pat","✨ 무늬"]];
     const HERO = [["hero","🛡️ 히어로·갑옷"],["helm","⛑️ 투구"],["weapon","🗡️ 무기"]];
     const IDOL = [["idol","👗 아이돌 옷"],["acc","💎 장신구"]];
+    const TEACH = [["tout","🧑‍🏫 선생님 옷"],["thead","🎓 선생님 모자"],["tacc","☕ 선생님 소품"]];
+    const T = "__teacher", isT = sid => sid === T;
     const COLOR = {skin:1, hairC:1, topC:1};
     const BASE = {skin:"#f9cfa8", hair:"short", hairC:"#2b2420", eyes:"dot", mouth:"smile", cheek:"pink", hat:"none", glasses:"none", top:"tee", topC:"#4dabf7", pat:"none", hero:"none", helm:"none", weapon:"none", idol:"none", acc:"none", on:true};
     const has = sid => !!(S.avatars||{})[sid];
     const cfgOf = sid => { S.avatars = S.avatars || {}; if (!S.avatars[sid]) S.avatars[sid] = Object.assign({}, BASE); return S.avatars[sid]; };
-    const need = (k, v) => (AV_UNLOCK[k] || {})[v] || 0;
-    const tabsFor = sid => { const gd = genderOf(sid); return gd === "g" ? [...BASIC, ...IDOL, ...HERO] : [...BASIC, ...HERO, ...IDOL]; };
+    const need = (k, v) => isT(cur) ? 0 : (AV_UNLOCK[k] || {})[v] || 0;
+    const tabsFor = sid => { if (isT(sid)) return [...BASIC, ...TEACH, ...HERO, ...IDOL]; const gd = genderOf(sid); return gd === "g" ? [...BASIC, ...IDOL, ...HERO] : [...BASIC, ...HERO, ...IDOL]; };
     function draw(){
       if (!cur) return;
-      const a = has(cur) ? Object.assign({}, BASE, S.avatars[cur]) : BASE, pn = prN(cur);
-      $("#avStage").innerHTML = has(cur) ? avatarSVG(a, "") : `<div style="height:100%;display:grid;place-items:center;text-align:center;font-family:Jua;color:#2a5aa0;font-size:18px;line-height:1.4"><span style="font-size:80px">${faceOf(cur)}</span>아직 아바타가 없어요<br>아래에서 골라 보세요</div>`;
+      const a = has(cur) ? Object.assign({}, BASE, S.avatars[cur]) : BASE, pn = isT(cur) ? 999 : prN(cur);
+      $("#avStage").innerHTML = has(cur) ? avatarSVG(a, isT(cur) ? "t" + (S.mood || 1) : "") : isT(cur) ? `<div style="height:100%;display:grid;place-items:center;text-align:center;font-family:Jua;color:#2a5aa0;font-size:18px;line-height:1.4"><span style="font-size:80px">🧑‍🏫</span>선생님 아바타를<br>만들어 보세요</div>` : `<div style="height:100%;display:grid;place-items:center;text-align:center;font-family:Jua;color:#2a5aa0;font-size:18px;line-height:1.4"><span style="font-size:80px">${faceOf(cur)}</span>아직 아바타가 없어요<br>아래에서 골라 보세요</div>`;
       $("#avShow").checked = has(cur) && a.on !== false; $("#avShow").disabled = !has(cur);
-      $("#avStamps").innerHTML = `💮 칭찬 도장 <b>${pn}</b>개`;
+      $("#avStamps").innerHTML = isT(cur) ? `🧑‍🏫 선생님은 <b>모든 장비</b>를 입을 수 있어요` : `💮 칭찬 도장 <b>${pn}</b>개`;
+      $("#avShow").parentElement.lastChild.textContent = isT(cur) ? " 마음 온도계에 아바타로 보이기" : " 학생 카드에 아바타로 보이기";
       const tabs = tabsFor(cur);
-      $("#avTabs").innerHTML = tabs.map(([k, l], i) => `${i === BASIC.length ? `<span class="av-sep">💮 칭찬 도장으로 열어요</span>` : ""}<button data-avt="${k}" class="${k === tab ? "on" : ""}${AV_UNLOCK[k] ? " sp" : ""}">${l}</button>`).join("");
+      $("#avTabs").innerHTML = tabs.map(([k, l], i) => `${i === BASIC.length ? `<span class="av-sep">${isT(cur) ? "🧑‍🏫 선생님 전용 · 특별 장비" : "💮 칭찬 도장으로 열어요"}</span>` : ""}<button data-avt="${k}" class="${k === tab ? "on" : ""}${AV_UNLOCK[k] ? " sp" : ""}">${l}</button>`).join("");
       $("#avOpts").innerHTML = AV[tab].map(([v, l]) => {
         const n = need(tab, v), locked = !free && n > pn;
-        const pick = tab === "hero" || tab === "idol" ? {hero: tab === "hero" ? v : "none", idol: tab === "idol" ? v : "none"} : {[tab]: v};
+        const pick = tab === "hero" || tab === "idol" || tab === "tout" ? {hero: tab === "hero" ? v : "none", idol: tab === "idol" ? v : "none", tout: tab === "tout" ? v : "none"} : {[tab]: v};
         const on = (tab === "hero" || tab === "idol") ? a[tab] === v && (v !== "none" || (a.hero === "none" && a.idol === "none")) : a[tab] === v;
-        const ZOOM = {hero:"12 52 76 50", idol:"12 52 76 50", top:"12 52 76 50", pat:"12 52 76 50"};
+        const ZOOM = {tout:"12 52 76 50", hero:"12 52 76 50", idol:"12 52 76 50", top:"12 52 76 50", pat:"12 52 76 50"};
         const look = COLOR[tab] ? `<span class="sw" style="background:${v}"></span>` : avatarSVG(Object.assign({}, a, pick), "", ZOOM[tab]);
         return `<button class="av-opt${on ? " on" : ""}${locked ? " lock" : ""}" data-avv="${v}" data-need="${n}">${look}<span>${l}</span>${n ? `<em>${locked ? "🔒" : "💮"} ${n}개</em>` : ""}</button>`;
       }).join("");
     }
     function fill(){
-      $("#avWho").innerHTML = S.students.map((st, i) => `<option value="${st.id}">${i+1}. ${esc(st.name)}${(S.avatars||{})[st.id] ? " 👕" : ""}</option>`).join("");
+      $("#avWho").innerHTML = `<option value="${T}">🧑‍🏫 선생님${(S.avatars||{})[T] ? " 👕" : ""}</option>` + S.students.map((st, i) => `<option value="${st.id}">${i+1}. ${esc(st.name)}${(S.avatars||{})[st.id] ? " 👕" : ""}</option>`).join("");
       if (cur) $("#avWho").value = cur;
     }
     function go(sid){ cur = sid; if (!tabsFor(sid).some(([k]) => k === tab)) tab = "hair"; fill(); draw(); }
-    function changed(){ save(); render(); fill(); draw(); }
+    function changed(){ save(); render(); if (window.renderMood) window.renderMood(); fill(); draw(); }
+    window.__avOpenTeacher = () => { go(T); openM("#avModal"); };
     $("#avBtn").onclick = () => { if (!S.students.length) { alert("설정에서 학생 명단을 먼저 입력해 주세요."); return; } go(cur && S.students.some(x => x.id === cur) ? cur : S.students[0].id); openM("#avModal"); };
     $("#avWho").onchange = e => go(e.target.value);
-    const step = d => { const i = S.students.findIndex(x => x.id === cur); go(S.students[(i + d + S.students.length) % S.students.length].id); };
+    const step = d => { const ids = [T, ...S.students.map(x => x.id)], i = ids.indexOf(cur); go(ids[(i + d + ids.length) % ids.length]); };
     $("#avPrev").onclick = () => step(-1); $("#avNext").onclick = () => step(1);
     $("#avTabs").addEventListener("click", e => { const b = e.target.closest("[data-avt]"); if (!b) return; tab = b.dataset.avt; draw(); });
     $("#avOpts").addEventListener("click", e => {
@@ -5689,15 +5747,16 @@
       const n = +b.dataset.need;
       if (!free && n > prN(cur)) { toast(`🔒 칭찬 도장 ${n}개를 모으면 입을 수 있어요 (지금 ${prN(cur)}개)`, false); b.animate([{transform:"translateX(0)"},{transform:"translateX(-6px)"},{transform:"translateX(6px)"},{transform:"translateX(0)"}], {duration:300}); return; }
       const c = cfgOf(cur), v = b.dataset.avv;
-      if (tab === "hero") { c.hero = v; if (v !== "none") c.idol = "none"; }
-      else if (tab === "idol") { c.idol = v; if (v !== "none") c.hero = "none"; }
+      if (tab === "hero") { c.hero = v; if (v !== "none") { c.idol = "none"; c.tout = "none"; } }
+      else if (tab === "idol") { c.idol = v; if (v !== "none") { c.hero = "none"; c.tout = "none"; } }
+      else if (tab === "tout") { c.tout = v; if (v !== "none") { c.hero = "none"; c.idol = "none"; } }
       else c[tab] = v;
       c.on = true; changed();
       if (n) { const st = $("#avStage"); st.animate([{transform:"scale(1)"},{transform:"scale(1.08) rotate(-3deg)"},{transform:"scale(1)"}], {duration:450, easing:"cubic-bezier(.3,1.6,.5,1)"}); if (typeof fanfare === "function") fanfare(); }
     });
     $("#avShow").onchange = e => { cfgOf(cur).on = e.target.checked; changed(); };
     $("#avFree").onchange = e => { free = e.target.checked; draw(); };
-    $("#avRand").onclick = () => { S.avatars = S.avatars || {}; S.avatars[cur] = avRandom(cur); changed(); };
+    $("#avRand").onclick = () => { S.avatars = S.avatars || {}; const r = avRandom(cur); if (isT(cur)) { const pk = k => AV[k][1 + Math.floor(Math.random()*(AV[k].length-1))][0]; r.tout = pk("tout"); r.thead = Math.random() < .6 ? pk("thead") : "none"; r.tacc = pk("tacc"); } S.avatars[cur] = r; changed(); };
     $("#avAllRand").onclick = () => { let n = 0; S.avatars = S.avatars || {}; S.students.forEach(st => { if (!S.avatars[st.id]) { S.avatars[st.id] = avRandom(st.id); n++; } }); changed(); toast(n ? `🎲 ${n}명 아바타를 만들었어요` : "모두 아바타가 있어요", false); };
     $("#avReset").onclick = () => { if (!has(cur) || !confirm("이 친구 아바타를 지울까요? (카드는 원래 얼굴로 돌아가요)")) return; delete S.avatars[cur]; changed(); };
     document.addEventListener("keydown", e => { if (!$("#avModal").classList.contains("open")) return; if (e.key === "ArrowLeft" && e.target.tagName !== "SELECT") step(-1); if (e.key === "ArrowRight" && e.target.tagName !== "SELECT") step(1); });
