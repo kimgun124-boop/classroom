@@ -1628,6 +1628,9 @@
   #ttBigList .tt-row.now{transform:scale(1.02);border-width:4px}
   #ttBigList .tt-lunch{font-size:min(2.8vw,4vh);padding:.6vh;border-radius:20px}
   body.arcade .ttb-box{border-color:#7fc6ff;box-shadow:0 0 0 4px #0a2b6b,0 30px 80px rgba(0,0,0,.45)}
+  .vb-phbar{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;max-width:1100px;margin:0 auto 10px;background:#fff3c4;color:#5a3a00;border-radius:16px;padding:8px 14px;font-size:17px}
+  .vb-phbar[hidden]{display:none}
+  .vb-phbar button{font-family:"Jua";font-size:18px;background:linear-gradient(180deg,#ffe07a,#ffc53d 35%,#ff8a00);color:#fff;border-radius:12px;padding:7px 16px;text-shadow:0 1px 0 rgba(0,0,0,.3);box-shadow:0 3px 0 #b85d00}
 </style>
 </head>
 <body>
@@ -1749,6 +1752,7 @@
         <div class="vb-slot p2" id="vbSlot2"></div>
       </div>
       <div class="vb-go"><button id="vbRand">🎲 둘 다 아무나</button><button class="p" id="vbStart">🏐 시작!</button><button id="vbReroll" title="모든 친구의 능력치를 새로 정해요">🔄 능력치 새로 섞기</button></div>
+      <div class="vb-phbar" id="vbPhBar" hidden><span>📷 아직 이 컴퓨터에 우리 반 사진이 없어요. 사진을 넣으면 친구 얼굴로 배구를 해요!</span><button id="vbPhBtn">📷 우리 반 사진 넣기</button><input type="file" id="vbPhFiles" accept="image/*" multiple hidden></div>
       <div class="vb-help" id="vbHelp"></div>
       <div class="vb-grid" id="vbGrid"></div>
     </div>
@@ -5738,6 +5742,13 @@
     function done(){ savePhotos(); render(); renderPh(); }
     $("#phOpen").onclick = () => { tray = []; sel = -1; renderPh(); openM("#phModal"); };
     $("#phMulti").onclick = () => $("#phFiles").click();
+    window.__phImport = async (list) => {
+      const files = [...list].sort((a, b) => a.name.localeCompare(b.name, "ko", {numeric:true}));
+      let matched = 0;
+      for (const f of files){ try{ const url = await shrink(f), st = autoMatch(f.name); if (st) { PH[st.id] = url; matched++; } }catch(err){} }
+      savePhotos(); render();
+      return {total: files.length, matched};
+    };
     $("#phFiles").onchange = async e => {
       const files = [...e.target.files].sort((a, b) => a.name.localeCompare(b.name, "ko", {numeric:true}));
       let matched = 0;
@@ -6002,6 +6013,21 @@
     $("#ttList").addEventListener("click", e => { if (e.target.closest("input,button,select,textarea")) return; open(); });
     $("#ttBig").addEventListener("click", e => { if (!e.target.closest(".ttb-box") || e.target.closest("#ttBigX")) close(); });
     document.addEventListener("keydown", e => { if (e.key === "Escape" && $("#ttBig").classList.contains("open")) { e.stopPropagation(); close(); } }, true);
+  })();
+
+
+  /* 배구 화면에서 바로 사진 넣기 */
+  (function(){
+    const btn = $("#vbPhBtn"), inp = $("#vbPhFiles"); if (!btn) return;
+    btn.onclick = () => inp.click();
+    inp.onchange = async e => {
+      const files = e.target.files; if (!files.length || !window.__phImport) return;
+      btn.disabled = true; btn.textContent = "⏳ 넣는 중…";
+      const r = await window.__phImport(files); e.target.value = "";
+      btn.disabled = false; btn.textContent = "📷 우리 반 사진 넣기";
+      toast(`📷 사진 ${r.total}장 중 ${r.matched}장을 이름·번호로 짝지었어요${r.total - r.matched ? ` · 짝을 못 찾은 ${r.total - r.matched}장은 ⚙️ 설정 → 📷 사진에서 넣어 주세요` : ""}`, false);
+      document.querySelector("#vbMode button.on")?.click();
+    };
   })();
 
   /* ---------- 🎤 발표 뽑기: 한 번 뽑힌 친구는 모두 한 번씩 뽑힐 때까지 다시 안 나와요 ---------- */
@@ -6577,7 +6603,7 @@
       // 얼굴 (사진)
       const hy = -r*1.78, hr = r*.8, m = image(p.sid);
       g.save(); g.beginPath(); g.arc(0, hy, hr, 0, Math.PI*2); g.fillStyle = "#fff"; g.fill();
-      if (m){ g.clip(); const sc = Math.max(hr*2/m.naturalWidth, hr*2/m.naturalHeight), w = m.naturalWidth*sc, h = m.naturalHeight*sc; g.drawImage(m, -w/2, hy - h/2, w, h); }
+      if (m){ g.clip(); const sc = Math.max(hr*2/m.naturalWidth, hr*2/m.naturalHeight)*1.35, w = m.naturalWidth*sc, h = m.naturalHeight*sc; g.drawImage(m, -w/2, hy - h/2 + h*.08, w, h); }
       else { g.font = `${Math.round(hr*1.3)}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(faceOf(p.sid), 0, hy + hr*.06); }
       g.restore();
       g.lineWidth = Math.max(3, r*.12); g.strokeStyle = "#fff"; g.beginPath(); g.arc(0, hy, hr, 0, Math.PI*2); g.stroke();
@@ -6669,6 +6695,9 @@
     }
     function renderSel(){
       ensureStats();
+      const nPh = S.students.filter(x => photoOf(x.id)).length;
+      $("#vbPhBar").hidden = nPh >= S.students.length;
+      $("#vbPhBar").querySelector("span").textContent = nPh ? `📷 사진이 있는 친구 ${nPh}명 / ${S.students.length}명 · 나머지 친구 사진도 넣어 보세요` : "📷 아직 이 컴퓨터(이 브라우저)에 우리 반 사진이 없어요. 사진을 넣으면 친구 얼굴로 배구를 해요!";
       document.querySelectorAll("#vbMode button").forEach(b => b.classList.toggle("on", b.dataset.m === mode));
       document.querySelectorAll("#vbLv button").forEach(b => b.classList.toggle("on", +b.dataset.l === lv));
       document.querySelectorAll("#vbPts button").forEach(b => b.classList.toggle("on", +b.dataset.p === target));
