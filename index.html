@@ -1636,6 +1636,11 @@
   .mt-face.av svg{width:100%;height:100%;display:block}
   body.big .mt-face.av{width:140px;height:140px}
   @media (max-width:1179px){ .mt-face.av{width:96px;height:96px} }
+  .card .prplus{position:absolute;z-index:5;top:10px;right:50px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:19px;line-height:1;
+    background:linear-gradient(180deg,#fff,#ffe3f1);border:2.5px solid #fff;box-shadow:0 3px 0 #d6337f,0 0 0 2px #ffb3d6,0 5px 8px rgba(0,0,0,.15);cursor:pointer;transition:transform .1s}
+  .card .prplus:hover{transform:scale(1.1)}
+  .card .prplus:active{transform:translateY(2px) scale(.95);box-shadow:0 1px 0 #d6337f,0 0 0 2px #ffb3d6}
+  .card > .head{padding-right:88px}
 </style>
 </head>
 <body>
@@ -2853,6 +2858,7 @@
     return `<article class="card t${t}${isFamed(s.id)?" famed":""}${W.cls}" data-id="${s.id}" style="${W.style}">
       <button class="hit" data-plus="${s.id}" aria-label="${esc(s.name)} 한 번 추가"></button>${W.html}
       <button class="minus" data-minus="${s.id}" aria-label="${esc(s.name)} 한 번 빼기" title="한 번 빼기">−</button>
+      <button class="prplus" data-prplus="${s.id}" aria-label="${esc(s.name)} 칭찬 도장 1개" title="칭찬 도장 1개 주기 (도장 찍기 없이)">💮</button>
       <div class="head"><span class="num">${idx+1}</span>${isFamed(s.id) ? `<span class="crown" title="명예의 전당">👑</span>` : ""}<span class="bdg">${stampN(s.id) ? `<span class="stampct" title="칭찬도장">🌟${stampN(s.id)}</span>` : ""}${prN(s.id) ? `<span class="prct" title="칭찬 도장">💮${prN(s.id)}</span>` : ""}${hamN(s.id) ? `<span class="hamct" title="뿅망치 맞은 횟수">🔨${hamN(s.id)}</span>` : ""}</span></div>
       <div class="name">${faceHTML(s.id)}<span class="nmt">${esc(s.name)}</span></div>
       <div class="count">${c}<small>회</small></div>
@@ -3115,7 +3121,7 @@
     grid.addEventListener("pointerdown", e => {
       if (e.button !== 0) return;
       const card = e.target.closest(".card");
-      if (!card || e.target.closest(".minus, .tag")) return;
+      if (!card || e.target.closest(".minus, .tag, .prplus")) return;
       st = {card, id:card.dataset.id, x:e.clientX, y:e.clientY, pid:e.pointerId, type:e.pointerType, on:false, timer:null};
       if (e.pointerType !== "mouse") st.timer = setTimeout(() => { if (st && !st.on) begin(st.x, st.y); }, LONGPRESS);
     });
@@ -6088,6 +6094,29 @@
       document.querySelector("#vbMode button.on")?.click();
     };
   })();
+
+
+  /* ---------- 💮 카드에서 바로 칭찬 도장 +1 ---------- */
+  $("#grid").addEventListener("click", e => {
+    const b = e.target.closest("[data-prplus]"); if (!b) return;
+    e.stopPropagation();
+    const id = b.dataset.prplus, st = S.students.find(x => x.id === id); if (!st) return;
+    const L0 = prLevel(prN(id));
+    S.praise = S.praise || {}; S.praise[id] = prN(id) + 1; save();
+    const n = S.praise[id], L1 = prLevel(n);
+    render();
+    const card = document.querySelector(`.card[data-id="${id}"]`);
+    if (card) {
+      card.classList.remove("praised"); void card.offsetWidth; card.classList.add("praised");
+      const p = document.createElement("div"); p.className = "pop"; p.textContent = "💮+1"; p.style.color = "#d6337f";
+      const r = card.getBoundingClientRect(), br = card.querySelector(".prplus")?.getBoundingClientRect();
+      p.style.left = (br ? br.left - r.left + br.width/2 : r.width - 60) + "px"; p.style.top = (br ? br.top - r.top + 10 : 20) + "px";
+      card.appendChild(p); setTimeout(() => p.remove(), 900);
+      card.querySelector(".prct")?.classList.add("pop");
+    }
+    if (L1 > L0) { fanfare(); toast(`💮 ${st.name} ${n}개! ${(PR_TH[genderOf(id)].say[L1] || "")}`, false); }
+    else { beep(true); toast(`💮 ${st.name} 칭찬 도장 ${n}개`, false); }
+  }, true);
 
   /* ---------- 🎤 발표 뽑기: 한 번 뽑힌 친구는 모두 한 번씩 뽑힐 때까지 다시 안 나와요 ---------- */
   S.pick = (S.pick && typeof S.pick === "object") ? S.pick : {};
