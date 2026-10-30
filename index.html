@@ -1641,6 +1641,18 @@
   .card .prplus:hover{transform:scale(1.1)}
   .card .prplus:active{transform:translateY(2px) scale(.95);box-shadow:0 1px 0 #d6337f,0 0 0 2px #ffb3d6}
   .card > .head{padding-right:88px}
+  /* ---------- 🖼️ 아바타는 큰 사각형 액자로 ---------- */
+  .face.av{border-radius:16%}
+  .face.av svg.avs{border-radius:14%;overflow:visible}
+  .card .name .face.av, body.has-photos .card .name .face.av{width:128px;height:128px;border-radius:18px;background:none;border:0;
+    box-shadow:0 5px 0 rgba(10,40,90,.28),0 10px 14px rgba(10,40,90,.22)}
+  .card .name .face.av::after{bottom:-14px}
+  body.big .card .name .face.av{width:144px;height:144px}
+  .av-stage{border-radius:28px;width:250px;height:250px}
+  .av-stage:has(svg){background:none;border:0;box-shadow:0 8px 0 rgba(20,60,120,.3),0 16px 22px rgba(20,60,120,.25);overflow:visible}
+  .av-opt svg{border-radius:12px}
+  .mt-face.av{border-radius:20px;background:none;border:0;box-shadow:0 4px 0 var(--mc),0 8px 14px rgba(0,0,0,.18)}
+  .fame-chip .face.av svg,.ham-row .face.av svg{border-radius:6px}
 </style>
 </head>
 <body>
@@ -2445,6 +2457,8 @@
     top: [["tee","티셔츠"],["hoodie","후드티"],["shirt","셔츠"],["overall","멜빵"],["cape","망토"]],
     topC: [["#ff6b6b","빨강"],["#ffa94d","주황"],["#ffd43b","노랑"],["#69db7c","초록"],["#4dabf7","파랑"],["#3b5bdb","남색"],["#da77f2","보라"],["#f783ac","분홍"],["#ffffff","하양"],["#343a40","검정"]],
     pat: [["none","민무늬"],["stripe","줄무늬"],["dots","땡땡이"],["star","별"],["heart","하트"]],
+    bg: [["sky","하늘"],["sunset","노을"],["night","밤하늘"],["ocean","바닷속"],["beach","해변"],["forest","숲"],["snow","눈 오는 날"],["candy","사탕 줄무늬"],["hearts","하트 가득"],["rainbow","무지개"],["castle","성"],["stage","무대 조명"],["space","우주"],["galaxy","은하수"],["chalk","칠판"],["gold","황금빛"]],
+    frame: [["basic","기본"],["gold","황금"],["rainbow","무지개"],["neon","네온"],["flower","꽃"],["hearts","하트"],["star","별"],["ice","얼음"],["fire","불꽃"],["gem","보석"],["wood","나무"],["leaf","나뭇잎"],["bolt","번개"],["royal","왕실"]],
     /* 💮 칭찬 도장으로 여는 특별 장비 */
     hero: [["none","없음"],["hero","히어로 슈트"],["ninja","닌자복"],["armor","기사 갑옷"],["samurai","무사 갑옷"],["space","우주복"],["goldarmor","황금 갑옷"]],
     helm: [["none","없음"],["viking","바이킹 투구"],["knight","기사 투구"],["spartan","장군 투구"],["spacehelm","우주 헬멧"],["dragon","드래곤 투구"]],
@@ -2462,7 +2476,7 @@
     idol:{ghoodie:3, schoolidol:5, tweed:10, sequin:20, stagedress:30, diamond:50},
     acc:{starpins:1, earrings:3, headset:5, choker:10, glitter:15, butterfly:20, tiara:40, crystal:100}
   };
-  const AV_KEYS = ["skin","hair","hairC","eyes","mouth","cheek","hat","glasses","top","topC","pat"];
+  const AV_KEYS = ["skin","hair","hairC","eyes","mouth","cheek","hat","glasses","top","topC","pat","bg"];
   const avatarOf = sid => { const a = (S.avatars||{})[sid]; return a && a.on !== false ? a : null; };
   function avRandom(sid){
     const pick = k => { const arr = AV[k]; return arr[Math.floor(Math.random()*arr.length)][0]; };
@@ -2471,7 +2485,7 @@
     const hairs = g === "b" ? ["short","twoblock","comma","bowl","spiky","curly"] : g === "g" ? ["bob","twin","pony","sidepony","bun","wave","long"] : AV.hair.map(h => h[0]).filter(h => h !== "bald");
     a.hair = hairs[Math.floor(Math.random()*hairs.length)];
     if (Math.random() < .45) a.hat = "none"; if (Math.random() < .6) a.glasses = "none"; if (Math.random() < .5) a.pat = "none";
-    a.hero = a.helm = a.weapon = a.idol = a.acc = "none";
+    a.hero = a.helm = a.weapon = a.idol = a.acc = "none"; a.frame = "basic";
     a.on = true; return a;
   }
   let avN = 0;
@@ -2481,7 +2495,10 @@
     const id = "av" + (++avN), sk = a.skin, hc = a.hairC, tc = a.topC, dk = "#2b2420";
     const shade = (c, k) => hexMix(c, "#000000", k), light = (c, k) => hexMix(c, "#ffffff", 100 - k);
     const outfit = (a.tout && a.tout !== "none") ? "t_" + a.tout : (a.hero && a.hero !== "none") ? a.hero : (a.idol && a.idol !== "none") ? a.idol : "";
-    let defs = `<clipPath id="${id}c"><circle cx="50" cy="50" r="50"/></clipPath>
+    let defs = `<clipPath id="${id}c"><rect x="0" y="0" width="100" height="100" rx="14"/></clipPath>
+      <linearGradient id="${id}rb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6b6b"/><stop offset=".2" stop-color="#ffa94d"/><stop offset=".4" stop-color="#ffd43b"/><stop offset=".6" stop-color="#69db7c"/><stop offset=".8" stop-color="#4dabf7"/><stop offset="1" stop-color="#b197fc"/></linearGradient>
+      <linearGradient id="${id}fi" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff3b1f"/><stop offset=".5" stop-color="#ff8a00"/><stop offset="1" stop-color="#ffd43b"/></linearGradient>
+      <filter id="${id}gl" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="1.6"/></filter>
       <radialGradient id="${id}sk" cx="40%" cy="32%" r="75%"><stop offset="0" stop-color="${light(sk,30)}"/><stop offset=".6" stop-color="${sk}"/><stop offset="1" stop-color="${shade(sk,90)}"/></radialGradient>
       <linearGradient id="${id}hr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${light(hc,25)}"/><stop offset=".55" stop-color="${hc}"/><stop offset="1" stop-color="${shade(hc,78)}"/></linearGradient>
       <linearGradient id="${id}mt" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".35" stop-color="#d9dee5"/><stop offset=".7" stop-color="#9aa4b2"/><stop offset="1" stop-color="#e9edf2"/></linearGradient>
@@ -2496,6 +2513,28 @@
       heart:`<pattern id="${id}p" width="12" height="12" patternUnits="userSpaceOnUse"><path d="M6,10 C1,6.5 1.5,2.5 4,2.5 C5,2.5 5.7,3.2 6,4 C6.3,3.2 7,2.5 8,2.5 C10.5,2.5 11,6.5 6,10 Z" fill="rgba(255,255,255,.6)"/></pattern>`}[a.pat];
     if (patFill && !outfit) defs += patFill;
     let g = "";
+    /* 🏞️ 배경 */
+    const star5 = (x, y, r, c) => { let d = ""; for (let i = 0; i < 10; i++) { const a = -Math.PI/2 + i*Math.PI/5, rr = i % 2 ? r*.45 : r; d += (i ? "L" : "M") + (x + Math.cos(a)*rr).toFixed(1) + "," + (y + Math.sin(a)*rr).toFixed(1); } return `<path d="${d}Z" fill="${c}"/>`; };
+    const heartP = (x, y, k, c, o = 1) => `<path transform="translate(${x} ${y}) scale(${k})" d="M0,4 C-6,0 -5,-5 -2.5,-5 C-1.3,-5 -.4,-4.2 0,-3.3 C.4,-4.2 1.3,-5 2.5,-5 C5,-5 6,0 0,4 Z" fill="${c}" opacity="${o}"/>`;
+    const BG = {
+      sky:`<defs><radialGradient id="${id}b" cx="50%" cy="30%" r="80%"><stop offset="0" stop-color="#fff"/><stop offset=".25" stop-color="#dff3ff"/><stop offset=".65" stop-color="#9fd6ff"/><stop offset="1" stop-color="#6cb6f2"/></radialGradient></defs><rect width="100" height="100" fill="url(#${id}b)"/><g fill="#fff" opacity=".8"><ellipse cx="14" cy="22" rx="9" ry="4"/><ellipse cx="20" cy="19" rx="6" ry="4"/><ellipse cx="84" cy="34" rx="8" ry="3.5"/><ellipse cx="89" cy="31" rx="5" ry="3.5"/></g>`,
+      sunset:`<defs><linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7b5cff"/><stop offset=".4" stop-color="#ff8fa3"/><stop offset=".75" stop-color="#ffc56d"/><stop offset="1" stop-color="#ffe8b0"/></linearGradient></defs><rect width="100" height="100" fill="url(#${id}b)"/><circle cx="78" cy="30" r="12" fill="#fff3b0" opacity=".9"/><g fill="#ffd1dc" opacity=".6"><ellipse cx="20" cy="30" rx="12" ry="3"/><ellipse cx="70" cy="48" rx="14" ry="2.5"/></g>`,
+      night:`<defs><linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1f4d"/><stop offset="1" stop-color="#2f4aa8"/></linearGradient></defs><rect width="100" height="100" fill="url(#${id}b)"/><circle cx="80" cy="20" r="9" fill="#fff6c2"/><circle cx="84" cy="17" r="8" fill="#16306f"/>${[[12,14],[30,8],[50,18],[64,10],[18,40],[90,46],[8,62],[94,70],[40,30]].map(([x,y],i) => star5(x, y, i % 3 ? 1.6 : 2.6, "#fff6c2")).join("")}`,
+      ocean:`<defs><linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8ee3ff"/><stop offset="1" stop-color="#1c6fd6"/></linearGradient></defs><rect width="100" height="100" fill="url(#${id}b)"/><path d="M0,12 Q12,8 25,12 T50,12 T75,12 T100,12 L100,0 L0,0 Z" fill="#c9f3ff" opacity=".6"/>${[[14,40,3],[20,28,2],[86,50,3.5],[80,36,2],[90,24,1.6]].map(([x,y,r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#fff" stroke-width=".9" opacity=".8"/>`).join("")}<path d="M6,100 C4,86 12,82 8,70 M94,100 C96,88 88,84 92,72" stroke="#38b27a" stroke-width="3" fill="none" stroke-linecap="round"/>`,
+      beach:`<rect width="100" height="100" fill="#9fdcff"/><circle cx="82" cy="18" r="9" fill="#ffe066"/><rect y="52" width="100" height="22" fill="#2ab0d8"/><path d="M0,54 Q12,51 25,54 T50,54 T75,54 T100,54" stroke="#fff" stroke-width="1.6" fill="none" opacity=".8"/><rect y="72" width="100" height="28" fill="#ffe2a0"/><path d="M10,100 L14,60 M14,60 C8,56 4,58 2,62 M14,60 C20,55 26,58 28,62 M14,60 C12,54 16,50 20,50" stroke="#38a169" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+      forest:`<defs><linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d8f5d0"/><stop offset="1" stop-color="#8fd18a"/></linearGradient></defs><rect width="100" height="100" fill="url(#${id}b)"/>${[[8,52],[22,44],[80,46],[94,54]].map(([x,y]) => `<path d="M${x},${y-24} L${x+11},${y} L${x-11},${y} Z" fill="#3f9a5a"/><path d="M${x},${y-14} L${x+13},${y+10} L${x-13},${y+10} Z" fill="#2f8048"/><rect x="${x-1.5}" y="${y+10}" width="3" height="6" fill="#7a4f26"/>`).join("")}`,
+      snow:`<defs><linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#cfe9ff"/><stop offset="1" stop-color="#f1f8ff"/></linearGradient></defs><rect width="100" height="100" fill="url(#${id}b)"/>${[[10,12],[24,30],[40,8],[62,18],[84,10],[92,32],[14,50],[88,58],[6,76],[94,82],[30,20],[74,40]].map(([x,y],i) => `<circle cx="${x}" cy="${y}" r="${i%3?1.4:2.2}" fill="#fff" stroke="#bcdcff" stroke-width=".4"/>`).join("")}<path d="M0,90 Q25,84 50,90 T100,88 L100,100 L0,100 Z" fill="#fff"/>`,
+      candy:`<defs><pattern id="${id}cs" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><rect width="14" height="14" fill="#fff0f6"/><rect width="7" height="14" fill="#ffc9de"/></pattern></defs><rect width="100" height="100" fill="url(#${id}cs)"/>${[[14,18,"#ff8ec6"],[86,22,"#9ee6ff"],[12,70,"#ffd43b"],[88,74,"#b197fc"]].map(([x,y,c]) => `<circle cx="${x}" cy="${y}" r="5" fill="${c}" stroke="#fff" stroke-width="1.4"/><path d="M${x-5},${y} L${x-9},${y-3} L${x-9},${y+3} Z M${x+5},${y} L${x+9},${y-3} L${x+9},${y+3} Z" fill="${c}"/>`).join("")}`,
+      hearts:`<rect width="100" height="100" fill="#ffe3ef"/>${[[12,14,.9],[30,6,.6],[52,12,.7],[74,8,.6],[90,20,.9],[8,40,.7],[92,46,.7],[10,70,1],[90,74,1],[24,30,.5],[78,30,.5]].map(([x,y,k]) => heartP(x, y, k*1.4, "#ff8ec6", .75)).join("")}`,
+      rainbow:`<rect width="100" height="100" fill="#dff3ff"/>${["#ff6b6b","#ffa94d","#ffd43b","#69db7c","#4dabf7","#b197fc"].map((c,i) => `<path d="M${-6+i*6},86 A${56-i*6},${56-i*6} 0 0 1 ${106-i*6},86" fill="none" stroke="${c}" stroke-width="6"/>`).join("")}<g fill="#fff"><ellipse cx="6" cy="86" rx="12" ry="7"/><ellipse cx="94" cy="86" rx="12" ry="7"/></g>`,
+      castle:`<defs><linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd6ec"/><stop offset="1" stop-color="#cbb8ff"/></linearGradient></defs><rect width="100" height="100" fill="url(#${id}b)"/><g fill="#fff" opacity=".9"><rect x="2" y="44" width="16" height="56"/><path d="M0,44 L10,26 L20,44 Z" fill="#ff8ec6"/><rect x="82" y="44" width="16" height="56"/><path d="M80,44 L90,26 L100,44 Z" fill="#ff8ec6"/><rect x="18" y="60" width="64" height="40"/></g><rect x="7" y="54" width="5" height="7" rx="2.5" fill="#b197fc"/><rect x="88" y="54" width="5" height="7" rx="2.5" fill="#b197fc"/>${star5(16,14,3,"#fff")}${star5(84,12,2.4,"#fff")}`,
+      stage:`<rect width="100" height="100" fill="#2a1747"/><path d="M8,0 L30,0 L44,100 L-10,100 Z M70,0 L92,0 L110,100 L56,100 Z" fill="#fff6c2" opacity=".22"/><path d="M38,0 L62,0 L76,100 L24,100 Z" fill="#ff8ec6" opacity=".18"/><rect y="84" width="100" height="16" fill="#5a2d82"/>${[[10,92],[30,94],[70,94],[90,92]].map(([x,y]) => `<circle cx="${x}" cy="${y}" r="2" fill="#ffd43b"/>`).join("")}<path d="M0,0 L0,40 Q8,20 14,0 Z M100,0 L100,40 Q92,20 86,0 Z" fill="#c92a2a"/>`,
+      space:`<rect width="100" height="100" fill="#140b33"/>${[[10,10],[26,30],[44,6],[68,16],[88,8],[94,40],[6,46],[90,70],[8,84],[60,30]].map(([x,y],i) => `<circle cx="${x}" cy="${y}" r="${i%2?.8:1.3}" fill="#fff"/>`).join("")}<circle cx="82" cy="24" r="10" fill="#ff8a5b"/><ellipse cx="82" cy="24" rx="17" ry="4" fill="none" stroke="#ffd43b" stroke-width="2" transform="rotate(-20 82 24)"/><circle cx="14" cy="66" r="6" fill="#4dabf7"/><path d="M11,64 Q14,62 17,66" stroke="#69db7c" stroke-width="2" fill="none"/>`,
+      galaxy:`<defs><radialGradient id="${id}b" cx="40%" cy="35%" r="80%"><stop offset="0" stop-color="#ff9ad5"/><stop offset=".35" stop-color="#9b5cff"/><stop offset=".7" stop-color="#3b2a8f"/><stop offset="1" stop-color="#120a33"/></radialGradient></defs><rect width="100" height="100" fill="url(#${id}b)"/><path d="M0,70 Q50,30 100,20" stroke="#fff" stroke-width="10" opacity=".12" fill="none"/>${[[12,16],[30,40],[60,10],[84,30],[90,64],[18,80],[70,52],[44,24]].map(([x,y],i) => star5(x, y, i%2?1.4:2.4, "#fff")).join("")}`,
+      chalk:`<rect width="100" height="100" fill="#2f5d46"/><rect width="100" height="100" fill="none" stroke="#a0703c" stroke-width="7"/><g fill="none" stroke="#fff" stroke-width="1.3" opacity=".75" stroke-linecap="round"><path d="M10,16 L14,8 L18,16 M11.5,13 L16.5,13 M22,12 L26,12 M24,10 L24,14"/><path d="M78,12 Q82,6 86,12 Q82,18 78,12"/><path d="M8,40 L18,40 M8,44 L14,44"/><path d="M82,44 L92,34 M86,44 L92,44 L92,38"/></g>${star5(88,72,3,"#ffe066")}`,
+      gold:`<defs><radialGradient id="${id}b" cx="50%" cy="40%" r="75%"><stop offset="0" stop-color="#fff9db"/><stop offset=".5" stop-color="#ffd43b"/><stop offset="1" stop-color="#e08a00"/></radialGradient></defs><rect width="100" height="100" fill="url(#${id}b)"/><g opacity=".35" fill="#fff">${[...Array(12)].map((_,i) => `<path d="M50,40 L${(50+Math.cos(i*Math.PI/6)*90).toFixed(0)},${(40+Math.sin(i*Math.PI/6)*90).toFixed(0)} L${(50+Math.cos(i*Math.PI/6+.18)*90).toFixed(0)},${(40+Math.sin(i*Math.PI/6+.18)*90).toFixed(0)} Z"/>`).join("")}</g>`
+    };
+    g += BG[a.bg || "sky"] || BG.sky;
     const body = `M16,100 C18,82 32,75 50,75 C68,75 82,82 84,100 Z`;
     // 망토 (뒤)
     if (!outfit && a.top === "cape") g += `<path d="M12,100 C12,78 30,70 50,70 C70,70 88,78 88,100 Z" fill="${shade(tc,70)}"/>`;
@@ -2704,7 +2743,28 @@
     // 기분
     if (mood === "hurt") g += `<g transform="rotate(-25 66 30)"><rect x="57" y="26" width="18" height="7" rx="3" fill="#f1c79b"/><rect x="63" y="26" width="6" height="7" fill="#fbe7d2"/></g><path d="M78,36 C76,41 80,43 80,40 C80,38 79,37 78,36 Z" fill="#9ee6ff" stroke="#4dabf7" stroke-width=".8"/>`;
     if (mood === "star") g += `<path d="M14,24 L15.5,28 L19.5,29.5 L15.5,31 L14,35 L12.5,31 L8.5,29.5 L12.5,28 Z M86,18 L87,21 L90,22 L87,23 L86,26 L85,23 L82,22 L85,21 Z" fill="#ffd43b"/>`;
-    return `<svg class="avs" viewBox="${vb || "0 0 100 100"}" aria-hidden="true"><defs>${defs}</defs><g clip-path="url(#${id}c)">${g}</g></svg>`;
+    /* 🖼️ 테두리 */
+    const R = `x="2.5" y="2.5" width="95" height="95" rx="12.5"`, fr = a.frame || "basic";
+    const around = (fn, n = 12) => [...Array(n)].map((_, i) => { const t = i / n, p = t < .25 ? [6 + t*4*88, 5] : t < .5 ? [95, 6 + (t-.25)*4*88] : t < .75 ? [94 - (t-.5)*4*88, 95] : [5, 94 - (t-.75)*4*88]; return fn(p[0], p[1], i); }).join("");
+    const corners = fn => [[6,6],[94,6],[6,94],[94,94]].map(([x,y],i) => fn(x, y, i)).join("");
+    const FR = {
+      basic:`<rect ${R} fill="none" stroke="#fff" stroke-width="5"/><rect x=".8" y=".8" width="98.4" height="98.4" rx="14" fill="none" stroke="#3d86cf" stroke-width="1.6"/>`,
+      gold:`<rect ${R} fill="none" stroke="${GD}" stroke-width="6.5"/><rect x="6" y="6" width="88" height="88" rx="10" fill="none" stroke="#fff6c2" stroke-width="1"/>${corners((x,y) => `<circle cx="${x}" cy="${y}" r="4.4" fill="#e5484d" stroke="#fff6c2" stroke-width="1.2"/>`)}`,
+      rainbow:`<rect ${R} fill="none" stroke="url(#${id}rb)" stroke-width="7"/><rect x="6.5" y="6.5" width="87" height="87" rx="9.5" fill="none" stroke="#fff" stroke-width="1.2"/>`,
+      neon:`<rect ${R} fill="none" stroke="#22e1ff" stroke-width="5" filter="url(#${id}gl)"/><rect ${R} fill="none" stroke="#e6fdff" stroke-width="2"/><rect x="7" y="7" width="86" height="86" rx="9" fill="none" stroke="#ff4fd8" stroke-width="2.4" filter="url(#${id}gl)"/><rect x="7" y="7" width="86" height="86" rx="9" fill="none" stroke="#ffe3fa" stroke-width="1"/>`,
+      flower:`<rect ${R} fill="none" stroke="#fff" stroke-width="5"/>${around((x,y,i) => `<g transform="translate(${x} ${y})">${[0,72,144,216,288].map(d => `<circle cx="${(Math.cos(d*Math.PI/180)*3).toFixed(1)}" cy="${(Math.sin(d*Math.PI/180)*3).toFixed(1)}" r="2.6" fill="${["#ffc9de","#fff3b0","#d0bfff"][i%3]}" stroke="#fff" stroke-width=".5"/>`).join("")}<circle r="1.7" fill="#ffd43b"/></g>`)}`,
+      hearts:`<rect ${R} fill="none" stroke="#ff8ec6" stroke-width="5"/>${around((x,y,i) => heartP(x, y + 1, 1.1, i % 2 ? "#ff4f8b" : "#fff"), 14)}`,
+      star:`<rect ${R} fill="none" stroke="#1e3a8a" stroke-width="6"/>${around((x,y) => star5(x, y, 4, "#ffd43b"), 12)}`,
+      ice:`<rect ${R} fill="none" stroke="#b5e8ff" stroke-width="6"/><rect ${R} fill="none" stroke="#fff" stroke-width="2"/>${[12,22,34,46,58,70,82,90].map((x,i) => `<path d="M${x-3},4 L${x},${10 + (i%3)*4} L${x+3},4 Z" fill="#dff6ff" stroke="#8fd3ff" stroke-width=".6"/>`).join("")}${star5(92,92,3.6,"#fff")}`,
+      fire:`<rect ${R} fill="none" stroke="url(#${id}fi)" stroke-width="6.5"/>${[8,20,32,44,56,68,80,92].map((x,i) => `<path d="M${x-5},100 Q${x-4},${90 - (i%2)*4} ${x},${84 - (i%3)*3} Q${x+4},${90 - (i%2)*4} ${x+5},100 Z" fill="url(#${id}fi)"/><path d="M${x-2},100 Q${x},${93} ${x+2},100 Z" fill="#fff3b0"/>`).join("")}`,
+      gem:`<rect ${R} fill="none" stroke="#7048e8" stroke-width="6"/>${around((x,y,i) => `<path d="M${x},${y-3.6} L${x+3},${y} L${x},${y+3.6} L${x-3},${y} Z" fill="${["#9ee6ff","#ff8ec6","#b2f2bb","#ffe066"][i%4]}" stroke="#fff" stroke-width=".8"/>`, 16)}`,
+      wood:`<rect ${R} fill="none" stroke="#a0703c" stroke-width="7"/><rect ${R} fill="none" stroke="#7a4f26" stroke-width="7" stroke-dasharray="1 5" opacity=".5"/>${corners((x,y) => `<circle cx="${x}" cy="${y}" r="1.8" fill="#5a3a22"/>`)}`,
+      leaf:`<rect ${R} fill="none" stroke="#38b27a" stroke-width="5"/>${around((x,y,i) => `<ellipse cx="${x}" cy="${y}" rx="4" ry="2" transform="rotate(${i*30} ${x} ${y})" fill="${i%2 ? "#69db7c" : "#2f9e44"}"/>`, 16)}`,
+      bolt:`<rect ${R} fill="none" stroke="#ffd43b" stroke-width="6"/><rect ${R} fill="none" stroke="#212529" stroke-width="1.4"/>${corners((x,y,i) => `<path transform="translate(${x} ${y}) rotate(${i*90})" d="M-1,-6 L3,-6 L0,-1 L3,-1 L-3,6 L-1,1 L-4,1 Z" fill="#fff3b0" stroke="#e08a00" stroke-width=".8"/>`)}`,
+      royal:`<rect ${R} fill="none" stroke="${GD}" stroke-width="7"/><rect x="6.5" y="6.5" width="87" height="87" rx="9.5" fill="none" stroke="#a61e4d" stroke-width="2.2"/><path d="M38,8 L40,0 L45,5 L50,-2 L55,5 L60,0 L62,8 Z" fill="${GD}" stroke="#b07000" stroke-width=".8"/><circle cx="50" cy="5" r="1.6" fill="#e5484d"/>${corners((x,y) => `<circle cx="${x}" cy="${y}" r="3.4" fill="#4dabf7" stroke="#fff6c2" stroke-width="1"/>`)}`
+    };
+    const frame = FR[fr] || FR.basic;
+    return `<svg class="avs" viewBox="${vb || "0 0 100 100"}" aria-hidden="true"><defs>${defs}</defs><g clip-path="url(#${id}c)">${g}</g>${frame}</svg>`;
   }
   const avMood = sid => hamN(sid) ? "hurt" : (typeof prLevel === "function" && prLevel(prN(sid)) >= 9 ? "star" : "");
   /* ---------- 📷 학생 사진: 브라우저에만 따로 저장 (기록과 따로 두어 저장이 가벼워요) ---------- */
@@ -5707,13 +5767,13 @@
   /* ---------- 👕 아바타 꾸미기 창 ---------- */
   (function(){
     let cur = null, tab = "hair", free = false;
-    const BASIC = [["skin","🙂 피부"],["hair","💇 머리"],["hairC","🎨 머리색"],["eyes","👀 눈"],["mouth","👄 입"],["cheek","☺️ 볼"],["hat","🎩 모자"],["glasses","👓 안경"],["top","👕 옷"],["topC","🌈 옷 색"],["pat","✨ 무늬"]];
+    const BASIC = [["skin","🙂 피부"],["hair","💇 머리"],["hairC","🎨 머리색"],["eyes","👀 눈"],["mouth","👄 입"],["cheek","☺️ 볼"],["hat","🎩 모자"],["glasses","👓 안경"],["top","👕 옷"],["topC","🌈 옷 색"],["pat","✨ 무늬"],["bg","🏞️ 배경"],["frame","🖼️ 테두리"]];
     const HERO = [["hero","🛡️ 히어로·갑옷"],["helm","⛑️ 투구"],["weapon","🗡️ 무기"]];
     const IDOL = [["idol","👗 아이돌 옷"],["acc","💎 장신구"]];
     const TEACH = [["tout","🧑‍🏫 선생님 옷"],["thead","🎓 선생님 모자"],["tacc","☕ 선생님 소품"]];
     const T = "__teacher", isT = sid => sid === T;
     const COLOR = {skin:1, hairC:1, topC:1};
-    const BASE = {skin:"#f9cfa8", hair:"short", hairC:"#2b2420", eyes:"dot", mouth:"smile", cheek:"pink", hat:"none", glasses:"none", top:"tee", topC:"#4dabf7", pat:"none", hero:"none", helm:"none", weapon:"none", idol:"none", acc:"none", on:true};
+    const BASE = {bg:"sky", frame:"basic", skin:"#f9cfa8", hair:"short", hairC:"#2b2420", eyes:"dot", mouth:"smile", cheek:"pink", hat:"none", glasses:"none", top:"tee", topC:"#4dabf7", pat:"none", hero:"none", helm:"none", weapon:"none", idol:"none", acc:"none", on:true};
     const has = sid => !!(S.avatars||{})[sid];
     const cfgOf = sid => { S.avatars = S.avatars || {}; if (!S.avatars[sid]) S.avatars[sid] = Object.assign({}, BASE); return S.avatars[sid]; };
     const need = (k, v) => isT(cur) ? 0 : (AV_UNLOCK[k] || {})[v] || 0;
