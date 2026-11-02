@@ -1653,6 +1653,70 @@
   .av-opt svg{border-radius:12px}
   .mt-face.av{border-radius:20px;background:none;border:0;box-shadow:0 4px 0 var(--mc),0 8px 14px rgba(0,0,0,.18)}
   .fame-chip .face.av svg,.ham-row .face.av svg{border-radius:6px}
+
+  /* ---------- 📝 자료 제출 tab ---------- */
+  .sub-layout{display:grid;grid-template-columns:300px 1fr;gap:14px;align-items:start}
+  @media (max-width:900px){ .sub-layout{grid-template-columns:1fr} }
+  .sub-list{display:grid;gap:8px;max-height:640px;overflow:auto;padding:2px}
+  .sub-item{display:block;width:100%;text-align:left;background:#fff;border:2px solid var(--line);border-radius:16px;padding:10px 12px;cursor:pointer;font-family:inherit;color:var(--ink)}
+  .sub-item:hover{border-color:#e2d3bf}
+  .sub-item.on{border-color:#ff8a4c;box-shadow:0 0 0 3px #ffd9c2}
+  .sub-item .t{font-family:"Jua";font-size:18px;line-height:1.25;word-break:keep-all}
+  .sub-item .d{font-size:13px;color:var(--ink-soft);margin-top:2px}
+  .sub-item .d .late{color:#c23356;font-weight:700}
+  .sub-item .d .soon{color:#d0780a;font-weight:700}
+  .sub-item .bar2{height:8px;border-radius:99px;background:#f1e9dd;margin:7px 0 4px;overflow:hidden}
+  .sub-item .bar2 i{display:block;height:100%;background:linear-gradient(90deg,#5cc88b,#2f9e63);border-radius:99px}
+  .sub-item .n{font-size:13px;display:flex;justify-content:space-between}
+  .sub-item .n b{font-family:"Jua";font-weight:400;font-size:16px}
+  .sub-item .n .miss{color:#c23356}
+  .sub-item .n .all{color:#2f8a5b}
+  .sub-item.closed{opacity:.7;background:#f8f5f0}
+  .sub-fold{font-family:"Jua";font-size:15px;color:var(--ink-soft);background:none;border:0;padding:6px 4px;text-align:left;cursor:pointer}
+  .sub-main{background:#fff;border:2px solid var(--line);border-radius:18px;padding:14px 16px;min-height:200px}
+  .sub-main .sm-head{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .sub-main h3{font-family:"Jua";font-weight:400;font-size:26px;margin:0;word-break:keep-all}
+  .sub-main .sm-meta{font-size:14px;color:var(--ink-soft);margin-bottom:10px}
+  .sub-main .sm-memo{font-size:14px;background:#fff8e6;border-radius:10px;padding:6px 10px;margin:-2px 0 10px;white-space:pre-wrap}
+  .sub-main .sm-tools{display:flex;gap:6px;flex-wrap:wrap}
+  .sub-main .sm-tools .btn{padding:6px 11px;font-size:14px}
+  .sub-sum{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .sub-sum div{border-radius:14px;padding:8px 14px;font-size:14px;color:var(--ink-soft);background:#faf4ea}
+  .sub-sum b{font-family:"Jua";font-weight:400;font-size:24px;margin-right:4px}
+  .sub-sum .ok b{color:#2f8a5b} .sub-sum .no b{color:#c23356}
+  .sub-miss{border:2px dashed #ffb3c4;background:#fff5f7;border-radius:14px;padding:10px 12px;margin-bottom:14px}
+  .sub-miss .h{font-family:"Jua";font-size:17px;color:#c23356;margin-bottom:6px}
+  .sub-miss .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .sub-miss .chips button{font-family:"Jua";font-size:17px;background:#fff;border:2px solid #ffc0cd;color:#9b2442;border-radius:999px;padding:4px 12px;cursor:pointer}
+  .sub-miss .chips button:hover{background:#ffe7ed}
+  .sub-miss .chips i{font-style:normal;font-size:13px;color:#c77d8e;margin-right:3px}
+  .sub-miss.done{border-color:#a8e0bf;background:#f1fbf5;color:#2f8a5b;font-family:"Jua";font-size:18px;text-align:center}
+  .sub-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:8px}
+  .sub-stu{position:relative;display:flex;align-items:center;gap:6px;background:#fff;border:2px solid #f0d6dc;border-radius:14px;padding:10px 10px;cursor:pointer;font-family:inherit;color:var(--ink);text-align:left;min-height:58px}
+  .sub-stu i{font-style:normal;font-family:"Jua";font-size:13px;color:var(--ink-soft);min-width:18px}
+  .sub-stu .nm{font-family:"Jua";font-size:19px;flex:1;min-width:0;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sub-stu .mk{flex:none;font-size:12px;color:#c23356;white-space:nowrap;text-align:right;line-height:1.2}
+  .sub-stu:hover{border-color:#e9a9b8}
+  .sub-stu.got{background:linear-gradient(180deg,#eefcf3,#dcf5e6);border-color:#7fd1a2}
+  .sub-stu.got .mk{color:#2f8a5b}
+  .sub-stu.got .mk b{font-size:20px;display:block;line-height:1}
+  .sub-stu.got.late{background:linear-gradient(180deg,#fffaf0,#fff0d4);border-color:#f2c26b}
+  .sub-stu.got.late .mk{color:#b06a00}
+  .sub-empty{text-align:center;color:var(--ink-soft);padding:40px 10px;font-size:16px}
+  .sub-tbl{background:#fff}
+  .sub-tbl table.ck td{background:#fff}
+  .sub-tbl table.ck td.sc{cursor:pointer;font-size:16px;font-family:"Jua"}
+  .sub-tbl table.ck td.sc.sy{color:#2f8a5b;background:#eefaf3}
+  .sub-tbl table.ck td.sc.sl{color:#b06a00;background:#fff5e0}
+  .sub-tbl table.ck td.sc.sn{color:#d24a6a;background:#fff}
+  .sub-tbl table.ck td.sc:hover{outline:2px solid #ffb38a;outline-offset:-2px}
+  .sub-tbl table.ck th.it{max-width:120px;white-space:normal;word-break:keep-all;line-height:1.2;font-size:14px}
+  .sub-tbl table.ck td.stot{font-family:"Jua";font-size:17px;color:#2f8a5b}
+  .sub-tbl table.ck td.stot.bad{color:#c23356}
+  body.arcade #viewSub .sec-title{color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+  body.arcade #viewSub .sec-title small{color:#d6ebff;text-shadow:none}
+  body.arcade #viewSub .sub-fold{color:#d6ebff}
+  body.arcade #viewSub .sub-list .sub-empty{color:#d6ebff}
 </style>
 </head>
 <body>
@@ -1849,6 +1913,7 @@
     <button class="on" data-view="board" role="tab">📋 보드</button>
     <button data-view="check" role="tab">✅ 체크<span class="badge" id="pendBadge" hidden>0</span></button>
     <button data-view="stamp" role="tab">⭐ 칭찬도장<span class="badge" id="rwBadge" hidden>0</span></button>
+    <button data-view="sub" role="tab">📝 자료 제출<span class="badge" id="subBadge" hidden>0</span></button>
     <button data-view="cal" role="tab">📆 달력</button>
     <button data-view="reset" role="tab">🔄 초기화</button>
   </nav>
@@ -1978,6 +2043,24 @@
       </div>
     </div>
     <div id="sbGrid"></div>
+  </section>
+
+  <section class="view" id="viewSub" hidden>
+    <div class="ck-top">
+      <div class="sec-title" style="margin:0">📝 자료 제출 <small>가정통신문 회신·과제·동의서 등을 누가 냈는지 체크해요</small></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn primary" id="subAddBtn">➕ 걷을 자료 추가</button>
+        <button class="btn" id="subCsv">📥 엑셀로 저장</button>
+      </div>
+    </div>
+    <div class="sub-layout">
+      <div class="sub-list" id="subList"></div>
+      <div class="sub-main" id="subMain"></div>
+    </div>
+    <div id="subMatrixWrap">
+      <div class="sec-title" style="margin-top:22px">📊 한눈에 보기 <small>아직 걷는 중인 자료 모두 · 칸을 눌러도 체크돼요</small></div>
+      <div class="tbl-wrap sub-tbl"><table class="ck" id="subMatrix"></table></div>
+    </div>
   </section>
 
   <section class="view" id="viewCal" hidden>
@@ -2170,6 +2253,24 @@
   </div>
 </div>
 
+<div class="modal" id="subModal" aria-modal="true" role="dialog">
+  <div class="sheet">
+    <h2><span id="subTitleH">📝 걷을 자료 추가</span> <button class="x" data-close>×</button></h2>
+    <div class="ev-form">
+      <label>자료 이름<input id="subName" maxlength="40" placeholder="예: 현장체험학습 동의서, 수학 익힘책 3단원, 독서록"></label>
+      <div class="two">
+        <label>마감 날짜 <span style="font-size:12px">(없으면 비워 두기)</span><input type="date" id="subDue"></label>
+        <label>&nbsp;<span style="display:flex;align-items:center;gap:8px;color:var(--ink);font-size:15px;padding:10px 0"><input type="checkbox" id="subClosed" style="width:auto"> 다 걷었어요 (보관하기)</span></label>
+      </div>
+      <label>메모 <span style="font-size:12px">(선택)</span><textarea id="subMemo" rows="2" maxlength="300" placeholder="예: 부모님 서명 꼭 받아 오기"></textarea></label>
+      <div class="ev-actions">
+        <button class="btn" id="subDel" style="color:#c23e3e">🗑️ 지우기</button>
+        <button class="btn primary" id="subSave">✅ 저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="detModal" aria-modal="true" role="dialog">
   <div class="sheet">
     <h2><span id="detTitle"></span> <button class="x" data-close>×</button></h2>
@@ -2289,7 +2390,7 @@
       log:[], tasks:[], periodStart:new Date().toISOString(), archive:[], sStart:{}, autoReset:"off",
       stamps:[], rewards:[],
       rewardRules:[{at:3, emoji:"🍬", label:"간식 쿠폰"},{at:5, emoji:"🪑", label:"자리 선택권"},{at:8, emoji:"🎨", label:"자유 시간 10분"},{at:10, emoji:"🎁", label:"선생님 선물"}],
-      sort:"num", sound:true, events:[], dayNotes:{}
+      sort:"num", sound:true, events:[], dayNotes:{}, subs:[]
     };
   }
   let S;
@@ -2942,7 +3043,7 @@
     $("#grid").innerHTML = list.map(({s,i})=>cardHTML(s,i)).join("") ||
       `<div class="empty">설정에서 학생 명단을 입력해 주세요.</div>`;
   }
-  function render(){ markPhotos(); renderHeader(); renderFame(); renderGrid(); if (!ttEditing) renderTT(); if (!noteEditing) renderNote(); if (view === "check") renderCheck(); if (view === "reset") renderReset(); if (view === "stamp") renderStamp(); try{ renderUp(); if (view === "cal" && !calTyping) renderCal(); }catch(e){} }
+  function render(){ markPhotos(); renderHeader(); renderFame(); renderGrid(); if (!ttEditing) renderTT(); if (!noteEditing) renderNote(); if (view === "check") renderCheck(); if (view === "reset") renderReset(); if (view === "stamp") renderStamp(); try{ renderSubBadge(); if (view === "sub") renderSub(); }catch(e){} try{ renderUp(); if (view === "cal" && !calTyping) renderCal(); }catch(e){} }
 
   /* ---------- actions ---------- */
   let lastAction = null, toastTimer;
@@ -3545,6 +3646,8 @@
     $("#viewReset").hidden = v !== "reset";
     $("#viewStamp").hidden = v !== "stamp";
     $("#viewCal").hidden = v !== "cal";
+    $("#viewSub").hidden = v !== "sub";
+    if (v === "sub") renderSub();
     if (v === "cal") renderCal();
     if (v === "stamp") renderStamp();
     if (v === "check") renderCheck();
@@ -3666,6 +3769,156 @@
   };
   $("#rsBackup").onclick = () => $("#exportBtn").click();
 
+
+  /* ---------- 📝 자료 제출 tab ---------- */
+  // S.subs = [{id, title, due:"YYYY-MM-DD"|"", memo, t, closed, got:{sid: 낸 시각(ms)}}]
+  if (!Array.isArray(S.subs)) S.subs = [];
+  let subSel = null, subShowClosed = false, subEditing = null;
+  const sKey = t => { const d = new Date(t); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
+  const sWD = "일월화수목금토";
+  const sLabel = k => { const [y,m,d] = k.split("-").map(Number); return `${m}/${d}(${sWD[new Date(y,m-1,d).getDay()]})`; };
+  const sDday = k => { const [y,m,d] = k.split("-").map(Number); const a = new Date(y,m-1,d), b = new Date(); b.setHours(0,0,0,0); return Math.round((a - b) / 864e5); };
+  const subGot = (it, sid) => (it.got || {})[sid];
+  const subLate = (it, sid) => { const g = subGot(it, sid); return !!(g && it.due && sKey(g) > it.due); };
+  const subMissing = it => S.students.filter(s => !subGot(it, s.id));
+  const subOrder = () => [...S.subs].sort((a,b) => (a.closed - b.closed) || ((a.due || "9999") < (b.due || "9999") ? -1 : (a.due || "9999") > (b.due || "9999") ? 1 : b.t - a.t));
+  function subDueTxt(it){
+    if (!it.due) return "마감 없음";
+    const dd = sDday(it.due);
+    if (it.closed) return `${sLabel(it.due)}까지`;
+    if (dd < 0) return `${sLabel(it.due)}까지 · <span class="late">마감 ${-dd}일 지남</span>`;
+    if (dd === 0) return `${sLabel(it.due)}까지 · <span class="soon">오늘 마감</span>`;
+    return `${sLabel(it.due)}까지 · <span class="${dd <= 2 ? "soon" : ""}">D-${dd}</span>`;
+  }
+  function renderSubBadge(){
+    const today = sKey(Date.now());
+    const n = S.subs.filter(it => !it.closed && it.due && it.due <= today).reduce((a, it) => a + subMissing(it).length, 0);
+    const b = $("#subBadge"); b.textContent = n; b.hidden = !n;
+    b.title = n ? `마감이 된 자료 중 아직 안 낸 것 ${n}건` : "";
+  }
+  function renderSub(){
+    renderSubBadge();
+    const list = subOrder(), open = list.filter(it => !it.closed), closed = list.filter(it => it.closed);
+    if (subSel && !S.subs.some(it => it.id === subSel)) subSel = null;
+    if (!subSel && list.length) subSel = (open[0] || list[0]).id;
+    const total = S.students.length;
+    const card = it => {
+      const got = total - subMissing(it).length, pct = total ? Math.round(got / total * 100) : 0, miss = total - got;
+      return `<button class="sub-item${it.id === subSel ? " on" : ""}${it.closed ? " closed" : ""}" data-subsel="${it.id}">
+        <div class="t">${it.closed ? "📦 " : ""}${esc(it.title)}</div>
+        <div class="d">${subDueTxt(it)}</div>
+        <div class="bar2"><i style="width:${pct}%"></i></div>
+        <div class="n"><span><b>${got}</b> / ${total}명 냈어요</span>${miss ? `<span class="miss">안 낸 친구 <b>${miss}</b></span>` : `<span class="all">✨ 모두 냄</span>`}</div>
+      </button>`;
+    };
+    $("#subList").innerHTML = (open.length ? open.map(card).join("") : `<div class="sub-empty" style="padding:18px 6px">걷는 중인 자료가 없어요.<br>‘➕ 걷을 자료 추가’를 눌러요</div>`)
+      + (closed.length ? `<button class="sub-fold" id="subFold">${subShowClosed ? "▾" : "▸"} 다 걷은 자료 ${closed.length}개</button>` + (subShowClosed ? closed.map(card).join("") : "") : "");
+
+    const it = S.subs.find(x => x.id === subSel);
+    if (!it) {
+      $("#subMain").innerHTML = `<div class="sub-empty">📝 걷을 자료를 추가하면<br>여기에서 친구들 이름을 눌러 <b>냈어요 ✓</b>를 체크할 수 있어요.</div>`;
+    } else {
+      const miss = subMissing(it), got = total - miss.length, late = S.students.filter(s => subLate(it, s.id)).length;
+      const num = sid => S.students.findIndex(s => s.id === sid) + 1;
+      $("#subMain").innerHTML = `
+        <div class="sm-head"><h3>${it.closed ? "📦 " : ""}${esc(it.title)}</h3>
+          <div class="sm-tools">
+            <button class="btn" data-subact="all">✅ 모두 냄</button>
+            <button class="btn" data-subact="none">↩️ 모두 취소</button>
+            <button class="btn" data-subact="close">${it.closed ? "📂 다시 걷기" : "📦 다 걷었어요"}</button>
+            <button class="btn" data-subact="edit">✏️ 고치기</button>
+          </div></div>
+        <div class="sm-meta">${subDueTxt(it)} · ${sLabel(sKey(it.t))}에 만듦</div>
+        ${it.memo ? `<div class="sm-memo">📌 ${esc(it.memo)}</div>` : ""}
+        <div class="sub-sum"><div class="ok"><b>${got}</b>명 냈어요</div><div class="no"><b>${miss.length}</b>명 안 냈어요</div>${late ? `<div><b style="color:#b06a00">${late}</b>명 늦게 냄</div>` : ""}</div>
+        ${miss.length ? `<div class="sub-miss"><div class="h">❗ 아직 안 낸 친구 (${miss.length}명) <small style="font-family:'Gowun Dodum';font-size:13px;color:#b0687a">— 이름을 누르면 바로 ‘냈어요’</small></div>
+          <div class="chips">${miss.map(s => `<button data-subtg="${s.id}"><i>${num(s.id)}</i>${esc(s.name)}</button>`).join("")}</div></div>`
+          : `<div class="sub-miss done">🎉 모두 냈어요!</div>`}
+        <div class="sub-grid">${S.students.map((s, i) => {
+          const g = subGot(it, s.id), lt = subLate(it, s.id);
+          return `<button class="sub-stu${g ? " got" : ""}${lt ? " late" : ""}" data-subtg="${s.id}" title="${g ? "누르면 ‘안 냄’으로 돌려요" : "누르면 ‘냈어요’"}">
+            <i>${i+1}</i><span class="nm">${esc(s.name)}</span>
+            <span class="mk">${g ? `<b>✓</b>${lt ? "늦게<br>" : ""}${sLabel(sKey(g))}` : "안 냄"}</span></button>`;
+        }).join("")}</div>`;
+    }
+
+    // 한눈에 보기 (걷는 중인 자료 모두)
+    $("#subMatrixWrap").hidden = !open.length;
+    if (open.length) {
+      const head = `<thead><tr><th class="nm">번호 · 이름</th>${open.map(x => `<th class="it" title="${esc(x.title)}">${esc(x.title)}${x.due ? `<br><small style="font-family:'Gowun Dodum'">${sLabel(x.due)}</small>` : ""}</th>`).join("")}<th>안 낸 개수</th></tr></thead>`;
+      const body = S.students.map((s, i) => {
+        let n = 0;
+        const cells = open.map(x => { const g = subGot(x, s.id); if (!g) n++;
+          return `<td class="sc ${g ? (subLate(x, s.id) ? "sl" : "sy") : "sn"}" data-subcell="${x.id}|${s.id}" title="${esc(s.name)} · ${esc(x.title)}">${g ? (subLate(x, s.id) ? "✓늦게" : "✓") : "✗"}</td>`; }).join("");
+        return `<tr><td class="nm"><i>${i+1}</i>${esc(s.name)}</td>${cells}<td class="stot${n ? " bad" : ""}">${n ? n + "개" : "✨"}</td></tr>`;
+      }).join("");
+      const foot = `<tr><td class="nm" style="font-family:'Jua'">안 낸 친구</td>${open.map(x => { const m = subMissing(x).length; return `<td class="stot${m ? " bad" : ""}">${m ? m + "명" : "✨"}</td>`; }).join("")}<td></td></tr>`;
+      $("#subMatrix").innerHTML = head + `<tbody>${body}${foot}</tbody>`;
+    }
+  }
+  function subToggle(subId, sid){
+    const it = S.subs.find(x => x.id === subId), s = S.students.find(x => x.id === sid); if (!it || !s) return;
+    it.got = it.got || {};
+    if (it.got[sid]) delete it.got[sid]; else it.got[sid] = Date.now();
+    save(); renderSub();
+  }
+  function openSubEdit(id){
+    subEditing = id || null;
+    const it = id ? S.subs.find(x => x.id === id) : null;
+    $("#subTitleH").textContent = it ? "✏️ 자료 고치기" : "📝 걷을 자료 추가";
+    $("#subName").value = it ? it.title : "";
+    $("#subDue").value = it ? (it.due || "") : "";
+    $("#subMemo").value = it ? (it.memo || "") : "";
+    $("#subClosed").checked = !!(it && it.closed);
+    $("#subDel").style.visibility = it ? "visible" : "hidden";
+    openM("#subModal");
+    setTimeout(() => $("#subName").focus(), 30);
+  }
+  $("#subAddBtn").onclick = () => openSubEdit(null);
+  $("#subSave").onclick = () => {
+    const title = $("#subName").value.trim();
+    if (!title) { $("#subName").focus(); toast("자료 이름을 적어 주세요", false); return; }
+    const due = $("#subDue").value || "", memo = $("#subMemo").value.trim(), closed = $("#subClosed").checked;
+    if (subEditing) { const it = S.subs.find(x => x.id === subEditing); if (it) Object.assign(it, {title, due, memo, closed}); }
+    else { const it = {id: uid(), title, due, memo, closed, t: Date.now(), got: {}}; S.subs.push(it); subSel = it.id; }
+    save(); $("#subModal").classList.remove("open"); renderSub();
+    toast(subEditing ? "고쳤어요" : `‘${title}’ 걷기 시작! 📝`, false);
+  };
+  $("#subName").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("#subSave").click(); } });
+  $("#subDel").onclick = () => {
+    const it = S.subs.find(x => x.id === subEditing); if (!it) return;
+    if (!confirm(`‘${it.title}’ 자료와 제출 체크를 모두 지울까요?\n지운 건 되돌릴 수 없어요.`)) return;
+    S.subs = S.subs.filter(x => x.id !== it.id); if (subSel === it.id) subSel = null;
+    save(); $("#subModal").classList.remove("open"); renderSub(); toast("지웠어요", false);
+  };
+  $("#viewSub").addEventListener("click", e => {
+    const t = e.target.closest("[data-subsel],[data-subtg],[data-subact],[data-subcell],#subFold"); if (!t) return;
+    if (t.id === "subFold") { subShowClosed = !subShowClosed; renderSub(); return; }
+    if (t.dataset.subsel) { subSel = t.dataset.subsel; renderSub(); return; }
+    if (t.dataset.subtg) { subToggle(subSel, t.dataset.subtg); return; }
+    if (t.dataset.subcell) { const [a, b] = t.dataset.subcell.split("|"); subToggle(a, b); return; }
+    const it = S.subs.find(x => x.id === subSel); if (!it) return;
+    const act = t.dataset.subact;
+    if (act === "edit") openSubEdit(it.id);
+    else if (act === "all") { it.got = it.got || {}; const now = Date.now(); S.students.forEach(s => { if (!it.got[s.id]) it.got[s.id] = now; }); save(); renderSub(); toast("모두 냈어요로 체크했어요 ✅", false); }
+    else if (act === "none") { if (!Object.keys(it.got || {}).length) return; if (!confirm(`‘${it.title}’의 제출 체크를 모두 지울까요?`)) return; it.got = {}; save(); renderSub(); }
+    else if (act === "close") { it.closed = !it.closed; save(); renderSub(); toast(it.closed ? "📦 다 걷은 자료로 보관했어요" : "📂 다시 걷는 중으로 돌렸어요", false); }
+  });
+  $("#subCsv").onclick = () => {
+    const list = subOrder();
+    if (!list.length) { toast("저장할 자료가 없어요", false); return; }
+    const rows = [["번호", "이름", ...list.map(x => x.title + (x.due ? ` (${sLabel(x.due)}까지)` : "")), "안 낸 개수"]];
+    S.students.forEach((s, i) => {
+      let n = 0;
+      rows.push([i+1, s.name, ...list.map(x => { const g = subGot(x, s.id); if (!g) { n++; return "안 냄"; } return (subLate(x, s.id) ? "늦게 냄 " : "냄 ") + sLabel(sKey(g)); }), n]);
+    });
+    rows.push(["", "안 낸 친구 수", ...list.map(x => subMissing(x).length + "명"), ""]);
+    const csv = "﻿" + rows.map(r => r.map(v => `"${String(v).replace(/"/g,'""')}"`).join(",")).join("\r\n");
+    const a = document.createElement("a"), d = new Date();
+    a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv;charset=utf-8"}));
+    a.download = `${S.className || "우리반"}_자료제출_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}.csv`;
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
 
   /* ---------- ⭐ 칭찬도장 tab ---------- */
   const mondayOf = t => { const d = new Date(t); d.setHours(0,0,0,0); d.setDate(d.getDate() - ((d.getDay()+6)%7)); return d; };
