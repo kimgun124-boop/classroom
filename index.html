@@ -1794,7 +1794,7 @@
   .card.lgnd .minus,.card.lgnd .prplus{z-index:5;top:36px;box-shadow:0 0 0 2px #e0a91e,0 0 10px rgba(255,214,90,.8)}
   .card.lgnd .prct,.card.lgnd .stampct{background:linear-gradient(180deg,#fff8d6,#ffd451)!important;color:#6a3d00!important;box-shadow:0 0 8px rgba(255,214,90,.9)}
   @media (prefers-reduced-motion:reduce){.card.lgnd,.deco.lg *{animation:none!important}}
-  /* 🏅 20~79번 등급 카드: 바탕 전체를 등급 보석색으로 */
+  /* 🎨 20~79번 색 테마 카드: 바탕 전체가 테마 색으로 */
   .deco .rkbg{inset:0;background:linear-gradient(160deg,var(--rk0) 0%,var(--p2) 38%,var(--p1) 100%)}
   .card.rk .deco .pbg{opacity:.18}
   .card.rk{border-color:var(--p1)!important}
@@ -1802,9 +1802,13 @@
   .card.rk .minus,.card.rk .prplus{top:28px}
   .deco .title.rk-t{height:21px;font-size:13.5px;background:linear-gradient(90deg,var(--p3),var(--p1),var(--p3));box-shadow:0 2px 6px rgba(0,0,0,.2)}
   .card.rk .why{color:color-mix(in srgb,var(--p3) 85%,#000)!important}
-  .card.rk-sv .deco .rkbg{background:linear-gradient(160deg,#fff 0%,#eef3f9 30%,#c9d4e3 62%,#9aabc2 100%)}
-  .card.rk-sv .deco .rkbg::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.0) 0 14px,rgba(255,255,255,.45) 14px 16px)}
-  .card.rk-am .why,.card.rk-sp .why{color:#fff!important;text-shadow:0 1px 2px rgba(0,0,0,.45)}
+  .deco .rkbg::after{content:"";position:absolute;inset:0;   /* 은은한 진주빛 광택 */
+    background:radial-gradient(120% 60% at 20% 0%,rgba(255,255,255,.75),transparent 55%),
+      linear-gradient(125deg,rgba(255,220,240,0) 20%,rgba(255,230,250,.35) 40%,rgba(210,240,255,.35) 55%,rgba(255,250,220,0) 75%);
+    background-size:100% 100%,250% 250%;animation:rkPearl 6s ease-in-out infinite alternate}
+  @keyframes rkPearl{from{background-position:0 0,0% 0%}to{background-position:0 0,100% 100%}}
+  .card.rk-mn .deco .rkbg::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,transparent 0 16px,rgba(255,255,255,.4) 16px 17px)}
+  .card.rk-vt .why,.card.rk-oc .why{color:#fff!important;text-shadow:0 1px 2px rgba(0,0,0,.45)}
   .card.rk .count{color:var(--p3)!important}
   #prSortBtn.on{background:#d6337f!important;border-color:#d6337f!important;color:#fff!important}
 </style>
@@ -2595,13 +2599,13 @@
         conf:["#f0a400","#ffe27a","#ff8a5b","#7cc7a0","#ffffff"],
         say:["", "✨ 반짝!", "⭐ 별 장식!", "💛 금빛 카드!", "🔸 반짝 무늬!", "⭐ 별이 솟아요!", "🏅 메달 획득!", "🌟 빛이 나요!", "💎 보석 테두리!", "💮 참 잘했어요 도장!", "🌠 별똥별!", "🌈 홀로그램!", "👑 왕관!", "🥇 빛나는 이름!", "🦁 사자 소환!", "🌈 무지개 테두리!", "🎆 불꽃놀이!", "✨ 눈부신 카드!", "🌟 우리 반 스타!", "🏆 전설의 카드!"]}
   };
-  /* 🏅 20~79번 등급: 브론즈 → 실버 → 에메랄드 → 사파이어 → 자수정 (80번부터는 금빛 '우리 반 스타', 100번은 레전드) */
+  /* 🎨 20~79번: 칭찬이 쌓일수록 카드 바탕이 다른 색 테마로 (등급이 아니라 디자인 변화) — 80번부터 금빛 '우리 반 스타', 100번은 레전드 */
   const RANKS = [
-    {id:"bz", from:8,  name:"🥉 브론즈",   c0:"#fff1e2", p2:"#ffcf9e", p1:"#c8742f", p3:"#6e3510", pg:"rgba(230,140,70,.75)"},
-    {id:"sv", from:10, name:"🥈 실버",     c0:"#ffffff", p2:"#e9eff7", p1:"#9aabc2", p3:"#43536b", pg:"rgba(170,195,230,.85)"},
-    {id:"em", from:12, name:"💚 에메랄드", c0:"#effff5", p2:"#a8f0c8", p1:"#1fae6c", p3:"#0a5535", pg:"rgba(60,220,140,.75)"},
-    {id:"sp", from:14, name:"💙 사파이어", c0:"#eef6ff", p2:"#a9d2ff", p1:"#2f6fdc", p3:"#14306e", pg:"rgba(80,160,255,.8)"},
-    {id:"am", from:15, name:"💜 자수정",   c0:"#fbf2ff", p2:"#e3c2ff", p1:"#9447f0", p3:"#46168a", pg:"rgba(170,100,255,.8)"}
+    {id:"pc", from:8,  name:"🍑 복숭아 구름", c0:"#fff8f4", p2:"#ffd9cc", p1:"#e98a7b", p3:"#7e3434", pg:"rgba(240,150,130,.7)"},
+    {id:"mn", from:10, name:"🌙 달빛 진주",   c0:"#ffffff", p2:"#e9ecfa", p1:"#a3aed8", p3:"#3b4677", pg:"rgba(170,180,240,.8)"},
+    {id:"mt", from:12, name:"🍃 민트 숲",     c0:"#f3fffb", p2:"#c4f1e2", p1:"#3db79a", p3:"#0e5649", pg:"rgba(70,210,170,.7)"},
+    {id:"oc", from:14, name:"🌊 푸른 바다",   c0:"#f2f8ff", p2:"#bcdcff", p1:"#4b86e6", p3:"#1a3d86", pg:"rgba(90,150,255,.75)"},
+    {id:"vt", from:15, name:"🔮 보라 마법",   c0:"#fdf6ff", p2:"#e7d0fb", p1:"#9f68e6", p3:"#47228a", pg:"rgba(170,110,255,.75)"}
   ];
   const rankOf = L => (L >= 8 && L <= 16) ? RANKS.filter(k => L >= k.from).pop() : null;
   function decoOf(sid){
