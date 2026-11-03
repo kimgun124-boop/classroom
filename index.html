@@ -1811,6 +1811,46 @@
   .card.rk-vt .why,.card.rk-oc .why{color:#fff!important;text-shadow:0 1px 2px rgba(0,0,0,.45)}
   .card.rk .count{color:var(--p3)!important}
   #prSortBtn.on{background:#d6337f!important;border-color:#d6337f!important;color:#fff!important}
+  /* =====================================================================
+     🌌 선생님 무대: 레전드 카드보다 더 화려하게 — 오로라 밤하늘 + 이중 황금 빛살 + 무지개 테두리 + 별똥별
+     ===================================================================== */
+  .mt .mt-now{background:#0b0a2a;overflow:hidden;isolation:isolate;border-radius:22px;
+    box-shadow:0 0 0 2px #fff6cf,0 0 0 4px #e0a91e,0 0 22px 6px rgba(255,214,90,.55),0 8px 18px rgba(0,0,0,.25);animation:msGlow 3s ease-in-out infinite}
+  @keyframes msGlow{50%{box-shadow:0 0 0 2px #fff6cf,0 0 0 4px #ffd451,0 0 34px 12px rgba(255,214,90,.75),0 8px 18px rgba(0,0,0,.25)}}
+  .mt-stage{position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:inherit;overflow:hidden}
+  .mt-stage > i{position:absolute;display:block}
+  .mt-now > :not(.mt-stage){position:relative;z-index:2}
+  .mt-stage .ms-bg{inset:0;background:radial-gradient(130% 80% at 50% 0%,#4a2fa8 0,#251a6e 35%,transparent 70%),
+    radial-gradient(100% 60% at 50% 115%,color-mix(in srgb,var(--mc) 70%,#ff5fa2),transparent 70%),linear-gradient(180deg,#160f4a,#07061e)}
+  .mt-stage .ms-aur{left:-40%;right:-40%;top:-10%;height:75%;filter:blur(14px);opacity:.75;mix-blend-mode:screen;
+    background:linear-gradient(100deg,transparent 10%,rgba(80,255,200,.55) 25%,rgba(120,160,255,.55) 40%,rgba(255,120,220,.55) 55%,rgba(255,220,120,.5) 70%,transparent 85%);
+    animation:msAur 7s ease-in-out infinite alternate}
+  @keyframes msAur{from{transform:translateX(-14%) skewY(-6deg)}to{transform:translateX(14%) skewY(6deg)}}
+  .mt-stage .ms-rays{left:50%;top:40%;width:560px;height:560px;margin:-280px 0 0 -280px;opacity:.6;
+    background:repeating-conic-gradient(from 0deg,rgba(255,232,150,.7) 0 5deg,transparent 5deg 15deg);
+    -webkit-mask:radial-gradient(circle,#000 5%,transparent 50%);mask:radial-gradient(circle,#000 5%,transparent 50%);animation:spin 18s linear infinite}
+  .mt-stage .ms-rays.r2{opacity:.35;background:repeating-conic-gradient(from 7deg,rgba(200,170,255,.8) 0 3deg,transparent 3deg 22deg);animation-duration:26s;animation-direction:reverse}
+  .mt-stage .ms-halo{left:50%;top:40%;width:240px;height:240px;margin:-120px 0 0 -120px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,252,225,.95) 0,rgba(255,225,140,.55) 28%,rgba(255,180,230,.18) 50%,transparent 68%);animation:lgPulse 2.6s ease-in-out infinite}
+  .mt-stage .ms-dust{bottom:-10px;width:var(--s);height:var(--s);border-radius:50%;background:#fff6c8;
+    box-shadow:0 0 6px 2px rgba(255,214,90,.95),0 0 14px 5px rgba(255,150,230,.5);animation:msDust 6s linear infinite;opacity:0}
+  @keyframes msDust{0%{transform:translate(0,0);opacity:0}12%{opacity:1}50%{transform:translate(10px,-170px)}85%{opacity:.9}100%{transform:translate(-8px,-340px);opacity:0}}
+  .mt-stage .ms-tw{width:var(--s);height:var(--s);background:linear-gradient(135deg,#fff,#ffe27a);
+    clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%);filter:drop-shadow(0 0 5px #ffd84d);animation:lgTw 2.2s ease-in-out infinite}
+  .mt-stage .ms-shoot{top:12%;left:110%;width:90px;height:2px;border-radius:2px;background:linear-gradient(90deg,#fff,rgba(255,230,160,.6),transparent);
+    filter:drop-shadow(0 0 4px #fff);transform:rotate(-24deg);animation:msShoot 5s ease-in infinite}
+  .mt-stage .ms-shoot.s2{top:38%;animation-delay:2.6s;animation-duration:6.5s}
+  @keyframes msShoot{0%,70%{left:110%;top:8%;opacity:0}72%{opacity:1}100%{left:-60%;top:55%;opacity:0}}
+  .mt-stage .ms-ring{inset:0;border-radius:inherit;padding:3px;background:conic-gradient(from var(--a,0deg),#ffd84d,#ff7eb9,#9ee6ff,#c79bff,#7dffb0,#ffd84d);
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);animation:ringspin 3s linear infinite}
+  .mt-stage .ms-frame{inset:7px;border-radius:15px;border:1px solid rgba(255,226,140,.7);box-shadow:inset 0 0 16px rgba(255,214,90,.25)}
+  .mt-stage .ms-cn{width:12px;height:12px;transform:rotate(45deg);border-radius:2px;background:linear-gradient(135deg,#fff,#ffd84d 45%,#ff9ad0);border:2px solid #fff3c4;box-shadow:0 0 10px 3px rgba(255,214,90,.8)}
+  .mt-stage .ms-cn.tl{left:4px;top:4px}.mt-stage .ms-cn.tr{right:4px;top:4px}.mt-stage .ms-cn.bl{left:4px;bottom:4px}.mt-stage .ms-cn.br{right:4px;bottom:4px}
+  .mt .mt-face.av{box-shadow:0 0 0 3px #fff6cf,0 0 0 6px #e0a91e,0 0 24px 8px rgba(255,214,90,.85),0 0 50px 16px rgba(255,140,220,.45)!important}
+  .mt .mt-face:not(.av){filter:drop-shadow(0 0 12px rgba(255,220,120,.9)) drop-shadow(0 4px 6px rgba(0,0,0,.3))}
+  .mt .mt-lvl{box-shadow:0 0 0 2px #fff6cf,0 0 12px rgba(255,214,90,.8)}
+  .mt .mt-msg{color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.35),0 0 12px rgba(255,214,90,.9),0 0 22px rgba(255,140,220,.6)}
+  @media (prefers-reduced-motion:reduce){.mt .mt-now,.mt-stage *{animation:none!important}}
 </style>
 </head>
 <body>
@@ -2067,7 +2107,7 @@
   <div class="board-layout">
     <aside class="mt" id="mt" aria-label="선생님 마음 온도계">
       <div class="mt-head"><h2>🌡️ 선생님<br>마음 온도계</h2><button class="tt-edit" id="mtAv" title="선생님 아바타 꾸미기" aria-label="선생님 아바타 꾸미기">👕</button></div>
-      <div class="mt-now"><div class="mt-face" id="mtFace">🥰</div><span class="mt-lvl" id="mtLvl">1단계</span><div class="mt-msg" id="mtMsg"></div></div>
+      <div class="mt-now"><div class="mt-stage" aria-hidden="true"><i class="ms-bg"></i><i class="ms-aur"></i><i class="ms-rays"></i><i class="ms-rays r2"></i><i class="ms-halo"></i><i class="ms-dust" style="left:8%;--s:4px;animation-delay:-0.5s;animation-duration:5s"></i><i class="ms-dust" style="left:22%;--s:3px;animation-delay:-2.1s;animation-duration:6s"></i><i class="ms-dust" style="left:37%;--s:5px;animation-delay:-3.4s;animation-duration:5.5s"></i><i class="ms-dust" style="left:52%;--s:3px;animation-delay:-1.2s;animation-duration:6.5s"></i><i class="ms-dust" style="left:66%;--s:4px;animation-delay:-4.2s;animation-duration:5s"></i><i class="ms-dust" style="left:80%;--s:5px;animation-delay:-2.8s;animation-duration:6s"></i><i class="ms-dust" style="left:92%;--s:3px;animation-delay:-0.9s;animation-duration:5.8s"></i><i class="ms-dust" style="left:15%;--s:3px;animation-delay:-3.9s;animation-duration:6.2s"></i><i class="ms-dust" style="left:73%;--s:3px;animation-delay:-5.1s;animation-duration:5.4s"></i><i class="ms-tw" style="left:10%;top:14%;--s:14px;animation-delay:-0.3s"></i><i class="ms-tw" style="left:86%;top:10%;--s:18px;animation-delay:-1.1s"></i><i class="ms-tw" style="left:14%;top:62%;--s:12px;animation-delay:-1.7s"></i><i class="ms-tw" style="left:88%;top:56%;--s:15px;animation-delay:-0.7s"></i><i class="ms-tw" style="left:50%;top:6%;--s:11px;animation-delay:-2.0s"></i><i class="ms-tw" style="left:72%;top:30%;--s:10px;animation-delay:-1.4s"></i><i class="ms-tw" style="left:28%;top:34%;--s:10px;animation-delay:-0.9s"></i><i class="ms-shoot"></i><i class="ms-shoot s2"></i><i class="ms-ring"></i><i class="ms-frame"></i><i class="ms-cn tl"></i><i class="ms-cn tr"></i><i class="ms-cn bl"></i><i class="ms-cn br"></i></div><div class="mt-face" id="mtFace">🥰</div><span class="mt-lvl" id="mtLvl">1단계</span><div class="mt-msg" id="mtMsg"></div></div>
       <div class="mt-ctl"><button id="mtDown" title="온도 내리기">▼ 내리기</button><button id="mtUp" title="온도 올리기">▲ 올리기</button></div>
       <div class="mt-recbar"><button id="mtYT" aria-label="유튜브 목소리 설정">▶️</button><button id="mtRec">🎙️ 10단계 목소리 녹음</button><button id="mtRecDel" title="녹음 지우기" aria-label="녹음 지우기" hidden>🗑️</button></div>
       <div class="mt-body">
