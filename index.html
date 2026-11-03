@@ -1897,6 +1897,12 @@
   .mt.grow .mt-body + .mt-ctl{position:relative;z-index:70}
   .mt.grow .mt-body + .mt-ctl button{background:#fff;box-shadow:0 3px 0 rgba(0,0,0,.25),0 0 0 3px var(--mc)}
   .mt.grow .mt-ctl + .mt-recbar{position:relative;z-index:70}
+
+  /* 커졌을 때 ▲▼ 버튼은 화면 왼쪽 아래에 늘 떠 있게 (스크롤 안 해도 바로 누를 수 있게) */
+  .mt.grow .mt-body + .mt-ctl{position:fixed;right:18px;bottom:18px;z-index:9000;width:300px;margin:0;gap:8px;
+    padding:8px;border-radius:20px;background:rgba(255,255,255,.92);box-shadow:0 0 0 3px var(--mc),0 10px 30px rgba(0,0,0,.35)}
+  .mt.grow .mt-body + .mt-ctl button{font-size:22px;padding:14px 0;border-radius:14px;background:#fff;color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.2),0 0 0 2px var(--mc)}
+  .mt.grow .mt-body + .mt-ctl button:disabled{opacity:.35}
 </style>
 </head>
 <body>
@@ -4788,7 +4794,9 @@
   function setMood(n){
     n = Math.max(1, Math.min(10, n));
     if (n === S.mood) return;
+    const up = n > S.mood;
     S.mood = n; save(); renderMood();
+    if (up && n >= 6) { const t = $("#mt .mt-now").getBoundingClientRect().top; if (t > innerHeight * .25 || t < 0) window.scrollBy({top: t - 12, behavior: "smooth"}); }   // 커질 자리가 생기게 위로
   }
   $("#mtRows").addEventListener("click", e => { const b = e.target.closest("[data-mood]"); if (b) setMood(+b.dataset.mood); });
   $("#mtUp").onclick = () => setMood(S.mood + 1);
