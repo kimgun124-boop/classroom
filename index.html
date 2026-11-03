@@ -1717,6 +1717,83 @@
   body.arcade #viewSub .sec-title small{color:#d6ebff;text-shadow:none}
   body.arcade #viewSub .sub-fold{color:#d6ebff}
   body.arcade #viewSub .sub-list .sub-empty{color:#d6ebff}
+  /* =====================================================================
+     👑 레전드 카드 (칭찬 도장 100번): 밤하늘 보석빛 + 황금 액자 + 숨 쉬는 빛 오라
+     ===================================================================== */
+  .card.lgnd{--edge:#9a6a0a;border-color:#ffe08a!important;z-index:1;
+    animation:lgAura 3.2s ease-in-out infinite!important}
+  @keyframes lgAura{
+    0%,100%{box-shadow:0 0 0 2px #fff6cf,0 0 0 5px #e0a91e,0 0 0 7px #7a4e00,0 0 18px 6px var(--lglow),0 0 46px 14px color-mix(in srgb,var(--la2) 55%,transparent),0 10px 18px rgba(0,0,0,.35)}
+    50%{box-shadow:0 0 0 2px #fff6cf,0 0 0 5px #ffd451,0 0 0 7px #8a5a00,0 0 28px 10px var(--lglow),0 0 70px 22px color-mix(in srgb,var(--la1) 60%,transparent),0 10px 18px rgba(0,0,0,.35)}}
+  .card.lgnd.praised{animation:praised .55s cubic-bezier(.3,1.6,.5,1),lgAura 3.2s ease-in-out infinite!important}
+  .deco.lg{z-index:2}
+  .deco.lg > *{position:absolute}
+  /* 바탕: 깊은 보석빛 밤하늘 */
+  .deco.lg .lg-bg{inset:0;background:
+    radial-gradient(120% 70% at 50% 0%,color-mix(in srgb,var(--lb1) 90%,#fff) 0,var(--lb1) 22%,transparent 60%),
+    radial-gradient(90% 60% at 50% 110%,color-mix(in srgb,var(--la2) 45%,transparent),transparent 70%),
+    linear-gradient(180deg,var(--lb2) 0%,var(--lb3) 100%)}
+  .deco.lg .lg-stars{inset:0;opacity:.85;background:
+    radial-gradient(circle,#fff 0 1px,transparent 1.6px) 0 0/23px 29px,
+    radial-gradient(circle,rgba(255,240,190,.9) 0 .8px,transparent 1.4px) 11px 14px/31px 37px,
+    radial-gradient(circle,rgba(255,255,255,.7) 0 .7px,transparent 1.2px) 5px 21px/17px 19px;
+    animation:lgStars 4s ease-in-out infinite alternate}
+  @keyframes lgStars{to{opacity:.45}}
+  /* 얼굴 뒤로 천천히 도는 황금 빛살 */
+  .deco.lg .lg-rays{left:38%;top:36%;width:520px;height:520px;margin:-260px 0 0 -260px;opacity:.55;
+    background:repeating-conic-gradient(from 0deg,rgba(255,226,140,.55) 0 6deg,transparent 6deg 18deg);
+    -webkit-mask:radial-gradient(circle,#000 6%,transparent 52%);mask:radial-gradient(circle,#000 6%,transparent 52%);animation:spin 22s linear infinite}
+  .deco.lg .lg-spot{left:38%;top:36%;width:220px;height:220px;margin:-110px 0 0 -110px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,250,220,.75) 0,rgba(255,220,130,.35) 30%,transparent 65%);animation:lgPulse 3.2s ease-in-out infinite}
+  @keyframes lgPulse{0%,100%{transform:scale(.9);opacity:.75}50%{transform:scale(1.08);opacity:1}}
+  /* 금가루 */
+  .deco.lg .lg-dust{bottom:-10px;width:var(--s);height:var(--s);border-radius:50%;background:#fff3b0;
+    box-shadow:0 0 6px 2px rgba(255,214,90,.9),0 0 14px 4px color-mix(in srgb,var(--la1) 60%,transparent);animation:lgDust 6s linear infinite;opacity:0}
+  @keyframes lgDust{0%{transform:translate(0,0);opacity:0}12%{opacity:1}50%{transform:translate(8px,-140px)}85%{opacity:.9}100%{transform:translate(-6px,-300px);opacity:0}}
+  /* 네 갈래 반짝 별 */
+  .deco.lg .lg-tw{width:var(--s);height:var(--s);background:linear-gradient(135deg,#fff,#ffe27a);
+    clip-path:polygon(50% 0,61% 39%,100% 50%,61% 61%,50% 100%,39% 61%,0 50%,39% 39%);filter:drop-shadow(0 0 4px #ffd84d);animation:lgTw 2.4s ease-in-out infinite}
+  @keyframes lgTw{0%,100%{transform:scale(.2) rotate(0);opacity:0}45%{transform:scale(1.15) rotate(45deg);opacity:1}70%{transform:scale(.7) rotate(70deg);opacity:.8}}
+  /* 비스듬히 지나가는 금빛 광택 */
+  .deco.lg .lg-sheen{top:-30%;bottom:-30%;width:45%;left:-70%;transform:skewX(-20deg);
+    background:linear-gradient(100deg,transparent,rgba(255,240,190,.12) 30%,rgba(255,255,255,.55) 50%,rgba(255,240,190,.12) 70%,transparent);animation:lgSheen 4.5s ease-in-out infinite}
+  @keyframes lgSheen{0%,60%{left:-70%}100%{left:140%}}
+  /* 황금 액자 (바깥 굵은 금테 + 안쪽 가는 금선) */
+  .deco.lg .lg-frame{inset:3px;border-radius:19px;padding:4px;
+    background:linear-gradient(135deg,#fff7d1 0%,#f3c84b 18%,#9a6a0a 34%,#ffe58a 50%,#b7820f 66%,#fff1b0 82%,#c99412 100%);
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);
+    filter:drop-shadow(0 0 3px rgba(255,214,90,.8))}
+  .deco.lg .lg-frame2{inset:11px;border-radius:13px;border:1px solid rgba(255,226,140,.75);box-shadow:inset 0 0 12px rgba(255,214,90,.25)}
+  /* 네 모서리 보석 장식 */
+  .deco.lg .lg-cn{width:13px;height:13px;transform:rotate(45deg);border-radius:2px;
+    background:linear-gradient(135deg,#fff,var(--la1) 45%,var(--la2));border:2px solid #ffe08a;box-shadow:0 0 8px 2px var(--lglow)}
+  .deco.lg .lg-cn.tl{left:5px;top:5px}.deco.lg .lg-cn.tr{right:5px;top:5px}.deco.lg .lg-cn.bl{left:5px;bottom:5px}.deco.lg .lg-cn.br{right:5px;bottom:5px}
+  .deco.lg .lg-cn.tl,.deco.lg .lg-cn.tr{top:30px}
+  /* 맨 위 황금 리본 칭호 */
+  .deco.lg .lg-title{left:0;right:0;top:0;height:28px;display:flex;align-items:center;justify-content:center;gap:6px;
+    background:linear-gradient(180deg,#fff4c2 0%,#f6cf5a 40%,#c48a10 60%,#f3c84b 100%);border-bottom:2px solid #7a4e00;
+    box-shadow:0 3px 10px rgba(0,0,0,.35),inset 0 1px 0 #fff}
+  .deco.lg .lg-title b{font-family:"Jua";font-weight:400;font-size:15px;color:#4a2c00;text-shadow:0 1px 0 rgba(255,255,255,.7);white-space:nowrap}
+  .deco.lg .lg-title small{font-family:Georgia,"Times New Roman",serif;font-size:9px;font-weight:700;letter-spacing:1.5px;color:#7a4e00;opacity:.85;white-space:nowrap}
+  .deco.lg .lg-title::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.85) 50%,transparent 70%);
+    background-size:250% 100%;animation:lgTitle 3s linear infinite}
+  @keyframes lgTitle{from{background-position:150% 0}to{background-position:-100% 0}}
+  /* 내용물: 어두운 바탕 위에서 금빛으로 */
+  .card.lgnd .head{margin-top:22px}
+  .card.lgnd .num{background:linear-gradient(180deg,#ffe58a,#c48a10);color:#4a2c00;border-color:#fff6cf;text-shadow:0 1px 0 rgba(255,255,255,.6);box-shadow:0 0 10px rgba(255,214,90,.8)}
+  .card.lgnd .count,.card.lgnd .count small{color:#ffe27a!important;-webkit-text-stroke:0!important;
+    text-shadow:0 2px 0 #7a4e00,0 0 10px rgba(255,214,90,.95),0 0 22px var(--lglow)!important;animation:none!important}
+  .card.lgnd .name .face{border-color:#fff6cf!important;
+    box-shadow:0 0 0 3px #e0a91e,0 0 0 5px #7a4e00,0 0 20px 6px rgba(255,214,90,.9),0 0 40px 10px var(--lglow)!important}
+  .card.lgnd .name .nmt{color:#3b2400!important;-webkit-text-stroke:0!important;
+    background:linear-gradient(180deg,#fff8d6 0%,#ffe27a 30%,#e0a91e 52%,#b7820f 60%,#f6cf5a 100%)!important;border:2px solid #fff6cf!important;
+    box-shadow:0 3px 0 #7a4e00,0 0 14px rgba(255,214,90,.85),inset 0 2px 0 rgba(255,255,255,.8)!important;text-shadow:0 1px 0 rgba(255,255,255,.75)!important;animation:none!important}
+  .card.lgnd .why{color:rgba(255,240,205,.9)!important}
+  .card.lgnd .why,.card.lgnd .dots,.card.lgnd .decay,.card.lgnd .tags{position:relative;z-index:3}
+  .card.lgnd .tags .ok{background:rgba(20,10,40,.55)!important;color:#ffe9a6!important;border:1.5px solid rgba(255,214,90,.7)!important}
+  .card.lgnd .minus,.card.lgnd .prplus{z-index:5;top:36px;box-shadow:0 0 0 2px #e0a91e,0 0 10px rgba(255,214,90,.8)}
+  .card.lgnd .prct,.card.lgnd .stampct{background:linear-gradient(180deg,#fff8d6,#ffd451)!important;color:#6a3d00!important;box-shadow:0 0 8px rgba(255,214,90,.9)}
+  @media (prefers-reduced-motion:reduce){.card.lgnd,.deco.lg *{animation:none!important}}
 </style>
 </head>
 <body>
@@ -2509,7 +2586,8 @@
     const L = prLevel(glowN(sid));
     if (!L) return {L, cls:"", style:"", html:""};
     const g = genderOf(sid), T = PR_TH[g], r = seeded(faceHash(sid) ^ 0x51ed270b);
-    const st = `--p1:${T.p1};--p2:${T.p2};--p3:${T.p3};--pg:${T.pg};--pbg:${[0,.12,.18,.3,.36,.42,.46,.5,.54,.56,.58,.6,.62,.64,.66,.68,.7,.72,.74,.76][L]};--r1:${T.ring[0]};--r2:${T.ring[1]};--r3:${T.ring[2]};--r4:${T.ring[3]};`;
+    if (L >= 19) return legendOf(g, T, r);
+    const st =`--p1:${T.p1};--p2:${T.p2};--p3:${T.p3};--pg:${T.pg};--pbg:${[0,.12,.18,.3,.36,.42,.46,.5,.54,.56,.58,.6,.62,.64,.66,.68,.7,.72,.74,.76][L]};--r1:${T.ring[0]};--r2:${T.ring[1]};--r3:${T.ring[2]};--r4:${T.ring[3]};`;
     const E = (cls, txt, sty) => `<div class="em ${cls}" style="${sty}">${txt}</div>`;
     let h = `<div class="pbg"></div>`;
     if (L >= 7) h += `<div class="rays"></div>`;
@@ -2533,6 +2611,25 @@
     const cls = " pr pr-" + g + DMG_AT.slice(0, L).map((_, i) => " pr" + (i + 1)).join("");
     return {L, cls, style: st, html:`<div class="deco" aria-hidden="true">${h}</div>`};
   }
+  /* ---------- 👑 칭찬 도장 100번 = 레전드 카드: 밤하늘 보석빛 바탕 + 황금 액자 + 빛 오라 (다른 단계와 완전히 다른 급) ---------- */
+  const LG_TH = {
+    b: {bg1:"#1d4f9e", bg2:"#0a1a4a", bg3:"#040b24", a1:"#7fd3ff", a2:"#8a5cff", glow:"rgba(90,190,255,.85)"},
+    g: {bg1:"#7a2a8c", bg2:"#3a0f55", bg3:"#18062b", a1:"#ff9fd0", a2:"#c9a7ff", glow:"rgba(255,140,210,.85)"},
+    n: {bg1:"#8a5a12", bg2:"#3d2606", bg3:"#170e02", a1:"#ffe27a", a2:"#ff9b3d", glow:"rgba(255,200,80,.85)"}
+  };
+  function legendOf(g, T, r){
+    const Q = LG_TH[g];
+    const st = `--p1:${T.p1};--p2:${T.p2};--p3:${T.p3};--pg:${T.pg};--lb1:${Q.bg1};--lb2:${Q.bg2};--lb3:${Q.bg3};--la1:${Q.a1};--la2:${Q.a2};--lglow:${Q.glow};`;
+    let h = `<div class="lg-bg"></div><div class="lg-stars"></div><div class="lg-rays"></div><div class="lg-spot"></div>`;
+    for (let k = 0; k < 9; k++)   // 아래에서 위로 천천히 떠오르는 금가루
+      h += `<i class="lg-dust" style="left:${(6 + r()*88).toFixed(0)}%;--s:${(3 + r()*4).toFixed(1)}px;animation-duration:${(4.5 + r()*3).toFixed(2)}s;animation-delay:${(-r()*7).toFixed(2)}s"></i>`;
+    for (let k = 0; k < 6; k++)   // 반짝이는 네 갈래 별
+      h += `<i class="lg-tw" style="left:${(8 + r()*80).toFixed(0)}%;top:${(14 + r()*70).toFixed(0)}%;--s:${(9 + r()*9).toFixed(0)}px;animation-delay:${(-r()*2.4).toFixed(2)}s"></i>`;
+    h += `<div class="lg-sheen"></div><div class="lg-frame"></div><div class="lg-frame2"></div>`;
+    h += ["tl","tr","bl","br"].map(k => `<i class="lg-cn ${k}"></i>`).join("");
+    h += `<div class="lg-title"><b>${T.title2}</b></div>`;
+    return {L:19, cls:` pr pr-${g}` + DMG_AT.map((_, i) => " pr" + (i + 1)).join("") + " lgnd", style: st, html:`<div class="deco lg" aria-hidden="true">${h}</div>`};
+  }
   function lookOf(sid){
     const w = wearOf(sid), d = decoOf(sid);
     return {cls: w.cls + d.cls, style: w.style + d.style, html: w.html + d.html, wL: w.L, pL: d.L};
@@ -2540,7 +2637,7 @@
   function applyWear(card, sid){
     const w = lookOf(sid);
     card.querySelectorAll(".wear,.deco").forEach(el => el.remove());
-    [...card.classList].filter(c => /^(dmg\d*|pr\d*|pr-[bgn])$/.test(c)).forEach(c => card.classList.remove(c));
+    [...card.classList].filter(c => /^(dmg\d*|pr\d*|pr-[bgn]|lgnd)$/.test(c)).forEach(c => card.classList.remove(c));
     card.style.cssText = w.style;
     if (w.cls) card.classList.add(...w.cls.trim().split(/\s+/));
     if (w.html) { const hit = card.querySelector(".hit"); (hit || card.firstChild).insertAdjacentHTML(hit ? "afterend" : "beforebegin", w.html); }
