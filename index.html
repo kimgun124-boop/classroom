@@ -1882,6 +1882,16 @@
   .mt-fx i.pop{bottom:auto;animation:mtPopE var(--d,1.6s) ease-out infinite}
   @keyframes mtPopE{0%{transform:scale(0) rotate(-20deg);opacity:0}20%{transform:scale(1.35) rotate(8deg);opacity:1}60%{transform:scale(1) rotate(0);opacity:1}100%{transform:scale(.8);opacity:0}}
   .mt.grow .mt-lvl{font-size:calc(15px + (var(--gs,1) - 1) * 4px)}
+
+  /* ▲▼ 버튼은 온도계 맨 아래 (카드가 커져도 가려지지 않게) · 선생님 얼굴 크게 */
+  .mt-rows{padding-bottom:10px}
+  .mt-body + .mt-ctl{margin:12px 0 8px}
+  .mt-body + .mt-ctl button{font-size:19px;padding:11px 0}
+  .mt-face{font-size:112px;line-height:126px;height:126px}
+  .mt-face.av,.mt .mt-face.av{width:168px;height:168px;border-radius:24px}
+  body.big .mt-face.av{width:186px;height:186px}
+  body.big .mt-face{font-size:124px;line-height:138px;height:138px}
+  @media (max-width:1179px){ .mt-face.av,.mt .mt-face.av{width:130px;height:130px} .mt-face{font-size:90px;line-height:100px;height:100px} }
 </style>
 </head>
 <body>
@@ -2139,12 +2149,12 @@
     <aside class="mt" id="mt" aria-label="선생님 마음 온도계">
       <div class="mt-head"><h2>🌡️ 선생님<br>마음 온도계</h2><button class="tt-edit" id="mtAv" title="선생님 아바타 꾸미기" aria-label="선생님 아바타 꾸미기">👕</button></div>
       <div class="mt-now"><div class="mt-stage" aria-hidden="true"><i class="ms-bg"></i><i class="ms-aur"></i><i class="ms-rays"></i><i class="ms-rays r2"></i><i class="ms-halo"></i><i class="ms-dust" style="left:8%;--s:4px;animation-delay:-0.5s;animation-duration:5s"></i><i class="ms-dust" style="left:22%;--s:3px;animation-delay:-2.1s;animation-duration:6s"></i><i class="ms-dust" style="left:37%;--s:5px;animation-delay:-3.4s;animation-duration:5.5s"></i><i class="ms-dust" style="left:52%;--s:3px;animation-delay:-1.2s;animation-duration:6.5s"></i><i class="ms-dust" style="left:66%;--s:4px;animation-delay:-4.2s;animation-duration:5s"></i><i class="ms-dust" style="left:80%;--s:5px;animation-delay:-2.8s;animation-duration:6s"></i><i class="ms-dust" style="left:92%;--s:3px;animation-delay:-0.9s;animation-duration:5.8s"></i><i class="ms-dust" style="left:15%;--s:3px;animation-delay:-3.9s;animation-duration:6.2s"></i><i class="ms-dust" style="left:73%;--s:3px;animation-delay:-5.1s;animation-duration:5.4s"></i><i class="ms-tw" style="left:10%;top:14%;--s:14px;animation-delay:-0.3s"></i><i class="ms-tw" style="left:86%;top:10%;--s:18px;animation-delay:-1.1s"></i><i class="ms-tw" style="left:14%;top:62%;--s:12px;animation-delay:-1.7s"></i><i class="ms-tw" style="left:88%;top:56%;--s:15px;animation-delay:-0.7s"></i><i class="ms-tw" style="left:50%;top:6%;--s:11px;animation-delay:-2.0s"></i><i class="ms-tw" style="left:72%;top:30%;--s:10px;animation-delay:-1.4s"></i><i class="ms-tw" style="left:28%;top:34%;--s:10px;animation-delay:-0.9s"></i><i class="ms-shoot"></i><i class="ms-shoot s2"></i><i class="ms-ring"></i><i class="ms-frame"></i><i class="ms-cn tl"></i><i class="ms-cn tr"></i><i class="ms-cn bl"></i><i class="ms-cn br"></i></div><div class="mt-face" id="mtFace">🥰</div><span class="mt-lvl" id="mtLvl">1단계</span><div class="mt-msg" id="mtMsg"></div></div>
-      <div class="mt-ctl"><button id="mtDown" title="온도 내리기">▼ 내리기</button><button id="mtUp" title="온도 올리기">▲ 올리기</button></div>
-      <div class="mt-recbar"><button id="mtYT" aria-label="유튜브 목소리 설정">▶️</button><button id="mtRec">🎙️ 10단계 목소리 녹음</button><button id="mtRecDel" title="녹음 지우기" aria-label="녹음 지우기" hidden>🗑️</button></div>
       <div class="mt-body">
         <div class="mt-scale" aria-hidden="true"><div class="mt-tube" id="mtTube"><div class="mt-fill" id="mtFill"></div></div><div class="mt-bulb"></div></div>
         <div class="mt-rows" id="mtRows"></div>
       </div>
+      <div class="mt-ctl"><button id="mtDown" title="온도 내리기">▼ 내리기</button><button id="mtUp" title="온도 올리기">▲ 올리기</button></div>
+      <div class="mt-recbar"><button id="mtYT" aria-label="유튜브 목소리 설정">▶️</button><button id="mtRec">🎙️ 10단계 목소리 녹음</button><button id="mtRecDel" title="녹음 지우기" aria-label="녹음 지우기" hidden>🗑️</button></div>
     </aside>
     <main class="grid" id="grid" aria-live="polite"></main>
     <aside class="tt" id="tt" aria-label="시간표">
