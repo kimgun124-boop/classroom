@@ -1899,10 +1899,20 @@
   .mt.grow .mt-ctl + .mt-recbar{position:relative;z-index:70}
 
   /* 커졌을 때 ▲▼ 버튼은 화면 왼쪽 아래에 늘 떠 있게 (스크롤 안 해도 바로 누를 수 있게) */
-  .mt.grow .mt-body + .mt-ctl{position:fixed;right:18px;bottom:18px;z-index:9000;width:300px;margin:0;gap:8px;
+  .mt.grow .mt-body + .mt-ctl.__old{position:fixed;right:18px;bottom:18px;z-index:9000;width:300px;margin:0;gap:8px;
     padding:8px;border-radius:20px;background:rgba(255,255,255,.92);box-shadow:0 0 0 3px var(--mc),0 10px 30px rgba(0,0,0,.35)}
   .mt.grow .mt-body + .mt-ctl button{font-size:22px;padding:14px 0;border-radius:14px;background:#fff;color:var(--ink);box-shadow:0 3px 0 rgba(0,0,0,.2),0 0 0 2px var(--mc)}
   .mt.grow .mt-body + .mt-ctl button:disabled{opacity:.35}
+
+  /* 화날 때 떠 있는 ▲▼ (body 바로 아래라 어떤 화면에서도 맨 위에 떠요) */
+  .mt-float{position:fixed;right:18px;bottom:18px;z-index:99990;display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:22px;
+    background:#fff;box-shadow:0 0 0 4px var(--mfc,#e5503f),0 12px 30px rgba(0,0,0,.4);font-family:"Jua"}
+  .mt-float[hidden]{display:none}
+  .mt-float .mf-l{font-size:18px;color:#fff;background:var(--mfc,#e5503f);border-radius:12px;padding:6px 10px;white-space:nowrap}
+  .mt-float button{font-family:"Jua";font-size:22px;padding:12px 18px;border-radius:14px;background:#fff7f2;color:#2e2a26;border:2px solid var(--mfc,#e5503f);box-shadow:0 3px 0 rgba(0,0,0,.2);cursor:pointer}
+  .mt-float button:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.2)}
+  .mt-float button:disabled{opacity:.35;cursor:default}
+  .mt.grow .mt-body + .mt-ctl{visibility:hidden}
 </style>
 </head>
 <body>
@@ -2149,6 +2159,7 @@
     <button class="btn primary" id="hintBtn">명단 입력하기</button>
   </div>
 
+  <div id="mtFloat" class="mt-float" hidden><span class="mf-l" id="mfLv">8단계</span><button id="mfDown" type="button">▼ 내리기</button><button id="mfUp" type="button">▲ 올리기</button></div>
   <div id="ytBox"></div>
   <div id="scary" aria-hidden="true"><div><div class="face">😡</div><div class="txt">조용히 안 해?</div></div></div>
   <section class="fame" id="fame" aria-label="명예의 전당">
@@ -4780,6 +4791,7 @@
     $("#mtLvl").textContent = lv + "단계";
     $("#mtMsg").textContent = m.l;
     $("#mtDown").disabled = lv <= 1; $("#mtUp").disabled = lv >= 10;
+    const mf = $("#mtFloat"); if (mf) { mf.hidden = lv < 4; mf.style.setProperty("--mfc", m.c); $("#mfLv").textContent = lv + "단계"; $("#mfDown").disabled = lv <= 1; $("#mfUp").disabled = lv >= 10; }
     $("#mtRows").innerHTML = MOOD.map((x,i) => i+1).reverse().map(n => {
       const x = MOOD[n-1];
       return `<button class="mt-row${n===lv?" on":""}${n<lv?" under":""}" data-mood="${n}" style="--rc:${x.c};--o:${n}" title="${n}단계 · ${esc(x.l)}"><span class="n">${n}</span><span class="e">${x.e}</span><span class="l">${esc(x.l)}</span></button>`;
@@ -4789,6 +4801,8 @@
     fill.style.height = ((lv - 0.5) / 10 * 100) + "%";
   }
   window.renderMood = renderMood;
+  $("#mfDown").addEventListener("click", e => { e.stopPropagation(); setMood(S.mood - 1); });
+  $("#mfUp").addEventListener("click", e => { e.stopPropagation(); setMood(S.mood + 1); });
   let mtScrollT = 0; window.addEventListener("scroll", () => { clearTimeout(mtScrollT); mtScrollT = setTimeout(() => { if (S.mood >= 4) renderMood(); }, 150); }, {passive:true});
   $("#mtAv").onclick = () => window.__avOpenTeacher && window.__avOpenTeacher();
   function setMood(n){
