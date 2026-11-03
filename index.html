@@ -1806,6 +1806,7 @@
   .card.rk-sv .deco .rkbg::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.0) 0 14px,rgba(255,255,255,.45) 14px 16px)}
   .card.rk-am .why,.card.rk-sp .why{color:#fff!important;text-shadow:0 1px 2px rgba(0,0,0,.45)}
   .card.rk .count{color:var(--p3)!important}
+  #prSortBtn.on{background:#d6337f!important;border-color:#d6337f!important;color:#fff!important}
 </style>
 </head>
 <body>
@@ -2027,7 +2028,7 @@
         <button class="btn tg" id="decayBtn" title="켜면 1시간 동안 안 눌린 친구는 1개씩 줄어요 (평일 8~17시)">⏳ 자동 줄이기</button>
       </div>
       <div class="tgp g-view"><span class="tgl">보기</span>
-        <button class="btn" id="sortBtn" title="정렬 바꾸기">🔢 번호순</button>
+        <button class="btn" id="sortBtn" title="정렬 바꾸기">🔢 번호순</button><button class="btn" id="prSortBtn" title="칭찬 도장(💮+⭐) 많은 순으로 카드 줄 세우기 · 한 번 더 누르면 번호순">💮 칭찬순</button>
         <button class="btn" id="bigBtn" title="전체 화면으로 크게 보기">🖥️ 크게</button>
         <button class="btn" id="avBtn" title="친구들 아바타 꾸미기 (머리·눈·입·모자·옷)">👕 아바타</button>
         <button class="btn" id="themeBtn" title="게임 대기방 느낌의 파란 아케이드 테마 ↔ 원래 테마">🎨 테마</button>
@@ -3094,7 +3095,8 @@
       `<div class="rule-chip r${Math.min(i,2)}"><span class="n">${r.at}회</span><span class="arrow">→</span><span>${esc(r.emoji)} ${esc(r.label)}</span></div>`
     ).join("") + (S.rules.length ? `<div class="rule-chip"><span>🔁 그다음부터 같은 순서로 반복</span></div>` : "")
       || `<div class="rule-chip">설정에서 약속 단계를 정해 주세요</div>`;
-    $("#sortBtn").textContent = S.sort === "num" ? "🔢 번호순" : S.sort === "custom" ? "✋ 옮긴 자리" : "📊 많은 순";
+    $("#sortBtn").textContent = S.sort === "num" || S.sort === "praise" ? "🔢 번호순" : S.sort === "custom" ? "✋ 옮긴 자리" : "📊 많은 순";
+    $("#prSortBtn").classList.toggle("on", S.sort === "praise");
     $("#soundBtn").classList.toggle("on", !!S.sound);
     $("#soundBtn").textContent = S.sound ? "🔔 효과음" : "🔕 효과음";
     $("#hint").hidden = !S.isDefault;
@@ -3160,6 +3162,7 @@
   function renderGrid(){
     let list = S.students.map((s,i)=>({s,i}));
     if (S.sort === "most") list.sort((a,b)=>cnt(b.s.id)-cnt(a.s.id) || a.i-b.i);
+    else if (S.sort === "praise") list.sort((a,b)=>glowN(b.s.id)-glowN(a.s.id) || a.i-b.i);
     else if (S.sort === "custom") {
       const pos = new Map((S.boardOrder||[]).map((id,k)=>[id,k]));
       list.sort((a,b)=>(pos.has(a.s.id)?pos.get(a.s.id):1e6+a.i) - (pos.has(b.s.id)?pos.get(b.s.id):1e6+b.i));
@@ -3266,9 +3269,15 @@
 
   $("#sortBtn").onclick = () => {
     const hasCustom = (S.boardOrder||[]).length > 0;
-    S.sort = S.sort==="num" ? "most" : (S.sort==="most" && hasCustom) ? "custom" : "num";
+    S.sort = S.sort==="praise" ? "num" : S.sort==="num" ? "most" : (S.sort==="most" && hasCustom) ? "custom" : "num";
     save(); render();
     if (S.sort === "custom") toast("✋ 내가 옮긴 자리로 보여요", false);
+  };
+
+  $("#prSortBtn").onclick = () => {
+    S.sort = S.sort === "praise" ? "num" : "praise";
+    save(); render();
+    toast(S.sort === "praise" ? "💮 칭찬 도장 많은 순으로 줄 세웠어요" : "🔢 번호순으로 돌아왔어요", false);
   };
 
   /* ---------- 왜 눌렸나요 popover ---------- */
