@@ -1851,6 +1851,37 @@
   .mt .mt-lvl{box-shadow:0 0 0 2px #fff6cf,0 0 12px rgba(255,214,90,.8)}
   .mt .mt-msg{color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.35),0 0 12px rgba(255,214,90,.9),0 0 22px rgba(255,140,220,.6)}
   @media (prefers-reduced-motion:reduce){.mt .mt-now,.mt-stage *{animation:none!important}}
+
+  /* ---------- 😡 화날수록 선생님 카드가 점점 커져요 + 단계별 움직임 ---------- */
+  .mt .mt-now{transition:transform .7s cubic-bezier(.3,1.5,.5,1);transform-origin:0 0;will-change:transform}
+  @media (min-width:1180px){
+    .mt.grow{overflow:visible;z-index:40}
+    .mt.grow .mt-now{transform:scale(var(--gs,1));z-index:60}
+  }
+  @media (max-width:1179px){ .mt.grow .mt-now{transform:scale(min(var(--gs,1),1.4));transform-origin:50% 0;z-index:60} .mt.grow{overflow:visible;z-index:40} }
+  .mt.lv5 .mt-face{animation:mtBob 2.4s ease-in-out infinite}
+  .mt.lv6 .mt-face{animation:mtSway 1.8s ease-in-out infinite}
+  .mt.lv7 .mt-face{animation:mtTremble .35s linear infinite}
+  .mt.lv8 .mt-face{animation:mtPulse .9s ease-in-out infinite}
+  .mt.lv9 .mt-face{animation:mtShake .9s ease-in-out infinite}
+  .mt.lv10 .mt-face{animation:mtRage .45s linear infinite}
+  @keyframes mtBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+  @keyframes mtSway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+  @keyframes mtTremble{0%{transform:translate(0,0)}25%{transform:translate(-1.5px,1px)}50%{transform:translate(1.5px,-1px)}75%{transform:translate(-1px,-1px)}100%{transform:translate(1px,1px)}}
+  @keyframes mtPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+  @keyframes mtRage{0%{transform:translate(0,0) rotate(0) scale(1.06)}20%{transform:translate(-4px,2px) rotate(-5deg) scale(1.12)}40%{transform:translate(4px,-2px) rotate(5deg) scale(1.06)}60%{transform:translate(-3px,-3px) rotate(-3deg) scale(1.12)}80%{transform:translate(3px,3px) rotate(3deg) scale(1.06)}100%{transform:translate(0,0) rotate(0) scale(1.06)}}
+  .mt.lv8 .mt-now{box-shadow:0 0 0 2px #fff,0 0 0 5px #f06a3f,0 0 26px 8px rgba(255,90,60,.6),0 8px 18px rgba(0,0,0,.25)!important;animation:mtHot 1.2s ease-in-out infinite!important}
+  .mt.lv9 .mt-now{box-shadow:0 0 0 2px #fff,0 0 0 6px #e5503f,0 0 34px 12px rgba(255,60,40,.7),0 8px 18px rgba(0,0,0,.25)!important;animation:mtHot .8s ease-in-out infinite!important}
+  .mt.lv10 .mt-now{box-shadow:0 0 0 3px #fff,0 0 0 8px #d63b3b,0 0 50px 20px rgba(255,30,30,.8),0 8px 18px rgba(0,0,0,.3)!important;animation:mtHot .45s ease-in-out infinite!important}
+  @keyframes mtHot{50%{filter:brightness(1.12) saturate(1.2)}}
+  .mt.lv10 .mt-stage .ms-bg{background:radial-gradient(130% 80% at 50% 0%,#a8142f 0,#5a0b1e 40%,transparent 75%),radial-gradient(100% 60% at 50% 115%,#ff5a1f,transparent 70%),linear-gradient(180deg,#3a0712,#12030a)!important}
+  .mt.lv9 .mt-stage .ms-bg{background:radial-gradient(130% 80% at 50% 0%,#8a2050 0,#3b1340 40%,transparent 75%),radial-gradient(100% 60% at 50% 115%,#ff7a3a,transparent 70%),linear-gradient(180deg,#26103a,#0b0618)!important}
+  .mt-fx{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;border-radius:inherit}
+  .mt-fx i{position:absolute;bottom:-30px;font-style:normal;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;animation:mtRise var(--d,2.6s) ease-in infinite;opacity:0}
+  @keyframes mtRise{0%{transform:translateY(0) scale(.6) rotate(0);opacity:0}15%{opacity:1}100%{transform:translateY(-260px) scale(1.2) rotate(var(--r,20deg));opacity:0}}
+  .mt-fx i.pop{bottom:auto;animation:mtPopE var(--d,1.6s) ease-out infinite}
+  @keyframes mtPopE{0%{transform:scale(0) rotate(-20deg);opacity:0}20%{transform:scale(1.35) rotate(8deg);opacity:1}60%{transform:scale(1) rotate(0);opacity:1}100%{transform:scale(.8);opacity:0}}
+  .mt.grow .mt-lvl{font-size:calc(15px + (var(--gs,1) - 1) * 4px)}
 </style>
 </head>
 <body>
@@ -4706,7 +4737,18 @@
   function renderMood(){
     const lv = S.mood, m = MOOD[lv-1], box = $("#mt");
     box.style.setProperty("--mc", m.c); box.style.setProperty("--mbg", m.bg);
-    box.className = "mt lv" + lv + (lv >= 8 ? " hot" : "");
+    box.className = "mt lv" + lv + (lv >= 8 ? " hot" : "") + (lv >= 4 ? " grow" : "");
+    const GROW = [1, 1, 1, 1.05, 1.15, 1.3, 1.5, 1.75, 2.05, 2.4];
+    box.style.setProperty("--gs", GROW[lv-1]);
+    const FX = {6:[["💧",.9]], 7:[["💧",1],["💦",.9]], 8:[["💢",1.1,1],["💨",.9]], 9:[["💢",1.2,1],["💨",1],["😤",.9]], 10:[["🔥",1.3],["💢",1.3,1],["💨",1.1],["🌋",1]]};
+    let fx = $("#mtFxL"); if (!fx) { fx = document.createElement("div"); fx.className = "mt-fx"; fx.id = "mtFxL"; fx.setAttribute("aria-hidden", "true"); $("#mt .mt-now").appendChild(fx); }
+    if (fx.dataset.lv !== String(lv)) {
+      fx.dataset.lv = lv;
+      const list = FX[lv] || [], n = lv >= 10 ? 14 : lv >= 8 ? 10 : 6;
+      fx.innerHTML = list.length ? Array.from({length:n}, (_, k) => { const [e, sz, pop] = list[k % list.length];
+        return pop ? `<i class="pop" style="left:${8 + Math.random()*76}%;top:${6 + Math.random()*50}%;font-size:${Math.round(22*sz)}px;--d:${(1.2 + Math.random()).toFixed(2)}s;animation-delay:${(Math.random()*1.5).toFixed(2)}s">${e}</i>`
+                   : `<i style="left:${4 + Math.random()*86}%;font-size:${Math.round(22*sz)}px;--d:${(1.8 + Math.random()*1.4).toFixed(2)}s;--r:${Math.round(Math.random()*60-30)}deg;animation-delay:${(Math.random()*2.5).toFixed(2)}s">${e}</i>`; }).join("") : "";
+    }
     const face = $("#mtFace"), tav = typeof avatarOf === "function" ? avatarOf("__teacher") : null;
     face.classList.toggle("av", !!tav);
     if (tav) face.innerHTML = avatarSVG(tav, "t" + lv); else face.textContent = m.e;
