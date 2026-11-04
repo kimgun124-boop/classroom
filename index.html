@@ -1062,6 +1062,24 @@
   .mb-wbtns button{font-family:"Jua";font-size:20px;background:#fff;color:#2e2a26;border-radius:16px;padding:10px 18px}
   .mb-wbtns button.p{background:#ff8a5b;color:#fff}
   @media (max-width:800px){ .mb-side{display:none} }
+  .mb-rank h3{display:flex;align-items:center;gap:6px}
+  .mb-rank h3 button{margin-left:auto;font-family:"Jua";font-size:14px;background:#ffd84d;color:#3a2a00;border-radius:10px;padding:3px 8px}
+  #mbOrd{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;background:linear-gradient(160deg,#28334f,#1b2238);padding:14px 18px 18px;gap:12px}
+  #mbOrd[hidden]{display:none}
+  .mo-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .mo-top h3{font-weight:400;font-size:clamp(26px,3vw,44px);margin:0;flex:1;color:#ffd84d}
+  .mo-top button{font-family:"Jua";font-size:20px;background:#fff;color:#2e2a26;border-radius:16px;padding:8px 16px}
+  .mo-top button.p{background:#ff8a5b;color:#fff}
+  .mo-now{display:flex;align-items:center;gap:18px;background:#ffd84d;color:#3a2a00;border-radius:22px;padding:10px 22px;font-size:clamp(30px,4vw,60px)}
+  .mo-now small{font-size:.45em;opacity:.75}
+  .mo-now .mb-av{width:clamp(60px,8vh,96px);height:clamp(60px,8vh,96px);font-size:clamp(40px,5vh,64px);border:4px solid #fff}
+  .mo-list{flex:1;min-height:0;overflow:auto;list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;align-content:start}
+  .mo-list li{display:flex;align-items:center;gap:10px;font-size:clamp(20px,2.2vw,30px);background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.14);border-radius:16px;padding:6px 10px;cursor:pointer;user-select:none;white-space:nowrap;overflow:hidden}
+  .mo-list li b{font-weight:400;min-width:1.6em;color:#ffd84d}
+  .mo-list li .mb-av{width:44px;height:44px;font-size:26px}
+  .mo-list li.cur{background:#ffd84d;color:#3a2a00;border-color:#fff} .mo-list li.cur b{color:#c2562a}
+  .mo-list li.done{opacity:.4;text-decoration:line-through}
+  .mo-list li.done::after{content:"✅";margin-left:auto;text-decoration:none}
 
   /* ---------- 💮 칭찬 도장: 날개·후광·불꽃놀이·꽃가루 ---------- */
   .fx-glory{position:absolute;left:0;top:0;width:1200px;height:1200px;margin:-600px 0 0 -600px;border-radius:50%;pointer-events:none;will-change:transform,opacity;
@@ -1990,18 +2008,24 @@
         <h3>🔮 누가 뽑힐까요?</h3>
         <p>친구 얼굴 구슬이 미끄럼틀·못·바람개비를 지나 굴러 내려가요. 사진이 없으면 색 구슬로 나와요. 오늘 없는 친구는 눌러서 빼 주세요.</p>
         <div class="mb-opts">
-          <div class="seg" id="mbRule"><button data-r="first">🥇 먼저 도착한 친구</button><button data-r="last">🐢 마지막에 도착한 친구</button></div>
+          <div class="seg" id="mbRule"><button data-r="first">🥇 먼저 도착한 친구</button><button data-r="last">🐢 마지막에 도착한 친구</button><button data-r="order">📋 발표 순서 (모두 도착)</button></div>
           <span class="mb-num"><button id="mbNDown" aria-label="줄이기">−</button><b id="mbN">1명</b><button id="mbNUp" aria-label="늘리기">+</button></span>
         </div>
         <div class="mb-people" id="mbPeople"></div>
         <div style="text-align:center"><button class="mb-go" id="mbGo">🎲 굴리기!</button></div>
+        <div style="text-align:center;margin-top:12px"><button class="btn" id="mbOrdLast" hidden>📋 지난 발표 순서 다시 보기</button></div>
       </div></div>
+      <div id="mbOrd" hidden>
+        <div class="mo-top"><h3 id="mbOrdT">📋 발표 순서</h3><button class="p" id="mbOrdNext" title="스페이스바도 돼요">✅ 발표 끝! 다음 친구</button><button id="mbOrdUndo">↩️ 한 칸 되돌리기</button><button id="mbOrdX">닫기</button></div>
+        <div class="mo-now" id="mbOrdNow"></div>
+        <ol class="mo-list" id="mbOrdList"></ol>
+      </div>
       <div class="mb-win" id="mbWin" hidden><h3 id="mbWinT">🎉 뽑혔어요!</h3><div class="mb-wins" id="mbWins"></div>
         <div class="mb-wbtns"><button class="p" id="mbAgain">🔁 다시 굴리기</button><button id="mbAgainX">➖ 뽑힌 친구 빼고 다시</button><button id="mbBack">⚙️ 처음 화면</button><button id="mbClose2">닫기</button></div></div>
     </div>
     <div class="mb-side">
       <div class="mb-box"><h3>🗺️ 전체 길</h3><canvas id="mbMini" width="120" height="300"></canvas></div>
-      <div class="mb-box mb-rank"><h3>🏁 도착 순서</h3><ol id="mbRank"></ol></div>
+      <div class="mb-box mb-rank"><h3>🏁 도착 순서<button id="mbOrdOpen" title="도착 순서를 크게 보면서 발표 차례를 체크해요">📋 크게</button></h3><ol id="mbRank"></ol></div>
     </div>
   </div>
 </div>
@@ -2098,6 +2122,7 @@
       </div>
     </div>
     <div class="stats">
+      <div class="stat" id="sGrad" title="졸업식까지 남은 등교일 (주말·공휴일·쉬는 날 빼고) · 눌러서 날짜 바꾸기" style="cursor:pointer"><b id="sGradN">D-?</b><span id="sGradL">🎓 졸업식까지 등교</span></div>
       <div class="stat"><b id="sTotal">0</b><span>모두 합계</span></div>
       <div class="stat"><b id="sZero">0</b><span>약속 지킴 🌱</span></div>
       <div id="sRules" style="display:contents"></div>
@@ -2578,6 +2603,51 @@
   const $ = s => document.querySelector(s);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
+  /* ---------- 🎓 졸업식 D-day (등교일 기준: 주말·공휴일·쉬는 날 빼고) ---------- */
+  const KR_HOLI = new Set([
+    "2026-01-01","2026-02-16","2026-02-17","2026-02-18","2026-03-01","2026-03-02","2026-05-05","2026-05-24","2026-05-25","2026-06-03","2026-06-06",
+    "2026-08-15","2026-08-17","2026-09-24","2026-09-25","2026-09-26","2026-10-03","2026-10-05","2026-10-09","2026-12-25",
+    "2027-01-01","2027-02-06","2027-02-07","2027-02-08","2027-02-09","2027-03-01","2027-05-05","2027-05-13","2027-06-06","2027-08-15","2027-08-16",
+    "2027-09-14","2027-09-15","2027-09-16","2027-10-03","2027-10-04","2027-10-09","2027-10-11","2027-12-25","2027-12-27"
+  ]);
+  const dKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+  const isSchoolDay = d => { const w = d.getDay(), k = dKey(d); return w !== 0 && w !== 6 && !KR_HOLI.has(k) && !(S.offDays || []).includes(k); };
+  function gradLeft(){   // 오늘 다음 날 ~ 졸업식 날까지 등교일 수 (졸업식 날 = D-day)
+    const [y,m,d] = (S.grad || "2027-01-08").split("-").map(Number), end = new Date(y, m-1, d), t = new Date(); t.setHours(0,0,0,0);
+    if (end < t) return null;
+    let n = 0; const c = new Date(t); c.setDate(c.getDate() + 1);
+    while (c <= end) { if (isSchoolDay(c) || dKey(c) === dKey(end)) n++; c.setDate(c.getDate() + 1); }
+    return { n, cal: Math.round((end - t) / 864e5) };
+  }
+  function renderGrad(){
+    const el = document.getElementById("sGrad"); if (!el) return;
+    if (S.grad === "off") { el.hidden = true; return; } el.hidden = false;
+    const g = gradLeft();
+    if (!g) { $("#sGradN").textContent = "🎓"; $("#sGradL").textContent = "졸업 축하해요!"; return; }
+    $("#sGradN").textContent = g.cal === 0 ? "D-DAY" : `D-${g.n}`;
+    $("#sGradL").textContent = g.cal === 0 ? "🎓 오늘 졸업식!" : "🎓 졸업식까지 등교일";
+    el.title = `졸업식(${S.grad || "2027-01-08"})까지 학교 오는 날 ${g.n}일 · 달력으로는 ${g.cal}일\n주말·공휴일·쉬는 날 빼고 셌어요 · 눌러서 날짜/쉬는 날 바꾸기`;
+  }
+  document.addEventListener("click", e => {
+    if (!e.target.closest("#sGrad")) return;
+    const v = prompt("🎓 졸업식 날짜를 적어 주세요 (예: 2027-01-08)\n안 보이게 하려면 off 라고 적어요.", S.grad || "2027-01-08");
+    if (v === null) return;
+    const g = v.trim();
+    if (g.toLowerCase() === "off") S.grad = "off";
+    else if (/^\d{4}-\d{2}-\d{2}$/.test(g)) S.grad = g; else { alert("날짜는 2027-01-08 처럼 적어 주세요."); return; }
+    const o = prompt("학교 쉬는 날(재량휴업일·방학 등)이 있으면 적어 주세요.\n여러 날은 쉼표로, 기간은 ~ 로 (예: 2026-12-24, 2026-12-28~2026-12-31)\n공휴일·주말은 자동으로 빠져요.", (S.offSpec || ""));
+    if (o !== null) {
+      const days = [];
+      o.split(",").map(x => x.trim()).filter(Boolean).forEach(part => {
+        const [a, b] = part.split("~").map(x => x.trim()), A = new Date(a), B = new Date(b || a);
+        if (isNaN(A) || isNaN(B)) return;
+        for (const c = new Date(A.getFullYear(), A.getMonth(), A.getDate()); c <= B; c.setDate(c.getDate() + 1)) days.push(dKey(c));
+      });
+      S.offSpec = o.trim(); S.offDays = days;
+    }
+    save(); renderGrad();
+  });
+  setInterval(renderGrad, 60000);
   function defaults(){
     const students = Array.from({length:24}, (_,i) => ({id:uid(), name:`학생 ${i+1}`}));
     return {
@@ -3194,6 +3264,7 @@
     const total = S.students.reduce((a,s)=>a+cnt(s.id),0);
     $("#sTotal").textContent = total;
     $("#sZero").textContent = S.students.filter(s=>cnt(s.id)===0).length;
+    renderGrad();
     $("#sRules").innerHTML = rulesSorted().map(r => {
       const n = S.students.filter(s=>cnt(s.id)>=r.at).length;
       return `<div class="stat"><b>${n}</b><span>${esc(r.emoji)} ${esc(r.label)}</span></div>`;
@@ -6455,6 +6526,27 @@
 
     const rnd = n => { try{ const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] / 4294967296 * n; }catch(e){ return Math.random()*n; } };
     function people(){ return S.students.filter(st => !absent.has(st.id) && !excluded.has(st.id)); }
+    /* ---- 📋 발표 순서 (도착 순서 그대로, 따로 크게 보기 + 체크) ---- */
+    const OKEY = "handboard.mbOrder";
+    let ord = null; try{ ord = JSON.parse(localStorage.getItem(OKEY)) || null; }catch(e){ ord = null; }
+    const saveOrd = () => { try{ localStorage.setItem(OKEY, JSON.stringify(ord)); }catch(e){} };
+    const ordOpen = () => !$("#mbOrd").hidden;
+    const racingOrd = () => state === "run" || state === "count" || (state === "end" && rule !== "order");
+    function ordIds(){ const live = new Set(S.students.map(st => st.id)); return racingOrd() ? finished.map(b => b.st.id) : (ord ? ord.ids.filter(id => live.has(id)) : []); }
+    function renderOrd(){
+      const ids = ordIds(), byId = new Map(S.students.map(st => [st.id, st])), racing = racingOrd(), done = new Set(ord && !racing ? ord.done : []);
+      const cur = racing ? -1 : ids.findIndex(id => !done.has(id));
+      $("#mbOrdT").innerHTML = racing ? `📋 도착 순서 <small style="font-size:.5em;color:#fff">(${state === "end" ? "" : "아직 굴러가는 중 · "}${ids.length}명 도착)</small>` : `📋 발표 순서 <small style="font-size:.5em;color:#fff">(${ids.filter(id => done.has(id)).length} / ${ids.length}명 발표 끝)</small>`;
+      const st = cur >= 0 ? byId.get(ids[cur]) : null;
+      $("#mbOrdNow").innerHTML = racing ? `<small>${rule === "order" ? "다 도착하면 발표 순서가 정해져요" : "발표 순서는 ⚙️ 처음 화면에서 ‘📋 발표 순서’로 굴려요"}</small>` : st ? `<small>지금 발표</small><b style="font-weight:400">${cur+1}번</b>${avatar(st)}${esc(st.name)}${ids[cur+1] && byId.get(ids[cur+1]) ? `<small style="margin-left:auto">다음: ${esc(byId.get(ids[cur+1]).name)}</small>` : ""}` : ids.length ? `🎉 모두 발표 끝!` : `<small>아직 발표 순서가 없어요</small>`;
+      $("#mbOrdList").innerHTML = ids.map((id, k) => { const s2 = byId.get(id); return s2 ? `<li data-mo="${id}" class="${done.has(id) ? "done" : k === cur ? "cur" : ""}"><b>${k+1}</b>${avatar(s2)}${esc(s2.name)}</li>` : ""; }).join("");
+      $("#mbOrdNext").hidden = $("#mbOrdUndo").hidden = racing || !ids.length;
+      const c = $("#mbOrdList .cur"); if (c) c.scrollIntoView({block:"nearest"});
+    }
+    function showOrd(){ $("#mbOrd").hidden = false; renderOrd(); }
+    function hideOrd(){ $("#mbOrd").hidden = true; if (state === "setup") setup(); }
+    function ordNext(){ if (!ord || racingOrd()) return; const id = ordIds().find(i => !ord.done.includes(i)); if (id) { ord.done.push(id); saveOrd(); tick(600, true); } renderOrd(); }
+    function ordUndo(){ if (!ord || !ord.done.length) return; ord.done.pop(); saveOrd(); renderOrd(); }
     function sprite(st, i){   // 구슬 그림 (사진 → 동그랗게)
       const c = document.createElement("canvas"); c.width = c.height = 96; const g = c.getContext("2d");
       const col = COLORS[i % COLORS.length];
@@ -6472,6 +6564,8 @@
       state = "setup"; cancelAnimationFrame(raf);
       $("#mbSetup").hidden = false; $("#mbWin").hidden = true; $("#mbCount").textContent = "";
       document.querySelectorAll("#mbRule button").forEach(b => b.classList.toggle("on", b.dataset.r === rule));
+      $(".mb-num").style.display = rule === "order" ? "none" : "";
+      $("#mbOrdLast").hidden = !(ord && ord.ids && ord.ids.length);
       const list = S.students;
       nWin = Math.max(1, Math.min(nWin, Math.max(1, people().length - 1)));
       $("#mbN").textContent = `${nWin}명`;
@@ -6489,7 +6583,8 @@
       balls = order.map(({st}, i) => ({ st, i, img: sprite(st, S.students.indexOf(st)),
         x: 40 + R + (i % cols) * (R*2 + 8) + rnd(6), y: 160 - Math.floor(i / cols) * (R*2 + 6), vx: rnd(60) - 30, vy: 0, done: false, still: 0 }));
       finished = []; winners = []; t = 0; camY = 0; renderRank();
-      $("#mbMeta").innerHTML = `참가 <b>${ps.length}</b>명 · ${rule === "first" ? "먼저 도착한" : "마지막에 도착한"} ${nWin}명`;
+      $("#mbMeta").innerHTML = rule === "order" ? `참가 <b>${ps.length}</b>명 · 도착한 순서대로 발표해요` : `참가 <b>${ps.length}</b>명 · ${rule === "first" ? "먼저 도착한" : "마지막에 도착한"} ${nWin}명`;
+      $("#mbOrd").hidden = true;
       state = "count"; let c = 3; $("#mbCount").textContent = c; beep(true);
       const iv = setInterval(() => { c--; if (!open) { clearInterval(iv); return; } if (c > 0) { $("#mbCount").textContent = c; beep(true); } else { clearInterval(iv); $("#mbCount").textContent = ""; state = "run"; fanfare(); } }, 700);
       lastTick = performance.now(); loop();
@@ -6537,7 +6632,8 @@
         if (b.y > FINISH) { b.done = true; finished.push(b); renderRank(); tick(600, true); }
       }
       const left = balls.filter(b => !b.done);
-      if (rule === "first" && finished.length >= nWin) end(finished.slice(0, nWin));
+      if (rule === "order") { if (!left.length && state === "run") { state = "end"; winners = []; ord = { ids: finished.map(b => b.st.id), done: [], at: Date.now() }; saveOrd(); fanfare(); setTimeout(() => { if (open) showOrd(); }, 700); } }
+      else if (rule === "first" && finished.length >= nWin) end(finished.slice(0, nWin));
       else if (rule === "last" && left.length <= nWin) end(left.length ? left : finished.slice(-nWin));
     }
     function end(ws){ if (state !== "run") return; state = "end"; winners = ws; renderRank(); setTimeout(() => showWin(), 600); }
@@ -6557,7 +6653,7 @@
     }
     function follow(){
       const left = balls.filter(b => !b.done); if (!left.length) return;
-      const ys = left.map(b => b.y), target = (rule === "first" ? Math.max(...ys) : Math.min(...ys)) - VH*.45;
+      const ys = left.map(b => b.y), target = (rule === "last" ? Math.min(...ys) : Math.max(...ys)) - VH*.45;
       camY += (Math.max(-200, Math.min(H - VH, target)) - camY) * .08;
     }
     function draw(){
@@ -6613,6 +6709,7 @@
     function avatar(st){ return photoOf(st.id) ? `<img class="mb-av" src="${photoOf(st.id)}" alt="">` : `<span class="mb-av">${faceOf(st.id)}</span>`; }
     function renderRank(){
       const wid = new Set(winners.map(w => w.st.id));
+      if (ordOpen()) renderOrd();
       $("#mbRank").innerHTML = finished.map((b, k) => `<li class="${wid.has(b.st.id) ? "win" : ""}"><b>${k+1}등</b>${avatar(b.st)}${esc(b.st.name)}</li>`).join("") || `<li style="background:none;opacity:.6">아직 아무도 안 왔어요</li>`;
     }
     function showWin(){
@@ -6622,7 +6719,10 @@
       $("#mbWin").hidden = false; fanfare(); setTimeout(fanfare, 350);
     }
     function openMb(){ open = true; $("#marble").classList.add("open"); excluded.clear(); requestAnimationFrame(() => { resize(); setup(); loop(); }); }
-    function closeMb(){ open = false; cancelAnimationFrame(raf); $("#marble").classList.remove("open"); state = "setup"; }
+    function closeMb(){ open = false; cancelAnimationFrame(raf); $("#marble").classList.remove("open"); $("#mbOrd").hidden = true; state = "setup"; }
+    $("#mbOrdOpen").onclick = showOrd; $("#mbOrdLast").onclick = showOrd; $("#mbOrdX").onclick = hideOrd;
+    $("#mbOrdNext").onclick = ordNext; $("#mbOrdUndo").onclick = ordUndo;
+    $("#mbOrdList").addEventListener("click", e => { const li = e.target.closest("[data-mo]"); if (!li || !ord || racingOrd()) return; const id = li.dataset.mo, i = ord.done.indexOf(id); if (i >= 0) ord.done.splice(i, 1); else ord.done.push(id); saveOrd(); renderOrd(); });
     $("#mbBtn").onclick = openMb;
     $("#mbClose").onclick = closeMb; $("#mbClose2").onclick = closeMb;
     $("#mbGo").onclick = start;
@@ -6636,6 +6736,12 @@
     window.addEventListener("resize", () => { if (open) resize(); });
     document.addEventListener("keydown", e => {
       if (!open) return;
+      if (ordOpen()) {
+        if (e.key === "Escape") { e.stopPropagation(); hideOrd(); }
+        else if (e.key === " " || e.code === "Space" || e.key === "ArrowRight") { e.preventDefault(); e.stopPropagation(); ordNext(); }
+        else if (e.key === "Backspace" || e.key === "ArrowLeft") { e.preventDefault(); e.stopPropagation(); ordUndo(); }
+        return;
+      }
       if (e.key === "Escape") { e.stopPropagation(); closeMb(); }
       else if ((e.key === " " || e.code === "Space") && (state === "setup" || state === "end")) { e.preventDefault(); start(); }
     }, true);
