@@ -1237,6 +1237,46 @@
   .vb-pause[hidden]{display:none}
   .vb-touch{display:none}
   @media (max-width:900px){ .vb-picks{grid-template-columns:1fr} .vb-vs{text-align:center} .vb-keys{display:none} }
+
+  /* ---------- 🎓 졸업식 D-day 크게 보기 ---------- */
+  #gradBig{position:fixed;inset:0;z-index:9995;display:none;align-items:center;justify-content:center;padding:2vh 2vw;font-family:"Jua";color:#fff}
+  #gradBig.open{display:flex;animation:bcIn .35s ease}
+  .gb-sky{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,#3b3f9e 0%,#1b1f5c 45%,#0b0d2e 100%);overflow:hidden}
+  .gb-sky::after{content:"";position:absolute;left:-10%;right:-10%;bottom:-30vh;height:60vh;border-radius:50%;background:radial-gradient(ellipse at 50% 0%,rgba(255,214,120,.35),transparent 65%)}
+  .gb-snow i{position:absolute;top:-30px;color:rgba(255,255,255,.75);font-style:normal;animation:gbFall linear infinite}
+  @keyframes gbFall{to{transform:translate3d(40px,110vh,0) rotate(220deg)}}
+  .gb-card{position:relative;width:min(1100px,96vw);max-height:96vh;overflow:auto;text-align:center;padding:3vh 3vw 2.5vh;border-radius:36px;background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.05));border:2px solid rgba(255,230,160,.35);box-shadow:0 30px 90px rgba(0,0,0,.5),inset 0 0 60px rgba(255,214,120,.08);backdrop-filter:blur(6px)}
+  .gb-x{position:absolute;top:14px;right:16px;width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.14);color:#fff;font-size:28px;line-height:1}
+  .gb-sub{font-size:clamp(20px,2.4vw,34px);color:#ffe3a3;letter-spacing:.02em}
+  .gb-lbl{font-size:clamp(22px,2.8vw,40px);margin-top:1.5vh;opacity:.95}
+  .gb-big{line-height:.95;margin:.5vh 0 0;display:flex;justify-content:center;align-items:baseline;gap:.05em;font-size:clamp(110px,22vh,250px);
+    background:linear-gradient(180deg,#fff7d6 0%,#ffd56b 45%,#f0a93b 75%,#ffe9a8 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 6px 0 rgba(120,60,0,.45)) drop-shadow(0 0 40px rgba(255,200,90,.45))}
+  .gb-big .gb-d{font-size:.55em}
+  .gb-big span:only-child{font-size:.6em}
+  .gb-mini{font-family:"Gowun Dodum";font-size:clamp(14px,1.5vw,20px);opacity:.8;margin-top:.3vh}
+  .gb-road{margin:3vh auto 0;max-width:860px}
+  .gb-track{position:relative;height:18px;border-radius:999px;background:rgba(255,255,255,.14);box-shadow:inset 0 2px 6px rgba(0,0,0,.35)}
+  .gb-fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:linear-gradient(90deg,#8ce99a,#ffd56b);box-shadow:0 0 18px rgba(255,214,107,.6)}
+  .gb-walker{position:absolute;top:50%;transform:translate(-50%,-62%);font-size:38px;animation:gbBob 1.2s ease-in-out infinite;filter:drop-shadow(0 3px 2px rgba(0,0,0,.4))}
+  .gb-cap{position:absolute;right:-10px;top:50%;transform:translateY(-58%);font-size:42px;filter:drop-shadow(0 0 12px rgba(255,214,107,.9))}
+  @keyframes gbBob{50%{transform:translate(-50%,-78%)}}
+  .gb-roadl{display:flex;justify-content:space-between;font-size:clamp(14px,1.5vw,19px);margin-top:10px;opacity:.85}
+  .gb-roadl span:nth-child(2){color:#ffe3a3}
+  .gb-days{display:flex;flex-wrap:wrap;justify-content:center;gap:1.4vh 2vw;margin:3vh auto 0;max-width:1000px}
+  .gb-mon{display:flex;align-items:flex-start;gap:10px;text-align:left}
+  .gb-mon b{font-weight:400;font-size:clamp(18px,1.9vw,26px);color:#ffe3a3;min-width:2.4em;padding-top:2px}
+  .gb-cells{display:flex;flex-wrap:wrap;gap:5px;max-width:380px}
+  .gb-cells span{width:clamp(28px,3vw,38px);height:clamp(28px,3vw,38px);border-radius:10px;display:grid;place-items:center;font-size:clamp(13px,1.35vw,17px);background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.18)}
+  .gb-cells span.mon{margin-left:6px}
+  .gb-cells span:first-child{margin-left:0}
+  .gb-cells span.td{background:#ffd56b;color:#4a2a00;border-color:#fff;box-shadow:0 0 0 4px rgba(255,214,107,.35),0 0 22px rgba(255,214,107,.8);animation:gbPulse 1.6s ease-in-out infinite}
+  .gb-cells span.end{background:linear-gradient(180deg,#ffe9a8,#f0a93b);border-color:#fff;font-size:clamp(18px,2vw,24px);box-shadow:0 0 20px rgba(255,214,107,.8)}
+  @keyframes gbPulse{50%{transform:scale(1.12)}}
+  .gb-say{margin-top:3vh;font-size:clamp(22px,2.8vw,40px);color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.3);min-height:1.3em;transition:opacity .45s,transform .45s}
+  .gb-say.out{opacity:0;transform:translateY(10px)}
+  .gb-edit{margin-top:2.5vh;font-family:"Jua";font-size:14px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);border-radius:12px;padding:6px 14px}
+  .gb-edit:hover{background:rgba(255,255,255,.2);color:#fff}
+  #sGrad{transition:transform .15s} #sGrad:hover{transform:translateY(-2px) scale(1.03)}
   /* ---------- 🏒 우리반 얼굴 에어하키 ---------- */
   #airh{position:fixed;inset:0;z-index:9990;display:none;flex-direction:column;background:radial-gradient(ellipse at 50% 30%,#1c2a6b,#0a1030 70%);color:#fff;font-family:"Jua";user-select:none}
   #airh.open{display:flex;animation:bcIn .3s ease}
@@ -2749,10 +2789,9 @@
     if (!g) { $("#sGradN").textContent = "🎓"; $("#sGradL").textContent = "졸업 축하해요!"; return; }
     $("#sGradN").textContent = g.cal === 0 ? "D-DAY" : `D-${g.n}`;
     $("#sGradL").textContent = g.cal === 0 ? "🎓 오늘 졸업식!" : "🎓 졸업식까지 등교일";
-    el.title = `졸업식(${S.grad || "2027-01-08"})까지 학교 오는 날 ${g.n}일 · 달력으로는 ${g.cal}일\n주말·공휴일·쉬는 날 빼고 셌어요 · 눌러서 날짜/쉬는 날 바꾸기`;
+    el.title = `졸업식(${S.grad || "2027-01-08"})까지 학교 오는 날 ${g.n}일 · 달력으로는 ${g.cal}일\n주말·공휴일·쉬는 날 빼고 셌어요 · 눌러서 크게 보기`;
   }
-  document.addEventListener("click", e => {
-    if (!e.target.closest("#sGrad")) return;
+  function gradEdit(){
     const v = prompt("🎓 졸업식 날짜를 적어 주세요 (예: 2027-01-08)\n안 보이게 하려면 off 라고 적어요.", S.grad || "2027-01-08");
     if (v === null) return;
     const g = v.trim();
@@ -2768,8 +2807,58 @@
       });
       S.offSpec = o.trim(); S.offDays = days;
     }
-    save(); renderGrad();
-  });
+    const mm = prompt("🎓 큰 화면에 보여 줄 선생님 한마디 (비워 두면 기본 문구가 돌아가며 나와요)", S.gradMsg || "");
+    if (mm !== null) S.gradMsg = mm.trim();
+    save(); renderGrad(); if (gbOpen()) gradBig();
+  }
+  /* 🎓 크게 보기 */
+  const gbOpen = () => { const el = document.getElementById("gradBig"); return !!(el && el.classList.contains("open")); };
+  function gradBig(){
+    let el = document.getElementById("gradBig");
+    if (!el){ el = document.createElement("div"); el.id = "gradBig"; el.setAttribute("role", "dialog"); el.setAttribute("aria-label", "졸업식 D-day"); document.body.appendChild(el);
+      el.addEventListener("click", e => { if (e.target.closest("#gbEdit")){ e.stopPropagation(); gradEdit(); return; } if (e.target.closest("#gbX") || !e.target.closest(".gb-card")) gbClose(); }); }
+    const gs = S.grad || "2027-01-08", [y, m, d] = gs.split("-").map(Number), end = new Date(y, m-1, d), t = new Date(); t.setHours(0,0,0,0);
+    const gl = gradLeft(), n = gl ? gl.n : 0, cal = gl ? gl.cal : 0;
+    const start = new Date(y - (m <= 2 ? 1 : 0), 2, 2), pct = Math.max(0, Math.min(100, (t - start) / (end - start) * 100));
+    // 남은 등교일 칸 (오늘부터)
+    const days = [], c = new Date(t);
+    while (c <= end && days.length < 400){ const isEnd = dKey(c) === dKey(end); if (isSchoolDay(c) || isEnd) days.push({k: dKey(c), m: c.getMonth() + 1, d: c.getDate(), w: c.getDay(), today: dKey(c) === dKey(t), end: isEnd}); c.setDate(c.getDate() + 1); }
+    const months = []; days.forEach(x => { let g = months[months.length - 1]; if (!g || g.m !== x.m){ g = {m: x.m, list: []}; months.push(g); } g.list.push(x); });
+    const nKids = S.students.length, cls = S.className || "우리 반";
+    const msgs = S.gradMsg ? [S.gradMsg] : [
+      `${cls} ${nKids}명이 함께 학교에 오는 날, 이제 ${n}번 남았어요`,
+      "오늘 하루도 우리 반에서 가장 소중한 하루예요",
+      "고마운 친구에게 고맙다고 말해 볼까요?",
+      "초등학교에서 보내는 마지막 계절이에요",
+      "웃는 얼굴로 졸업식 날을 맞이해요 😊",
+      `6학년 1년 중 ${Math.round(pct)}%를 함께 걸어왔어요`
+    ];
+    const W = "일월화수목금토";
+    el.innerHTML = `<div class="gb-sky"><div class="gb-snow">${Array.from({length: 46}, (_, i) => `<i style="left:${(i*37.7) % 100}%;animation-duration:${7 + (i*13) % 9}s;animation-delay:-${(i*7) % 12}s;font-size:${10 + (i*5) % 14}px">${i % 7 === 0 ? "🎓" : i % 5 === 0 ? "✨" : "❄"}</i>`).join("")}</div></div>
+      <div class="gb-card">
+        <button class="gb-x" id="gbX" aria-label="닫기">×</button>
+        <div class="gb-sub">🎓 ${esc(cls)} 졸업식 · ${m}월 ${d}일 ${W[end.getDay()]}요일</div>
+        ${!gl ? `<div class="gb-big"><span>졸업 축하해요!</span></div>` : cal === 0 ? `<div class="gb-big"><span>D-DAY</span></div><div class="gb-say">🎉 오늘은 졸업식! 모두 졸업을 축하해요 🎉</div>` : `
+        <div class="gb-lbl">졸업식까지 학교에 오는 날</div>
+        <div class="gb-big"><span class="gb-d">D-</span><span class="gb-n" id="gbN">${n}</span></div>
+        <div class="gb-mini">주말·공휴일 빼고 셌어요 · 달력으로는 ${cal}일</div>`}
+        <div class="gb-road"><div class="gb-track"><div class="gb-fill" style="width:${pct}%"></div><span class="gb-walker" style="left:${pct}%">🎒</span><span class="gb-cap">🎓</span></div>
+          <div class="gb-roadl"><span>3월 첫날</span><span>6학년 ${Math.round(pct)}% 함께 왔어요</span><span>졸업식</span></div></div>
+        <div class="gb-days">${months.map(g => `<div class="gb-mon"><b>${g.m}월</b><div class="gb-cells">${g.list.map(x => `<span class="${x.today ? "td" : ""}${x.end ? " end" : ""}${x.w === 1 ? " mon" : ""}" title="${x.m}/${x.d} ${W[x.w]}">${x.end ? "🎓" : x.d}</span>`).join("")}</div></div>`).join("")}</div>
+        <div class="gb-mini" style="margin-top:1.2vh">칸 하나가 학교 오는 날 하루예요 · <span style="color:#ffd56b">노란 칸</span>이 오늘</div>
+        <div class="gb-say" id="gbSay">${esc(msgs[0])}</div>
+        <button class="gb-edit" id="gbEdit">⚙️ 졸업식 날짜 · 쉬는 날 · 한마디 바꾸기</button>
+      </div>`;
+    el.classList.add("open");
+    // 숫자 올라가는 효과
+    const nEl = el.querySelector("#gbN");
+    if (nEl && !matchMedia("(prefers-reduced-motion: reduce)").matches){ const t0 = performance.now(), dur = 1200; const up = now => { const k = Math.min(1, (now - t0)/dur), e2 = 1 - Math.pow(1 - k, 3); nEl.textContent = Math.round(n*e2); if (k < 1 && gbOpen()) requestAnimationFrame(up); }; requestAnimationFrame(up); }
+    clearInterval(gradBig.iv); let mi = 0;
+    if (msgs.length > 1) gradBig.iv = setInterval(() => { const sEl = document.getElementById("gbSay"); if (!sEl || !gbOpen()){ clearInterval(gradBig.iv); return; } sEl.classList.add("out"); setTimeout(() => { mi = (mi + 1) % msgs.length; sEl.textContent = msgs[mi]; sEl.classList.remove("out"); }, 450); }, 6000);
+  }
+  function gbClose(){ const el = document.getElementById("gradBig"); if (el) el.classList.remove("open"); clearInterval(gradBig.iv); }
+  document.addEventListener("click", e => { if (e.target.closest("#sGrad")) gradBig(); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && gbOpen()){ e.stopPropagation(); gbClose(); } }, true);
   setInterval(renderGrad, 60000);
   function defaults(){
     const students = Array.from({length:24}, (_,i) => ({id:uid(), name:`학생 ${i+1}`}));
