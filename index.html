@@ -2023,6 +2023,138 @@
   .mt-float button:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.2)}
   .mt-float button:disabled{opacity:.35;cursor:default}
   .mt.grow .mt-body + .mt-ctl{visibility:hidden}
+  /* ===================== 🎁 마니또 · 👥 학생 관리 ===================== */
+  .mn-info{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch;margin-bottom:14px}
+  .mn-info .mn-card{background:#fff;border:2px solid var(--line);border-radius:18px;padding:12px 16px;min-width:150px}
+  .mn-info .mn-card.main{flex:1;min-width:260px;background:linear-gradient(135deg,#fff6fb,#fff1e4);border-color:#ffd3e2}
+  .mn-info .mn-card h3{font-family:"Jua";font-weight:400;font-size:26px;margin:0 0 4px;word-break:keep-all}
+  .mn-info .mn-card .k{font-size:13px;color:var(--ink-soft)}
+  .mn-info .mn-card b.big{font-family:"Jua";font-weight:400;font-size:30px;line-height:1.1;display:block}
+  .mn-info .mn-card .bar2{height:9px;border-radius:99px;background:#f1e9dd;margin-top:6px;overflow:hidden}
+  .mn-info .mn-card .bar2 i{display:block;height:100%;background:linear-gradient(90deg,#ff8fb6,#ff6f91);border-radius:99px}
+  .mn-tip{font-size:15px;color:var(--ink-soft);background:#fffaf0;border:2px dashed #f2dcb8;border-radius:14px;padding:9px 14px;margin-bottom:12px}
+  .mn-tip b{color:var(--ink)}
+  .mn-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+  .mn-stu{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff;border:2px solid #f3d3e0;border-radius:18px;padding:12px 8px 10px;cursor:pointer;font-family:inherit;color:var(--ink);transition:transform .12s,box-shadow .12s}
+  .mn-stu:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(200,80,120,.15)}
+  .mn-stu .no{position:absolute;left:9px;top:6px;font-family:"Jua";font-size:13px;color:var(--ink-soft)}
+  .mn-stu .fc{font-size:30px;line-height:1;height:1.25em;display:flex;align-items:center}
+  .mn-stu .nm{font-family:"Jua";font-size:21px;line-height:1.15;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mn-stu .st{font-size:13px;color:#c2456f}
+  .mn-stu.seen{background:linear-gradient(180deg,#f2fbf5,#e3f6ea);border-color:#9fdcb8}
+  .mn-stu.seen .st{color:#2f8a5b}
+  .mn-stu.off{opacity:.45;cursor:default}
+  .mn-note{font-size:14px;color:var(--ink-soft);margin:10px 2px 0}
+  .mn-empty{text-align:center;padding:50px 10px;background:#fff;border:2px dashed #f3d3e0;border-radius:22px}
+  .mn-empty .ic{font-size:64px;line-height:1}
+  .mn-empty p{font-size:17px;color:var(--ink-soft);margin:10px 0 16px}
+  .mn-teach{margin-top:18px;background:#fff;border:2px solid #ffd0a8;border-radius:18px;padding:14px 16px}
+  .mn-teach h4{font-family:"Jua";font-weight:400;font-size:20px;margin:0 0 8px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+  .mn-pairs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:6px}
+  .mn-pair{display:flex;align-items:center;gap:8px;background:#fffaf4;border-radius:12px;padding:7px 10px;font-family:"Jua";font-size:18px}
+  .mn-pair .ar{color:#ff7a9c;font-size:15px;flex:none}
+  .mn-pair .g,.mn-pair .r{display:flex;align-items:center;gap:4px;flex:0 1 auto;min-width:0;white-space:nowrap}
+  .mn-pair .sn{margin-left:auto;font-family:"Gowun Dodum";font-size:12px;color:var(--ink-soft);flex:none}
+  .mn-pair .sn.y{color:#2f8a5b}
+  .mn-teach textarea{width:100%;min-height:120px;font-family:inherit;font-size:15px;border:2px solid var(--line);border-radius:12px;padding:8px 10px;resize:vertical}
+  .mn-past{margin-top:20px}
+  .mn-past details{background:#fff;border:2px solid var(--line);border-radius:14px;padding:8px 12px;margin-bottom:6px}
+  .mn-past summary{cursor:pointer;font-family:"Jua";font-size:17px;display:flex;gap:8px;align-items:center}
+  .mn-past summary small{font-family:"Gowun Dodum";font-size:13px;color:var(--ink-soft)}
+  .mn-past summary .btn{margin-left:auto;padding:3px 9px;font-size:13px}
+  .mn-past .mn-pairs{margin-top:8px}
+  .mn-pick{display:flex;flex-wrap:wrap;gap:6px;max-height:220px;overflow:auto;padding:2px}
+  .mn-pick button{font-family:"Jua";font-size:16px;background:#fff;border:2px solid #bfe5cd;color:#246b45;border-radius:999px;padding:4px 12px;cursor:pointer}
+  .mn-pick button.out{background:#f4f1ec;border-color:#e3dcd2;color:#a39a8f;text-decoration:line-through}
+
+  /* 마니또 큰 화면 (비밀 확인 · 공개식 · 미션) */
+  #mnOv{position:fixed;inset:0;z-index:90;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;overflow:hidden;
+    background:radial-gradient(ellipse at 50% 35%,#7a3fa0 0%,#3d1d63 55%,#1d0f36 100%);color:#fff;padding:3vh 3vw}
+  #mnOv.open{display:flex}
+  #mnOv .x{position:absolute;right:2vw;top:2vh;background:rgba(255,255,255,.15);border:0;color:#fff;font-size:30px;width:52px;height:52px;border-radius:50%;cursor:pointer}
+  #mnOv .o-sm{font-size:clamp(18px,2.4vw,30px);color:#f3dcff;margin:0}
+  #mnOv .o-big{font-family:"Jua";font-size:clamp(46px,8vw,120px);line-height:1.1;margin:1vh 0;text-shadow:0 4px 0 rgba(0,0,0,.25);word-break:keep-all}
+  #mnOv .o-name{display:inline-flex;align-items:center;gap:.25em}
+  #mnOv .o-name .face{font-size:1em}
+  #mnOv .o-gift{font-size:clamp(90px,16vw,220px);line-height:1;cursor:pointer;animation:mnWob 1.4s ease-in-out infinite;filter:drop-shadow(0 10px 20px rgba(0,0,0,.35));user-select:none}
+  #mnOv .o-gift.open{animation:mnPop .55s cubic-bezier(.2,1.6,.4,1) both}
+  #mnOv .o-btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:3vh}
+  #mnOv .o-btn{font-family:"Jua";font-size:clamp(20px,2.4vw,32px);padding:.5em 1.2em;border-radius:999px;border:0;cursor:pointer;background:linear-gradient(180deg,#ffd76b,#ffb02e);color:#5a2d00;box-shadow:0 6px 0 #c77800}
+  #mnOv .o-btn.ghost{background:rgba(255,255,255,.14);color:#fff;box-shadow:none}
+  #mnOv .o-btn:active{transform:translateY(3px);box-shadow:0 3px 0 #c77800}
+  #mnOv .o-mis{margin-top:2.5vh;background:rgba(255,255,255,.12);border:2px dashed rgba(255,255,255,.4);border-radius:20px;padding:1.4vh 2.2vw;font-size:clamp(18px,2.2vw,30px);max-width:min(900px,90vw);word-break:keep-all}
+  #mnOv .o-mis b{font-family:"Jua";font-weight:400;color:#ffe38a}
+  #mnOv .o-cnt{position:absolute;left:0;right:0;bottom:2.5vh;font-size:15px;color:#d9c4f0}
+  #mnOv .o-step{position:absolute;left:2vw;top:2.4vh;font-family:"Jua";font-size:20px;color:#e5cffa}
+  #mnOv .o-who{animation:mnPop .6s cubic-bezier(.2,1.6,.4,1) both}
+  #mnOv .o-q{margin-top:2vh;font-family:"Jua";font-size:clamp(80px,12vw,170px);line-height:1;color:#ffe38a;animation:mnWob 1s ease-in-out infinite}
+  #mnOv .o-all{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;width:min(1300px,94vw);max-height:62vh;overflow:auto;margin-top:2vh;text-align:left}
+  #mnOv .o-all div{background:rgba(255,255,255,.12);border-radius:14px;padding:8px 12px;font-family:"Jua";font-size:20px;display:flex;gap:6px;align-items:center}
+  #mnOv .o-all i{font-style:normal;color:#ffb3cf;font-size:15px}
+  .mn-pc{position:fixed;top:-8vh;z-index:91;pointer-events:none;font-size:34px;animation:mnFall linear forwards}
+  @keyframes mnWob{0%,100%{transform:rotate(-6deg) scale(1)}50%{transform:rotate(6deg) scale(1.06)}}
+  @keyframes mnPop{0%{transform:scale(.3);opacity:0}100%{transform:scale(1);opacity:1}}
+  @keyframes mnFall{to{transform:translateY(118vh) rotate(540deg)}}
+  @media (prefers-reduced-motion: reduce){ #mnOv .o-gift,#mnOv .o-q{animation:none} .mn-pc{display:none} }
+
+  /* 👥 학생 관리 */
+  .stu-lock{text-align:center;padding:70px 16px;background:#fff;border:2px dashed var(--line);border-radius:22px}
+  .stu-lock .ic{font-size:64px;line-height:1}
+  .stu-lock h3{font-family:"Jua";font-weight:400;font-size:26px;margin:12px 0 6px}
+  .stu-lock p{color:var(--ink-soft);margin:0 0 18px}
+  .stu-layout{display:grid;grid-template-columns:270px 1fr;gap:14px;align-items:start}
+  .stu-side{background:#fff;border:2px solid var(--line);border-radius:18px;padding:10px}
+  .stu-side input{width:100%;font-family:inherit;font-size:15px;border:2px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:8px}
+  .stu-list{display:grid;gap:4px;max-height:640px;overflow:auto}
+  .stu-it{display:flex;align-items:center;gap:7px;width:100%;text-align:left;background:none;border:2px solid transparent;border-radius:12px;padding:6px 8px;cursor:pointer;font-family:inherit;color:var(--ink)}
+  .stu-it:hover{background:#faf4ea}
+  .stu-it.on{border-color:#ff8a4c;background:#fff4ec}
+  .stu-it i{font-style:normal;font-family:"Jua";font-size:13px;color:var(--ink-soft);min-width:18px}
+  .stu-it .nm{font-family:"Jua";font-size:18px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stu-it .fl{font-size:12px;color:var(--ink-soft);white-space:nowrap}
+  .stu-it.all{font-family:"Jua";font-size:16px;border-color:var(--line);margin-bottom:4px}
+  .stu-it.all.on{border-color:#ff8a4c}
+  .stu-main{background:#fff;border:2px solid var(--line);border-radius:18px;padding:16px 18px;min-height:300px}
+  .stu-hd{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+  .stu-hd .fc{font-size:44px;line-height:1}
+  .stu-hd h3{font-family:"Jua";font-weight:400;font-size:30px;margin:0}
+  .stu-hd h3 small{font-size:17px;color:var(--ink-soft);margin-right:4px}
+  .stu-nav{margin-left:auto;display:flex;gap:6px}
+  .stu-nav .btn{padding:6px 11px;font-size:14px}
+  .stu-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .stu-chips div{background:#faf4ea;border-radius:14px;padding:7px 13px;font-size:14px;color:var(--ink-soft)}
+  .stu-chips b{font-family:"Jua";font-weight:400;font-size:22px;color:var(--ink);margin-right:3px}
+  .stu-chips .warn b{color:#c23356}
+  .stu-chips .bd{background:#fff0f6;color:#b0306a}
+  .stu-h{font-family:"Jua";font-weight:400;font-size:20px;margin:16px 0 8px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .stu-h small{font-family:"Gowun Dodum";font-size:13px;color:var(--ink-soft)}
+  .stu-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px 12px}
+  .stu-form label{display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--ink-soft)}
+  .stu-form label.wide{grid-column:1/-1}
+  .stu-form input,.stu-form textarea,.stu-add textarea,.stu-add input,.stu-add select{font-family:inherit;font-size:15px;border:2px solid var(--line);border-radius:12px;padding:8px 10px;color:var(--ink);background:#fff}
+  .stu-form textarea{min-height:64px;resize:vertical}
+  .stu-saved{font-size:13px;color:#2f8a5b;min-height:1em}
+  .stu-add{display:grid;gap:8px;background:#fffaf0;border:2px solid #f2e2c4;border-radius:16px;padding:12px}
+  .stu-add .row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .stu-add textarea{min-height:70px;resize:vertical;width:100%}
+  .stu-kinds{display:flex;flex-wrap:wrap;gap:5px}
+  .stu-kinds button,.stu-filt button{font-family:"Jua";font-size:15px;border-radius:999px;padding:4px 11px;cursor:pointer;background:#fff;border:2px solid var(--line);color:var(--ink-soft)}
+  .stu-kinds button.on,.stu-filt button.on{color:#fff;border-color:transparent;background:var(--kc,#ff8a4c)}
+  .stu-filt{display:flex;flex-wrap:wrap;gap:5px;margin:10px 0 8px}
+  .stu-recs{display:grid;gap:8px}
+  .stu-rec{border:2px solid var(--line);border-left:6px solid var(--kc,#ccc);border-radius:14px;padding:9px 12px;background:#fff}
+  .stu-rec .rt{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:14px;color:var(--ink-soft)}
+  .stu-rec .stu-tag{font-family:"Jua";font-size:14px;color:#fff;background:var(--kc,#999);border-radius:999px;padding:1px 9px}
+  .stu-rec .who{font-family:"Jua";font-size:16px;color:var(--ink)}
+  .stu-rec .ops{margin-left:auto;display:flex;gap:4px}
+  .stu-rec .ops button{background:none;border:0;cursor:pointer;font-size:15px;padding:2px 5px;border-radius:8px}
+  .stu-rec .ops button:hover{background:#f4eee5}
+  .stu-rec .tx{white-space:pre-wrap;word-break:break-word;margin-top:4px;font-size:15px;line-height:1.5}
+  .stu-rec.editing{box-shadow:0 0 0 3px #ffd9c2}
+  .stu-empty{text-align:center;color:var(--ink-soft);padding:24px 10px}
+  @media (max-width:820px){ .stu-layout{grid-template-columns:1fr} .stu-list{max-height:240px} }
+  body.arcade #viewMani .sec-title,body.arcade #viewStu .sec-title{color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+  body.arcade #viewMani .sec-title small,body.arcade #viewStu .sec-title small,body.arcade #viewMani .mn-note{color:#d6ebff;text-shadow:none}
 </style>
 </head>
 <body>
@@ -2297,6 +2429,8 @@
     <button data-view="stamp" role="tab">⭐ 칭찬도장<span class="badge" id="rwBadge" hidden>0</span></button>
     <button data-view="sub" role="tab">📝 자료 제출<span class="badge" id="subBadge" hidden>0</span></button>
     <button data-view="cal" role="tab">📆 달력</button>
+    <button data-view="mani" role="tab">🎁 마니또</button>
+    <button data-view="stu" role="tab">👥 학생 관리</button>
     <button data-view="reset" role="tab">🔄 초기화</button>
   </nav>
 
@@ -2480,6 +2614,47 @@
     </div>
   </section>
 
+  <section class="view" id="viewMani" hidden>
+    <div class="ck-top">
+      <div class="sec-title" style="margin:0">🎁 마니또 <small>몰래 친구를 챙겨 주는 비밀 친구 놀이</small></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn primary" id="mnNew">🎲 새로 뽑기</button>
+        <button class="btn" id="mnMis">💌 미션 뽑기</button>
+        <button class="btn" id="mnShow">🎉 마니또 공개</button>
+        <button class="btn" id="mnTeach">🧑‍🏫 선생님 보기</button>
+      </div>
+    </div>
+    <div id="mnMain"></div>
+    <div id="mnTeachBox"></div>
+    <div class="mn-past" id="mnPast"></div>
+  </section>
+
+  <section class="view" id="viewStu" hidden>
+    <div class="stu-lock" id="stuLock">
+      <div class="ic">🔒</div>
+      <h3>선생님만 보는 화면이에요</h3>
+      <p>연락처·특이사항·상담 기록이 들어 있어요.<br>교실 화면에 띄워져 있다면, 아이들이 보고 있지 않을 때 열어 주세요.</p>
+      <button class="btn primary" id="stuOpen">🔓 열기</button>
+    </div>
+    <div id="stuBody" hidden>
+      <div class="ck-top">
+        <div class="sec-title" style="margin:0">👥 학생 관리 <small>연락처·특이사항·상담과 관찰 기록을 한곳에 · 다른 탭으로 가면 다시 잠겨요</small></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn" id="stuCsvInfo">📥 명단·연락처 저장</button>
+          <button class="btn" id="stuCsvRec">📥 기록 저장</button>
+          <button class="btn" id="stuLockBtn">🔒 가리기</button>
+        </div>
+      </div>
+      <div class="stu-layout">
+        <div class="stu-side">
+          <input id="stuFind" placeholder="🔍 이름 찾기" autocomplete="off">
+          <div class="stu-list" id="stuList"></div>
+        </div>
+        <div class="stu-main" id="stuMain"></div>
+      </div>
+    </div>
+  </section>
+
   <section class="view" id="viewReset" hidden>
     <div class="rs-now" id="rsNow"></div>
 
@@ -2655,6 +2830,29 @@
     </div>
   </div>
 </div>
+
+<div class="modal" id="mnModal" aria-modal="true" role="dialog">
+  <div class="sheet">
+    <h2><span>🎲 마니또 새로 뽑기</span> <button class="x" data-close>×</button></h2>
+    <div class="ev-form">
+      <label>이름<input id="mnTitle" maxlength="30" placeholder="예: 11월 마니또"></label>
+      <div class="two">
+        <label>시작하는 날<input type="date" id="mnStart"></label>
+        <label>공개하는 날<input type="date" id="mnEnd"></label>
+      </div>
+      <label>함께하는 친구 <span style="font-size:12px">(이름을 누르면 이번엔 빼요 · 전학·장기 결석 등)</span></label>
+      <div class="mn-pick" id="mnPick"></div>
+      <label style="flex-direction:row;align-items:center;gap:8px;color:var(--ink);font-size:15px"><input type="checkbox" id="mnAvoid" checked style="width:auto"> 지난 마니또와 같은 짝이 안 나오게</label>
+      <div style="font-size:13px;color:var(--ink-soft)">🔁 한 줄로 이어지게 뽑아서 <b>자기 자신</b>이나 <b>서로가 서로의 마니또</b>가 되는 일이 없어요.</div>
+      <div class="ev-actions">
+        <button class="btn" data-close>취소</button>
+        <button class="btn primary" id="mnGo">🎲 뽑기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="mnOv" role="dialog" aria-modal="true"></div>
 
 <div class="modal" id="detModal" aria-modal="true" role="dialog">
   <div class="sheet">
@@ -4170,6 +4368,11 @@
     $("#viewStamp").hidden = v !== "stamp";
     $("#viewCal").hidden = v !== "cal";
     $("#viewSub").hidden = v !== "sub";
+    $("#viewMani").hidden = v !== "mani";
+    $("#viewStu").hidden = v !== "stu";
+    if (v !== "mani") mnTeacher = false;
+    if (v === "mani") renderMani();
+    if (v === "stu") stuLockSet(true);
     if (v === "sub") renderSub();
     if (v === "cal") renderCal();
     if (v === "stamp") renderStamp();
@@ -4441,6 +4644,391 @@
     a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv;charset=utf-8"}));
     a.download = `${S.className || "우리반"}_자료제출_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}.csv`;
     a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+
+  /* ---------- 🎁 마니또 tab ---------- */
+  const MN_MISSIONS = [
+    "아침에 먼저 반갑게 인사하기", "칭찬 한마디 몰래 쪽지로 남기기", "책상 위를 몰래 정리해 주기", "급식 시간에 맛있게 먹으라고 말해 주기",
+    "모르는 문제를 친절하게 도와주기", "떨어진 물건 주워 주기", "응원 쪽지 사물함에 넣어 두기", "좋아하는 것 몰래 알아 오기",
+    "쉬는 시간에 같이 놀자고 말 걸기", "잘한 점을 다른 친구 앞에서 칭찬하기", "고마운 마음을 그림 쪽지로 전하기", "우유나 급식판 정리 도와주기",
+    "웃게 만들어 주기", "‘오늘 멋지다!’ 말해 주기", "청소할 때 몰래 같이 도와주기", "힘들어 보이면 ‘괜찮아?’ 물어보기"
+  ];
+  const mnData = () => { if (!S.mani || !Array.isArray(S.mani.rounds)) S.mani = {rounds: [], cur: null}; return S.mani; };
+  const mnCur = () => { const m = mnData(); return m.rounds.find(r => r.id === m.cur) || null; };
+  const mnMissions = () => { const l = (mnData().missions || []).filter(x => x && x.trim()); return l.length ? l : MN_MISSIONS; };
+  const mnStu = id => S.students.find(s => s.id === id);
+  const mnJ = (w, a, b) => { const c = String(w).charCodeAt(String(w).length - 1); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 ? a : b; };   // 받침 있으면 a(을), 없으면 b(를)
+  const mnNum = id => S.students.findIndex(s => s.id === id) + 1;
+  const mnName = id => { const s = mnStu(id); return s ? s.name : "(명단에 없는 친구)"; };
+  const mnRand = n => { try{ const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }catch(e){ return Math.floor(Math.random()*n); } };
+  const mnShuffle = arr => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--){ const j = mnRand(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const mnBigFace = id => { const s = mnStu(id); return s ? faceHTML(id) : ""; };
+  let mnTeacher = false, mnOut = null;
+  function mnDraw(ids, avoid){   // 한 줄로 이어지는 순환: 자기 자신 X, 서로 마니또 X(3명 이상)
+    let best = null, bestBad = Infinity;
+    for (let k = 0; k < 4000 && bestBad > 0; k++){
+      const a = mnShuffle(ids); let bad = 0;
+      for (let i = 0; i < a.length; i++) if (avoid.has(a[i] + ">" + a[(i+1) % a.length])) bad++;
+      if (bad < bestBad){ best = a; bestBad = bad; }
+    }
+    const pairs = {}; best.forEach((g, i) => pairs[g] = best[(i+1) % best.length]);
+    return {pairs, repeats: bestBad};
+  }
+  function mnDdayTxt(r){
+    if (!r.end) return "";
+    const dd = sDday(r.end);
+    return r.revealed ? "공개 끝" : dd > 0 ? `공개까지 D-${dd}` : dd === 0 ? "오늘 공개!" : `공개일 ${-dd}일 지남`;
+  }
+  const mnPairRow = (g, r, seen) => `<div class="mn-pair"><span class="g">${mnStu(g) ? faceHTML(g) : ""}${esc(mnName(g))}</span><span class="ar">🎁→</span><span class="r">${mnStu(r) ? faceHTML(r) : ""}${esc(mnName(r))}</span>${seen === undefined ? "" : `<span class="sn${seen ? " y" : ""}">${seen ? "✅ 확인함" : "🙈 아직"}</span>`}</div>`;
+  const mnOrder = r => Object.keys(r.pairs).sort((a, b) => (mnNum(a) || 999) - (mnNum(b) || 999));
+  function renderMani(){
+    const r = mnCur(), m = mnData();
+    $("#mnShow").disabled = !r; $("#mnTeach").disabled = !r;
+    $("#mnTeach").textContent = mnTeacher ? "🙈 선생님 보기 닫기" : "🧑‍🏫 선생님 보기";
+    if (!r){
+      $("#mnMain").innerHTML = `<div class="mn-empty"><div class="ic">🎁</div><p>아직 뽑은 마니또가 없어요.<br>뽑고 나면 친구들이 자기 이름을 눌러 <b>몰래</b> 마니또를 확인해요.</p><button class="btn primary" data-mnact="new">🎲 마니또 뽑기</button></div>`;
+      $("#mnTeachBox").innerHTML = "";
+    } else {
+      const ids = mnOrder(r), seenN = ids.filter(id => r.seen && r.seen[id]).length, total = ids.length;
+      const notIn = S.students.filter(s => !r.pairs[s.id]);
+      const gone = ids.filter(id => !mnStu(id) || !mnStu(r.pairs[id]));
+      $("#mnMain").innerHTML = `
+        <div class="mn-info">
+          <div class="mn-card main"><h3>${r.revealed ? "🎉 " : "🤫 "}${esc(r.title)}</h3><div class="k">${r.start ? sLabel(r.start) : ""} ~ ${r.end ? sLabel(r.end) + " 공개" : "공개일 없음"}</div></div>
+          <div class="mn-card"><div class="k">${r.revealed ? "공개" : "공개하는 날"}</div><b class="big">${mnDdayTxt(r) || "—"}</b></div>
+          <div class="mn-card"><div class="k">비밀 확인한 친구</div><b class="big">${seenN} / ${total}</b><div class="bar2"><i style="width:${total ? Math.round(seenN/total*100) : 0}%"></i></div></div>
+        </div>
+        ${gone.length ? `<div class="mn-tip" style="border-color:#f5b5c4;background:#fff5f7">⚠️ 뽑은 뒤 명단이 바뀌어서 짝이 맞지 않는 친구가 있어요. <b>🧑‍🏫 선생님 보기 → 🔁 다시 뽑기</b>를 해 주세요.</div>` : ""}
+        ${r.revealed
+          ? `<div class="mn-tip">🎉 마니또를 모두 공개했어요! 서로에게 고마웠던 점을 이야기해 봐요. 새 마니또는 <b>🎲 새로 뽑기</b>로 시작해요.</div>
+             <div class="mn-pairs">${ids.map(g => mnPairRow(g, r.pairs[g])).join("")}</div>`
+          : `<div class="mn-tip">🙈 <b>자기 이름</b>을 누르고, 다른 친구들이 안 볼 때 상자를 열어요. 다 보면 <b>‘다 봤어요’</b>를 눌러 가려 주세요. (20초가 지나면 저절로 가려져요)</div>
+             <div class="mn-grid">${ids.map(id => { const s = mnStu(id), sn = r.seen && r.seen[id];
+               return `<button class="mn-stu${sn ? " seen" : ""}${s ? "" : " off"}" ${s ? `data-mnsee="${id}"` : "disabled"}><span class="no">${mnNum(id) || ""}</span><span class="fc">${s ? faceHTML(id) : "❔"}</span><span class="nm">${esc(mnName(id))}</span><span class="st">${sn ? "✅ 확인했어요" : "🙈 아직 안 봤어요"}</span></button>`; }).join("")}</div>`}
+        ${notIn.length ? `<div class="mn-note">이번 마니또에 없는 친구: ${notIn.map(s => esc(s.name)).join(", ")}</div>` : ""}`;
+      $("#mnTeachBox").innerHTML = !mnTeacher ? "" : `
+        <div class="mn-teach">
+          <h4><span>🧑‍🏫 누가 누구의 마니또인지 <small style="font-family:'Gowun Dodum';font-size:13px;color:var(--ink-soft)">(왼쪽 친구가 오른쪽 친구를 몰래 챙겨요)</small></span>
+            <span style="display:flex;gap:6px;flex-wrap:wrap"><button class="btn" data-mnact="redraw">🔁 다시 뽑기</button><button class="btn" data-mnact="unseen">↩️ 확인 표시 지우기</button><button class="btn" data-mnact="hide">🙈 닫기</button></span></h4>
+          <div class="mn-pairs">${ids.map(g => mnPairRow(g, r.pairs[g], !!(r.seen && r.seen[g]))).join("")}</div>
+          ${r.repeats ? `<div class="mn-note">※ 친구 수가 적어서 지난번과 같은 짝이 ${r.repeats}개 나왔어요.</div>` : ""}
+          <div class="stu-h" style="margin-top:14px">💌 마니또 미션 목록 <small>한 줄에 하나씩 · ‘💌 미션 뽑기’와 비밀 확인 화면에 나와요 · 비우면 기본 미션</small></div>
+          <textarea id="mnMisEdit" placeholder="${esc(MN_MISSIONS.slice(0, 4).join("\n"))}">${esc((m.missions || []).join("\n"))}</textarea>
+        </div>`;
+    }
+    const past = m.rounds.filter(x => x.id !== m.cur).sort((a, b) => b.t - a.t);
+    $("#mnPast").innerHTML = past.length ? `<div class="sec-title">📚 지난 마니또 <small>${past.length}번</small></div>` + past.map(x => `
+      <details><summary>${x.revealed ? "🎉" : "📦"} ${esc(x.title)} <small>${x.start ? sLabel(x.start) : ""}${x.end ? " ~ " + sLabel(x.end) : ""} · ${Object.keys(x.pairs).length}명${x.revealed ? "" : " · 공개 안 함"}</small><button class="btn" data-mndel="${x.id}">🗑️</button></summary>
+        ${x.revealed || mnTeacher ? `<div class="mn-pairs">${mnOrder(x).map(g => mnPairRow(g, x.pairs[g])).join("")}</div>` : `<div class="mn-note">공개하지 않은 마니또예요. 🧑‍🏫 선생님 보기를 켜면 짝이 보여요.</div>`}</details>`).join("") : "";
+  }
+  function mnOpenNew(){
+    const r = mnCur(), m = mnData(), today = sKey(Date.now()), e = new Date(); e.setDate(e.getDate() + 7);
+    mnOut = new Set();
+    $("#mnTitle").value = `${new Date().getMonth()+1}월 마니또` + (m.rounds.some(x => x.title === `${new Date().getMonth()+1}월 마니또`) ? " 2" : "");
+    $("#mnStart").value = today; $("#mnEnd").value = sKey(e.getTime());
+    mnRenderPick(); openM("#mnModal");
+    if (r && !r.revealed) setTimeout(() => toast("지금 마니또는 아직 공개 전이에요. 새로 뽑으면 지난 마니또로 넘어가요", false), 200);
+  }
+  function mnRenderPick(){
+    $("#mnPick").innerHTML = S.students.map((s, i) => `<button data-mnout="${s.id}" class="${mnOut.has(s.id) ? "out" : ""}">${i+1}. ${esc(s.name)}</button>`).join("");
+  }
+  $("#mnPick").addEventListener("click", e => { const b = e.target.closest("[data-mnout]"); if (!b) return; const id = b.dataset.mnout; mnOut.has(id) ? mnOut.delete(id) : mnOut.add(id); mnRenderPick(); });
+  function mnAvoidSet(){
+    const m = mnData(), set = new Set();
+    [...m.rounds].sort((a, b) => b.t - a.t).slice(0, 2).forEach(x => Object.entries(x.pairs).forEach(([g, r]) => set.add(g + ">" + r)));
+    return set;
+  }
+  $("#mnGo").onclick = () => {
+    const ids = S.students.filter(s => !mnOut.has(s.id)).map(s => s.id);
+    if (ids.length < 3) { toast("마니또는 3명 이상 있어야 뽑을 수 있어요", false); return; }
+    const title = $("#mnTitle").value.trim() || "마니또";
+    const avoid = $("#mnAvoid").checked ? mnAvoidSet() : new Set();
+    const {pairs, repeats} = mnDraw(ids, avoid), m = mnData();
+    const r = {id: uid(), title, start: $("#mnStart").value || sKey(Date.now()), end: $("#mnEnd").value || "", pairs, seen: {}, revealed: false, repeats, t: Date.now()};
+    m.rounds.push(r); m.cur = r.id; mnTeacher = false;
+    save(); $("#mnModal").classList.remove("open"); renderMani();
+    toast(`🎁 ‘${title}’ 마니또를 뽑았어요! 한 명씩 이름을 눌러 몰래 확인해요`, false);
+  };
+  $("#mnNew").onclick = mnOpenNew;
+  $("#mnTeach").onclick = () => {
+    if (!mnCur()) return;
+    if (!mnTeacher && !mnCur().revealed && !confirm("누가 누구의 마니또인지 모두 보여요.\n아이들이 화면을 보고 있지 않나요?")) return;
+    mnTeacher = !mnTeacher; renderMani();
+  };
+  $("#viewMani").addEventListener("input", e => {
+    if (e.target.id !== "mnMisEdit") return;
+    mnData().missions = e.target.value.split("\n").map(x => x.trim()).filter(Boolean); save();
+  });
+  $("#viewMani").addEventListener("click", e => {
+    const t = e.target.closest("[data-mnsee],[data-mnact],[data-mndel]"); if (!t) return;
+    if (t.dataset.mndel) {
+      e.preventDefault();
+      const m = mnData(), x = m.rounds.find(k => k.id === t.dataset.mndel); if (!x) return;
+      if (!confirm(`‘${x.title}’ 기록을 지울까요?\n(지우면 다음에 뽑을 때 이 짝을 피하지 않아요)`)) return;
+      m.rounds = m.rounds.filter(k => k.id !== x.id); save(); renderMani(); return;
+    }
+    if (t.dataset.mnsee) { mnSecret(t.dataset.mnsee); return; }
+    const r = mnCur(), act = t.dataset.mnact;
+    if (act === "new") mnOpenNew();
+    else if (act === "hide") { mnTeacher = false; renderMani(); }
+    else if (act === "unseen" && r) { if (!confirm("‘확인했어요’ 표시를 모두 지울까요? (짝은 그대로예요)")) return; r.seen = {}; save(); renderMani(); }
+    else if (act === "redraw" && r) {
+      const ids = Object.keys(r.pairs).filter(id => mnStu(id));
+      if (!confirm(`‘${r.title}’ 짝을 다시 뽑을까요?\n이미 확인한 친구들도 다시 확인해야 해요.`)) return;
+      if (ids.length < 3) { toast("3명 이상 있어야 뽑을 수 있어요", false); return; }
+      const m = mnData(), avoid = new Set(); m.rounds.filter(x => x.id !== r.id).sort((a, b) => b.t - a.t).slice(0, 2).forEach(x => Object.entries(x.pairs).forEach(([g, q]) => avoid.add(g + ">" + q)));
+      const d = mnDraw(ids, avoid); r.pairs = d.pairs; r.repeats = d.repeats; r.seen = {}; r.revealed = false;
+      save(); renderMani(); toast("🔁 다시 뽑았어요", false);
+    }
+  });
+
+  /* 큰 화면: 비밀 확인 · 미션 · 공개식 */
+  const mnOv = () => $("#mnOv");
+  let mnTimer = null, mnKey = null, mnShowSt = null;
+  function mnOvOpen(html){ clearTimeout(mnTimer); mnOv().innerHTML = `<button class="x" data-mnov="close" aria-label="닫기">×</button>` + html; mnOv().classList.add("open"); }
+  function mnOvClose(){ clearTimeout(mnTimer); mnOv().classList.remove("open"); mnOv().innerHTML = ""; mnKey = null; mnShowSt = null; document.querySelectorAll(".mn-pc").forEach(x => x.remove()); if (view === "mani") renderMani(); }
+  function mnBurst(n){
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const em = ["🎉","💖","✨","🎁","💌","⭐","🌸","🎈"];
+    for (let i = 0; i < (n || 28); i++){
+      const p = document.createElement("span"); p.className = "mn-pc"; p.textContent = em[mnRand(em.length)];
+      p.style.left = mnRand(100) + "vw"; p.style.animationDuration = (2.2 + Math.random()*1.8) + "s"; p.style.animationDelay = (Math.random()*.6) + "s"; p.style.fontSize = (24 + mnRand(26)) + "px";
+      document.body.appendChild(p); setTimeout(() => p.remove(), 5000);
+    }
+  }
+  function mnDrum(){
+    if (!S.sound) return;
+    try{
+      const C = getAC(), t = C.currentTime;
+      for (let i = 0; i < 14; i++){ const o = C.createOscillator(), g = C.createGain(); o.type = "triangle"; o.frequency.setValueAtTime(150 + i*6, t + i*.06); g.gain.setValueAtTime(.0001, t + i*.06); g.gain.exponentialRampToValueAtTime(.14 + i*.008, t + i*.06 + .01); g.gain.exponentialRampToValueAtTime(.0001, t + i*.06 + .055); o.connect(g).connect(C.destination); o.start(t + i*.06); o.stop(t + i*.06 + .06); }
+    }catch(e){}
+  }
+  function mnSecret(gid){
+    const r = mnCur(); if (!r || !r.pairs[gid] || r.revealed) return;
+    const seen = r.seen && r.seen[gid];
+    mnKey = "secret";
+    mnOvOpen(`<p class="o-sm">🤫 지금은</p>
+      <div class="o-big"><span class="o-name">${mnBigFace(gid)}${esc(mnName(gid))}</span></div>
+      <p class="o-sm">친구만 보는 시간이에요! 다른 친구들은 고개를 돌려 주세요 🙈${seen ? "<br><b style='color:#ffe38a'>이미 확인했어요. 한 번 더 볼까요?</b>" : ""}</p>
+      <div class="o-gift" data-mnov="open" role="button" aria-label="상자 열기">🎁</div>
+      <div class="o-btns"><button class="o-btn" data-mnov="open">👀 상자 열고 내 마니또 보기</button><button class="o-btn ghost" data-mnov="close">내가 아니에요</button></div>`);
+    mnOv().dataset.gid = gid;
+  }
+  function mnSecretOpen(){
+    const r = mnCur(), gid = mnOv().dataset.gid; if (!r || !gid) return;
+    const rid = r.pairs[gid], mis = mnMissions()[mnRand(mnMissions().length)];
+    r.seen = r.seen || {}; r.seen[gid] = Date.now(); save();
+    beep(true);
+    mnKey = "secret2";
+    mnOvOpen(`<p class="o-sm">${esc(mnName(gid))}의 마니또는</p>
+      <div class="o-big o-who"><span class="o-name">${mnBigFace(rid)}${esc(mnName(rid))}</span></div>
+      <p class="o-sm">${r.end ? `${sLabel(r.end)} 공개하는 날까지` : "공개하는 날까지"} 들키지 않게 몰래 챙겨 줘요 💖</p>
+      <div class="o-mis">💌 오늘의 미션 아이디어<br><b>${esc(mis)}</b></div>
+      <div class="o-btns"><button class="o-btn" data-mnov="close">✅ 다 봤어요 (가리기)</button></div>
+      <div class="o-cnt" id="mnCnt">20초 뒤에 저절로 가려져요</div>`);
+    let left = 20;
+    const tick = () => { left--; const c = document.getElementById("mnCnt"); if (!c || mnKey !== "secret2") return; if (left <= 0) { mnOvClose(); return; } c.textContent = `${left}초 뒤에 저절로 가려져요`; mnTimer = setTimeout(tick, 1000); };
+    mnTimer = setTimeout(tick, 1000);
+  }
+  $("#mnMis").onclick = () => {
+    const l = mnMissions(), mis = l[mnRand(l.length)];
+    mnKey = "mis";
+    mnOvOpen(`<p class="o-sm">💌 오늘의 마니또 미션</p><div class="o-big o-who" style="font-size:clamp(40px,6.5vw,96px)">${esc(mis)}</div>
+      <p class="o-sm">내 마니또 친구에게 몰래 해 줘요. 들키지 않게! 🤫</p>
+      <div class="o-btns"><button class="o-btn" data-mnov="mis">🎲 다른 미션</button><button class="o-btn ghost" data-mnov="close">닫기</button></div>`);
+    mnBurst(14);
+  };
+  /* 🎉 공개식: 받은 친구 → "나를 챙겨 준 마니또는?" → 두구두구 → 짠! */
+  $("#mnShow").onclick = () => {
+    const r = mnCur(); if (!r) return;
+    const ids = mnOrder(r).filter(g => mnStu(g) && mnStu(r.pairs[g]));
+    if (!ids.length) return;
+    if (!r.revealed && r.end && sDday(r.end) > 0 && !confirm(`공개하는 날(${sLabel(r.end)})이 아직 ${sDday(r.end)}일 남았어요.\n지금 공개할까요?`)) return;
+    const recv = mnShuffle(ids.map(g => r.pairs[g]));   // 받은 친구 순서는 섞어서
+    const giverOf = {}; ids.forEach(g => giverOf[r.pairs[g]] = g);
+    mnShowSt = {recv, giverOf, i: 0, ph: 0};
+    mnKey = "show"; mnShowDraw();
+  };
+  function mnShowDraw(){
+    const st = mnShowSt; if (!st) return;
+    const r = mnCur();
+    if (st.i >= st.recv.length){
+      if (r && !r.revealed) { r.revealed = true; save(); }
+      mnOvOpen(`<p class="o-sm">🎉 ${esc(r ? r.title : "마니또")} 모두 공개!</p><div class="o-big" style="font-size:clamp(40px,6vw,84px)">몰래 챙겨 줘서 고마워요 💖</div>
+        <div class="o-all">${st.recv.map(x => `<div>${mnBigFace(st.giverOf[x])}${esc(mnName(st.giverOf[x]))}<i>→🎁→</i>${mnBigFace(x)}${esc(mnName(x))}</div>`).join("")}</div>
+        <div class="o-btns"><button class="o-btn" data-mnov="close">닫기</button></div>`);
+      mnBurst(40); fanfare(); return;
+    }
+    const rid = st.recv[st.i], gid = st.giverOf[rid], step = `<div class="o-step">${st.i + 1} / ${st.recv.length}</div>`;
+    const nav = `<div class="o-cnt">누르거나 스페이스바 → 다음 · ← 이전 · Esc 닫기</div>`;
+    if (st.ph === 0){
+      mnOvOpen(step + `<div class="o-big"><span class="o-name">${mnBigFace(rid)}${esc(mnName(rid))}</span></div>
+        <p class="o-sm">${mnJ(mnName(rid), "을", "를")} 몰래 챙겨 준 친구는 누구였을까요?</p><div class="o-q" data-mnov="next">?</div>
+        <div class="o-btns"><button class="o-btn" data-mnov="next">🥁 두구두구… 공개!</button></div>` + nav);
+    } else if (st.ph === 1){
+      mnOvOpen(step + `<div class="o-big"><span class="o-name">${mnBigFace(rid)}${esc(mnName(rid))}</span></div><p class="o-sm">${mnJ(mnName(rid), "을", "를")} 몰래 챙겨 준 친구는…</p><div class="o-q">🥁</div>` + nav);
+      mnDrum(); mnTimer = setTimeout(() => { if (mnShowSt === st && st.ph === 1){ st.ph = 2; mnShowDraw(); } }, 900);
+    } else {
+      mnOvOpen(step + `<p class="o-sm">${esc(mnName(rid))}${mnJ(mnName(rid), "을", "를")} 몰래 챙겨 준 친구는</p>
+        <div class="o-big o-who"><span class="o-name">${mnBigFace(gid)}${esc(mnName(gid))}</span></div>
+        <p class="o-sm">짠! 🎉 ${esc(mnName(gid))}에게 고맙다고 말해 줘요</p>
+        <div class="o-btns"><button class="o-btn" data-mnov="next">${st.i + 1 < st.recv.length ? "▶ 다음 친구" : "🎉 끝!"}</button></div>` + nav);
+      fanfare(); mnBurst(24);
+    }
+  }
+  function mnShowNext(){ const st = mnShowSt; if (!st) return; if (st.ph === 1) return; if (st.ph === 0) st.ph = 1; else { st.i++; st.ph = 0; } mnShowDraw(); }
+  function mnShowPrev(){ const st = mnShowSt; if (!st) return; clearTimeout(mnTimer); if (st.ph > 0) st.ph = 0; else if (st.i > 0) { st.i--; st.ph = 2; } mnShowDraw(); }
+  mnOv().addEventListener("click", e => {
+    const t = e.target.closest("[data-mnov]");
+    const a = t ? t.dataset.mnov : (mnKey === "show" && !e.target.closest(".o-all") ? "next" : null);
+    if (a === "close") mnOvClose();
+    else if (a === "open") { const g = mnOv().querySelector(".o-gift"); if (g) g.classList.add("open"); setTimeout(mnSecretOpen, 250); }
+    else if (a === "mis") $("#mnMis").click();
+    else if (a === "next") mnShowNext();
+  });
+  document.addEventListener("keydown", e => {
+    if (!mnOv().classList.contains("open")) return;
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); mnOvClose(); }
+    else if (mnKey === "show" && (e.key === " " || e.key === "Enter" || e.key === "ArrowRight")) { e.preventDefault(); e.stopPropagation(); mnShowNext(); }
+    else if (mnKey === "show" && e.key === "ArrowLeft") { e.preventDefault(); e.stopPropagation(); mnShowPrev(); }
+    else if (e.key === " " || e.key === "Enter") { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+
+  /* ---------- 👥 학생 관리 tab ---------- */
+  const STU_KINDS = [
+    {k:"talk", e:"💬", l:"상담", c:"#4d8fe0"}, {k:"see", e:"👀", l:"관찰", c:"#2f9e8f"}, {k:"good", e:"🌟", l:"칭찬", c:"#e0a019"},
+    {k:"guide", e:"📏", l:"생활지도", c:"#d2566e"}, {k:"home", e:"📞", l:"학부모 연락", c:"#8a5bd6"}, {k:"etc", e:"📝", l:"기타", c:"#8a8178"}
+  ];
+  const stuKind = k => STU_KINDS.find(x => x.k === k) || STU_KINDS[STU_KINDS.length - 1];
+  const STU_FIELDS = [
+    {f:"birth", l:"🎂 생일", type:"date"}, {f:"role", l:"🧩 1인 1역", ph:"예: 우유 당번"},
+    {f:"guard", l:"👪 보호자", ph:"예: 어머니 김○○"}, {f:"phone", l:"📞 보호자 연락처", type:"tel", ph:"010-0000-0000"},
+    {f:"phone2", l:"☎️ 다른 연락처", type:"tel", ph:"예: 아버지 010-…"}, {f:"after", l:"🏫 방과 후·하교", ph:"예: 돌봄교실, 태권도 차량"},
+    {f:"memo", l:"📌 특이사항 (건강·알레르기·주의할 점 등)", wide:true, area:true, ph:"예: 땅콩 알레르기, 안경 착용, 앞자리 배치"}
+  ];
+  let stuUnlocked = false, stuSel = null, stuFilt = "all", stuKindSel = "talk", stuEditRec = null, stuSavedT = null;
+  const stuInfo = sid => { S.stuInfo = S.stuInfo || {}; return S.stuInfo[sid] || {}; };
+  const stuRecs = () => (S.stuNotes = Array.isArray(S.stuNotes) ? S.stuNotes : []);
+  function stuBirthLeft(b){
+    if (!b) return null;
+    const [, m, d] = b.split("-").map(Number), t = new Date(); t.setHours(0,0,0,0);
+    let n = new Date(t.getFullYear(), m-1, d); if (n < t) n = new Date(t.getFullYear() + 1, m-1, d);
+    return Math.round((n - t) / 864e5);
+  }
+  function stuLockSet(on){
+    stuUnlocked = !on;
+    $("#stuLock").hidden = !on; $("#stuBody").hidden = on;
+    if (!on) renderStu();
+  }
+  $("#stuOpen").onclick = () => stuLockSet(false);
+  $("#stuLockBtn").onclick = () => stuLockSet(true);
+  function renderStuList(){
+    const q = $("#stuFind").value.trim(), recs = stuRecs();
+    const list = S.students.map((s, i) => ({s, i})).filter(({s}) => !q || s.name.includes(q));
+    $("#stuList").innerHTML = `<button class="stu-it all${stuSel === "__all" ? " on" : ""}" data-stusel="__all">📒 반 전체 기록 보기 <span class="fl" style="margin-left:auto">${recs.filter(r => mnStu(r.sid)).length}개</span></button>` +
+      (list.length ? list.map(({s, i}) => {
+        const n = recs.filter(r => r.sid === s.id).length, inf = stuInfo(s.id), bl = stuBirthLeft(inf.birth);
+        return `<button class="stu-it${stuSel === s.id ? " on" : ""}" data-stusel="${s.id}"><i>${i+1}</i>${faceHTML(s.id)}<span class="nm">${esc(s.name)}</span><span class="fl">${bl === 0 ? "🎂" : ""}${inf.memo ? "📌" : ""}${n ? `📒${n}` : ""}</span></button>`;
+      }).join("") : `<div class="stu-empty">찾는 친구가 없어요</div>`);
+  }
+  function stuRecHTML(r, withName){
+    const k = stuKind(r.kind);
+    return `<div class="stu-rec${stuEditRec === r.id ? " editing" : ""}" style="--kc:${k.c}"><div class="rt"><span class="stu-tag">${k.e} ${k.l}</span>${withName ? `<span class="who">${mnNum(r.sid)}. ${esc(mnName(r.sid))}</span>` : ""}<span>${r.d ? sLabel(r.d) : ""}${r.d && r.d.slice(0,4) !== String(new Date().getFullYear()) ? " " + r.d.slice(0,4) : ""}</span>
+      <span class="ops"><button data-stuedit="${r.id}" title="고치기">✏️</button><button data-studel="${r.id}" title="지우기">🗑️</button></span></div><div class="tx">${esc(r.text)}</div></div>`;
+  }
+  const stuSortRecs = l => [...l].sort((a, b) => (b.d || "").localeCompare(a.d || "") || b.t - a.t);
+  function stuFiltHTML(list){
+    return `<div class="stu-filt"><button class="${stuFilt === "all" ? "on" : ""}" data-stufilt="all">전체 ${list.length}</button>${STU_KINDS.map(k => { const n = list.filter(r => stuKind(r.kind).k === k.k).length; return n ? `<button class="${stuFilt === k.k ? "on" : ""}" style="--kc:${k.c}" data-stufilt="${k.k}">${k.e} ${k.l} ${n}</button>` : ""; }).join("")}</div>`;
+  }
+  function renderStu(){
+    if (!stuUnlocked) return;
+    if (stuSel !== "__all" && !mnStu(stuSel)) stuSel = S.students[0] ? S.students[0].id : null;
+    renderStuList();
+    const recs = stuRecs();
+    if (stuSel === "__all"){
+      const all = stuSortRecs(recs.filter(r => mnStu(r.sid))), shown = all.filter(r => stuFilt === "all" || stuKind(r.kind).k === stuFilt);
+      $("#stuMain").innerHTML = `<div class="stu-hd"><span class="fc">📒</span><h3>반 전체 기록</h3></div>
+        <div class="mn-note" style="margin:0 0 6px">모든 친구의 상담·관찰 기록을 날짜순으로 모아 봐요. 생활기록부 쓸 때 참고하세요.</div>
+        ${stuFiltHTML(all)}<div class="stu-recs">${shown.length ? shown.map(r => stuRecHTML(r, true)).join("") : `<div class="stu-empty">아직 기록이 없어요. 왼쪽에서 친구를 골라 기록을 남겨 보세요.</div>`}</div>`;
+      return;
+    }
+    const s = mnStu(stuSel);
+    if (!s) { $("#stuMain").innerHTML = `<div class="stu-empty">⚙️ 설정에서 학생 명단을 먼저 넣어 주세요.</div>`; return; }
+    const i = mnNum(s.id), inf = stuInfo(s.id), mine = stuSortRecs(recs.filter(r => r.sid === s.id));
+    const shown = mine.filter(r => stuFilt === "all" || stuKind(r.kind).k === stuFilt);
+    const openSubs = (S.subs || []).filter(x => !x.closed && !subGot(x, s.id)), pend = (S.tasks || []).filter(k => k.sid === s.id && !k.done).length;
+    const bl = stuBirthLeft(inf.birth), ed = stuEditRec ? recs.find(r => r.id === stuEditRec && r.sid === s.id) : null;
+    if (!ed) stuEditRec = null;
+    const kSel = stuKindSel;
+    $("#stuMain").innerHTML = `
+      <div class="stu-hd"><span class="fc">${faceHTML(s.id)}</span><h3><small>${i}번</small>${esc(s.name)}</h3>
+        <div class="stu-nav"><button class="btn" data-stumove="-1" ${i <= 1 ? "disabled" : ""}>◀ 앞 번호</button><button class="btn" data-stumove="1" ${i >= S.students.length ? "disabled" : ""}>뒤 번호 ▶</button></div></div>
+      <div class="stu-chips">
+        <div class="${cnt(s.id) ? "warn" : ""}"><b>${cnt(s.id)}</b>회 ✋ 이번 기간 손들기 약속</div>
+        <div><b>${prN(s.id) + stampN(s.id)}</b>개 💮 칭찬 도장</div>
+        <div class="${openSubs.length ? "warn" : ""}" title="${esc(openSubs.map(x => x.title).join(", "))}"><b>${openSubs.length}</b>개 📝 안 낸 자료</div>
+        <div class="${pend ? "warn" : ""}"><b>${pend}</b>개 🧹 밀린 할 일</div>
+        ${bl !== null ? `<div class="bd">${bl === 0 ? "🎂 오늘 생일이에요!" : `🎂 생일까지 <b>${bl}</b>일`}</div>` : ""}
+      </div>
+      <div class="stu-h">🗂️ 기본 정보 <small>적으면 바로 저장돼요 · 이 컴퓨터에만 저장돼요</small><span class="stu-saved" id="stuSaved"></span></div>
+      <div class="stu-form">${STU_FIELDS.map(x => `<label class="${x.wide ? "wide" : ""}">${x.l}${x.area
+        ? `<textarea data-sf="${x.f}" maxlength="1000" placeholder="${esc(x.ph || "")}">${esc(inf[x.f] || "")}</textarea>`
+        : `<input data-sf="${x.f}" type="${x.type || "text"}" maxlength="80" placeholder="${esc(x.ph || "")}" value="${esc(inf[x.f] || "")}">`}</label>`).join("")}</div>
+      <div class="stu-h">📒 상담·관찰 기록 <small>날짜별로 차곡차곡 · 생활기록부 쓸 때 도움이 돼요</small></div>
+      <div class="stu-add">
+        <div class="row"><input type="date" id="stuRecD" value="${ed ? ed.d : sKey(Date.now())}">
+          <div class="stu-kinds">${STU_KINDS.map(k => `<button class="${kSel === k.k ? "on" : ""}" style="--kc:${k.c}" data-stukind="${k.k}">${k.e} ${k.l}</button>`).join("")}</div></div>
+        <textarea id="stuRecT" maxlength="2000" placeholder="예: 쉬는 시간에 친구와 다툼이 있어 이야기를 나눔. 먼저 사과하겠다고 함.">${ed ? esc(ed.text) : ""}</textarea>
+        <div class="row" style="justify-content:flex-end">${ed ? `<button class="btn" data-stucancel>취소</button>` : ""}<button class="btn primary" id="stuRecAdd">${ed ? "✅ 고친 내용 저장" : "➕ 기록 남기기"}</button></div>
+      </div>
+      ${mine.length ? stuFiltHTML(mine) : ""}
+      <div class="stu-recs" style="margin-top:${mine.length ? 0 : 10}px">${shown.length ? shown.map(r => stuRecHTML(r, false)).join("") : `<div class="stu-empty">아직 기록이 없어요.</div>`}</div>`;
+  }
+  $("#stuFind").addEventListener("input", renderStuList);
+  $("#viewStu").addEventListener("input", e => {
+    const f = e.target.dataset.sf; if (!f || !mnStu(stuSel)) return;
+    S.stuInfo = S.stuInfo || {}; const o = S.stuInfo[stuSel] = S.stuInfo[stuSel] || {};
+    const v = e.target.value.trim(); if (v) o[f] = v; else delete o[f];
+    if (!Object.keys(o).length) delete S.stuInfo[stuSel];
+    save(); renderStuList();
+    const sv = $("#stuSaved"); if (sv) { sv.textContent = "✓ 저장했어요"; clearTimeout(stuSavedT); stuSavedT = setTimeout(() => { const x = $("#stuSaved"); if (x) x.textContent = ""; }, 1500); }
+  });
+  $("#viewStu").addEventListener("change", e => { if (e.target.dataset.sf === "birth" && stuUnlocked) renderStu(); });
+  $("#viewStu").addEventListener("click", e => {
+    const t = e.target.closest("[data-stusel],[data-stumove],[data-stukind],[data-stufilt],[data-stuedit],[data-studel],[data-stucancel],#stuRecAdd"); if (!t) return;
+    const keepTxt = () => { const ta = $("#stuRecT"), d = $("#stuRecD"); return ta ? {tx: ta.value, d: d && d.value} : null; };
+    if (t.dataset.stusel) { stuSel = t.dataset.stusel; stuFilt = "all"; stuEditRec = null; renderStu(); return; }
+    if (t.dataset.stumove) { const i = mnNum(stuSel) - 1 + Number(t.dataset.stumove), s = S.students[i]; if (s) { stuSel = s.id; stuFilt = "all"; stuEditRec = null; renderStu(); } return; }
+    if (t.dataset.stufilt) { const k = keepTxt(); stuFilt = t.dataset.stufilt; renderStu(); if (k) { $("#stuRecT").value = k.tx; if (k.d) $("#stuRecD").value = k.d; } return; }
+    if (t.dataset.stukind) { stuKindSel = t.dataset.stukind; document.querySelectorAll("#viewStu [data-stukind]").forEach(b => b.classList.toggle("on", b.dataset.stukind === stuKindSel)); return; }
+    if (t.dataset.stucancel !== undefined) { stuEditRec = null; renderStu(); return; }
+    if (t.dataset.stuedit) { const r = stuRecs().find(x => x.id === t.dataset.stuedit); if (!r) return; if (stuSel === "__all") stuSel = r.sid; stuEditRec = r.id; stuKindSel = stuKind(r.kind).k; renderStu(); const ta = $("#stuRecT"); if (ta) { ta.focus(); ta.scrollIntoView({block: "center", behavior: "smooth"}); } return; }
+    if (t.dataset.studel) { const r = stuRecs().find(x => x.id === t.dataset.studel); if (!r) return; if (!confirm(`${mnName(r.sid)} · ${sLabel(r.d)} ${stuKind(r.kind).l} 기록을 지울까요?`)) return;
+      S.stuNotes = stuRecs().filter(x => x.id !== r.id); if (stuEditRec === r.id) stuEditRec = null; save(); renderStu(); toast("기록을 지웠어요", false); return; }
+    if (t.id === "stuRecAdd") {
+      const text = $("#stuRecT").value.trim(), d = $("#stuRecD").value || sKey(Date.now());
+      if (!text) { $("#stuRecT").focus(); toast("기록할 내용을 적어 주세요", false); return; }
+      if (stuEditRec) { const r = stuRecs().find(x => x.id === stuEditRec); if (r) { Object.assign(r, {text, d, kind: stuKindSel}); } stuEditRec = null; toast("고쳤어요", false); }
+      else { stuRecs().push({id: uid(), sid: stuSel, d, kind: stuKindSel, text, t: Date.now()}); toast(`📒 ${mnName(stuSel)} ${stuKind(stuKindSel).l} 기록을 남겼어요`, false); }
+      save(); renderStu();
+    }
+  });
+  function stuCsv(rows, tag){
+    const csv = "﻿" + rows.map(r => r.map(v => `"${String(v ?? "").replace(/"/g,'""')}"`).join(",")).join("\r\n");
+    const a = document.createElement("a"), d = new Date();
+    a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv;charset=utf-8"}));
+    a.download = `${S.className || "우리반"}_${tag}_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}.csv`;
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+  $("#stuCsvInfo").onclick = () => {
+    const rows = [["번호", "이름", ...STU_FIELDS.map(x => x.l.replace(/^\S+\s/, "")), "기록 수"]];
+    S.students.forEach((s, i) => { const inf = stuInfo(s.id); rows.push([i+1, s.name, ...STU_FIELDS.map(x => inf[x.f] || ""), stuRecs().filter(r => r.sid === s.id).length]); });
+    stuCsv(rows, "학생명단");
+  };
+  $("#stuCsvRec").onclick = () => {
+    const l = [...stuRecs()].filter(r => mnStu(r.sid)).sort((a, b) => (mnNum(a.sid) - mnNum(b.sid)) || (a.d || "").localeCompare(b.d || ""));
+    if (!l.length) { toast("저장할 기록이 없어요", false); return; }
+    stuCsv([["번호", "이름", "날짜", "종류", "내용"], ...l.map(r => [mnNum(r.sid), mnName(r.sid), r.d, stuKind(r.kind).l, r.text])], "상담관찰기록");
   };
 
   /* ---------- ⭐ 칭찬도장 tab ---------- */
