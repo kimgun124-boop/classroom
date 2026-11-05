@@ -2155,6 +2155,67 @@
   @media (max-width:820px){ .stu-layout{grid-template-columns:1fr} .stu-list{max-height:240px} }
   body.arcade #viewMani .sec-title,body.arcade #viewStu .sec-title{color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.25)}
   body.arcade #viewMani .sec-title small,body.arcade #viewStu .sec-title small,body.arcade #viewMani .mn-note{color:#d6ebff;text-shadow:none}
+  /* ===================== 🪜 사다리타기 ===================== */
+  #ldOv{position:fixed;inset:0;z-index:85;display:none;flex-direction:column;background:linear-gradient(180deg,#fff8e8,#fdeed6);color:var(--ink)}
+  #ldOv.open{display:flex}
+  .ld-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 18px;background:#fff;border-bottom:3px solid #f1dcb6}
+  .ld-top h2{font-family:"Jua";font-weight:400;font-size:28px;margin:0}
+  .ld-top .meta{font-size:14px;color:var(--ink-soft)}
+  .ld-top .sp{flex:1}
+  .ld-top .btn{padding:8px 13px}
+  .ld-x{background:none;border:0;font-size:32px;line-height:1;cursor:pointer;color:var(--ink-soft);padding:0 6px}
+  .ld-body{flex:1;min-height:0;display:flex;overflow:auto}
+  /* 설정 */
+  .ld-setup{margin:auto;width:min(1100px,94vw);display:grid;grid-template-columns:1.25fr 1fr;gap:16px;padding:20px 0}
+  .ld-card{background:#fff;border:2px solid #f1dcb6;border-radius:22px;padding:16px 18px}
+  .ld-card h3{font-family:"Jua";font-weight:400;font-size:22px;margin:0 0 4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .ld-card h3 small{font-family:"Gowun Dodum";font-size:13px;color:var(--ink-soft)}
+  .ld-card .sub{font-size:13px;color:var(--ink-soft);margin-bottom:8px}
+  .ld-people{display:flex;flex-wrap:wrap;gap:6px;max-height:46vh;overflow:auto;padding:2px}
+  .ld-people button{display:inline-flex;align-items:center;gap:4px;font-family:"Jua";font-size:17px;background:#fff7e8;border:2px solid #f3cf8e;color:#7a4b00;border-radius:999px;padding:4px 12px 4px 6px;cursor:pointer}
+  .ld-people button.off{background:#f4f1ec;border-color:#e3dcd2;color:#a39a8f;text-decoration:line-through;filter:grayscale(1)}
+  .ld-people button .face{font-size:18px}
+  .ld-mini{display:flex;gap:6px;margin:8px 0 0;flex-wrap:wrap}
+  .ld-mini .btn{padding:4px 10px;font-size:13px}
+  .ld-seg{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .ld-seg button{font-family:"Jua";font-size:16px;border:2px solid #f1dcb6;background:#fff;border-radius:999px;padding:5px 13px;cursor:pointer;color:var(--ink-soft)}
+  .ld-seg button.on{background:#ff9a3c;border-color:#ff9a3c;color:#fff}
+  .ld-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:15px;margin:6px 0}
+  .ld-row input[type=number]{width:70px;font-family:"Jua";font-size:18px;border:2px solid var(--line);border-radius:10px;padding:4px 8px;text-align:center}
+  .ld-row input[type=text]{flex:1;min-width:120px;font-family:inherit;font-size:15px;border:2px solid var(--line);border-radius:10px;padding:6px 9px}
+  .ld-card textarea{width:100%;min-height:150px;font-family:inherit;font-size:15px;border:2px solid var(--line);border-radius:12px;padding:8px 10px;resize:vertical}
+  .ld-prev{font-size:13px;color:var(--ink-soft);margin-top:6px;line-height:1.5}
+  .ld-prev b{color:#c2562a}
+  .ld-go{grid-column:1/-1;display:flex;justify-content:center}
+  .ld-go .btn{font-family:"Jua";font-size:24px;padding:12px 34px;border-radius:999px;background:linear-gradient(180deg,#ffb35c,#ff8a2a);border:0;color:#fff;box-shadow:0 5px 0 #d0651a}
+  /* 사다리 */
+  .ld-game{flex:1;display:flex;flex-direction:column;padding:10px 2vw 14px;min-width:0}
+  .ld-cols{display:grid;gap:0}
+  .ld-name{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;cursor:pointer;font-family:"Jua";color:var(--ink);padding:4px 1px;min-width:0;border-radius:12px}
+  .ld-name:hover{background:rgba(255,255,255,.7)}
+  .ld-name .face{font-size:1.5em}
+  .ld-name .nm{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.1}
+  .ld-name.done{opacity:.55}
+  .ld-name.done .nm{text-decoration:underline;text-decoration-color:var(--lc);text-decoration-thickness:3px}
+  .ld-mid{position:relative;flex:1;min-height:200px}
+  .ld-mid canvas{position:absolute;inset:0;width:100%;height:100%}
+  .ld-mk{position:absolute;left:0;top:0;transform:translate(-50%,-50%);pointer-events:none;font-size:30px;filter:drop-shadow(0 3px 4px rgba(0,0,0,.3));display:none}
+  .ld-res{display:flex;align-items:center;justify-content:center;flex-direction:column;margin:0 2px;min-height:64px;border-radius:14px;background:#fff;border:2px solid #f1dcb6;font-family:"Jua";text-align:center;word-break:keep-all;line-height:1.15;padding:4px 2px;overflow:hidden}
+  .ld-res.hide{background:repeating-linear-gradient(45deg,#ffd27a 0 10px,#ffc55a 10px 20px);border-color:#f0aa3a;color:#8a5200}
+  .ld-res.show{animation:mnPop .45s cubic-bezier(.2,1.6,.4,1) both;border-color:var(--lc);box-shadow:0 0 0 3px var(--lc) inset}
+  .ld-res .who{font-size:.72em;color:var(--lc);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .ld-res.win{background:linear-gradient(180deg,#fff6c9,#ffe58a)}
+  .ld-hint{text-align:center;font-size:14px;color:var(--ink-soft);margin-top:8px}
+  .ld-sum{position:absolute;inset:0;z-index:3;display:none;align-items:center;justify-content:center;background:rgba(60,40,10,.45)}
+  .ld-sum.open{display:flex}
+  .ld-sum .in{background:#fff;border-radius:24px;padding:18px 22px;width:min(1100px,92vw);max-height:84vh;overflow:auto;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+  .ld-sum h3{font-family:"Jua";font-weight:400;font-size:28px;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center}
+  .ld-grp{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+  .ld-grp>div{border:2px solid #f1dcb6;border-radius:16px;padding:10px 12px;background:#fffaf0}
+  .ld-grp>div.win{background:linear-gradient(180deg,#fff6c9,#ffeaa0);border-color:#f2c23a}
+  .ld-grp b{font-family:"Jua";font-weight:400;font-size:22px;display:block;margin-bottom:4px;word-break:keep-all}
+  .ld-grp span{display:inline-flex;align-items:center;gap:3px;font-family:"Jua";font-size:18px;margin:2px 8px 2px 0}
+  @media (max-width:820px){ .ld-setup{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
@@ -2446,6 +2507,7 @@
         <button class="btn pickb" id="vbBtn" title="우리 반 친구 얼굴로 하는 배구 게임">🏐 얼굴 배구</button>
         <button class="btn pickb" id="flBtn" title="친구 얼굴로 연필 사이를 날아요 · 혼자 하는 점수 도전, 친구별 최고 기록 랭킹">🐤 얼굴 날기</button>
         <button class="btn pickb" id="ahBtn" title="우리 반 친구 얼굴 말렛으로 하는 1대1 에어하키 (컴퓨터·둘이서)">🏒 에어하키</button>
+        <button class="btn pickb" id="ldBtn" title="친구 이름으로 사다리를 타요 (당첨·순서·모둠·직접 쓰기)">🪜 사다리</button>
         <button class="btn pickb" id="whBtn" title="친구 사진 돌림판을 돌려서 뽑아요">🎡 돌림판</button>
         <button class="btn pickb" id="mbBtn" title="친구 얼굴 구슬을 굴려서 뽑아요 (마블 레이스)">🔮 구슬 뽑기</button>
         <button class="btn pickb" id="pickBtn" title="발표할 친구 뽑기 (모두 한 번씩 뽑힐 때까지 겹치지 않아요)">🎤 발표 뽑기</button>
@@ -2850,6 +2912,17 @@
       </div>
     </div>
   </div>
+</div>
+
+<div id="ldOv" role="dialog" aria-modal="true" aria-label="사다리타기">
+  <div class="ld-top"><h2>🪜 사다리타기</h2><span class="meta" id="ldMeta"></span><span class="sp"></span>
+    <button class="btn" data-ldact="setup" id="ldSetBtn">⚙️ 다시 설정</button>
+    <button class="btn" data-ldact="again" id="ldAgainBtn">🔀 사다리 새로</button>
+    <button class="btn" data-ldact="allrun" id="ldAllBtn">▶ 모두 타기</button>
+    <button class="btn primary" data-ldact="sum" id="ldSumBtn">📋 결과 보기</button>
+    <button class="ld-x" data-ldact="close" aria-label="사다리타기 닫기" title="닫기 (Esc)">×</button></div>
+  <div class="ld-body" id="ldBody" style="position:relative"></div>
+  <div class="ld-sum" id="ldSum"><div class="in" id="ldSumIn"></div></div>
 </div>
 
 <div id="mnOv" role="dialog" aria-modal="true"></div>
@@ -4645,6 +4718,209 @@
     a.download = `${S.className || "우리반"}_자료제출_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}.csv`;
     a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   };
+
+  /* ---------- 🪜 사다리타기 ---------- */
+  const LD_COL = ["#ff6b6b","#4dabf7","#51cf66","#fcc419","#cc5de8","#ff922b","#20c997","#f06595","#5c7cfa","#94d82d","#e8590c","#15aabf","#be4bdb","#fab005","#339af0","#ff8787","#37b24d","#7950f2","#fd7e14","#1098ad"];
+  const ldCfg = () => { S.ladder = Object.assign({out: [], mode: "win", winN: 1, winTxt: "🎉 당첨", loseTxt: "꽝", teams: 4, custom: "", shuffle: true, peek: false}, S.ladder || {}); return S.ladder; };
+  let LG = null, ldAnim = null, ldQueue = [];
+  const ldOv = () => $("#ldOv");
+  const ldTb = on => ["#ldSetBtn","#ldAgainBtn","#ldAllBtn","#ldSumBtn"].forEach(k => $(k).style.display = on ? "" : "none");
+  function ldResults(n){
+    const c = ldCfg(); let r = [], note = "";
+    if (c.mode === "win"){ const w = Math.max(1, Math.min(n, c.winN | 0 || 1)); r = Array.from({length: n}, (_, i) => i < w ? (c.winTxt || "🎉 당첨") : (c.loseTxt || "꽝")); r = mnShuffle(r); }
+    else if (c.mode === "order"){ r = Array.from({length: n}, (_, i) => `${i+1}번`); }
+    else if (c.mode === "team"){ const k = Math.max(2, Math.min(n, c.teams | 0 || 2)); r = mnShuffle(Array.from({length: n}, (_, i) => `${i % k + 1}모둠`)); }
+    else {
+      let l = c.custom.split("\n").map(x => x.trim()).filter(Boolean);
+      if (l.length < n){ note = `결과가 ${n - l.length}개 모자라서 ‘꽝’으로 채웠어요`; while (l.length < n) l.push("꽝"); }
+      else if (l.length > n){ note = `결과가 ${l.length - n}개 많아서 앞에서 ${n}개만 썼어요`; l = l.slice(0, n); }
+      r = c.shuffle ? mnShuffle(l) : l;
+    }
+    return {r, note};
+  }
+  function ldRungs(n){
+    const R = Math.max(10, Math.min(20, n + 6)), rows = Array.from({length: R}, () => new Set()), out = [];
+    for (let r = 0; r < R; r++) for (let c = 0; c < n - 1; c++) if (!rows[r].has(c - 1) && Math.random() < .42) rows[r].add(c);
+    for (let c = 0; c < n - 1; c++){
+      let cntc = rows.filter(s => s.has(c)).length, guard = 0;
+      while (cntc < 2 && guard++ < 60){ const r = mnRand(R); if (!rows[r].has(c) && !rows[r].has(c - 1) && !rows[r].has(c + 1)){ rows[r].add(c); cntc++; } }
+    }
+    rows.forEach((s, r) => s.forEach(c => out.push({c, y: Math.min(.97, Math.max(.03, (r + .5)/R + (Math.random() - .5) * .5 / R))})));
+    return out;
+  }
+  function ldPath(c0){
+    const pts = [[c0, 0]]; let c = c0, y = -1;
+    for (;;){
+      let nx = null; for (const g of LG.rungs) if ((g.c === c || g.c === c - 1) && g.y > y && (!nx || g.y < nx.y)) nx = g;
+      if (!nx) break;
+      pts.push([c, nx.y]); c = nx.c === c ? c + 1 : c - 1; pts.push([c, nx.y]); y = nx.y;
+    }
+    pts.push([c, 1]); return {pts, end: c};
+  }
+  function ldGeo(){
+    const cv = $("#ldCv"), box = cv.parentElement.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    const W = box.width, H = box.height;
+    if (cv.width !== Math.round(W*dpr) || cv.height !== Math.round(H*dpr)){ cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); }
+    const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const n = LG.ppl.length, pad = 10;
+    return {ctx, W, H, X: c => (c + .5) * W / n, Y: y => pad + y * (H - 2*pad), lw: Math.max(3, Math.min(7, W / n / 10))};
+  }
+  function ldStroke(ctx, P, k, col, lw){   // k: 0~1 만큼만 그리기
+    const seg = []; let tot = 0; for (let i = 1; i < P.length; i++){ const d = Math.hypot(P[i][0]-P[i-1][0], P[i][1]-P[i-1][1]); seg.push(d); tot += d; }
+    let left = tot * k; ctx.beginPath(); ctx.moveTo(P[0][0], P[0][1]); let head = P[0];
+    for (let i = 1; i < P.length && left > 0; i++){ const d = seg[i-1], f = Math.min(1, left / (d || 1)); head = [P[i-1][0] + (P[i][0]-P[i-1][0])*f, P[i-1][1] + (P[i][1]-P[i-1][1])*f]; ctx.lineTo(head[0], head[1]); left -= d; }
+    ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.stroke();
+    return {head, tot};
+  }
+  function ldDraw(){
+    if (!LG || !$("#ldCv")) return null;
+    const g = ldGeo(), {ctx, W, H, X, Y, lw} = g, n = LG.ppl.length;
+    ctx.clearRect(0, 0, W, H);
+    ctx.strokeStyle = "#c79d62"; ctx.lineWidth = lw; ctx.lineCap = "round";
+    for (let c = 0; c < n; c++){ ctx.beginPath(); ctx.moveTo(X(c), Y(0)); ctx.lineTo(X(c), Y(1)); ctx.stroke(); }
+    LG.rungs.forEach(r => { ctx.beginPath(); ctx.moveTo(X(r.c), Y(r.y)); ctx.lineTo(X(r.c + 1), Y(r.y)); ctx.stroke(); });
+    Object.keys(LG.done).forEach(c => { if (ldAnim && ldAnim.c === +c) return; const p = ldPath(+c).pts.map(([a, b]) => [X(a), Y(b)]); ctx.globalAlpha = .85; ldStroke(ctx, p, 1, LG.col[c], lw * 1.5); ctx.globalAlpha = 1; });
+    return g;
+  }
+  function ldRenderCols(){
+    const n = LG.ppl.length, w = ($("#ldGame").clientWidth || innerWidth) / n, fs = Math.max(11, Math.min(24, w * .27));
+    const tpl = `repeat(${n}, minmax(0,1fr))`;
+    $("#ldNames").style.gridTemplateColumns = tpl; $("#ldRes").style.gridTemplateColumns = tpl;
+    $("#ldNames").style.fontSize = fs + "px"; $("#ldRes").style.fontSize = fs + "px";
+    const owner = {}; Object.entries(LG.done).forEach(([c, e]) => owner[e] = +c);
+    $("#ldNames").innerHTML = LG.ppl.map((p, c) => `<button class="ld-name${LG.done[c] !== undefined ? " done" : ""}" data-ldc="${c}" style="--lc:${LG.col[c]}" title="${esc(p.name)}">${p.sid ? faceHTML(p.sid) : `<span class="face">🙂</span>`}<span class="nm">${esc(p.name)}</span></button>`).join("");
+    $("#ldRes").innerHTML = LG.res.map((t, j) => { const o = owner[j], shown = o !== undefined || LG.peek;
+      return `<div class="ld-res${shown ? "" : " hide"}${o !== undefined ? " show" : ""}${o !== undefined && LG.win && t === LG.win ? " win" : ""}" style="--lc:${o !== undefined ? LG.col[o] : "#f1dcb6"}" data-ldr="${j}">${shown ? esc(t) : "❓"}${o !== undefined ? `<span class="who">${esc(LG.ppl[o].name)}</span>` : ""}</div>`; }).join("");
+    const left = n - Object.keys(LG.done).length;
+    $("#ldMeta").textContent = `${n}명 · ${left ? `아직 ${left}명 남았어요` : "모두 탔어요!"}`;
+  }
+  function ldTick(){
+    if (!S.sound) return;
+    try{ const C = getAC(), t = C.currentTime, o = C.createOscillator(), g = C.createGain(); o.type = "square"; o.frequency.setValueAtTime(880 + mnRand(300), t); g.gain.setValueAtTime(.04, t); g.gain.exponentialRampToValueAtTime(.0001, t + .05); o.connect(g).connect(C.destination); o.start(t); o.stop(t + .06); }catch(e){}
+  }
+  function ldRun(c, fast){
+    if (!LG || ldAnim) return;
+    const {pts, end} = ldPath(c), col = LG.col[c], mk = $("#ldMk");
+    mk.innerHTML = LG.ppl[c].sid ? faceHTML(LG.ppl[c].sid) : "🙂"; mk.style.display = "block";
+    const turns = pts.length; let lastTurn = 0, t0 = null;
+    ldAnim = {c};
+    const g0 = ldDraw(), P = pts.map(([a, b]) => [g0.X(a), g0.Y(b)]);
+    let tot = 0; for (let i = 1; i < P.length; i++) tot += Math.hypot(P[i][0]-P[i-1][0], P[i][1]-P[i-1][1]);
+    const dur = matchMedia("(prefers-reduced-motion: reduce)").matches ? 10 : Math.min(fast ? 1600 : 4200, Math.max(fast ? 900 : 2000, tot / (fast ? 1.1 : .55)));
+    const step = now => {
+      if (!LG || !ldAnim || !ldOv().classList.contains("open")) { ldAnim = null; mk.style.display = "none"; return; }
+      if (t0 === null) t0 = now;
+      const k = Math.min(1, (now - t0) / dur), e2 = k < .5 ? 2*k*k : 1 - Math.pow(-2*k + 2, 2)/2;
+      const g = ldDraw(), Pn = pts.map(([a, b]) => [g.X(a), g.Y(b)]);
+      g.ctx.save(); g.ctx.shadowColor = col; g.ctx.shadowBlur = 12;
+      const {head} = ldStroke(g.ctx, Pn, e2, col, g.lw * 1.8); g.ctx.restore();
+      mk.style.left = head[0] + "px"; mk.style.top = head[1] + "px";
+      // 꺾일 때 틱 소리
+      let totN = 0; const cum = [0]; for (let i = 1; i < Pn.length; i++){ totN += Math.hypot(Pn[i][0]-Pn[i-1][0], Pn[i][1]-Pn[i-1][1]); cum.push(totN); }
+      let idx = 0; for (let i = 1; i < cum.length; i++) if (cum[i] <= e2 * totN + .5) idx = i;
+      if (idx > lastTurn && idx < turns - 1){ lastTurn = idx; ldTick(); }
+      if (k < 1) { requestAnimationFrame(step); return; }
+      mk.style.display = "none"; ldAnim = null;
+      LG.done[c] = end; ldDraw(); ldRenderCols();
+      const t = LG.res[end], win = LG.win && t === LG.win;
+      if (win) { fanfare(); mnBurst(30); } else beep(true);
+      toast(`${LG.ppl[c].name} → ${t}`, false);
+      if (ldQueue.length) setTimeout(() => { const nx = ldQueue.shift(); if (nx !== undefined && LG && LG.done[nx] === undefined) ldRun(nx, true); else if (ldQueue.length) ldRun(ldQueue.shift(), true); }, 250);
+      else if (Object.keys(LG.done).length === LG.ppl.length) setTimeout(() => { if (LG && !ldAnim) ldSummary(); }, 900);
+    };
+    requestAnimationFrame(step);
+  }
+  function ldSummary(){
+    if (!LG) return;
+    const groups = new Map(); LG.ppl.forEach((p, c) => { if (LG.done[c] === undefined) return; const t = LG.res[LG.done[c]]; if (!groups.has(t)) groups.set(t, []); groups.get(t).push({p, c}); });
+    let keys = [...groups.keys()];
+    const numOf = t => { const m = /^(\d+)/.exec(t); return m ? +m[1] : null; };
+    if (keys.every(k => numOf(k) !== null)) keys.sort((a, b) => numOf(a) - numOf(b));
+    else if (LG.win) keys.sort((a, b) => (b === LG.win) - (a === LG.win));
+    $("#ldSumIn").innerHTML = `<h3><span>📋 사다리 결과</span><button class="ld-x" data-ldact="sumclose" aria-label="닫기">×</button></h3>
+      ${keys.length ? `<div class="ld-grp">${keys.map(k => `<div class="${LG.win && k === LG.win ? "win" : ""}"><b>${esc(k)} <small style="font-family:'Gowun Dodum';font-size:14px;color:var(--ink-soft)">${groups.get(k).length}명</small></b>${groups.get(k).map(({p, c}) => `<span style="color:${LG.col[c]}">${p.sid ? faceHTML(p.sid) : ""}${esc(p.name)}</span>`).join("")}</div>`).join("")}</div>` : `<div class="stu-empty">아직 아무도 사다리를 안 탔어요</div>`}`;
+    $("#ldSum").classList.add("open");
+  }
+  function ldStart(){
+    const c = ldCfg(), out = new Set(c.out), ppl = S.students.filter(s => !out.has(s.id)).map(s => ({sid: s.id, name: s.name}));
+    if (ppl.length < 2) { toast("2명 이상 골라 주세요", false); return; }
+    const {r, note} = ldResults(ppl.length);
+    LG = {ppl, res: r, rungs: ldRungs(ppl.length), done: {}, col: ppl.map((_, i) => LD_COL[i % LD_COL.length]), peek: !!c.peek, win: c.mode === "win" ? (c.winTxt || "🎉 당첨") : null};
+    ldQueue = []; ldAnim = null;
+    $("#ldBody").innerHTML = `<div class="ld-game" id="ldGame">
+        <div class="ld-cols" id="ldNames"></div>
+        <div class="ld-mid"><canvas id="ldCv"></canvas><div class="ld-mk" id="ldMk"></div></div>
+        <div class="ld-cols" id="ldRes"></div>
+        <div class="ld-hint">위에서 친구 이름을 누르면 사다리를 타요 · 스페이스바 = 다음 친구 · Esc 닫기</div>
+      </div>`;
+    ldTb(true);
+    ldRenderCols(); requestAnimationFrame(() => { ldDraw(); });
+    if (note) toast(note, false);
+  }
+  function ldSetup(){
+    const c = ldCfg(), out = new Set(c.out);
+    LG = null; ldQueue = []; ldAnim = null; ldTb(false); $("#ldSum").classList.remove("open");
+    const n = S.students.filter(s => !out.has(s.id)).length;
+    $("#ldMeta").textContent = `${n}명 함께해요`;
+    $("#ldBody").innerHTML = `<div class="ld-setup">
+      <div class="ld-card"><h3>🙋 누가 탈까요? <small>이름을 누르면 빼요 / 넣어요</small></h3>
+        <div class="ld-people">${S.students.map((s, i) => `<button data-ldp="${s.id}" class="${out.has(s.id) ? "off" : ""}">${faceHTML(s.id)}${i+1}. ${esc(s.name)}</button>`).join("")}</div>
+        <div class="ld-mini"><button class="btn" data-ldact="all">모두 넣기</button><button class="btn" data-ldact="none">모두 빼기</button><span style="font-size:13px;color:var(--ink-soft);align-self:center">지금 <b style="color:#c2562a">${n}명</b></span></div></div>
+      <div class="ld-card"><h3>🎯 아래 결과</h3>
+        <div class="ld-seg">${[["win","🎉 당첨 뽑기"],["order","🔢 순서 정하기"],["team","👥 모둠 나누기"],["custom","✏️ 직접 쓰기"]].map(([k, l]) => `<button data-ldmode="${k}" class="${c.mode === k ? "on" : ""}">${l}</button>`).join("")}</div>
+        ${c.mode === "win" ? `<div class="ld-row">당첨 <input type="number" min="1" max="${Math.max(1, n)}" data-ldf="winN" value="${c.winN}"> 명</div>
+          <div class="ld-row">당첨 글자 <input type="text" maxlength="20" data-ldf="winTxt" value="${esc(c.winTxt)}"></div>
+          <div class="ld-row">나머지 글자 <input type="text" maxlength="20" data-ldf="loseTxt" value="${esc(c.loseTxt)}"></div>`
+        : c.mode === "order" ? `<div class="sub">아래에 1번 ~ ${n}번이 생겨요. 발표·급식·줄 서기 순서 정할 때 좋아요.</div>`
+        : c.mode === "team" ? `<div class="ld-row"><input type="number" min="2" max="${Math.max(2, n)}" data-ldf="teams" value="${c.teams}"> 모둠으로 고르게 나눠요</div><div class="sub">${n}명 → 모둠마다 ${Math.floor(n / Math.max(2, c.teams))}~${Math.ceil(n / Math.max(2, c.teams))}명</div>`
+        : `<div class="sub">한 줄에 하나씩 적어요 (예: 청소 구역, 1인 1역, 간식). 모자라면 ‘꽝’으로 채워요.</div>
+          <textarea data-ldf="custom" placeholder="교실 바닥 쓸기&#10;칠판 지우기&#10;분리수거&#10;창틀 닦기">${esc(c.custom)}</textarea>
+          <div class="ld-row"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-ldf="shuffle" ${c.shuffle ? "checked" : ""}> 결과 자리 섞기</label></div>
+          <div class="ld-prev" id="ldPrev"></div>`}
+        <div class="ld-row" style="margin-top:12px"><label style="display:flex;gap:6px;align-items:center"><input type="checkbox" data-ldf="peek" ${c.peek ? "checked" : ""}> 아래 결과를 처음부터 보여 주기 <small style="color:var(--ink-soft)">(끄면 ❓로 가려져요)</small></label></div>
+      </div>
+      <div class="ld-go"><button class="btn" data-ldact="start">🪜 사다리 만들기!</button></div>
+    </div>`;
+    ldPrev();
+  }
+  function ldPrev(){
+    const el = $("#ldPrev"); if (!el) return; const c = ldCfg(), n = S.students.filter(s => !c.out.includes(s.id)).length, l = c.custom.split("\n").map(x => x.trim()).filter(Boolean);
+    el.innerHTML = `결과 <b>${l.length}개</b> / 친구 <b>${n}명</b> ${l.length === n ? "✅ 딱 맞아요" : l.length < n ? `→ 모자란 ${n - l.length}개는 ‘꽝’` : `→ 앞에서 ${n}개만 써요`}`;
+  }
+  function ldOpen(){ ldOv().classList.add("open"); ldSetup(); }
+  function ldClose(){ ldOv().classList.remove("open"); LG = null; ldAnim = null; ldQueue = []; $("#ldBody").innerHTML = ""; }
+  $("#ldBtn").onclick = ldOpen;
+  ldOv().addEventListener("click", e => {
+    const t = e.target.closest("[data-ldact],[data-ldp],[data-ldmode],[data-ldc]");
+    if (!t) { if (e.target.id === "ldSum") $("#ldSum").classList.remove("open"); return; }
+    const c = ldCfg();
+    if (t.dataset.ldp) { const id = t.dataset.ldp, i = c.out.indexOf(id); if (i >= 0) c.out.splice(i, 1); else c.out.push(id); save(); ldSetup(); return; }
+    if (t.dataset.ldmode) { c.mode = t.dataset.ldmode; save(); ldSetup(); return; }
+    if (t.dataset.ldc !== undefined) { const k = +t.dataset.ldc; if (!ldAnim) { ldQueue = []; ldRun(k, false); } return; }
+    const a = t.dataset.ldact;
+    if (a === "close") ldClose();
+    else if (a === "all") { c.out = []; save(); ldSetup(); }
+    else if (a === "none") { c.out = S.students.map(s => s.id); save(); ldSetup(); }
+    else if (a === "start") ldStart();
+    else if (a === "setup") ldSetup();
+    else if (a === "again" && LG) { if (Object.keys(LG.done).length && !confirm("사다리를 새로 만들까요? 지금 결과는 지워져요.")) return; ldStart(); }
+    else if (a === "allrun" && LG && !ldAnim) { ldQueue = LG.ppl.map((_, i) => i).filter(i => LG.done[i] === undefined); if (ldQueue.length) ldRun(ldQueue.shift(), true); else ldSummary(); }
+    else if (a === "sum" && LG) ldSummary();
+    else if (a === "sumclose") $("#ldSum").classList.remove("open");
+  });
+  ldOv().addEventListener("input", e => {
+    const f = e.target.dataset.ldf; if (!f) return; const c = ldCfg();
+    c[f] = e.target.type === "checkbox" ? e.target.checked : e.target.type === "number" ? (parseInt(e.target.value, 10) || 1) : e.target.value;
+    save(); if (f === "custom") ldPrev();
+    if (f === "teams") { const n = S.students.filter(s => !c.out.includes(s.id)).length, k = Math.max(2, c.teams), sub = e.target.closest(".ld-card").querySelector(".sub"); if (sub) sub.textContent = `${n}명 → 모둠마다 ${Math.floor(n / k)}~${Math.ceil(n / k)}명`; }
+  });
+  document.addEventListener("keydown", e => {
+    if (!ldOv().classList.contains("open") || mnOv().classList.contains("open")) return;
+    if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); if ($("#ldSum").classList.contains("open")) $("#ldSum").classList.remove("open"); else ldClose(); return; }
+    if (/^(INPUT|TEXTAREA)$/.test((e.target.tagName || ""))) return;
+    if ((e.key === " " || e.key === "Enter") && LG) { e.preventDefault(); e.stopPropagation(); if (ldAnim) return; const nx = LG.ppl.findIndex((_, i) => LG.done[i] === undefined); if (nx >= 0) ldRun(nx, false); else ldSummary(); }
+  }, true);
+  window.addEventListener("resize", () => { if (LG && ldOv().classList.contains("open")) { ldRenderCols(); if (!ldAnim) ldDraw(); } });
 
   /* ---------- 🎁 마니또 tab ---------- */
   const MN_MISSIONS = [
