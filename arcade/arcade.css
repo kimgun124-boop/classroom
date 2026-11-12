@@ -1,0 +1,188 @@
+/* ===================== 🕹️ 우리반 오락실 ===================== */
+body.arc-body{
+  margin:0; min-height:100vh; color:#f3f0ff; font-family:"Jua","Gowun Dodum",system-ui,sans-serif;
+  background:radial-gradient(circle at 20% 0%, #3b1d75 0, transparent 45%), radial-gradient(circle at 90% 100%, #0b3d6e 0, transparent 50%), #140f2e !important;
+  background-attachment:fixed; overscroll-behavior:none; -webkit-user-select:none; user-select:none;
+}
+.arc-body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.35;
+  background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:40px 40px}
+.arc-body input,.arc-body textarea{-webkit-user-select:text;user-select:text}
+.arc-scr{position:relative;min-height:100vh;padding:24px 18px 60px;box-sizing:border-box}
+.arc-logo{font-size:clamp(34px,6vw,64px);margin:0;text-align:center;letter-spacing:1px}
+.arc-logo .e{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;filter:drop-shadow(0 0 10px rgba(218,119,242,.6))}
+.arc-logo .g{background:linear-gradient(90deg,#ffe066,#ff8787,#da77f2,#74c0fc,#69db7c,#ffe066);background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 12px rgba(218,119,242,.55));animation:arcRain 6s linear infinite}
+.arc-logo.sm{font-size:clamp(22px,3.4vw,36px)}
+@keyframes arcRain{to{background-position:300% 0}}
+.arc-sub{text-align:center;color:#c5b8ff;font-size:20px;margin:6px 0 20px}
+.arc-small{color:#b9b0dd;font-size:14px;line-height:1.5}
+.arc-card{position:relative;background:linear-gradient(180deg,#26205a,#1b1642);border:2px solid #5f4bd8;border-radius:24px;padding:22px 24px;box-shadow:0 0 0 4px rgba(95,75,216,.18),0 20px 60px rgba(0,0,0,.5);max-width:520px;margin:0 auto}
+.arc-card.arc-wide{max-width:860px}
+.arc-card h2{margin:0 0 12px;font-size:28px;color:#ffe066}
+.arc-f{display:block;margin:14px 0;font-size:18px;color:#e5dbff}
+.arc-f[hidden]{display:none}
+.arc-f small{display:block;color:#a79fd0;font-size:13px;margin:2px 0 6px}
+.arc-f input,.arc-f textarea,.arc-kids input,.arc-link input{width:100%;box-sizing:border-box;background:#120e2c;color:#fff;border:2px solid #4c3fb0;border-radius:12px;padding:10px 12px;font:16px "Gowun Dodum",sans-serif}
+.arc-f textarea{resize:vertical}
+.arc-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;justify-content:center}
+.arc-row.col{flex-direction:column;align-items:stretch}
+.arc-btn{background:#2f2770;color:#fff;border:2px solid #6c5ce7;border-radius:14px;padding:10px 16px;font:18px "Jua",sans-serif;cursor:pointer;transition:transform .1s, box-shadow .2s}
+.arc-btn:hover{box-shadow:0 0 14px rgba(140,120,255,.6)} .arc-btn:active{transform:scale(.96)}
+.arc-btn.p{background:linear-gradient(180deg,#ff6bb5,#d6336c);border-color:#ffa8d0;box-shadow:0 4px 0 #8f1d47}
+.arc-btn.big{font-size:22px;padding:16px;text-align:left}
+.arc-btn.big small{display:block;font:14px "Gowun Dodum",sans-serif;opacity:.85;margin-top:2px}
+.arc-btn.sm{font-size:14px;padding:5px 9px;border-radius:10px}
+.arc-btn:disabled{opacity:.5}
+.arc-seg{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.arc-seg button{background:#1d1847;color:#d0c8ff;border:2px solid #3e3494;border-radius:12px;padding:8px 14px;font:17px "Jua",sans-serif;cursor:pointer}
+.arc-seg button.on{background:#6c5ce7;color:#fff;border-color:#b197fc;box-shadow:0 0 12px rgba(151,117,250,.6)}
+.arc-x{position:absolute;top:10px;right:14px;width:44px;height:44px;border-radius:50%;background:#3b3180;color:#fff;font-size:28px;line-height:40px;cursor:pointer;border:0}
+.arc-sync{position:fixed;left:12px;bottom:10px;font-size:13px;color:#9f95d4;font-family:"Gowun Dodum",sans-serif}
+.f{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+
+/* 로그인 */
+.arc-marquee{padding:10px 0 6px}
+.arc-nums{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px;max-width:1100px;margin:0 auto}
+.arc-nums.sm{grid-template-columns:repeat(auto-fill,minmax(86px,1fr));max-height:50vh;overflow:auto;padding:4px}
+.arc-num{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 6px 10px;border-radius:18px;background:linear-gradient(180deg,#2c2470,#1e1850);border:2px solid #4c3fb0;color:#fff;cursor:pointer;transition:transform .12s, box-shadow .2s}
+.arc-num:hover,.arc-num:active{transform:translateY(-3px) scale(1.03);box-shadow:0 0 18px rgba(116,192,252,.6);border-color:#74c0fc}
+.arc-num .f{font-size:40px;line-height:1.1}
+.arc-num b{font-size:24px;color:#ffe066}
+.arc-num small{font:14px "Gowun Dodum",sans-serif;color:#cfc6ff;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.arc-nums.sm .arc-num .f{font-size:30px} .arc-nums.sm .arc-num b{font-size:18px}
+.arc-teach{position:fixed;right:14px;bottom:10px;background:rgba(255,255,255,.08);color:#b9b0dd;border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:6px 12px;font:14px "Jua",sans-serif;cursor:pointer}
+
+/* 모달 */
+.arc-modal{position:fixed;inset:0;z-index:300;background:rgba(8,5,25,.72);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
+.arc-modal[hidden]{display:none}
+.arc-modal>.arc-card{width:100%;max-height:calc(100vh - 32px);overflow:auto;margin:auto}
+.arc-pw{text-align:center;max-width:380px}
+.arc-pw.shake{animation:arcShake .4s}
+@keyframes arcShake{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+.arc-pwwho{font-size:22px;margin-bottom:6px}.arc-pwwho .f{font-size:48px;display:block}
+.arc-pwtitle{color:#c5b8ff;font-size:18px}
+.arc-dots{display:flex;gap:14px;justify-content:center;margin:14px 0}
+.arc-dots i{width:22px;height:22px;border-radius:50%;border:3px solid #8c7cf0}.arc-dots i.on{background:#ffe066;border-color:#ffe066;box-shadow:0 0 10px #ffe066}
+.arc-pwv{font-size:26px;letter-spacing:6px;color:#ffe066}
+.arc-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:300px;margin:0 auto}
+.arc-pad button{height:64px;border-radius:16px;background:#2f2770;border:2px solid #5f4bd8;color:#fff;font:30px "Jua",sans-serif;cursor:pointer}
+.arc-pad button:active{background:#6c5ce7;transform:scale(.95)}
+.arc-pad button.ok{background:#2b8a3e;border-color:#69db7c}
+.arc-pwmsg{min-height:24px;color:#ff8787;margin-top:10px;font-size:17px}
+
+/* 캐릭터 */
+.arc-faces{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px}
+.arc-faces button{font-size:40px;height:68px;border-radius:16px;background:#221c55;border:2px solid #3e3494;cursor:pointer;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.arc-faces button.on{border-color:#ffe066;box-shadow:0 0 14px #ffe066;background:#3b3180}
+.arc-faces button.used{opacity:.55}
+
+/* 홈 */
+.arc-top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:space-between;max-width:1200px;margin:0 auto 18px}
+.arc-me{display:flex;align-items:center;gap:10px;background:#221c55;border:2px solid #4c3fb0;border-radius:18px;padding:6px 14px 6px 8px}
+.arc-me .f{font-size:44px}.arc-me b{font-size:20px;display:block}.arc-me small{color:#b9b0dd;font:13px "Gowun Dodum",sans-serif}
+.arc-topb{display:flex;gap:8px;flex-wrap:wrap}
+.arc-games{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;max-width:1200px;margin:0 auto}
+.arc-game{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:16px 16px 14px;border-radius:22px;color:#fff;cursor:pointer;overflow:hidden;
+  background:linear-gradient(160deg,#30287a,#1c1749);border:2px solid #5f4bd8;box-shadow:0 6px 0 #120e33;transition:transform .15s, box-shadow .2s}
+.arc-game.duel{background:linear-gradient(160deg,#6a1f4f,#2a1240);border-color:#e64980;box-shadow:0 6px 0 #2a0a1d}
+.arc-game:hover,.arc-game:active{transform:translateY(-4px);box-shadow:0 10px 0 #120e33,0 0 26px rgba(151,117,250,.55)}
+.arc-game.duel:hover{box-shadow:0 10px 0 #2a0a1d,0 0 26px rgba(255,107,170,.5)}
+.arc-game .ag-ic{font-size:58px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;filter:drop-shadow(0 4px 8px rgba(0,0,0,.4))}
+.arc-game .ag-tag{position:absolute;top:14px;right:14px;font-size:13px;background:rgba(0,0,0,.3);border-radius:999px;padding:4px 10px;color:#ffe9a8}
+.arc-game .ag-nm{font-size:26px;margin-top:4px}
+.arc-game .ag-ds{font:14px "Gowun Dodum",sans-serif;color:#cfc6ff}
+.arc-game .ag-top{margin-top:8px;font-size:15px;background:rgba(255,224,102,.12);border:1px solid rgba(255,224,102,.35);border-radius:12px;padding:5px 10px;width:100%;box-sizing:border-box;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arc-game .ag-top .f{font-size:18px}.arc-game .ag-top i{color:#b9b0dd}
+.arc-game .ag-my{font:14px "Gowun Dodum",sans-serif;color:#a5d8ff}.arc-game .ag-my b{color:#fff}
+
+/* 대결 */
+.arc-duo{display:flex;align-items:center;justify-content:center;gap:16px;margin:8px 0 6px}
+.arc-duo .p{display:flex;flex-direction:column;align-items:center;gap:4px;background:#221c55;border-radius:18px;padding:10px 18px;min-width:130px}
+.arc-duo .p .f{font-size:54px}.arc-duo .p.q{opacity:.7}
+.arc-duo .vs{font-size:36px;color:#ff6bb5;text-shadow:0 0 14px #ff6bb5}
+
+/* 랭킹 */
+.arc-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px;padding-right:46px}
+.arc-tabs button{background:#1d1847;color:#d0c8ff;border:2px solid #3e3494;border-radius:12px;padding:6px 10px;font:15px "Jua",sans-serif;cursor:pointer}
+.arc-tabs button.on{background:#6c5ce7;color:#fff;border-color:#b197fc}
+.arc-rhead{color:#b9b0dd;font-size:15px;margin:2px 0 8px}
+.arc-rrow{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:14px;background:#221c55;margin-bottom:6px;font-size:19px}
+.arc-rrow .rk{width:38px;text-align:center;font-size:20px;color:#c5b8ff}
+.arc-rrow .f{font-size:30px}.arc-rrow .nm{flex:1}
+.arc-rrow .v{color:#ffe066}.arc-rrow .v small{color:#a79fd0;font:13px "Gowun Dodum",sans-serif}
+.arc-rrow.t1{background:linear-gradient(90deg,#6b5310,#2b2366);border:1px solid #ffd43b}.arc-rrow.t1 .rk{font-size:28px}
+.arc-rrow.t2{background:linear-gradient(90deg,#4a5260,#252060)}.arc-rrow.t3{background:linear-gradient(90deg,#5c3a22,#252060)}
+.arc-rrow.me{outline:3px solid #74c0fc;box-shadow:0 0 14px rgba(116,192,252,.5)}
+.arc-empty{text-align:center;color:#b9b0dd;padding:30px 0}
+.arc-rankc{max-width:720px}
+
+/* 선생님 */
+.arc-kids{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.arc-kids .h,.arc-kids .r{display:grid;grid-template-columns:70px 1fr 50px 150px 140px;gap:8px;align-items:center}
+.arc-kids .h{color:#a79fd0;font-size:14px}
+.arc-kids .r .f{font-size:28px;text-align:center}
+.arc-kids input{padding:6px 8px}
+.arc-link{display:flex;gap:8px}
+.arc-rules{width:100%;box-sizing:border-box;background:#0e0b22;color:#a5d8ff;border:1px solid #3e3494;border-radius:10px;font:13px monospace;padding:8px}
+.arc-how{background:#1d1847;border-radius:14px;padding:10px 14px;margin:10px 0}.arc-how summary{cursor:pointer;color:#ffe066;font-size:18px}
+.arc-how li{margin:6px 0;font:15px "Gowun Dodum",sans-serif;line-height:1.5}.arc-how a{color:#74c0fc}
+.arc-rkm{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px}
+.arc-rkm div{display:flex;align-items:center;gap:8px;background:#221c55;border-radius:12px;padding:8px 10px}.arc-rkm span{flex:1}.arc-rkm small{color:#a79fd0}
+.arc-body hr{border:0;border-top:1px solid #3e3494;margin:16px 0}
+@media (max-width:640px){ .arc-kids .h{display:none} .arc-kids .r{grid-template-columns:56px 1fr 40px;grid-auto-rows:auto} .arc-kids .r>span:nth-child(4),.arc-kids .r>span:nth-child(5){grid-column:span 3} }
+
+/* 게임 화면은 오락실 위에 */
+#volley,#airh,#flappy,#train,#memo,#guess{z-index:400}
+.toast{z-index:900}
+
+/* 배구 태블릿 버튼 */
+.vp{position:fixed;left:0;right:0;bottom:0;z-index:450;display:flex;justify-content:space-between;padding:10px;pointer-events:none}
+.vp[hidden]{display:none}
+.vp-side{display:grid;grid-template-columns:repeat(2,74px);gap:8px;pointer-events:auto}
+.vp button{height:66px;border-radius:18px;background:rgba(20,15,46,.55);border:2px solid rgba(255,255,255,.5);color:#fff;font:26px "Jua",sans-serif;touch-action:none;-webkit-user-select:none;user-select:none}
+.vp button small{display:block;font-size:12px}
+.vp button.on{background:rgba(255,224,102,.75);color:#2a1d00}
+.vp button.j{background:rgba(34,139,230,.55)} .vp button.s{background:rgba(230,73,128,.55)}
+
+/* ===================== 새 게임 공통 화면 ===================== */
+.ng-ov{position:fixed;inset:0;z-index:420;background:#0d0a24;display:flex;flex-direction:column}
+.ng-ov[hidden]{display:none}
+.ng-top{display:flex;align-items:center;gap:12px;padding:8px 14px;color:#fff}
+.ng-top h2{margin:0;font-size:24px;color:#ffe066;white-space:nowrap}
+.ng-hud{flex:1;display:flex;gap:14px;justify-content:center;font-size:20px;flex-wrap:wrap}
+.ng-hud b{color:#ffe066}
+.ng-top .pk-x{width:44px;height:44px;border-radius:50%;background:#3b3180;color:#fff;font-size:28px;border:0;cursor:pointer}
+.ng-stage{position:relative;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none}
+#ngCanvas{border-radius:18px;box-shadow:0 0 0 3px #3e3494,0 20px 60px rgba(0,0,0,.5);touch-action:none}
+.ng-dom{position:absolute}
+.ng-over{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,6,30,.6);backdrop-filter:blur(3px);z-index:5}
+.ng-over[hidden]{display:none}
+.ng-box{position:relative;text-align:center;background:linear-gradient(180deg,#2c2470,#1b1642);border:3px solid #ffe066;border-radius:26px;padding:22px 30px;min-width:300px;color:#fff;box-shadow:0 0 40px rgba(255,224,102,.35)}
+.ng-box .f{font-size:76px;display:block;line-height:1.1}
+.ng-box h3{margin:6px 0 2px;font-size:30px;color:#ffe066}
+.ng-box .sc{font-size:56px;color:#fff;text-shadow:0 0 18px #da77f2}
+.ng-box .info{font:17px "Gowun Dodum",sans-serif;color:#d0c8ff;line-height:1.7}
+.ng-box .info b{color:#ffe066}
+.ng-box .new{font-size:24px;color:#69db7c;animation:ngPop .6s ease}
+@keyframes ngPop{0%{transform:scale(.3)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+.ng-conf{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.ng-conf i{position:absolute;top:-20px;width:10px;height:14px;border-radius:3px;animation:ngFall linear forwards}
+@keyframes ngFall{to{transform:translateY(110vh) rotate(720deg)}}
+
+/* 2048 */
+.tw-board{position:relative;background:#2b2366;border-radius:18px;padding:12px;box-shadow:0 0 0 3px #5f4bd8,0 20px 60px rgba(0,0,0,.5);touch-action:none}
+.tw-cell{position:absolute;border-radius:12px;background:rgba(255,255,255,.07)}
+.tw-tile{position:absolute;border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:"Jua",sans-serif;color:#2a1d00;transition:transform .11s ease;will-change:transform;box-shadow:inset 0 -5px 0 rgba(0,0,0,.15)}
+.tw-tile.pop{animation:twPop .18s ease}
+.tw-tile.new{animation:twNew .18s ease}
+@keyframes twPop{50%{transform:var(--p) scale(1.18)}}
+@keyframes twNew{from{opacity:0;scale:.3}to{opacity:1;scale:1}}
+.tw-tile .fc{position:absolute;top:3px;right:6px;font-size:.38em;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+
+/* 만든 사람 */
+.arc-credit{position:fixed;left:50%;bottom:10px;transform:translateX(-50%);font-size:15px;color:#c5b8ff;background:rgba(20,15,46,.6);border:1px solid rgba(197,184,255,.3);border-radius:999px;padding:4px 14px;white-space:nowrap;pointer-events:none}
+.arc-credit b{color:#ffe066}
+.arc-credit.in{position:static;transform:none;display:inline-block;margin:14px auto 0}
+#scrSetup .arc-card{text-align:left}
+@media (max-width:700px){ .arc-sync{bottom:40px} }
+.arc-card [hidden]{display:none !important}
