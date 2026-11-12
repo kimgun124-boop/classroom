@@ -2509,7 +2509,7 @@
     <div class="fl-sel" id="flSel">
       <div class="fl-left">
         <h3>누가 도전할까요? 내 얼굴을 눌러요!</h3>
-        <p>누를 때마다 위로 날아올라요. 연필 사이를 지나가면 1점, 틈새의 ⭐은 +2점(연달아 먹으면 콤보!), 연필 끝을 아슬아슬하게 스치면 +1점! 🎁 아이템: ⚡ 번개별(1.5배 빨라지고 연필마다 2점) · 🛡️ 지우개 방패 · 🧲 자석 · 🍄 꼬마 버섯 · 🐢 거북이 · 💎 보석(+5). 갈수록 빨라지고 틈이 좁아지고, 12점부터는 연필이 위아래로 움직여요. 친구마다 최고 기록이 저장돼서 우리 반 랭킹이 쌓여요.</p>
+        <p>누를 때마다 위로 날아올라요. 연필 사이를 지나가면 1점, 틈새의 ⭐은 +2점(연달아 먹으면 콤보!), 연필 끝을 아슬아슬하게 스치면 +1점! 🎁 아이템: ⚡ 번개별(1.5배 빨라지고 연필마다 2점) · 🛡️ 지우개 방패 · 🧲 자석 · 🍄 꼬마 버섯 · 🐢 거북이 · 💎 보석(+5). 🗺️ 15·30·45·60·80점을 넘으면 맵이 바뀌어요: 🏫 학교 → 🌅 노을 → 🌌 우주 → 👻 유령의 숲 → 🌋 화산 → 🌈 무지개 궁전! 갈수록 빨라지고 틈이 좁아지고, 12점부터는 연필이 위아래로 움직여요. 친구마다 최고 기록이 저장돼서 우리 반 랭킹이 쌓여요.</p>
         <div class="row"><button class="p" id="flRandom">🎲 아무나 도전</button></div>
         <div class="fl-grid" id="flGrid"></div>
       </div>
@@ -9350,6 +9350,7 @@
     const cv = $("#flCanvas"), g = cv.getContext("2d");
     const COLORS = ["#ff6b6b","#ffa94d","#f59f00","#40c057","#12b886","#228be6","#4c6ef5","#ae3ec9","#e64980","#82c91e","#15aabf","#fa5252"];
     let open = false, raf = 0, last = 0, acc = 0, state = "sel";     // sel | ready | play | dead | over | pause
+    let stg = 0, prevStg = 0, stgT = 0, maxStg = 0;
     let pw = {}, combo = 0, maxCombo = 0, items = 0, mul = 1, inv = 0, mileK = 0, seen = {};
     let sid = null, pl = null, pens = [], score = 0, stars = 0, frame = 0, dist = 0, parts = [], texts = [], shake = 0, flash = 0, deadT = 0, spawnX = 0, tab = "all", scroll = 0;
     let scale = 1, dpr = 1;
@@ -9403,6 +9404,8 @@
         else if (kind === "pow") [660, 880, 1320].forEach((f, k) => tone(f, f, .1, "triangle", .14, k*.06));
         else if (kind === "gem") [1568, 2093, 2637, 3136].forEach((f, k) => tone(f, f, .1, "sine", .13, k*.045));
         else if (kind === "shield"){ tone(880, 220, .3, "square", .1); tone(1760, 440, .25, "triangle", .08, .03); }
+        else if (kind === "stage") [523.25, 659.25, 783.99, 1046.5, 1318.5].forEach((f, k) => tone(f, f, .16, "triangle", .16, k*.07));
+        else if (kind === "spooky"){ [196, 185, 175, 165].forEach((f, k) => tone(f, f*.97, .3, "sawtooth", .07, k*.16)); tone(98, 60, 1.1, "sine", .2); }
         else if (kind === "near") tone(1500, 2400, .12, "sine", .1);
         else if (kind === "slow") tone(700, 200, .45, "sine", .14);
         else if (kind === "over") [392, 349, 311, 262].forEach((f, k) => tone(f, f*.98, .16, "triangle", .14, k*.13));
@@ -9432,7 +9435,16 @@
     };
     function pickItem(){ let t = rnd(Object.values(ITEMS).reduce((a, x) => a + x.w, 0)); for (const k in ITEMS){ t -= ITEMS[k].w; if (t <= 0) return k; } return "boost"; }
     const rad = () => PRAD*(pl ? pl.sz : 1);
-    function addScore(n){ score += n; const k = Math.floor(score/10); if (k > mileK){ mileK = k; const m = k*10; snd("mile"); texts.push({txt: m >= 50 ? `🔥 ${m}점! 전설이에요!` : m >= 30 ? `🌟 ${m}점! 대단해요!` : `👍 ${m}점 돌파!`, x: W/2, y: 150, c: "#ffd43b", s: 46, t: 70, T: 70}); } }
+    function nextStage(){
+      const ns = stageOf(score); if (ns <= stg) return;
+      prevStg = stg; stg = ns; stgT = 1; maxStg = Math.max(maxStg, ns);
+      const st = STAGES[ns]; flash = Math.max(flash, .8); shake = Math.max(shake, 6); snd(ns === 3 || ns === 4 ? "spooky" : "stage");
+      texts = texts.filter(t => !t.ann && !t.stg);
+      texts.push({txt: `${ns + 1}단계!`, x: W/2, y: 205, c: "#fff", s: 40, t: 110, T: 110, stg: 1});
+      texts.push({txt: `${st.e} ${st.n}`, x: W/2, y: 262, c: ["#ffd43b","#ffa94d","#b197fc","#d0bfff","#ff6b6b","#ffe066"][ns], s: 58, t: 110, T: 110, stg: 1});
+      burst(W/2, 240, ["#fff", "#ffe066", "#74c0fc", "#ff8787"], 40, 9);
+    }
+    function addScore(n){ score += n; const was = stg; nextStage(); const k = Math.floor(score/10); if (k > mileK){ mileK = k; const m = k*10; if (stg !== was) return; snd("mile"); texts = texts.filter(t => !t.mile); texts.push({mile: 1, txt: m >= 50 ? `🔥 ${m}점! 전설이에요!` : m >= 30 ? `🌟 ${m}점! 대단해요!` : `👍 ${m}점 돌파!`, x: W/2, y: 150, c: "#ffd43b", s: 46, t: 70, T: 70}); } }
     function burst(x, y, c, n, sp = 4){ for (let i = 0; i < n; i++){ const a = rnd(Math.PI*2), s2 = 1 + rnd(sp); parts.push({x, y, vx: Math.cos(a)*s2, vy: Math.sin(a)*s2, t: 30, T: 30, c: Array.isArray(c) ? c[i % c.length] : c, s: 2 + rnd(3), k: 0}); } }
     function getItem(k, x, y){
       const it = ITEMS[k]; items++;
@@ -9461,7 +9473,7 @@
     const gyOf = p => clamp(p.gy + Math.sin(frame*p.sp + p.ph)*p.amp, 60 + p.gap/2, GROUND - 40 - p.gap/2);
 
     function reset(){
-      pl = {y: H*.42, vy: 0, a: 0, flapT: 0, sz: 1}; pens = []; score = 0; stars = 0; pw = {boost: 0, slow: 0, magnet: 0, tiny: 0, shield: false}; combo = 0; maxCombo = 0; items = 0; mul = 1; inv = 0; mileK = 0; seen = {}; parts = []; texts = []; dist = 0; deadT = 0; shake = 0; flash = 0;
+      pl = {y: H*.42, vy: 0, a: 0, flapT: 0, sz: 1}; pens = []; score = 0; stars = 0; pw = {boost: 0, slow: 0, magnet: 0, tiny: 0, shield: false}; combo = 0; maxCombo = 0; items = 0; mul = 1; inv = 0; mileK = 0; seen = {}; stg = 0; prevStg = 0; stgT = 0; maxStg = 0; parts = []; texts = []; dist = 0; deadT = 0; shake = 0; flash = 0;
       spawnX = W + 120;
     }
     function begin(id){
@@ -9501,7 +9513,7 @@
 
     function step(){
       frame++;
-      if (shake > 0) shake *= .87; if (flash > 0) flash -= .06;
+      if (shake > 0) shake *= .87; if (flash > 0) flash -= .06; if (stgT > 0) stgT = Math.max(0, stgT - 1/90);
       parts = parts.filter(p => { p.x += p.vx; p.y += p.vy; if (p.k){ p.vy += .22; p.r += .15; } else { p.vx *= .94; p.vy *= .94; } return --p.t > 0; });
       texts = texts.filter(t => --t.t > 0);
       if (state === "ready"){ pl.y = H*.42 + Math.sin(frame*.08)*12; pl.a = 0; if (pl.flapT > 0) pl.flapT--; else pl.flapT = 12; dist += 1.5; return; }
@@ -9556,6 +9568,7 @@
       $("#flOvScore").textContent = score;
       const r = recOf(sid);
       $("#flOvInfo").innerHTML = `${res.isNew ? `<div class="fl-new">🎉 새 기록! ${res.prevBest ? `(전에는 ${res.prevBest}점)` : ""}</div>` : ""}
+        <div>🗺️ ${maxStg + 1}단계 <b>${STAGES[maxStg].e} ${STAGES[maxStg].n}</b>까지 갔어요!</div>
         <div>⭐ 별 ${stars}개${maxCombo >= 2 ? ` (최고 ${maxCombo}콤보)` : ""} · 🎁 아이템 ${items}개</div>
         <div>내 최고 <b>${r.best}</b>점 · 오늘 최고 <b>${dayBest(r)}</b>점 · ${r.plays}번째 도전</div>
         <div class="fl-rk">🏆 우리 반 <b>${res.rank}</b>등 <small>/ ${res.n}명</small>${res.isNew && res.prevRank && res.rank < res.prevRank ? ` <span>▲ ${res.prevRank - res.rank}계단 올라갔어요!</span>` : ""}</div>`;
@@ -9568,10 +9581,7 @@
     /* ---- 그리기 ---- */
     const lerp = (a, b, t) => a + (b - a)*t;
     function mix(c1, c2, t){ const p = c => [parseInt(c.slice(1,3),16), parseInt(c.slice(3,5),16), parseInt(c.slice(5,7),16)]; const a = p(c1), b = p(c2); return `rgb(${a.map((v, k) => Math.round(lerp(v, b[k], t))).join(",")})`; }
-    const SKY = [["#6cc8ff","#d6f1ff"], ["#ff9e7a","#ffe0a3"], ["#1c2457","#4a3f86"], ["#6cc8ff","#d6f1ff"]];
-    function skyAt(){ const ph = (score % 60)/20, i = Math.floor(ph), t = ph - i, sm = t*t*(3 - 2*t); return [mix(SKY[i][0], SKY[i+1][0], sm), mix(SKY[i][1], SKY[i+1][1], sm), i === 1 ? sm : i === 2 ? 1 - sm : 0]; }
-    function drawBg(){
-      const [c1, c2, night] = skyAt();
+    function schoolScene(c1, c2, night){
       const sk = g.createLinearGradient(0, 0, 0, GROUND); sk.addColorStop(0, c1); sk.addColorStop(1, c2); g.fillStyle = sk; g.fillRect(0, 0, W, H);
       if (night > .05){ g.fillStyle = `rgba(255,255,255,${night*.9})`; for (let i = 0; i < 60; i++){ const x = (i*157.3 - dist*.05) % W, y = (i*53.7) % (GROUND*.6); g.fillRect((x + W) % W, y, 2, 2); } }
       // 해 / 달
@@ -9594,6 +9604,137 @@
       g.beginPath(); g.arc(bx + 130, GROUND - 180, 10, 0, Math.PI*2); g.fill();
       // 가까운 나무
       for (let i = 0; i < 7; i++){ const x = ((i*190 - dist*.7) % (W + 190) + W + 190) % (W + 190) - 95; g.fillStyle = night > .5 ? "#1b4d3a" : "#3fae5a"; g.beginPath(); g.arc(x, GROUND - 46, 30, 0, Math.PI*2); g.arc(x + 22, GROUND - 34, 24, 0, Math.PI*2); g.arc(x - 22, GROUND - 34, 24, 0, Math.PI*2); g.fill(); g.fillStyle = "#7a5230"; g.fillRect(x - 5, GROUND - 22, 10, 22); }
+    }
+    /* ---- 🗺️ 맵(단계): 점수가 오르면 다음 맵으로 ---- */
+    const STAGES = [
+      {at: 0,  e: "🏫", n: "학교 운동장"},
+      {at: 15, e: "🌅", n: "노을 공원"},
+      {at: 30, e: "🌌", n: "반짝반짝 우주"},
+      {at: 45, e: "👻", n: "유령의 숲"},
+      {at: 60, e: "🌋", n: "불타는 화산"},
+      {at: 80, e: "🌈", n: "전설의 무지개 궁전"}
+    ];
+    const stageOf = s => { let i = 0; STAGES.forEach((st, k) => { if (s >= st.at) i = k; }); return i; };
+    const hs = n => { const x = Math.sin(n*127.1 + 311.7)*43758.5453; return x - Math.floor(x); };
+    const wrapX = (x, span) => ((x % span) + span) % span;
+    function skyGrad(stops){ const gr = g.createLinearGradient(0, 0, 0, GROUND); stops.forEach((c, k) => gr.addColorStop(k/(stops.length - 1), c)); g.fillStyle = gr; g.fillRect(0, 0, W, H); }
+    function blob(x, y, r, col){ const gr = g.createRadialGradient(x, y, 0, x, y, r); gr.addColorStop(0, col); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(x - r, y - r, r*2, r*2); }
+    function starField(n, sp, sz, seed){ for (let i = 0; i < n; i++){ const x = wrapX(hs(i + seed)*W*1.3 - dist*sp, W*1.3) - W*.15, y = hs(i*3.1 + seed)*GROUND*.92, tw = .5 + .5*Math.sin(frame*.08 + i); g.globalAlpha = .35 + tw*.65; g.fillStyle = i % 7 ? "#fff" : "#ffe9a8"; g.fillRect(x, y, sz, sz); } g.globalAlpha = 1; }
+
+    const SCENES = [
+      // 1 🏫 학교 운동장
+      () => schoolScene("#6cc8ff", "#d6f1ff", 0),
+      // 2 🌅 노을 공원
+      () => {
+        schoolScene("#ff8a65", "#ffe0a3", .3);
+        blob(W*.78, 110, 150, "rgba(255,190,90,.45)");
+        g.strokeStyle = "rgba(60,30,40,.75)"; g.lineWidth = 3; g.lineCap = "round";
+        for (let i = 0; i < 9; i++){ const x = wrapX(W - (frame*1.2 + i*37 + Math.floor(i/3)*160) - dist*.1, W + 200) - 100, y = 120 + (i % 3)*22 + Math.floor(i/3)*30 + Math.sin(frame*.05 + i)*6, w = Math.sin(frame*.3 + i)*6;
+          g.beginPath(); g.moveTo(x - 10, y - w); g.lineTo(x, y); g.lineTo(x + 10, y - w); g.stroke(); }
+      },
+      // 3 🌌 반짝반짝 우주
+      () => {
+        skyGrad(["#050520", "#1a0b3d", "#3a1162"]);
+        blob(W*.25 + Math.sin(frame*.004)*30, 170, 260, "rgba(190,75,219,.35)");
+        blob(W*.7, 330, 300, "rgba(34,139,230,.3)");
+        blob(W*.5, 90, 180, "rgba(255,107,170,.25)");
+        starField(90, .04, 2, 1); starField(40, .12, 3, 50);
+        // 고리 행성
+        const px = wrapX(W*.8 - dist*.06, W + 300) - 150;
+        g.fillStyle = "#ffa94d"; g.beginPath(); g.arc(px, 140, 46, 0, Math.PI*2); g.fill();
+        g.fillStyle = "rgba(255,255,255,.18)"; g.beginPath(); g.arc(px - 14, 126, 22, 0, Math.PI*2); g.fill();
+        g.strokeStyle = "rgba(255,224,170,.85)"; g.lineWidth = 6; g.beginPath(); g.ellipse(px, 140, 84, 18, -.35, 0, Math.PI*2); g.stroke();
+        // 작은 파란 행성
+        const qx = wrapX(W*.3 - dist*.1, W + 200) - 100;
+        g.fillStyle = "#4dabf7"; g.beginPath(); g.arc(qx, 300, 24, 0, Math.PI*2); g.fill(); g.fillStyle = "#69db7c"; g.beginPath(); g.arc(qx - 6, 294, 9, 0, Math.PI*2); g.arc(qx + 9, 307, 6, 0, Math.PI*2); g.fill();
+        // 별똥별
+        for (let k = 0; k < 2; k++){ const t = (frame + k*95) % 190, sd = Math.floor((frame + k*95)/190)*3 + k; if (t < 40){ const x = W*(.3 + hs(sd)*.7) - t*14, y = 30 + hs(sd + 1)*160 + t*7, gr = g.createLinearGradient(x, y, x + 120, y - 60); gr.addColorStop(0, "rgba(255,255,255,.95)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.strokeStyle = gr; g.lineWidth = 3; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 120, y - 60); g.stroke(); } }
+        // 떠다니는 돌
+        for (let i = 0; i < 5; i++){ const x = wrapX(hs(i + 9)*W*1.4 - dist*.35, W*1.4) - W*.2, y = 220 + hs(i + 4)*240 + Math.sin(frame*.02 + i)*10; g.save(); g.translate(x, y); g.rotate(frame*.01*(i % 2 ? 1 : -1)); g.fillStyle = "#6c5b7b"; g.beginPath(); g.ellipse(0, 0, 18 + i*3, 12 + i*2, 0, 0, Math.PI*2); g.fill(); g.fillStyle = "#4a3b5c"; g.beginPath(); g.arc(-4, -2, 4, 0, Math.PI*2); g.fill(); g.restore(); }
+      },
+      // 4 👻 유령의 숲
+      () => {
+        skyGrad(["#0d0716", "#2a1338", "#4a2346"]);
+        starField(30, .03, 2, 7);
+        blob(W*.72, 120, 160, "rgba(255,80,80,.25)");
+        g.fillStyle = "#ffd8c2"; g.beginPath(); g.arc(W*.72, 120, 56, 0, Math.PI*2); g.fill();
+        g.fillStyle = "rgba(200,60,60,.25)"; g.beginPath(); g.arc(W*.72 - 15, 108, 14, 0, Math.PI*2); g.arc(W*.72 + 18, 132, 10, 0, Math.PI*2); g.fill();
+        // 번개
+        const lt = frame % 300; if (lt < 5 || (lt > 9 && lt < 13)){ g.fillStyle = "rgba(220,200,255,.35)"; g.fillRect(0, 0, W, H); const sd = Math.floor(frame/300); let x = W*(.1 + hs(sd)*.5), y = 0; g.strokeStyle = "#f3e8ff"; g.lineWidth = 4; g.beginPath(); g.moveTo(x, y); while (y < GROUND*.6){ x += (hs(x + y) - .5)*60; y += 30 + hs(y)*20; g.lineTo(x, y); } g.stroke(); }
+        // 앙상한 나무
+        for (let i = 0; i < 6; i++){ const x = wrapX(i*230 - dist*.4, W + 230) - 115, base = GROUND; g.strokeStyle = "#140a1c"; g.lineCap = "round";
+          g.lineWidth = 16; g.beginPath(); g.moveTo(x, base); g.lineTo(x + 6, base - 190); g.stroke(); g.lineWidth = 7;
+          [[-1, 120, 60], [1, 150, 50], [-1, 175, 40], [1, 95, 70]].forEach(([d, hh, l]) => { g.beginPath(); g.moveTo(x + 4, base - hh); g.quadraticCurveTo(x + d*l*.6, base - hh - 30, x + d*l, base - hh - 55); g.stroke(); }); }
+        // 안개
+        for (let k = 0; k < 3; k++){ g.fillStyle = `rgba(210,190,235,${.1 + k*.04})`; g.beginPath(); g.moveTo(0, GROUND); for (let x = 0; x <= W; x += 24) g.lineTo(x, GROUND - 60 - k*35 - Math.sin(x*.01 + frame*.01*(k + 1) + k)*18); g.lineTo(W, GROUND); g.fill(); }
+        // 박쥐
+        g.fillStyle = "#0b0610";
+        for (let i = 0; i < 6; i++){ const x = wrapX(W - frame*(2 + i*.4) - i*170, W + 120) - 60, y = 70 + hs(i)*220 + Math.sin(frame*.07 + i)*20, w = Math.sin(frame*.4 + i)*10;
+          g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x - 12, y - 12 - w, x - 24, y - w); g.quadraticCurveTo(x - 12, y - 2, x, y + 4); g.quadraticCurveTo(x + 12, y - 2, x + 24, y - w); g.quadraticCurveTo(x + 12, y - 12 - w, x, y); g.fill(); }
+        // 유령
+        for (let i = 0; i < 3; i++){ const x = wrapX(hs(i + 20)*W*1.5 - dist*.2 - frame*.3, W*1.5) - W*.25, y = 200 + i*90 + Math.sin(frame*.04 + i*2)*25; g.save(); g.translate(x, y); g.globalAlpha = .55 + .2*Math.sin(frame*.05 + i);
+          g.fillStyle = "#f8f0ff"; g.beginPath(); g.arc(0, 0, 26, Math.PI, 0); g.lineTo(26, 30); for (let k = 0; k < 4; k++) g.quadraticCurveTo(26 - k*13 - 6, 40 + Math.sin(frame*.2 + k)*4, 26 - (k + 1)*13, 30); g.closePath(); g.fill();
+          g.fillStyle = "#2b1a3a"; g.beginPath(); g.ellipse(-9, -2, 5, 8, 0, 0, Math.PI*2); g.ellipse(9, -2, 5, 8, 0, 0, Math.PI*2); g.ellipse(0, 14, 5, 6, 0, 0, Math.PI*2); g.fill(); g.restore(); }
+        g.globalAlpha = 1;
+      },
+      // 5 🌋 불타는 화산
+      () => {
+        const pulse = .5 + .5*Math.sin(frame*.05);
+        skyGrad(["#1a0000", "#5c0a00", "#c92a00"]);
+        blob(W*.5, GROUND, 520, `rgba(255,120,0,${.25 + pulse*.15})`);
+        // 연기 구름
+        for (let i = 0; i < 6; i++){ const x = wrapX(i*220 - dist*.15, W + 220) - 110, y = 60 + (i % 3)*40; g.fillStyle = "rgba(40,10,10,.55)"; [[0,0,40],[40,-12,34],[76,0,36]].forEach(([dx, dy, r]) => { g.beginPath(); g.arc(x + dx, y + dy, r, 0, Math.PI*2); g.fill(); }); }
+        // 화산
+        [[.2, 300, 260], [.75, 380, 340]].forEach(([fx, hh, ww], k) => {
+          const x = wrapX(W*fx - dist*(.18 + k*.08), W + ww*2) - ww, top = GROUND - hh;
+          g.fillStyle = k ? "#2b0b0b" : "#3d1010"; g.beginPath(); g.moveTo(x - ww, GROUND); g.lineTo(x - 34, top); g.lineTo(x + 34, top); g.lineTo(x + ww, GROUND); g.fill();
+          g.strokeStyle = `rgba(255,${120 + pulse*80},0,.9)`; g.lineWidth = 6; g.beginPath(); g.moveTo(x - 10, top + 4); g.quadraticCurveTo(x - 40, top + hh*.4, x - 70, GROUND); g.moveTo(x + 12, top + 4); g.quadraticCurveTo(x + 50, top + hh*.5, x + 30, GROUND); g.stroke();
+          blob(x, top, 90, `rgba(255,140,0,${.5 + pulse*.3})`);
+          for (let i = 0; i < 14; i++){ const t = (frame*1.4 + i*17 + k*50) % 110, a = -Math.PI/2 + (hs(i + k*30) - .5)*1.3, sp = 3 + hs(i*2 + k)*3, ex = x + Math.cos(a)*sp*t, ey = top + Math.sin(a)*sp*t + .045*t*t;
+            g.fillStyle = i % 3 ? "#ff922b" : "#ffd43b"; g.globalAlpha = Math.max(0, 1 - t/110); g.beginPath(); g.arc(ex, ey, 4 + (i % 3), 0, Math.PI*2); g.fill(); } g.globalAlpha = 1; });
+        // 떠오르는 불씨
+        for (let i = 0; i < 40; i++){ const x = wrapX(hs(i)*W - dist*.5 + Math.sin(frame*.03 + i)*20, W), y = GROUND - wrapX(frame*(1 + hs(i + 3)*2) + hs(i + 7)*GROUND, GROUND); g.fillStyle = i % 2 ? "rgba(255,170,60,.9)" : "rgba(255,90,40,.8)"; g.fillRect(x, y, 3, 3); }
+      },
+      // 6 🌈 전설의 무지개 궁전
+      () => {
+        const hu = frame*.6;
+        skyGrad([`hsl(${hu % 360},70%,55%)`, `hsl(${(hu + 60) % 360},75%,65%)`, `hsl(${(hu + 120) % 360},80%,78%)`]);
+        starField(50, .05, 3, 33);
+        // 큰 무지개
+        const rx = W*.5, ry = GROUND + 40; ["#ff6b6b","#ffa94d","#ffe066","#69db7c","#4dabf7","#9775fa"].forEach((c, k) => { g.strokeStyle = c; g.globalAlpha = .75; g.lineWidth = 18; g.beginPath(); g.arc(rx, ry, 470 - k*18, Math.PI, 0); g.stroke(); }); g.globalAlpha = 1;
+        // 황금 성
+        const cx = wrapX(W*.62 - dist*.12, W + 500) - 250, by = GROUND;
+        g.fillStyle = "#f6c445"; g.fillRect(cx - 120, by - 170, 240, 170);
+        [[-120, 230], [80, 230], [-30, 290]].forEach(([dx, hh]) => { g.fillStyle = "#f6c445"; g.fillRect(cx + dx, by - hh, 40 + (dx === -30 ? 20 : 0), hh); g.fillStyle = "#e64980"; g.beginPath(); const w2 = dx === -30 ? 60 : 40; g.moveTo(cx + dx - 6, by - hh); g.lineTo(cx + dx + w2/2, by - hh - 60); g.lineTo(cx + dx + w2 + 6, by - hh); g.fill(); g.fillStyle = "#fff"; g.fillRect(cx + dx + w2/2 - 1, by - hh - 84, 2, 26); g.fillStyle = `hsl(${(hu*3) % 360},90%,60%)`; g.fillRect(cx + dx + w2/2 + 1, by - hh - 84, 16, 10); });
+        g.fillStyle = "#c98a1e"; g.beginPath(); g.arc(cx, by, 38, Math.PI, 0); g.fill();
+        g.fillStyle = "rgba(255,255,255,.75)"; for (let r = 0; r < 2; r++) for (let c = 0; c < 4; c++) g.fillRect(cx - 100 + c*56, by - 150 + r*50, 18, 24);
+        // 불꽃놀이
+        for (let k = 0; k < 4; k++){ const T = 130, t = (frame + k*33) % T, sd = Math.floor((frame + k*33)/T)*5 + k, fx = W*(.1 + hs(sd)*.8), fy = 70 + hs(sd + 1)*170, col = `hsl(${hs(sd + 2)*360},95%,65%)`;
+          if (t < 24){ g.fillStyle = "#fff"; g.fillRect(fx - 1, GROUND - (GROUND - fy)*t/24, 3, 10); }
+          else { const r = (t - 24)*2.3, al = Math.max(0, 1 - (t - 24)/(T - 24)); g.globalAlpha = al; g.fillStyle = col; for (let i = 0; i < 18; i++){ const a = i/18*Math.PI*2; g.beginPath(); g.arc(fx + Math.cos(a)*r, fy + Math.sin(a)*r + (t - 24)*.25, 3.2, 0, Math.PI*2); g.fill(); } g.globalAlpha = 1; } }
+        // 반짝이
+        for (let i = 0; i < 16; i++){ const x = wrapX(hs(i + 70)*W - dist*.6, W), y = hs(i + 80)*GROUND*.9, s = 3 + 4*Math.abs(Math.sin(frame*.1 + i)); g.fillStyle = "#fff"; g.save(); g.translate(x, y); g.rotate(Math.PI/4); g.fillRect(-s/2, -1, s, 2); g.fillRect(-1, -s/2, 2, s); g.restore(); }
+      }
+    ];
+    function groundScene(i){
+      const T = [["#7bd36b","#5cb85c","#d9a15e","#b9793d"], ["#8fcf6a","#6aa84f","#e0a86a","#a8683a"], ["#a5a5b8","#8a8aa3","#6e6e86","#4a4a60"],
+                 ["#3a2a46","#2a1d35","#2b1d30","#160d1c"], ["#3b1a12","#2a100b","#2a0c06","#120403"], ["#ffe066","#fcc419","#f6c445","#d99a1b"]][i];
+      g.fillStyle = T[0]; g.fillRect(0, GROUND, W, 14);
+      g.fillStyle = T[1]; for (let x = -(dist % 28); x < W; x += 28){ g.beginPath(); g.moveTo(x, GROUND + 14); g.lineTo(x + 14, GROUND); g.lineTo(x + 28, GROUND + 14); g.fill(); }
+      const dg = g.createLinearGradient(0, GROUND + 14, 0, H); dg.addColorStop(0, T[2]); dg.addColorStop(1, T[3]); g.fillStyle = dg; g.fillRect(0, GROUND + 14, W, H - GROUND - 14);
+      if (i === 2){ g.fillStyle = "rgba(40,40,60,.35)"; for (let k = 0; k < 8; k++){ const x = wrapX(k*150 - dist, W + 150) - 75; g.beginPath(); g.ellipse(x, GROUND + 34, 22, 7, 0, 0, Math.PI*2); g.fill(); } }
+      else if (i === 3){ for (let k = 0; k < 6; k++){ const x = wrapX(k*190 - dist, W + 190) - 95; g.fillStyle = "#6b5f78"; g.beginPath(); g.moveTo(x - 14, GROUND + 4); g.lineTo(x - 14, GROUND - 22); g.arc(x, GROUND - 22, 14, Math.PI, 0); g.lineTo(x + 14, GROUND + 4); g.fill(); g.fillStyle = "#3e3448"; g.fillRect(x - 1.5, GROUND - 28, 3, 16); g.fillRect(x - 6, GROUND - 23, 12, 3); } }
+      else if (i === 4){ const pulse = .6 + .4*Math.sin(frame*.08); g.strokeStyle = `rgba(255,${100 + pulse*90},0,${pulse})`; g.lineWidth = 3; for (let k = 0; k < 10; k++){ const x = wrapX(k*110 - dist, W + 110) - 55; g.beginPath(); g.moveTo(x, GROUND + 16); g.lineTo(x + 18, GROUND + 30); g.lineTo(x + 8, GROUND + 44); g.lineTo(x + 30, GROUND + 52); g.stroke(); } }
+      else if (i === 5){ for (let k = 0; k < 14; k++){ const x = wrapX(k*80 - dist, W + 80) - 40; g.fillStyle = `hsla(${(k*40 + frame*2) % 360},90%,70%,.55)`; g.fillRect(x, GROUND + 20, 36, 10); } }
+      else { g.fillStyle = "rgba(120,70,20,.25)"; for (let k = 0; k < 30; k++){ const x = wrapX(k*67 - dist, W); g.fillRect(x, GROUND + 22 + (k*13) % 26, 6, 3); } }
+    }
+    function drawBg(){
+      SCENES[stg]();
+      if (stgT > 0 && prevStg !== stg){ g.save(); g.globalAlpha = stgT; SCENES[prevStg](); g.restore(); g.globalAlpha = 1; }
+    }
+    function drawGround(){
+      groundScene(stg);
+      if (stgT > 0 && prevStg !== stg){ g.save(); g.globalAlpha = stgT; groundScene(prevStg); g.restore(); g.globalAlpha = 1; }
     }
     const PC = [["#ffd43b","#fcc419","#f59f00"], ["#69db7c","#51cf66","#37b24d"], ["#74c0fc","#4dabf7","#1c7ed6"], ["#ff8787","#ff6b6b","#f03e3e"], ["#da77f2","#cc5de8","#ae3ec9"]];
     function drawPencil(x, y0, y1, dir, col){   // dir 1 = 아래쪽 끝이 뾰족 (위 연필), -1 = 위쪽 끝이 뾰족 (아래 연필)
@@ -9658,12 +9799,6 @@
         if (p.item && !p.item.got) drawItem(p.item.k, p.x + p.item.dx, gy + p.item.dy);
       });
     }
-    function drawGround(){
-      g.fillStyle = "#7bd36b"; g.fillRect(0, GROUND, W, 14);
-      g.fillStyle = "#5cb85c"; for (let x = -((dist) % 28); x < W; x += 28){ g.beginPath(); g.moveTo(x, GROUND + 14); g.lineTo(x + 14, GROUND); g.lineTo(x + 28, GROUND + 14); g.fill(); }
-      const dg = g.createLinearGradient(0, GROUND + 14, 0, H); dg.addColorStop(0, "#d9a15e"); dg.addColorStop(1, "#b9793d"); g.fillStyle = dg; g.fillRect(0, GROUND + 14, W, H - GROUND - 14);
-      g.fillStyle = "rgba(120,70,20,.25)"; for (let i = 0; i < 30; i++){ const x = ((i*67 - dist) % W + W) % W; g.fillRect(x, GROUND + 22 + (i*13) % 26, 6, 3); }
-    }
     function drawPlayer(){
       if (!pl || !sid) return;
       const col = colOf(sid), y = pl.y, flapA = pl.flapT > 0 ? Math.sin(pl.flapT/12*Math.PI)*1.1 : Math.sin(frame*.25)*.15;
@@ -9698,6 +9833,9 @@
       const line1 = `${st ? st.name : ""} · 내 최고 ${Math.max(best, state === "play" ? score : 0)}점`;
       g.strokeText(line1, 18, 16); g.fillText(line1, 18, 16);
       if (top){ const t2 = `🏆 반 1등 ${top.st.name} ${top.v}점`; g.font = `18px "Jua",sans-serif`; g.strokeText(t2, 18, 46); g.fillStyle = "#ffe066"; g.fillText(t2, 18, 46); }
+      // 지금 맵
+      if (state !== "ready"){ const st = STAGES[stg], nx = STAGES[stg + 1], t3 = `🗺️ ${stg + 1}단계 ${st.n}${nx ? ` · 다음 맵까지 ${nx.at - score}점` : " · 마지막 맵!"}`;
+        g.textAlign = "left"; g.textBaseline = "top"; g.font = `18px "Jua",sans-serif`; g.lineWidth = 6; g.strokeStyle = "rgba(20,30,70,.6)"; g.fillStyle = "#c5f6fa"; g.strokeText(t3, 18, top ? 74 : 46); g.fillText(t3, 18, top ? 74 : 46); }
       // 지금 켜진 아이템 (오른쪽 위)
       if (state === "play" || state === "pause"){
         let bx = W - 16; g.textBaseline = "middle";
@@ -9802,7 +9940,7 @@
         else if (state === "over" && performance.now() - overAt > 900) begin(sid);
       }
     }, true);
-    window.__flTest = { get pw(){ return pw; }, get mul(){ return mul; }, getItem, get state(){ return state; }, get score(){ return score; }, get pl(){ return pl; }, get pens(){ return pens; }, begin, flap, step, gyOf, setScore(n){ score = n; }, ranking };
+    window.__flTest = { get stg(){ return stg; }, addScore, get pw(){ return pw; }, get mul(){ return mul; }, getItem, get state(){ return state; }, get score(){ return score; }, get pl(){ return pl; }, get pens(){ return pens; }, begin, flap, step, gyOf, setScore(n){ score = n; }, ranking };
   })();
 
   /* ---------- 🃏 짝 맞추기 · 🔍 누구일까요 · 🚂 얼굴 기차 : 공통 도우미 ---------- */
