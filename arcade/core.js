@@ -321,6 +321,57 @@ const who = no => +no === TEACHER ? "🧑‍🏫 선생님" : `${no}번 ${nameOf
 /* =====================================================================
    화면
    ===================================================================== */
+
+/* =====================================================================
+   📲 앱으로 설치 — 홈 화면 아이콘을 누르면 바로 우리 반 오락실로 들어와요
+   ===================================================================== */
+const joinUrl = () => { const j = Store.join(); return j ? `${location.origin}${location.pathname}#join=${b64e({c: j.c, i: j.i})}` : ""; };
+const APP = {
+  ev: null,
+  standalone(){ return matchMedia("(display-mode: standalone)").matches || matchMedia("(display-mode: fullscreen)").matches || navigator.standalone === true; },
+  ios(){ return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); },
+  init(){
+    if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("arcade-sw.js").catch(e => console.warn(e));
+    addEventListener("beforeinstallprompt", e => { e.preventDefault(); this.ev = e; this.paint(); });
+    addEventListener("appinstalled", () => { this.ev = null; this.paint(); ARC.modal("#mdApp", false); toast("📲 설치했어요! 이제 홈 화면의 오락실 아이콘으로 바로 들어와요"); });
+    $$(".app-inst").forEach(b => b.onclick = () => this.go());
+    this.paint();
+  },
+  can(){ return !this.standalone() && (!!this.ev || this.ios()); },
+  paint(){ const c = this.can(); $$(".app-inst").forEach(b => b.hidden = !c); },
+  async go(){
+    if (this.ev){
+      const e = this.ev; e.prompt();
+      const r = await e.userChoice.catch(() => ({}));
+      if (r.outcome === "accepted") this.ev = null; this.paint(); return;
+    }
+    this.how();
+  },
+  /* 설치 버튼이 안 뜨는 기기(아이패드 등)에서 하는 방법 */
+  how(){
+    const url = joinUrl(), ios = this.ios();
+    $("#apHow").innerHTML = (ios ? `<ol class="ap-st"><li>사파리 아래(또는 위) <b>공유 버튼 <span class="k">⬆️</span></b>을 눌러요</li><li><b>홈 화면에 추가</b>를 누르고 <b>추가</b>를 눌러요</li><li>홈 화면의 <b>🕹️ 오락실</b> 아이콘을 눌러요</li></ol>`
+      : `<ol class="ap-st"><li>크롬 주소창 오른쪽 <b>설치 아이콘 <span class="k">⊕</span></b>을 누르거나, 메뉴 <b>⋮</b> → <b>앱 설치</b>(또는 <b>홈 화면에 추가</b>)를 눌러요</li><li>홈 화면·앱 목록의 <b>🕹️ 오락실</b> 아이콘을 눌러요</li></ol>`)
+      + (url ? `<p class="arc-small">아이콘으로 처음 열었는데 <b>“학생이에요?”</b> 화면이 나오면, 아래 <b>반 입장 주소</b>를 복사해 두었다가 붙여 넣어요 (아이패드는 앱이 따로 저장해서 한 번 필요해요).</p>
+        <div class="arc-link"><input readonly value="${esc(url)}" id="apUrl"><button class="arc-btn p" id="apCopy">📋 복사</button></div>` : "");
+    const c = $("#apCopy"); if (c) c.onclick = () => { const i = $("#apUrl"); i.select(); (navigator.clipboard ? navigator.clipboard.writeText(i.value) : Promise.reject()).catch(() => document.execCommand("copy")); toast("📋 반 입장 주소를 복사했어요"); };
+    ARC.modal("#mdApp", true);
+  }
+};
+/* QR (vendor/qrcode.js 는 선생님 화면에서만 불러와요) */
+function qrSvg(text){
+  const make = () => { const q = qrcode(0, "L"); q.addData(text); q.make(); return q.createSvgTag({cellSize: 4, margin: 2, scalable: true}); };
+  if (window.qrcode) return Promise.resolve(make());
+  return new Promise((res, rej) => { const s = document.createElement("script"); s.src = "vendor/qrcode.js"; s.onload = () => { try { res(make()); } catch(e){ rej(e); } }; s.onerror = rej; document.head.appendChild(s); });
+}
+/* 반 입장 주소를 붙여 넣어서 들어가기 */
+function joinFrom(text){
+  const m = String(text || "").match(/join=([\w-]+)/) || String(text || "").trim().match(/^([\w-]{40,})$/);
+  if (!m) return alert("반 입장 주소를 찾지 못했어요. 선생님이 알려 준 주소를 통째로 붙여 넣어 주세요.");
+  try { const j = b64d(m[1]); if (!j.c || !j.i) throw 0; localStorage.setItem(KEY + ".join", JSON.stringify({c: j.c, i: j.i})); location.reload(); }
+  catch(e){ alert("반 입장 주소가 잘못됐어요. 선생님께 다시 받아 주세요."); }
+}
+
 const ARC = {
   me: null, busy: false, game: null,
   show(id){ $$(".arc-scr").forEach(s => s.hidden = s.id !== id); },
@@ -330,6 +381,7 @@ const ARC = {
     const h = location.hash.match(/join=([\w-]+)/);
     if (h){ try { const j = b64d(h[1]); localStorage.setItem(KEY + ".join", JSON.stringify({c: j.c, i: j.i})); } catch(e) { alert("반 입장 주소가 잘못됐어요."); } history.replaceState(null, "", location.pathname); }
     $$("[data-close]").forEach(b => b.onclick = () => b.closest(".arc-modal").hidden = true);
+    APP.init();
     // 가져온 게임의 '친구 고르기' 버튼은 오락실에서는 홈으로 가요
     ["#flOther", "#trOther", "#vbToSel", "#ahToSel"].forEach(s => { const el = $(s); if (el) el.textContent = "🏠 오락실 홈"; });
     $$(".arc-modal").forEach(m => m.addEventListener("pointerdown", e => { if (e.target === m && m.id !== "mdPw" && m.id !== "mdNet") m.hidden = true; }));
@@ -362,6 +414,8 @@ const ARC = {
   /* ---------- 처음 설정 ---------- */
   setup(){
     this.show("scrSetup");
+    $("#suJoinGo").onclick = () => joinFrom($("#suJoin").value);
+    $("#suJoin").onkeydown = e => { if (e.key === "Enter") joinFrom($("#suJoin").value); };
     const help = {local: "이 기기(교실 컴퓨터 한 대)에서만 기록하고 랭킹을 봐요. 나중에 Firebase로 옮길 수 있어요.",
                   cloud: "아이들 각자 태블릿·크롬북에서 들어와도 반 전체 랭킹이 하나로 모여요. 구글 계정으로 무료 Firebase 프로젝트를 먼저 만들어야 해요 (아래에 만드는 방법이 있어요)."};
     let mode = "local";
@@ -595,12 +649,23 @@ const ARC = {
         try { await Store.putClass(nc); toast("💾 저장했어요"); this.teacher("kids"); } catch(e){ alert("저장하지 못했어요: " + e.message); }
       };
     } else if (this.tcTab === "link"){
-      const url = Store.mode === "cloud" ? `${location.origin}${location.pathname}#join=${b64e(Store.join() ? {c: Store.join().c, i: Store.join().i} : {})}` : "";
-      body.innerHTML = Store.mode === "cloud" ? `<p>아이들 태블릿·크롬북에서 <b>이 주소를 한 번만</b> 열면 우리 반 오락실로 들어와요. 그다음부터는 그냥 오락실 주소로 열어도 돼요.</p>
+      const url = Store.mode === "cloud" ? joinUrl() : "";
+      body.innerHTML = Store.mode === "cloud" ? `<p>아이들 태블릿·크롬북에서 <b>이 주소(또는 QR)를 한 번만</b> 열면 우리 반 오락실로 들어와요. 그다음부터는 그냥 오락실 주소로 열어도 돼요.</p>
         <div class="arc-link"><input readonly value="${esc(url)}" id="tlUrl"><button class="arc-btn p" id="tlCopy">📋 복사</button></div>
-        <p class="arc-small">클래스룸·학급 홈페이지 게시판에 올리거나, 짧은 주소(예: bit.ly)로 바꿔서 칠판에 써 주세요. 이 주소를 아는 사람은 우리 반 오락실에 들어올 수 있으니 반 밖에는 알리지 않아요.</p>`
+        <div class="tl-qrw"><div class="tl-qr" id="tlQr" title="누르면 크게 보여요">QR 만드는 중…</div>
+          <div class="tl-app"><h4>📲 우리 반 오락실 앱 만들기</h4>
+            <ol><li>아이 기기에서 위 주소를 열거나 <b>QR을 찍어요</b> → 우리 반 로그인 화면이 떠요</li>
+              <li>화면의 <b>📲 앱으로 설치</b>를 눌러요 (크롬: 주소창 오른쪽 설치 아이콘 · 아이패드: 공유 ⬆️ → 홈 화면에 추가)</li>
+              <li>이제 홈 화면의 <b>🕹️ 오락실</b> 아이콘을 누르면 <b>바로 ${esc(Store.cls.name || "우리 반")} 오락실</b>로 들어와요</li></ol>
+            <button class="arc-btn" id="tlBig">🔍 QR 크게 띄우기 (TV·칠판용)</button></div></div>
+        <p class="arc-small">이 주소를 아는 사람은 우리 반 오락실에 들어올 수 있어서 깃허브 같은 공개된 곳에는 넣지 않았어요. 클래스룸·학급 게시판처럼 반 안에서만 나눠 주세요.</p>`
         : `<p>지금은 <b>💻 이 기기에만</b> 기록하고 있어요. 이 기기에서 아이들이 돌아가며 들어오면 돼요.</p><p>아이들 각자 태블릿·크롬북에서 하려면 <b>☁️ 저장</b> 탭에서 Firebase를 연결해 주세요. 그러면 여기에 반 입장 주소가 생겨요.</p>`;
       const c = $("#tlCopy"); if (c) c.onclick = () => { $("#tlUrl").select(); navigator.clipboard.writeText($("#tlUrl").value).then(() => toast("📋 복사했어요"), () => document.execCommand("copy")); };
+      if (url) qrSvg(url).then(svg => {
+        const q = $("#tlQr"); if (!q) return; q.innerHTML = svg;
+        const big = () => { const d = document.createElement("div"); d.className = "tl-qrbig"; d.innerHTML = `<div><h2>🕹️ ${esc(Store.cls.name || "우리 반")} 오락실</h2>${svg}<p>카메라로 찍으면 우리 반 오락실로 들어와요 · 누르면 닫혀요</p></div>`; d.onclick = () => d.remove(); document.body.appendChild(d); };
+        q.onclick = big; $("#tlBig").onclick = big;
+      }).catch(() => { const q = $("#tlQr"); if (q) q.textContent = "QR을 만들지 못했어요 (인터넷 확인)"; });
     } else if (this.tcTab === "coin"){
       body.innerHTML = `<p class="arc-small">코인과 산 아이템은 랭킹과 따로 저장돼서, 랭킹을 지우거나 앱을 고쳐도 그대로 남아요. 칭찬할 일이 있을 때 코인을 줄 수 있어요. (하루 게임 코인 한도: ${DAY_CAP}개, 선생님이 주는 코인은 한도와 상관없어요)</p>
         <div class="arc-row"><button class="arc-btn" data-all="10">모두 +10</button><button class="arc-btn" data-all="50">모두 +50</button><button class="arc-btn" data-all="100">모두 +100</button></div>

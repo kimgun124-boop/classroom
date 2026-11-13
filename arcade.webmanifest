@@ -1,0 +1,18 @@
+{
+  "id": "arcade.html",
+  "name": "우리반 오락실",
+  "short_name": "우리반 오락실",
+  "description": "우리 반 친구들과 함께하는 오락실 · made by 효석쌤",
+  "lang": "ko",
+  "start_url": "arcade.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#140f2e",
+  "theme_color": "#140f2e",
+  "icons": [
+    {"src": "icons/arcade-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icons/arcade-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icons/arcade-mask-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
