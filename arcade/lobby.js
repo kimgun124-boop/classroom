@@ -318,13 +318,14 @@ const LOBBY = {
     const me = ARC.me, sid = sidOf(me), w = walletOf(sid), c = Store.cls;
     $("#hmClass").textContent = c.name || "우리반";
     $("#hmAdmin").hidden = !isT(me);
-    if (this.put("hmMe", `<span class="avb">${avHTMLof(sid)}</span><div><b>${esc(who(me))}</b>${titleHTML(sid)}<button class="arc-coin" id="hmCoin" title="상점 열기">🪙 <b>${(w.coins || 0).toLocaleString()}</b><small>오늘 ${Math.max(0, Store.todayLeft(sid))}개 더 모을 수 있어요</small></button></div>`))
+    if (this.put("hmMe", `<span class="avb">${avHTMLof(sid)}</span><div><b>${esc(who(me))}</b>${titleHTML(sid)}<button class="arc-coin" id="hmCoin" title="상점 열기">🪙 <b>${(w.coins || 0).toLocaleString()}</b><small>${heatTxt(sid)}</small></button></div>`))
       $("#hmCoin").onclick = () => SHOP.open(sid);
     this.put("hmOnline", this.onlineHTML());
     const nt = (c.notice || {}).t; $("#hmNotice").hidden = !nt; this.put("hmNotice", nt ? `<b>📢 선생님 알림</b><span>${esc(nt)}</span>` : "");
     const cl = c.closed && !isT(me); $("#hmClosed").hidden = !cl;
     this.put("hmClosed", cl ? `<div class="bx"><span class="f">🔒</span>지금은 오락실 쉬는 시간이에요<small>${esc(c.closedMsg || "선생님이 문을 열면 다시 놀 수 있어요")}</small></div>` : "");
     this.renderGames(); this.renderSide();
+    setTimeout(() => GIFTBOX.check(), 300);
   },
   renderGames(){
     const me = ARC.me, sid = sidOf(me), L = this.visGames().filter(g => this.filter === "all" || g.kind === this.filter);

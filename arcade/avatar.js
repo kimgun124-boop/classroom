@@ -34,9 +34,12 @@ const PRICE = {
   thead: {gradcap: 200, captainhat: 300, wizhat: 400, laurel: 600, halo: 800, kingcrown: 1000},
   tacc: {chalk: 50, pointer: 80, book: 80, mug: 80, whistle: 80, wand: 300, trophy: 500}
 };
+/* 🎁 선생님 상: 상점에서 살 수 없고 선생님만 줄 수 있는 칭호·아바타 (gift.js 에서 채워요) */
+const GIFTS = new Set();
+const isGift = (slot, v) => GIFTS.has(slot + ":" + v);
 const priceOf = (slot, v) => { if (XI[slot]){ const it = XI[slot].find(x => x[0] === v); return it ? it[2] : 0; } return (PRICE[slot] || {})[v] || 0; };
 const itemName = (slot, v) => { const L = XI[slot] || AV[slot] || []; const it = L.find(x => x[0] === v); return it ? it[1] : v; };
-const RAR = {c: ["일반", "#adb5bd"], r: ["희귀", "#4dabf7"], e: ["영웅", "#b197fc"], l: ["전설", "#ffd43b"]};
+const RAR = {c: ["일반", "#adb5bd"], r: ["희귀", "#4dabf7"], e: ["영웅", "#b197fc"], l: ["전설", "#ffd43b"], g: ["선생님 상", "#ff8ec6"]};
 const rarOf = p => p >= 700 ? "l" : p >= 300 ? "e" : p >= 100 ? "r" : "c";
 
 /* 상점 칸 */
@@ -47,7 +50,8 @@ const CATS = [
   {id: "bg", n: "🌌 배경", slots: [["xbg","✨ 움직이는 배경"],["bg","배경"]]},
   {id: "frame", n: "🖼️ 테두리", slots: [["xfr","✨ 움직이는 테두리"],["frame","테두리"]]},
   {id: "fx", n: "🪽 날개·효과·펫", slots: [["aura","날개·오라"],["fx","반짝 효과"],["pet","펫"]]},
-  {id: "title", n: "🏷️ 칭호", slots: [["title","칭호"]]}
+  {id: "title", n: "🏷️ 칭호", slots: [["title","칭호"]]},
+  {id: "gift", n: "🎁 선생님 상", slots: [["title","칭호"],["xbg","배경"],["xfr","테두리"],["aura","날개"],["fx","효과"]]}
 ];
 const optsOf = slot => (XI[slot] || AV[slot] || []).map(x => x[0]);
 /* 같이 입을 수 없는 것 */
@@ -64,7 +68,8 @@ function avDefault(no){
 }
 const walletOf = sid => Object.assign({coins: 0, total: 0, owned: {}}, (Store.kids || {})[sid]);
 function avOf(sid){ const w = (Store.kids || {})[sid]; const d = avDefault(noOf_(sid)); return w && w.av ? Object.assign(d, w.av) : d; }
-const owns = (sid, slot, v) => !priceOf(slot, v) || !!walletOf(sid).owned[`${slot}:${v}`];
+const owns = (sid, slot, v) => isGift(slot, v) ? (sid === sidOf(TEACHER) || !!walletOf(sid).owned[`${slot}:${v}`]) : (!priceOf(slot, v) || !!walletOf(sid).owned[`${slot}:${v}`]);
+const ttlCls = t => `ttl ttl-${t}${isGift("title", t) ? " gift" : ""}`;
 
 /* ---------- 그림: 사진 대신 쓰는 얼굴 이미지 (가져온 게임들이 씀) ---------- */
 const AVIMG = {};
@@ -92,7 +97,7 @@ function avHTMLof(sid, o = {}){
   if (o.still) return `<img src="${avStillURL(sid, o.face)}" alt="" draggable="false" decoding="async">`;
   AVX.still = false; const svg = avatarSVG(avOf(sid), "", o.face ? "15 13 70 70" : undefined); return svg;
 }
-function titleHTML(sid){ const t = avOf(sid).title; if (!t || t === "none") return ""; return `<span class="ttl ttl-${t}">${esc(itemName("title", t))}</span>`; }
+function titleHTML(sid){ const t = avOf(sid).title; if (!t || t === "none") return ""; return `<span class="${ttlCls(t)}">${esc(itemName("title", t))}</span>`; }
 
 /* =====================================================================
    AVX: 오락실 전용 고급 아이템 그리기 (손들고 말해요 avatarSVG 훅)
@@ -291,7 +296,7 @@ const SHOP = {
     $("#shTitle").textContent = this.first ? "🎉 처음 왔네요! 내 아바타를 꾸며요" : "👕 꾸미기 · 🛍️ 상점";
     $("#shCoins").innerHTML = `🪙 <b>${w.coins.toLocaleString()}</b> 코인`;
     AVX.still = false; $("#shPrev").innerHTML = avatarSVG(this.draft, "");
-    $("#shWho").innerHTML = `<b>${esc(who(noOf_(this.sid)))}</b>${this.draft.title && this.draft.title !== "none" ? `<span class="ttl ttl-${this.draft.title}">${esc(itemName("title", this.draft.title))}</span>` : ""}`;
+    $("#shWho").innerHTML = `<b>${esc(who(noOf_(this.sid)))}</b>${this.draft.title && this.draft.title !== "none" ? `<span class="${ttlCls(this.draft.title)}">${esc(itemName("title", this.draft.title))}</span>` : ""}`;
     $("#shBuy").innerHTML = un.length ? `<div class="sh-try">👀 입어 보는 중: ${un.map(k => `<b>${esc(itemName(k, this.draft[k]))}</b>`).join(", ")}</div>
         <button class="arc-btn p big" id="shBuyGo" ${cost > w.coins ? "disabled" : ""}>🛒 ${cost.toLocaleString()} 코인으로 사서 입기</button>${cost > w.coins ? `<div class="sh-need">코인이 ${(cost - w.coins).toLocaleString()}개 모자라요. 게임에서 모아 와요!</div>` : ""}
         <button class="arc-btn" id="shUndo">↩️ 원래대로</button>`
@@ -305,23 +310,26 @@ const SHOP = {
     const ud = $("#shUndo"); if (ud) ud.onclick = () => { this.draft = Object.assign({}, avOf(this.sid)); this.render(); };
   },
   grid(){
-    const k = this.slot, opts = optsOf(k), isColor = k === "skin" || k === "hairC" || k === "topC", face = ["hair","eyes","mouth","cheek","hat","glasses","helm","thead","acc"].includes(k);
+    const k = this.slot, opts = optsOf(k).filter(v => this.cat === "gift" ? isGift(k, v) || v === "none" : !isGift(k, v) || owns(this.sid, k, v)), isColor = k === "skin" || k === "hairC" || k === "topC", face = ["hair","eyes","mouth","cheek","hat","glasses","helm","thead","acc"].includes(k);
     const animate = ["xbg","xfr","aura","fx","pet"].includes(k);
     $("#shGrid").className = "sh-grid" + (isColor ? " col" : "") + (k === "title" ? " ttlg" : "");
     $("#shGrid").innerHTML = opts.map(v => {
       const p = priceOf(k, v), own = owns(this.sid, k, v), on = this.draft[k] === v, r = rarOf(p);
       let pv;
       if (isColor) pv = `<span class="sw" style="background:${v}"></span>`;
-      else if (k === "title") pv = v === "none" ? `<span class="ttl">칭호 없음</span>` : `<span class="ttl ttl-${v}">${esc(itemName(k, v))}</span>`;
+      else if (k === "title") pv = v === "none" ? `<span class="ttl">칭호 없음</span>` : `<span class="${ttlCls(v)}">${esc(itemName(k, v))}</span>`;
       else { const t = Object.assign({}, this.draft, {[k]: v}); (CLASH[k] || []).forEach(c => { if (v !== "none") t[c] = "none"; }); if (k === "bg") t.xbg = "none"; if (k === "frame") t.xfr = "none";
         AVX.still = !animate; pv = avatarSVG(t, "", face ? "15 10 70 70" : undefined); AVX.still = false; }
-      return `<button class="sh-it r-${p ? r : "f"}${on ? " on" : ""}${own ? " own" : ""}" data-v="${v}" title="${esc(itemName(k, v))}">
+      const gf = isGift(k, v);
+      return `<button class="sh-it r-${gf ? "g" : p ? r : "f"}${on ? " on" : ""}${own ? " own" : ""}${gf && !own ? " lock" : ""}" data-v="${v}" title="${esc(itemName(k, v))}">
         <span class="pv">${pv}</span><span class="nm">${esc(k === "title" ? "" : itemName(k, v))}</span>
-        <span class="pr">${on ? "✅ 입는 중" : own ? (p ? "✔️ 내 것" : "무료") : `🪙 ${p.toLocaleString()}`}</span>${p && !own ? `<span class="rr">${RAR[r][0]}</span>` : ""}</button>`;
+        <span class="pr">${on ? "✅ 입는 중" : gf ? (own ? "🎁 받은 상" : "🔒 선생님만 줄 수 있어요") : own ? (p ? "✔️ 내 것" : "무료") : `🪙 ${p.toLocaleString()}`}</span>${gf ? `<span class="rr">🎁 선생님 상</span>` : p && !own ? `<span class="rr">${RAR[r][0]}</span>` : ""}</button>`;
     }).join("");
   },
   pick(v){
-    const k = this.slot; this.draft[k] = v;
+    const k = this.slot;
+    if (isGift(k, v) && !owns(this.sid, k, v)){ toast("🎁 이건 수업 시간에 잘하면 선생님이 주시는 특별한 상이에요!"); return; }
+    this.draft[k] = v;
     if (v !== "none") (CLASH[k] || []).forEach(c => this.draft[c] = "none");
     if (k === "bg") this.draft.xbg = "none"; if (k === "frame") this.draft.xfr = "none";
     this.render();

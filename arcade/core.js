@@ -146,7 +146,12 @@ const b64d = s => JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g, "+")
    저장소: 이 기기(localStorage) 또는 Firebase(반 전체가 함께)
    ===================================================================== */
 const FBV = "10.12.2";
-const DAY_CAP = 400;   // 하루에 모을 수 있는 코인
+/* 🪙 하루 코인 한도: 기본은 무제한 (선생님이 🛠️ 관리자 → 🪙 코인에서 400·800·1500개로 정할 수 있어요)
+   🔥 열정 보너스: 오늘 많이 할수록 한 판 코인이 늘어요 (5판째부터 ×1.2 · 10판 ×1.5 · 20판 ×2 · 40판 ×2.5) */
+const DAY_CAP = 0;
+const HEAT = [[40, 2.5], [20, 2], [10, 1.5], [5, 1.2], [0, 1]];
+const heatOf = n => HEAT.find(h => n >= h[0])[1];
+const heatNext = n => { const L = HEAT.slice().reverse().find(h => h[0] > n); return L ? L : null; };
 const Store = {
   mode: "none", cls: null, recs: {}, kids: {}, ok: true, err: "", subs: [], fb: null,
   // 친구 22명의 기록이 한꺼번에 들어와도 화면은 0.25초에 한 번만 다시 그려요
@@ -249,16 +254,36 @@ const Store = {
     const fs = this.fs, ref = this.kidRef(sid);
     await fs.runTransaction(this.db, async t => { const d = await t.get(ref); const base = Object.assign({coins: 0, total: 0, owned: {}}, d.exists() ? d.data() : {}); t.set(ref, fn(base)); });
   },
-  /* 코인 받기 (하루 한도까지) — 바로 받을 수 있는 수를 돌려줘요 */
+  /* 🪙 코인 규칙: 하루 한도(0 = 무제한) · 이벤트 배율(×1~×3) */
+  coinRule(){ const c = (this.cls || {}).coin || {}; return {cap: c.cap === undefined ? DAY_CAP : Math.max(0, +c.cap || 0), boost: Math.max(1, Math.min(3, +c.boost || 1))}; },
+  dayOf(sid, w){ w = w || this.kids[sid] || {}; const td = today(), same = w.day === td; return {n: same ? (w.dayN || 0) : 0, c: same ? (w.dayCoins || 0) : 0}; },
+  /* 이번 판에 실제로 받을 코인 (🔥 열정 보너스 × 🎉 이벤트, 한도가 있으면 한도까지) */
+  coinCalc(sid, n, w){
+    const d = this.dayOf(sid, w), R = this.coinRule();
+    let g = Math.round(Math.max(0, n)*heatOf(d.n)*R.boost);
+    if (R.cap > 0) g = Math.max(0, Math.min(g, R.cap - d.c));
+    return g;
+  },
+  /* 코인 받기 — 바로 받을 수 있는 수를 돌려줘요 */
   earn(sid, n){
     n = Math.max(0, Math.round(n)); if (!n) return 0;
-    const td = today(), calc = w => { const dc = w.day === td ? (w.dayCoins || 0) : 0; return Math.max(0, Math.min(n, DAY_CAP - dc)); };
-    const ok = calc(Object.assign({}, this.kids[sid])); if (!ok) return 0;
-    this.kidTx(sid, w => { const g = calc(w); const dc = (w.day === td ? (w.dayCoins || 0) : 0) + g; return Object.assign(w, {coins: (w.coins || 0) + g, total: (w.total || 0) + g, day: td, dayCoins: dc}); })
+    const td = today(), ok = this.coinCalc(sid, n);
+    this.kidTx(sid, w => { const g = this.coinCalc(sid, n, w), d = this.dayOf(sid, w); return Object.assign(w, {coins: (w.coins || 0) + g, total: (w.total || 0) + g, day: td, dayCoins: d.c + g, dayN: d.n + 1}); })
       .catch(e => { console.error(e); toast("⚠️ 코인을 저장하지 못했어요. 인터넷을 확인해 주세요."); });
     return ok;
   },
-  todayLeft(sid){ const w = this.kids[sid] || {}; return DAY_CAP - (w.day === today() ? (w.dayCoins || 0) : 0); },
+  todayLeft(sid){ const R = this.coinRule(); return R.cap > 0 ? R.cap - this.dayOf(sid).c : Infinity; },
+  /* 🎁 선생님 상: 코인 + 칭호·아바타 상을 한꺼번에 (선물함에 기록이 남아요) */
+  async award(sid, o){
+    await this.kidTx(sid, w => {
+      const n = Math.max(0, Math.round(o.coins || 0));
+      w.coins = (w.coins || 0) + n; w.total = (w.total || 0) + n;
+      w.owned = Object.assign({}, w.owned); (o.items || []).forEach(k => w.owned[k] = w.owned[k] || Date.now());
+      const g = {at: Date.now(), coins: n, items: o.items || [], why: String(o.why || "").slice(0, 40)};
+      w.gifts = [g].concat(Array.isArray(w.gifts) ? w.gifts : []).slice(0, 30);
+      return w;
+    });
+  },
   /* 아이템 사기: 코인이 모자라면 안 사져요 */
   async buy(sid, keys, cost, av){
     await this.kidTx(sid, w => { if ((w.coins || 0) < cost) throw new Error("코인이 모자라요");
@@ -578,7 +603,7 @@ const ARC = {
     if (NET.role){
       NET.title(gid === "vb" ? "#vbEnd h3" : gid === "ah" ? "#ahEnd h3" : "#ngOver h3", w);
       // 🌐 다른 기기 대결: 랭킹·코인은 신청한 친구 기기가 한 번만 올려요 (여기서는 보여 주기만)
-      if (NET.role === "guest") return {w: Math.max(0, Math.min(WIN_COIN, Store.todayLeft(w))), l: Math.max(0, Math.min(LOSE_COIN, Store.todayLeft(l)))};
+      if (NET.role === "guest") return {w: Store.coinCalc(w, WIN_COIN), l: Store.coinCalc(l, LOSE_COIN)};
     }
     const cw = Store.earn(w, WIN_COIN), cl = Store.earn(l, LOSE_COIN);
     Store.putDuel(gid, w, l).then(() => { const r = (Store.recs[gid] || {})[w] || {}; toast(`🏆 ${who(noOf_(w))} 승리! 이제 ${r.w || 1}승 · 🪙 +${cw}`); });
@@ -667,11 +692,18 @@ const ARC = {
         q.onclick = big; $("#tlBig").onclick = big;
       }).catch(() => { const q = $("#tlQr"); if (q) q.textContent = "QR을 만들지 못했어요 (인터넷 확인)"; });
     } else if (this.tcTab === "coin"){
-      body.innerHTML = `<p class="arc-small">코인과 산 아이템은 랭킹과 따로 저장돼서, 랭킹을 지우거나 앱을 고쳐도 그대로 남아요. 칭찬할 일이 있을 때 코인을 줄 수 있어요. (하루 게임 코인 한도: ${DAY_CAP}개, 선생님이 주는 코인은 한도와 상관없어요)</p>
+      const R = Store.coinRule();
+      body.innerHTML = `<div class="ad-sec"><h4>⚙️ 코인 규칙</h4>
+          <div class="arc-row" style="justify-content:flex-start"><span style="align-self:center;min-width:130px">📅 하루 게임 코인</span><div class="arc-seg" id="tcCap" style="margin:0">${[[0, "♾️ 무제한"], [400, "400개"], [800, "800개"], [1500, "1,500개"]].map(([v, t]) => `<button data-v="${v}" class="${R.cap === v ? "on" : ""}">${t}</button>`).join("")}</div></div>
+          <div class="arc-row" style="justify-content:flex-start"><span style="align-self:center;min-width:130px">🎉 코인 이벤트</span><div class="arc-seg" id="tcBoost" style="margin:0">${[1, 2, 3].map(v => `<button data-v="${v}" class="${R.boost === v ? "on" : ""}">${v === 1 ? "보통 ×1" : `${v}배 이벤트 ×${v}`}</button>`).join("")}</div></div>
+          <p class="arc-small">🔥 <b>열정 보너스</b>: 오늘 많이 할수록 한 판 코인이 늘어요 — 5판째부터 ×1.2 · 10판 ×1.5 · 20판 ×2 · 40판 ×2.5 (이벤트 배율과 곱해져요). 선생님이 주는 코인·상은 한도와 상관없어요.</p></div>
+        <p class="arc-small">코인과 산 아이템은 랭킹과 따로 저장돼서, 랭킹을 지우거나 앱을 고쳐도 그대로 남아요. 수업 시간에 잘한 친구는 <b>🎁 칭찬 상 주기</b> 탭에서 코인과 선생님 전용 칭호·아바타 상을 한꺼번에 줄 수 있어요.</p>
         <div class="arc-row"><button class="arc-btn" data-all="10">모두 +10</button><button class="arc-btn" data-all="50">모두 +50</button><button class="arc-btn" data-all="100">모두 +100</button></div>
         <div class="arc-coins">${cls.roster.map(s => { const sid = sidOf(s.no), w = walletOf(sid); return `<div class="r" data-sid="${sid}"><span class="avf">${avHTMLof(sid, {still: true, face: true})}</span><span class="nm">${esc(who(s.no))}</span>
           <span class="cc">🪙 <b>${(w.coins || 0).toLocaleString()}</b><small>모은 코인 ${(w.total || 0).toLocaleString()} · 아이템 ${Object.keys(w.owned || {}).length}개</small></span>
           <span class="bb"><button class="arc-btn sm" data-n="-10">-10</button><button class="arc-btn sm" data-n="10">+10</button><button class="arc-btn sm" data-n="50">+50</button><button class="arc-btn sm" data-n="100">+100</button></span></div>`; }).join("")}</div>`;
+      $("#tcCap").onclick = e => { const b = e.target.closest("[data-v]"); if (b) Store.patch({coin: {cap: +b.dataset.v}}).then(() => { toast(+b.dataset.v ? `📅 하루 ${(+b.dataset.v).toLocaleString()}개까지` : "♾️ 하루 코인 무제한"); this.teacher("coin"); }); };
+      $("#tcBoost").onclick = e => { const b = e.target.closest("[data-v]"); if (b) Store.patch({coin: {boost: +b.dataset.v}}).then(() => { toast(+b.dataset.v > 1 ? `🎉 코인 ${b.dataset.v}배 이벤트 시작!` : "코인 이벤트를 끝냈어요"); this.teacher("coin"); }); };
       body.onclick = async e => {
         const b = e.target.closest("[data-n]"), all = e.target.closest("[data-all]");
         if (b){ const sid = b.closest("[data-sid]").dataset.sid; await Store.give(sid, +b.dataset.n); toast(`🪙 ${who(noOf_(sid))} ${+b.dataset.n > 0 ? "+" : ""}${b.dataset.n}`); this.teacher("coin"); }

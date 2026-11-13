@@ -246,12 +246,12 @@ avp('return `<svg class="avs" viewBox=', 'return `<svg class="avs" xmlns="http:/
 out = rd("shell.html")
 for k, v in {
     "/*{{CSS_APP}}*/": css_app,
-    "/*{{CSS_ARC}}*/": rd("arcade.css") + "\n" + rd("lobby.css"),
+    "/*{{CSS_ARC}}*/": rd("arcade.css") + "\n" + rd("lobby.css") + "\n" + rd("gift.css"),
     "<!--{{GAME_HTML}}-->": game_html,
     "/*{{CORE_JS}}*/": rd("core.js"),
     "/*{{AV_JS}}*/": av_js + "\n" + rd("avatar.js"),
     "/*{{GAME_JS}}*/": game_js,
-    "/*{{NEW_JS}}*/": rd("games.js") + "\n" + rd("net.js") + "\n" + rd("lobby.js"),
+    "/*{{NEW_JS}}*/": rd("games.js") + "\n" + rd("net.js") + "\n" + rd("lobby.js") + "\n" + rd("gift.js"),
 }.items():
     assert out.count(k) == 1, k
     out = out.replace(k, v)

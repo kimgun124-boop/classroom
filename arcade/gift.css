@@ -1,0 +1,77 @@
+/* ===================== 🎁 선생님 상: 칭호 · 축하 화면 · 관리자 ===================== */
+/* 🏷️ 선생님 칭호: 보석 같은 그라데이션 + 지나가는 빛 + 반짝 별 */
+.ttl.gift{position:relative;overflow:hidden;isolation:isolate;font-size:14px;padding:3px 13px 3px 20px;border:1.5px solid #fff;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.45);letter-spacing:.3px}
+.ttl.gift::before{content:"✦";position:absolute;left:6px;top:50%;transform:translateY(-52%);font-size:11px;color:#fff;text-shadow:0 0 6px #fff;animation:gfTw 1.6s ease-in-out infinite}
+.ttl.gift::after{content:"";position:absolute;inset:-2px auto -2px -40%;width:34%;z-index:-1;background:linear-gradient(100deg,transparent,rgba(255,255,255,.75),transparent);transform:skewX(-20deg);animation:gfSweep 2.8s ease-in-out infinite}
+@keyframes gfSweep{0%,25%{left:-40%}70%,100%{left:120%}}
+@keyframes gfTw{50%{opacity:.35;transform:translateY(-52%) scale(.7)}}
+.ttl-gfocus{background:linear-gradient(90deg,#1c3faa,#1c7ed6,#22b8cf,#1c7ed6);box-shadow:0 0 10px rgba(34,184,207,.7)}
+.ttl-gspeak{background:linear-gradient(90deg,#c2255c,#f06595,#ff922b,#f06595);box-shadow:0 0 10px rgba(255,146,43,.7)}
+.ttl-gkind{background:linear-gradient(90deg,#f783ac,#ffc9de,#fff0f6,#ffc9de,#f783ac);color:#a61e4d;text-shadow:0 1px 0 #fff;border-color:#ff8ec6;box-shadow:0 0 12px rgba(255,142,198,.8)}
+.ttl-gkind::before{color:#e64980;text-shadow:none}
+.ttl-gscholar{background:linear-gradient(90deg,#087f5b,#12b886,#38d9a9,#12b886);border-color:#ffe066;box-shadow:0 0 10px rgba(56,217,169,.7),inset 0 0 0 1px rgba(255,224,102,.6)}
+.ttl-gtidy{background:linear-gradient(90deg,#63e6be,#b197fc,#e599f7,#63e6be);color:#2b1663;text-shadow:0 1px 0 rgba(255,255,255,.6);box-shadow:0 0 10px rgba(177,151,252,.7)}
+.ttl-gtidy::before{color:#7048e8;text-shadow:none}
+.ttl-gidea{background:linear-gradient(90deg,#f59f00,#ffd43b,#fff3bf,#ffd43b,#f59f00);color:#5c3d00;text-shadow:0 1px 0 rgba(255,255,255,.6);border-color:#fff9db;box-shadow:0 0 14px rgba(255,212,59,.9)}
+.ttl-gidea::before{color:#e67700;text-shadow:none}
+.ttl-ghelp{background:linear-gradient(90deg,#4dabf7,#a5d8ff,#d0bfff,#a5d8ff,#4dabf7);color:#1b3a7a;text-shadow:0 1px 0 rgba(255,255,255,.6);box-shadow:0 0 10px rgba(165,216,255,.8)}
+.ttl-ghelp::before{color:#4263eb;text-shadow:none}
+.ttl-ghero{background:linear-gradient(90deg,#c92a2a,#e03131,#1c3faa,#e03131,#c92a2a);border-color:#ffd43b;box-shadow:0 0 12px rgba(224,49,49,.7),inset 0 0 0 1px rgba(255,212,59,.7)}
+.ttl-gmonth{background:linear-gradient(90deg,#8a5a00,#f5b700,#fffbe6,#f5b700,#8a5a00);background-size:250% 100%;animation:gfGold 3s linear infinite;color:#4a2a00;text-shadow:0 1px 0 rgba(255,255,255,.7);border-color:#fff3bf;box-shadow:0 0 16px rgba(255,212,59,.95)}
+.ttl-gmonth::before{color:#c92a2a;text-shadow:none}
+@keyframes gfGold{to{background-position:250% 0}}
+.ttl-gpride{background:linear-gradient(90deg,#ffc9de,#d0bfff,#a5f3fc,#c3fae8,#fff3bf,#ffc9de);background-size:300% 100%;animation:gfGold 4s linear infinite;color:#5f3dc4;text-shadow:0 1px 0 #fff;border:2px solid #fff;font-size:15px;padding:3px 14px 3px 22px;box-shadow:0 0 16px rgba(208,191,255,.95),0 0 4px #fff}
+.ttl-gpride::before{content:"💎";font-size:11px;text-shadow:none}
+
+/* 🛍️ 상점: 선생님 상 */
+.sh-it.r-g{border-color:#ff8ec6;background:linear-gradient(160deg,rgba(255,142,198,.18),rgba(177,151,252,.12))}
+.sh-it.r-g .rr{background:linear-gradient(90deg,#f06595,#cc5de8);color:#fff}
+.sh-it.r-g .pr{color:#ffc9de}
+.sh-it.lock .pv{filter:saturate(.75) brightness(.8)}
+.sh-it.lock::after{content:"🔒";position:absolute;top:6px;left:8px;font-size:16px}
+#shCats [data-c="gift"]{background:linear-gradient(90deg,#c2255c,#7048e8);color:#fff;border-color:#ffc9de}
+
+/* 🎁 받은 상 축하 화면 */
+#mdGift{z-index:400}
+.gf-card{position:relative;overflow:hidden;max-width:560px;width:92vw;text-align:center;background:radial-gradient(circle at 50% 35%,#5f3dc4 0,#2a1663 55%,#170c3d 100%);border:3px solid #ffd43b;box-shadow:0 0 0 6px rgba(255,212,59,.18),0 0 60px rgba(255,212,59,.45)}
+.gf-rays{position:absolute;left:50%;top:38%;width:900px;height:900px;margin:-450px 0 0 -450px;background:repeating-conic-gradient(rgba(255,236,153,.16) 0 8deg,transparent 8deg 22deg);animation:gfSpin 16s linear infinite;pointer-events:none}
+@keyframes gfSpin{to{transform:rotate(360deg)}}
+.gf-in{position:relative;z-index:1;padding:8px 6px 4px}
+.gf-top{font-size:clamp(26px,4.4vw,38px);color:#ffe066;text-shadow:0 0 18px rgba(255,212,59,.7),0 3px 0 #8a5a00;animation:gfPop .7s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes gfPop{from{transform:scale(.4);opacity:0}}
+.gf-card .gf-why{font:18px "Gowun Dodum",sans-serif;color:#fff;margin:8px auto 0;max-width:90%}
+.gf-av{width:min(230px,52vw);aspect-ratio:1;margin:12px auto 8px;border-radius:26px;overflow:hidden;box-shadow:0 0 0 4px #fff,0 0 40px rgba(255,212,59,.8);animation:gfPop .9s .15s cubic-bezier(.2,1.6,.4,1) both}
+.gf-av svg{width:100%;height:100%;display:block}
+.gf-ttl{margin:6px 0}
+.gf-ttl .ttl{font-size:20px;padding:5px 18px 5px 26px}
+.gf-ttl .ttl.gift::before{font-size:14px;left:8px}
+.gf-list{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:8px 0}
+.gf-list span{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:4px 12px;font-size:16px}
+.gf-list .c{background:#ffd43b;color:#4a2a00;border-color:#fff3bf}
+.gf-note{font:13px "Gowun Dodum",sans-serif;color:#d0bfff;margin:2px 0 8px}
+.gf-conf{position:absolute;inset:0;pointer-events:none;z-index:2}
+
+/* 🛠️ 관리자 → 🎁 칭찬 상 주기 */
+.gf-kids{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:6px}
+.gf-kids button{display:flex;flex-direction:column;align-items:center;gap:2px;background:#221c55;border:2px solid #3e3494;border-radius:14px;padding:6px 4px;color:#fff;font:15px "Jua",sans-serif;cursor:pointer;position:relative}
+.gf-kids button .avf{width:44px;height:44px}
+.gf-kids button small{font:12px "Gowun Dodum",sans-serif;color:#c5b8ff}
+.gf-kids button.on{border-color:#ffd43b;background:#3b2f8f;box-shadow:0 0 0 2px rgba(255,212,59,.35)}
+.gf-kids button.on::after{content:"✔";position:absolute;top:2px;right:6px;color:#ffd43b;font-size:16px}
+.gf-h{margin:14px 0 6px;font-size:17px;color:#e5dbff}
+.gf-h small{font:13px "Gowun Dodum",sans-serif;color:#b9b0dd}
+.gf-ttls{display:flex;flex-wrap:wrap;gap:8px}
+.gf-ttls button{background:#1a1545;border:2px solid #3e3494;border-radius:14px;padding:8px 10px;cursor:pointer}
+.gf-ttls button.on{border-color:#ffd43b;background:#3b2f8f}
+.gf-avs{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+.gf-avs button{display:flex;flex-direction:column;align-items:center;gap:3px;background:#1a1545;border:2px solid #3e3494;border-radius:14px;padding:8px 6px;color:#fff;font:15px "Jua",sans-serif;cursor:pointer;position:relative}
+.gf-avs button .pv{width:84px;height:84px;border-radius:14px;overflow:hidden}
+.gf-avs button .pv svg{width:100%;height:100%;display:block}
+.gf-avs button small{font:12px "Gowun Dodum",sans-serif;color:#b9b0dd}
+.gf-avs button.on{border-color:#ffd43b;background:#3b2f8f}
+.gf-avs button.on::after{content:"✔";position:absolute;top:4px;right:8px;color:#ffd43b;font-size:18px}
+.gf-whyq{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
+.gf-whyq button{font:14px "Jua",sans-serif;background:#2a2366;color:#e5dbff;border:1px solid #4c3fb0;border-radius:999px;padding:4px 10px;cursor:pointer}
+.gf-go{width:100%;font-size:22px;padding:14px;display:flex;flex-direction:column;align-items:center;gap:2px}
+.gf-go small{font:13px "Gowun Dodum",sans-serif;opacity:.9}
+.ng-heat{display:block;font:13px "Gowun Dodum",sans-serif;color:#ffc078;margin-top:2px}

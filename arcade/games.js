@@ -138,7 +138,7 @@ const NG = {
       <div class="info">${extra}${res.isNew && res.prevBest ? `<div class="new">전 기록 ${res.prevBest}점을 넘었어요!</div>` : ""}
         <div>내 최고 <b>${res.r.best}</b>점 · 오늘 최고 <b>${res.r.dayBest}</b>점 · ${res.r.plays}번째 도전</div>
         <div>🏆 우리 반 <b>${res.rank}</b>등 <small>/ ${res.n}명</small>${res.isNew && res.prevRank && res.rank < res.prevRank ? ` · ▲ ${res.prevRank - res.rank}계단!` : ""}</div>
-        <div class="ng-coin">${res.coins ? `🪙 +${res.coins} 코인!` : "🪙 오늘 코인은 다 모았어요"} <small>내 코인 ${(walletOf(sid).coins || 0).toLocaleString()}</small></div></div>
+        <div class="ng-coin">${res.coins ? `🪙 +${res.coins} 코인!` : "🪙 오늘 코인은 다 모았어요"} <small class="ng-heat">${heatTxt(sid)}</small> <small>내 코인 ${(walletOf(sid).coins || 0).toLocaleString()}</small></div></div>
       <div class="arc-row"><button class="arc-btn p" data-ng="again">🔁 다시 하기</button><button class="arc-btn" data-ng="home">🏠 홈으로</button></div></div>`;
     $("#ngOver").hidden = false;
   },
