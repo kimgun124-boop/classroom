@@ -84,6 +84,25 @@ patch("tr", "window.__trTest = {", "window.__trOpen = openTr; window.__trTest = 
 
 game_js = "\n".join(mods[k] for k in ("vb", "ah", "fl", "tr"))
 
+# ---- 3-1) 👕 아바타 그리기 (index.html의 아바타 모듈 + 오락실 고급 아이템 자리)
+s = src.index("  /* ---------- 👕 아바타: 부위별로 골라서 SVG로 그려요 ---------- */")
+e = src.index("  const avMood = sid =>")
+av_js = src[s:e]
+def avp(a, b):
+    global av_js
+    c = av_js.count(a)
+    if c != 1:
+        sys.exit(f"[avatar] 바꿀 곳을 찾지 못했어요 ({c}곳): {a[:70]}")
+    av_js = av_js.replace(a, b)
+avp('const avatarOf = sid => { const a = (S.avatars||{})[sid]; return a && a.on !== false ? a : null; };',
+    'const avatarOf = sid => (typeof avOf === "function" ? avOf(sid) : null);')
+avp('g += BG[a.bg || "sky"] || BG.sky;',
+    'g += (window.AVX && AVX.bg(a, id)) || BG[a.bg || "sky"] || BG.sky;\n    if (window.AVX) g += AVX.under(a, id);')
+avp('if (a.tacc && a.tacc !== "none") g += TA[a.tacc] || "";',
+    'if (a.tacc && a.tacc !== "none") g += TA[a.tacc] || "";\n    if (window.AVX) g += AVX.over(a, id);')
+avp('const frame = FR[fr] || FR.basic;', 'const frame = (window.AVX && AVX.frame(a, id)) || FR[fr] || FR.basic;')
+avp('return `<svg class="avs" viewBox=', 'return `<svg class="avs" xmlns="http://www.w3.org/2000/svg" viewBox=')
+
 # ---- 4) 합치기
 out = rd("shell.html")
 for k, v in {
@@ -91,6 +110,7 @@ for k, v in {
     "/*{{CSS_ARC}}*/": rd("arcade.css"),
     "<!--{{GAME_HTML}}-->": game_html,
     "/*{{CORE_JS}}*/": rd("core.js"),
+    "/*{{AV_JS}}*/": av_js + "\n" + rd("avatar.js"),
     "/*{{GAME_JS}}*/": game_js,
     "/*{{NEW_JS}}*/": rd("games.js"),
 }.items():

@@ -53,7 +53,7 @@
   <header class="arc-top">
     <div class="arc-me" id="hmMe"></div>
     <h1 class="arc-logo sm"><span class="e">🕹️</span> <span class="g"><span id="hmClass">우리반</span> 오락실</span></h1>
-    <div class="arc-topb"><button class="arc-btn" id="hmRank">🏆 랭킹</button><button class="arc-btn" id="hmFace">😀 캐릭터</button><button class="arc-btn" id="hmOut">🚪 로그아웃</button></div>
+    <div class="arc-topb"><button class="arc-btn" id="hmRank">🏆 랭킹</button><button class="arc-btn p" id="hmFace">👕 꾸미기·상점</button><button class="arc-btn" id="hmOut">🚪 로그아웃</button></div>
   </header>
   <div class="arc-games" id="hmGames"></div>
   <div class="arc-sync" id="hmSync"></div>
@@ -99,6 +99,27 @@
   </div>
 </div>
 
+<!-- ===== 꾸미기·상점 ===== -->
+<div class="arc-modal" id="mdShop" hidden>
+  <div class="arc-card arc-shop">
+    <h2 id="shTitle">👕 꾸미기 · 🛍️ 상점</h2>
+    <div class="sh-wrap">
+      <div class="sh-left">
+        <div class="sh-prev" id="shPrevBox"><div id="shPrev"></div></div>
+        <div class="sh-who" id="shWho"></div>
+        <div class="sh-coins" id="shCoins"></div>
+        <div class="sh-buy" id="shBuy"></div>
+      </div>
+      <div class="sh-right">
+        <div class="arc-tabs sh-cats" id="shCats"></div>
+        <div class="sh-slots" id="shSlots"></div>
+        <div class="sh-grid" id="shGrid"></div>
+      </div>
+    </div>
+    <button class="arc-x" data-close>×</button>
+  </div>
+</div>
+
 <!-- ===== 랭킹 ===== -->
 <div class="arc-modal" id="mdRank" hidden>
   <div class="arc-card arc-wide arc-rankc">
@@ -113,7 +134,7 @@
 <div class="arc-modal" id="mdTeach" hidden>
   <div class="arc-card arc-wide arc-teachc">
     <h2>⚙️ 선생님 화면</h2>
-    <div class="arc-tabs" id="tcTabs"><button data-t="kids" class="on">👧 학생·비밀번호</button><button data-t="link">🔗 반 입장 주소</button><button data-t="rank">🏆 랭킹 관리</button><button data-t="store">☁️ 저장</button></div>
+    <div class="arc-tabs" id="tcTabs"><button data-t="kids" class="on">👧 학생·비밀번호</button><button data-t="link">🔗 반 입장 주소</button><button data-t="coin">🪙 코인</button><button data-t="rank">🏆 랭킹 관리</button><button data-t="store">☁️ 저장</button></div>
     <div id="tcBody"></div>
     <button class="arc-x" data-close>×</button>
   </div>
@@ -143,6 +164,9 @@
 
 <script>
 /*{{CORE_JS}}*/
+</script>
+<script>
+/*{{AV_JS}}*/
 </script>
 <script>
 /*{{GAME_JS}}*/

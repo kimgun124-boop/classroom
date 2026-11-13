@@ -22,12 +22,17 @@ const SFX = {
   pong: () => tone(700, 500, .06, "square", .09),
   wall: () => tone(400, 350, .05, "square", .06)
 };
-/* 캐릭터 얼굴을 동그랗게 */
+/* 내 아바타 얼굴을 동그랗게 (그림이 아직 없으면 이모지) */
+const AVI = {};
+function avImg(sid){ const u = photoOf(sid); if (!u) return null; let m = AVI[sid]; if (!m || m.u !== u){ m = AVI[sid] = new Image(); m.u = u; m.src = u; } return m.complete && m.naturalWidth ? m : null; }
 function faceAt(g, sid, x, y, r, ring, sad){
   g.save();
   if (ring){ g.fillStyle = ring; g.beginPath(); g.arc(x, y, r + Math.max(2, r*.14), 0, Math.PI*2); g.fill(); }
   g.fillStyle = "#fff"; g.beginPath(); g.arc(x, y, r, 0, Math.PI*2); g.fill();
-  g.font = `${Math.round(r*1.4)}px ${EMOJI}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(sad ? "😵" : faceOf(sid), x, y + r*.08);
+  const im = avImg(sid);
+  if (im){ g.save(); g.beginPath(); g.arc(x, y, r, 0, Math.PI*2); g.clip(); g.drawImage(im, x - r, y - r, r*2, r*2); g.restore();
+    if (sad){ g.font = `${Math.round(r*.9)}px ${EMOJI}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("😵", x + r*.55, y - r*.55); } }
+  else { g.font = `${Math.round(r*1.4)}px ${EMOJI}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(sad ? "😵" : faceOf(sid), x, y + r*.08); }
   g.restore();
 }
 function outlined(g, txt, x, y, size, fill = "#fff", stroke = "rgba(20,15,46,.85)", align = "center"){
@@ -45,9 +50,9 @@ function saveRec(gid, sid, score){
   if (r.day !== td){ r.day = td; r.dayBest = 0; r.dayPlays = 0; }
   r.dayPlays = (r.dayPlays || 0) + 1; if (score > (r.dayBest || 0)){ r.dayBest = score; r.dayAt = Date.now(); }
   const isNew = score > prevBest; if (isNew){ r.best = score; r.bestAt = Date.now(); }
-  ARC.score(gid, sid, r);
+  const coins = ARC.score(gid, sid, r);
   const B = board(gid), me = B.find(x => x.sid === sid);
-  return {isNew, prevBest, prevRank, rank: me ? me.rank : 0, n: B.length, r};
+  return {isNew, prevBest, prevRank, rank: me ? me.rank : 0, n: B.length, r, coins};
 }
 
 /* =====================================================================
@@ -87,11 +92,12 @@ const NG = {
     if (this.ended) return; this.ended = true;
     const sid = this.sids[0], res = saveRec(this.gid, sid, score);
     (res.isNew ? SFX.rec : SFX.over)();
-    $("#ngOver").innerHTML = `${res.isNew ? this.conf(90) : ""}<div class="ng-box"><span class="f">${faceOf(sid)}</span><h3>${res.isNew ? "🎉 새 기록!" : "게임 끝!"}</h3>
+    $("#ngOver").innerHTML = `${res.isNew ? this.conf(90) : ""}<div class="ng-box"><span class="avb">${avHTMLof(sid)}</span><h3>${res.isNew ? "🎉 새 기록!" : "게임 끝!"}</h3>
       <div class="sc">${score}점</div>
       <div class="info">${extra}${res.isNew && res.prevBest ? `<div class="new">전 기록 ${res.prevBest}점을 넘었어요!</div>` : ""}
         <div>내 최고 <b>${res.r.best}</b>점 · 오늘 최고 <b>${res.r.dayBest}</b>점 · ${res.r.plays}번째 도전</div>
-        <div>🏆 우리 반 <b>${res.rank}</b>등 <small>/ ${res.n}명</small>${res.isNew && res.prevRank && res.rank < res.prevRank ? ` · ▲ ${res.prevRank - res.rank}계단!` : ""}</div></div>
+        <div>🏆 우리 반 <b>${res.rank}</b>등 <small>/ ${res.n}명</small>${res.isNew && res.prevRank && res.rank < res.prevRank ? ` · ▲ ${res.prevRank - res.rank}계단!` : ""}</div>
+        <div class="ng-coin">${res.coins ? `🪙 +${res.coins} 코인!` : "🪙 오늘 코인은 다 모았어요"} <small>내 코인 ${(walletOf(sid).coins || 0).toLocaleString()}</small></div></div>
       <div class="arc-row"><button class="arc-btn p" data-ng="again">🔁 다시 하기</button><button class="arc-btn" data-ng="home">🏠 홈으로</button></div></div>`;
     $("#ngOver").hidden = false;
   },
@@ -99,10 +105,10 @@ const NG = {
   win(w, scoreTxt){
     if (this.ended) return; this.ended = true;
     const W = this.sids[w], L = this.sids[1 - w], cpu = this.opt.cpu, cpuWon = cpu && w === 1;
-    ARC.duel(this.gid, W, L, cpu);
+    const cn = ARC.duel(this.gid, W, L, cpu) || {w: 0, l: 0};
     (cpuWon ? SFX.over : SFX.rec)();
-    $("#ngOver").innerHTML = `${cpuWon ? "" : this.conf(90)}<div class="ng-box"><span class="f">${cpuWon ? "🤖" : faceOf(W)}</span><h3>${cpuWon ? "컴퓨터 승리!" : `🏆 ${esc(who(noOf_(W)))} 승리!`}</h3>
-      <div class="sc">${scoreTxt}</div><div class="info">${cpu ? "🤖 컴퓨터 연습은 랭킹에 들어가지 않아요" : "이긴 친구 랭킹 +1승!"}</div>
+    $("#ngOver").innerHTML = `${cpuWon ? "" : this.conf(90)}<div class="ng-box">${cpuWon ? `<span class="f">🤖</span>` : `<span class="avb">${avHTMLof(W)}</span>`}<h3>${cpuWon ? "컴퓨터 승리!" : `🏆 ${esc(who(noOf_(W)))} 승리!`}</h3>
+      <div class="sc">${scoreTxt}</div><div class="info">${cpu ? "🤖 컴퓨터 연습은 랭킹에 들어가지 않아요" : `이긴 친구 랭킹 +1승!<div class="ng-coin">🪙 ${esc(nameOf(noOf_(W)))} +${cn.w} · ${esc(nameOf(noOf_(L)))} +${cn.l}</div>`}</div>
       <div class="arc-row"><button class="arc-btn p" data-ng="again">🔁 한 판 더</button><button class="arc-btn" data-ng="home">🏠 홈으로</button></div></div>`;
     $("#ngOver").hidden = false;
   }

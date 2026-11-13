@@ -202,3 +202,77 @@ body.arc-lite *, body.arc-lite *::before, body.arc-lite *::after{backdrop-filter
 body.arc-lite .arc-logo .g{animation:none !important}
 /* 🖥️ 게임 화면 꽉 채우기 */
 #volley,#airh,#flappy,#train,#memo,#guess,.ng-ov{height:100vh;height:100dvh}
+
+/* ===================== 👕 아바타 · 🪙 코인 · 🛍️ 상점 ===================== */
+.avf{display:inline-block;width:56px;height:56px;border-radius:50%;overflow:hidden;flex:none;box-shadow:0 0 0 2px rgba(255,255,255,.5);background:#fff;vertical-align:middle}
+.avf svg,.avb svg{width:100%;height:100%;display:block}
+.arc-num .avf{width:64px;height:64px}
+.arc-nums.sm .arc-num .avf{width:48px;height:48px}
+.arc-pwwho .avf{width:86px;height:86px;display:block;margin:0 auto 4px}
+.arc-rrow .avf{width:40px;height:40px}
+.arc-duo .p .avf{width:80px;height:80px}
+.ag-top .avf{width:24px;height:24px;box-shadow:none}
+.arc-kids .r .avf{width:36px;height:36px}
+.avb{display:inline-block;width:76px;height:76px;flex:none;filter:drop-shadow(0 4px 10px rgba(0,0,0,.4))}
+.arc-me{padding:6px 14px 6px 6px}
+.arc-me>div{display:flex;flex-direction:column;align-items:flex-start;gap:3px}
+.arc-coin{display:flex;align-items:baseline;gap:6px;background:linear-gradient(180deg,#ffe066,#fab005);color:#4a3000;border:0;border-radius:999px;padding:3px 12px;font:17px "Jua",sans-serif;cursor:pointer;box-shadow:0 3px 0 #b07800}
+.arc-coin small{font:12px "Gowun Dodum",sans-serif;color:#6b4a00}
+.ng-box .avb{width:120px;height:120px;display:block;margin:0 auto}
+.ng-coin{margin-top:6px;font:22px "Jua",sans-serif;color:#ffe066;text-shadow:0 0 12px rgba(255,212,59,.6)}
+.ng-coin small{font:14px "Gowun Dodum",sans-serif;color:#d0c8ff}
+.arc-coins{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.arc-coins .r{display:flex;align-items:center;gap:10px;background:#221c55;border-radius:12px;padding:6px 10px}
+.arc-coins .avf{width:38px;height:38px}
+.arc-coins .nm{width:120px}
+.arc-coins .cc{flex:1;font-size:18px;color:#ffe066}.arc-coins .cc small{display:block;color:#a79fd0;font:12px "Gowun Dodum",sans-serif}
+.arc-coins .bb{display:flex;gap:4px}
+
+/* 칭호 */
+.ttl{display:inline-block;font:13px "Jua",sans-serif;padding:2px 9px;border-radius:999px;background:#3b3180;color:#e5dbff;border:1px solid #6c5ce7;white-space:nowrap;vertical-align:middle}
+.ttl-sprout{background:#2b8a3e;border-color:#69db7c;color:#fff}
+.ttl-jumper{background:#1971c2;border-color:#74c0fc;color:#fff}
+.ttl-star{background:linear-gradient(90deg,#f59f00,#ffd43b);border-color:#fff3bf;color:#4a3000}
+.ttl-combo{background:linear-gradient(90deg,#e8590c,#ff922b);border-color:#ffc078;color:#fff;box-shadow:0 0 8px rgba(255,146,43,.6)}
+.ttl-brain{background:linear-gradient(90deg,#7048e8,#da77f2);border-color:#e5dbff;color:#fff}
+.ttl-ace{background:linear-gradient(90deg,#c92a2a,#ff6b6b);border-color:#ffc9c9;color:#fff;box-shadow:0 0 8px rgba(255,107,107,.6)}
+.ttl-champ{background:linear-gradient(90deg,#b07800,#ffd43b,#b07800);border-color:#fff3bf;color:#3d2a00;box-shadow:0 0 12px rgba(255,212,59,.8)}
+.ttl-legend,.ttl-king{color:#fff;border-color:#fff;background:linear-gradient(90deg,#ff6b6b,#ffa94d,#ffd43b,#69db7c,#4dabf7,#b197fc,#ff6b6b);background-size:300% 100%;animation:arcRain 3s linear infinite;text-shadow:0 1px 2px rgba(0,0,0,.5);box-shadow:0 0 14px rgba(255,255,255,.6)}
+.ttl-king{background:linear-gradient(90deg,#0b7285,#22e1ff,#e599f7,#ffd43b,#0b7285);background-size:300% 100%;font-size:14px;padding:3px 12px}
+
+/* 상점 */
+.arc-shop{max-width:1180px;width:100%}
+.sh-wrap{display:flex;gap:18px;align-items:flex-start}
+.sh-left{flex:0 0 300px;display:flex;flex-direction:column;align-items:center;gap:8px;position:sticky;top:0}
+.sh-prev{position:relative;width:280px;height:280px;border-radius:24px;overflow:hidden;filter:drop-shadow(0 10px 30px rgba(0,0,0,.5))}
+.sh-prev svg{width:100%;height:100%;display:block}
+.sh-who{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:20px}
+.sh-coins{font:22px "Jua",sans-serif;color:#ffe066;background:rgba(255,224,102,.12);border:1px solid rgba(255,224,102,.4);border-radius:999px;padding:4px 16px}
+.sh-buy{display:flex;flex-direction:column;align-items:stretch;gap:8px;width:100%}
+.sh-try{font:14px "Gowun Dodum",sans-serif;color:#d0c8ff;text-align:center}
+.sh-need{font:14px "Gowun Dodum",sans-serif;color:#ff8787;text-align:center}
+.sh-buy .arc-btn.big{text-align:center}
+.sh-right{flex:1;min-width:0}
+.sh-cats{padding-right:46px}
+.sh-slots{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px}
+.sh-slots button{background:transparent;color:#c5b8ff;border:1px solid #4c3fb0;border-radius:999px;padding:4px 12px;font:15px "Jua",sans-serif;cursor:pointer}
+.sh-slots button.on{background:#ffe066;color:#3d2a00;border-color:#ffe066}
+.sh-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px;max-height:calc(100vh - 230px);overflow:auto;padding:4px}
+.sh-grid.col{grid-template-columns:repeat(auto-fill,minmax(84px,1fr))}
+.sh-grid.ttlg{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
+.sh-it{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 6px 7px;border-radius:16px;background:#1d1847;border:2px solid #3e3494;color:#fff;cursor:pointer;transition:transform .12s}
+.sh-it:hover{transform:translateY(-3px)}
+.sh-it .pv{width:96px;height:96px;border-radius:14px;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.sh-it .pv svg{width:100%;height:100%}
+.sh-grid.col .sh-it .pv{width:56px;height:56px}
+.sh-grid.ttlg .sh-it .pv{width:auto;height:46px}
+.sh-it .sw{width:46px;height:46px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.sh-it .nm{font:13px "Gowun Dodum",sans-serif;color:#e5dbff;text-align:center;line-height:1.2;min-height:15px}
+.sh-it .pr{font:13px "Jua",sans-serif;color:#ffe066}
+.sh-it.own .pr{color:#8ce99a}
+.sh-it .rr{position:absolute;top:6px;left:6px;font:11px "Jua",sans-serif;padding:1px 6px;border-radius:999px;background:rgba(0,0,0,.55)}
+.sh-it.r-r{border-color:#4dabf7}.sh-it.r-r .rr{color:#74c0fc}
+.sh-it.r-e{border-color:#b197fc;box-shadow:0 0 10px rgba(177,151,252,.35)}.sh-it.r-e .rr{color:#d0bfff}
+.sh-it.r-l{border-color:#ffd43b;box-shadow:0 0 14px rgba(255,212,59,.5);background:linear-gradient(180deg,#3b2f0e,#1d1847)}.sh-it.r-l .rr{color:#ffe066}
+.sh-it.on{outline:3px solid #69db7c;outline-offset:2px}
+@media (max-width:820px){ .sh-wrap{flex-direction:column;align-items:stretch} .sh-left{position:static;flex:none} .sh-prev{width:200px;height:200px;margin:0 auto} .sh-grid{max-height:none} }

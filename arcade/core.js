@@ -103,9 +103,7 @@ const TEACHER = 0;   // 🧑‍🏫 선생님도 같이 하는 자리 (번호 0 
 const faceOf = sid => (Store.cls && Store.cls.faces && Store.cls.faces[noOf_(sid)]) || (noOf_(sid) === TEACHER ? "🧑‍🏫" : "🙂");
 /* 게임·랭킹·대결에 나오는 사람: 학생 명단 + 선생님 */
 const roster = () => { const r = (Store.cls && Store.cls.roster) || []; return Store.cls && Store.cls.noTeacher ? r : r.concat([{no: TEACHER, name: "선생님", t: 1}]); };
-const photoOf = () => "";
-const avatarOf = () => null;
-const avatarSVG = () => "";
+const photoOf = sid => (typeof avPhoto === "function" ? avPhoto(sid) : "");
 
 const FACES = ["🐶","🐱","🐭","🐹","🐰","🦊","🐻","🐼","🐨","🐯","🦁","🐮","🐷","🐸","🐵","🐔","🐧","🐤","🦄","🐲","🐙","🦖","🐳","🐬","🦋","🐞","🐝","🦉","🐢","🦈",
                "😀","😎","🤓","🤠","🥳","😺","👻","👽","🤖","🎃","🌞","⭐","🍀","🍓","🍩","⚽","🎸","🚀"];
@@ -137,19 +135,20 @@ const b64d = s => JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g, "+")
    저장소: 이 기기(localStorage) 또는 Firebase(반 전체가 함께)
    ===================================================================== */
 const FBV = "10.12.2";
+const DAY_CAP = 400;   // 하루에 모을 수 있는 코인
 const Store = {
-  mode: "none", cls: null, recs: {}, ok: true, err: "", subs: [], fb: null,
+  mode: "none", cls: null, recs: {}, kids: {}, ok: true, err: "", subs: [], fb: null,
   // 친구 22명의 기록이 한꺼번에 들어와도 화면은 0.25초에 한 번만 다시 그려요
   emit(){ if (this._et) return; this._et = setTimeout(() => { this._et = 0; this.subs.forEach(f => { try { f(); } catch(e) { console.error(e); } }); }, 250); },
   local(){ try { return JSON.parse(localStorage.getItem(KEY + ".local")) || null; } catch(e) { return null; } },
-  saveLocal(){ if (this.mode !== "local") return; try { localStorage.setItem(KEY + ".local", JSON.stringify({cls: this.cls, recs: this.recs})); } catch(e) { toast("이 기기에 저장할 자리가 부족해요"); } },
+  saveLocal(){ if (this.mode !== "local") return; try { localStorage.setItem(KEY + ".local", JSON.stringify({cls: this.cls, recs: this.recs, kids: this.kids})); } catch(e) { toast("이 기기에 저장할 자리가 부족해요"); } },
   join(){ try { return JSON.parse(localStorage.getItem(KEY + ".join")) || null; } catch(e) { return null; } },
 
   async init(){
     const j = this.join();
     if (j && j.c && j.i) return this.connect(j.c, j.i);
     const L = this.local();
-    if (L && L.cls){ this.mode = "local"; this.cls = L.cls; this.recs = L.recs || {}; return true; }
+    if (L && L.cls){ this.mode = "local"; this.cls = L.cls; this.recs = L.recs || {}; this.kids = L.kids || {}; return true; }
     this.mode = "none"; return false;
   },
   async lib(){
@@ -171,6 +170,7 @@ const Store = {
     this.mode = "cloud"; this.cls = first.data();
     localStorage.setItem(KEY + ".join", JSON.stringify({c: cfg, i: cid}));
     fs.onSnapshot(this.refCls, s => { if (s.exists()){ this.cls = s.data(); this.ok = true; this.emit(); } }, e => { this.ok = false; this.err = e.message; this.emit(); });
+    fs.onSnapshot(fs.collection(db, "arcade", cid, "kids"), qs => { const k = {}; qs.forEach(d => k[d.id] = d.data()); this.kids = k; this.ok = true; this.emit(); }, e => { this.ok = false; this.err = e.message; this.emit(); });
     fs.onSnapshot(fs.collection(db, "arcade", cid, "recs"), qs => { const r = {}; qs.forEach(d => r[d.id] = d.data()); this.recs = r; this.ok = true; this.emit(); }, e => { this.ok = false; this.err = e.message; this.emit(); });
     return true;
   },
@@ -221,12 +221,40 @@ const Store = {
     if (this.mode === "local") return this.saveLocal();
     await this.fs.deleteDoc(this.fs.doc(this.db, "arcade", this.cid, "recs", game));
   },
+  /* ---------- 🪙 학생 지갑: 코인 · 산 아이템 · 입은 아바타 (랭킹과 따로 저장 → 랭킹을 지우거나 앱을 고쳐도 그대로) ---------- */
+  kidRef(sid){ return this.fs.doc(this.db, "arcade", this.cid, "kids", sid); },
+  async kidTx(sid, fn){   // fn(지갑) → 바꾼 지갑 (못 하면 throw)
+    const cur = Object.assign({coins: 0, total: 0, owned: {}}, JSON.parse(JSON.stringify(this.kids[sid] || {})));
+    const nw = fn(cur); this.kids[sid] = nw; this.emit();
+    if (this.mode === "local") return this.saveLocal();
+    const fs = this.fs, ref = this.kidRef(sid);
+    await fs.runTransaction(this.db, async t => { const d = await t.get(ref); const base = Object.assign({coins: 0, total: 0, owned: {}}, d.exists() ? d.data() : {}); t.set(ref, fn(base)); });
+  },
+  /* 코인 받기 (하루 한도까지) — 바로 받을 수 있는 수를 돌려줘요 */
+  earn(sid, n){
+    n = Math.max(0, Math.round(n)); if (!n) return 0;
+    const td = today(), calc = w => { const dc = w.day === td ? (w.dayCoins || 0) : 0; return Math.max(0, Math.min(n, DAY_CAP - dc)); };
+    const ok = calc(Object.assign({}, this.kids[sid])); if (!ok) return 0;
+    this.kidTx(sid, w => { const g = calc(w); const dc = (w.day === td ? (w.dayCoins || 0) : 0) + g; return Object.assign(w, {coins: (w.coins || 0) + g, total: (w.total || 0) + g, day: td, dayCoins: dc}); })
+      .catch(e => { console.error(e); toast("⚠️ 코인을 저장하지 못했어요. 인터넷을 확인해 주세요."); });
+    return ok;
+  },
+  todayLeft(sid){ const w = this.kids[sid] || {}; return DAY_CAP - (w.day === today() ? (w.dayCoins || 0) : 0); },
+  /* 아이템 사기: 코인이 모자라면 안 사져요 */
+  async buy(sid, keys, cost, av){
+    await this.kidTx(sid, w => { if ((w.coins || 0) < cost) throw new Error("코인이 모자라요");
+      w.coins -= cost; w.owned = Object.assign({}, w.owned); keys.forEach(k => w.owned[k] = Date.now()); if (av) w.av = av; return w; });
+  },
+  async putAv(sid, av){ await this.kidTx(sid, w => Object.assign(w, {av})); },
+  /* 선생님이 코인 주기·빼기 */
+  async give(sid, n){ await this.kidTx(sid, w => Object.assign(w, {coins: Math.max(0, (w.coins || 0) + n), total: (w.total || 0) + Math.max(0, n)})); },
   /* 이 기기 기록 → Firebase 로 옮기기 */
   async toCloud(cfg){
-    const cls = Object.assign({}, this.cls), recs = this.recs;
+    const cls = Object.assign({}, this.cls), recs = this.recs; this.localKids = this.kids;
     await this.connect(cfg, cls.cid, cls);
     const fs = this.fs;
     for (const g in recs) await fs.setDoc(fs.doc(this.db, "arcade", cls.cid, "recs", g), recs[g]);
+    const kids = this.localKids || {}; for (const s in kids) await fs.setDoc(fs.doc(this.db, "arcade", cls.cid, "kids", s), kids[s]);
     localStorage.removeItem(KEY + ".local");
   }
 };
@@ -252,6 +280,10 @@ const GAMES = [
   {id: "pp", e: "🏓", n: "얼굴 탁구",   kind: "duel",  d: "둘이서 탁구 대결"}
 ];
 const GAME = Object.fromEntries(GAMES.map(g => [g.id, g]));
+/* 점수 → 코인 (한 판 최대 50, 기본 2) */
+const COIN_RATE = {fl: 1, tr: 2, wm: .8, bk: 1/40, rn: 1/6, tw: 1/80};
+const coinsFor = (gid, score) => Math.min(50, 2 + Math.floor((score || 0)*(COIN_RATE[gid] || 0)));
+const WIN_COIN = 25, LOSE_COIN = 5, BEST_COIN = 10;
 
 /* ---- 랭킹 계산 ---- */
 function board(gid){
@@ -340,8 +372,8 @@ const ARC = {
   login(){ this.me = null; this.show("scrLogin"); this.renderLogin(); },
   renderLogin(){
     $("#lgClass").textContent = Store.cls.name || "우리반";
-    $("#lgNums").innerHTML = roster().map(s => `<button class="arc-num${s.t ? " tch" : ""}" data-no="${s.no}"><span class="f">${faceOf(sidOf(s.no))}</span><b>${s.t ? "선생님" : s.no}</b><small>${s.t ? "같이 해요!" : esc(s.name)}</small></button>`).join("");
-    $("#lgNums").onclick = e => { const b = e.target.closest("[data-no]"); if (b) this.askPw(+b.dataset.no, no => { this.me = no; localStorage.setItem(KEY + ".me", no); this.home(); if (!(Store.cls.facePicked || {})[no]) setTimeout(() => this.pickFace(true), 300); }); };
+    $("#lgNums").innerHTML = roster().map(s => `<button class="arc-num${s.t ? " tch" : ""}" data-no="${s.no}"><span class="avf">${avHTMLof(sidOf(s.no), {still: true, face: true})}</span><b>${s.t ? "선생님" : s.no}</b><small>${s.t ? "같이 해요!" : esc(s.name)}</small></button>`).join("");
+    $("#lgNums").onclick = e => { const b = e.target.closest("[data-no]"); if (b) this.askPw(+b.dataset.no, no => { this.me = no; localStorage.setItem(KEY + ".me", no); this.home(); if (!(Store.kids[sidOf(no)] || {}).av) setTimeout(() => SHOP.open(sidOf(no), true), 300); }); };
     $("#lgTeach").onclick = () => this.teacherGate();
   },
   /* 숫자 패드로 비밀번호 (4자리면 바로 확인) */
@@ -367,9 +399,9 @@ const ARC = {
     dots(); $("#pwPick").hidden = true; this.modal("#mdPw", true);
   },
   askPw(no, ok, title){
-    if (+no === TEACHER) return this.pad({who: `<span class="f">${faceOf(sidOf(TEACHER))}</span><b>선생님</b>`, title: title || "선생님 비밀번호",
+    if (+no === TEACHER) return this.pad({who: `<span class="avf">${avHTMLof(sidOf(TEACHER), {still: true, face: true})}</span><b>선생님</b>`, title: title || "선생님 비밀번호",
       check: v => { if (sha256(`${Store.cls.cid}:teacher:${v}`) === Store.cls.admin){ ok(TEACHER); return true; } return "비밀번호가 달라요"; }});
-    this.pad({who: `<span class="f">${faceOf(sidOf(no))}</span><b>${esc(who(no))}</b>`, title: title || "비밀번호 4자리", len: 4,
+    this.pad({who: `<span class="avf">${avHTMLof(sidOf(no), {still: true, face: true})}</span><b>${esc(who(no))}</b>`, title: title || "비밀번호 4자리", len: 4,
       check: v => { if (Store.cls.pw[no] && pwHash(no, v) === Store.cls.pw[no]){ ok(no); return true; } return Store.cls.pw[no] ? "비밀번호가 달라요" : "아직 비밀번호가 없어요. 선생님께 말해요."; }});
   },
   logout(){ localStorage.removeItem(KEY + ".me"); this.me = null; this.login(); },
@@ -388,15 +420,17 @@ const ARC = {
 
   /* ---------- 홈 ---------- */
   home(){ this.show("scrHome"); this.renderHome();
-    $("#hmOut").onclick = () => this.logout(); $("#hmFace").onclick = () => this.pickFace(false); $("#hmRank").onclick = () => this.rank(this.lastRank || "fl"); },
+    $("#hmOut").onclick = () => this.logout(); $("#hmFace").onclick = () => SHOP.open(sidOf(this.me)); $("#hmRank").onclick = () => this.rank(this.lastRank || "fl"); },
   renderHome(){
     const me = this.me, sid = sidOf(me);
     $("#hmClass").textContent = Store.cls.name || "우리반";
-    $("#hmMe").innerHTML = `<span class="f">${faceOf(sid)}</span><div><b>${esc(who(me))}</b><small>반가워요! 오늘도 신나게 🎮</small></div>`;
+    const w = walletOf(sid);
+    $("#hmMe").innerHTML = `<span class="avb">${avHTMLof(sid)}</span><div><b>${esc(who(me))}</b>${titleHTML(sid)}<button class="arc-coin" id="hmCoin" title="상점 열기">🪙 <b>${(w.coins || 0).toLocaleString()}</b><small>오늘 ${Math.max(0, Store.todayLeft(sid))}개 더 모을 수 있어요</small></button></div>`;
+    $("#hmCoin").onclick = () => SHOP.open(sid);
     $("#hmGames").innerHTML = GAMES.map(g => {
       const B = board(g.id), mine = B.find(x => x.sid === sid), top = B[0];
       const myTxt = mine ? `내 기록 <b>${valTxt(g, mine.r)}</b> · <b>${mine.rank}</b>등` : g.kind === "duel" ? "아직 대결 기록이 없어요" : "아직 기록이 없어요";
-      const topTxt = top ? `<span class="f">${faceOf(top.sid)}</span> ${esc(nameOf(top.st.no))} <b>${valTxt(g, top.r)}</b>` : `<i>1등 자리가 비어 있어요!</i>`;
+      const topTxt = top ? `<span class="avf">${avHTMLof(top.sid, {still: true, face: true})}</span> ${esc(nameOf(top.st.no))} <b>${valTxt(g, top.r)}</b>` : `<i>1등 자리가 비어 있어요!</i>`;
       return `<button class="arc-game ${g.kind}" data-g="${g.id}">
         <span class="ag-ic">${g.e}</span><span class="ag-tag">${g.kind === "duel" ? "⚔️ 둘이서 · 승리전" : "🏆 혼자 · 점수전"}</span>
         <b class="ag-nm">${g.n}</b><small class="ag-ds">${g.d}</small>
@@ -421,7 +455,7 @@ const ARC = {
   duelMenu(gid){
     const g = GAME[gid], me = this.me; let lv = 1;
     $("#duTitle").textContent = `${g.e} ${g.n} 대결`;
-    $("#duDuo").innerHTML = `<div class="p"><span class="f">${faceOf(sidOf(me))}</span><b>${esc(who(me))}</b></div><div class="vs">VS</div><div class="p q"><span class="f">❔</span><b>누구랑 할까요?</b></div>`;
+    $("#duDuo").innerHTML = `<div class="p"><span class="avf">${avHTMLof(sidOf(me), {still: true, face: true})}</span><b>${esc(who(me))}</b></div><div class="vs">VS</div><div class="p q"><span class="f">❔</span><b>누구랑 할까요?</b></div>`;
     $("#duHelp").textContent = gid === "vb" ? "태블릿에서는 화면 양쪽 아래 버튼으로 움직여요 (키보드: 1P W·A·D·F / 2P 방향키·Enter)" : gid === "ah" ? "자기 쪽 화면을 손가락으로 끌어서 말렛을 움직여요" : "자기 쪽 화면을 손가락으로 위아래로 끌어요 (키보드: 1P W·S / 2P ↑·↓)";
     $$("#duLv button").forEach(b => b.classList.toggle("on", +b.dataset.v === lv));
     $("#duLv").onclick = e => { const b = e.target.closest("button"); if (b){ lv = +b.dataset.v; $$("#duLv button").forEach(x => x.classList.toggle("on", x === b)); } };
@@ -434,7 +468,7 @@ const ARC = {
     this.pad({who: `<b>⚔️ 대결할 친구가 들어와요</b>`, title: "친구 번호를 눌러요", extra: ""});
     $("#pwPad").hidden = true; $("#pwDots").hidden = true;
     $("#pwPick").hidden = false;
-    $("#pwPick").innerHTML = roster().filter(s => s.no != me).map(s => `<button class="arc-num${s.t ? " tch" : ""}" data-no="${s.no}"><span class="f">${faceOf(sidOf(s.no))}</span><b>${s.t ? "선생님" : s.no}</b><small>${s.t ? "선생님" : esc(s.name)}</small></button>`).join("");
+    $("#pwPick").innerHTML = roster().filter(s => s.no != me).map(s => `<button class="arc-num${s.t ? " tch" : ""}" data-no="${s.no}"><span class="avf">${avHTMLof(sidOf(s.no), {still: true, face: true})}</span><b>${s.t ? "선생님" : s.no}</b><small>${s.t ? "선생님" : esc(s.name)}</small></button>`).join("");
     $("#pwPick").onclick = e => { const b = e.target.closest("[data-no]"); if (!b) return; const no = +b.dataset.no;
       $("#pwPad").hidden = false; $("#pwDots").hidden = false; this.askPw(no, cb, `${who(no)} 비밀번호`); };
   },
@@ -447,10 +481,19 @@ const ARC = {
     } else NG.play(gid, [A, B], {cpu, lv});
   },
   /* 게임이 끝나면 여기로 와요 */
-  score(gid, sid, rec){ if (sid !== sidOf(this.me)) return; Store.putScore(gid, sid, JSON.parse(JSON.stringify(rec))); },
+  score(gid, sid, rec){
+    if (sid !== sidOf(this.me)) return 0;
+    const prev = ((Store.recs[gid] || {})[sid] || {}).best || 0, isNew = (rec.last || 0) > prev && (rec.last || 0) > 0;
+    Store.putScore(gid, sid, JSON.parse(JSON.stringify(rec)));
+    const got = Store.earn(sid, coinsFor(gid, rec.last) + (isNew ? BEST_COIN : 0));
+    if (gid === "fl" || gid === "tr") setTimeout(() => toast(got ? `🪙 +${got} 코인!${isNew ? " (최고 기록 보너스 포함)" : ""}` : "🪙 오늘 모을 수 있는 코인을 다 모았어요!"), 700);
+    return got;
+  },
   duel(gid, w, l, cpu){
-    if (cpu){ setTimeout(() => toast("🤖 컴퓨터와 연습한 판은 랭킹에 들어가지 않아요"), 400); return; }
-    Store.putDuel(gid, w, l).then(() => { const r = (Store.recs[gid] || {})[w] || {}; toast(`🏆 ${faceOf(w)} ${who(noOf_(w))} 승리! 이제 ${r.w || 1}승`); });
+    if (cpu){ setTimeout(() => toast("🤖 컴퓨터와 연습한 판은 랭킹에 들어가지 않아요"), 400); return {w: 0, l: 0}; }
+    const cw = Store.earn(w, WIN_COIN), cl = Store.earn(l, LOSE_COIN);
+    Store.putDuel(gid, w, l).then(() => { const r = (Store.recs[gid] || {})[w] || {}; toast(`🏆 ${who(noOf_(w))} 승리! 이제 ${r.w || 1}승 · 🪙 +${cw}`); });
+    return {w: cw, l: cl};
   },
   back(){
     this.busy = false; vpadShow(null); PERF.watch(false); FULL.off(); document.body.classList.remove("arc-playing");
@@ -460,12 +503,21 @@ const ARC = {
   /* ---------- 랭킹 ---------- */
   rank(gid){ this.rkG = gid; this.modal("#mdRank", true); this.renderRank(); },
   renderRank(){
-    const gid = this.rkG || "fl", g = GAME[gid], B = board(gid), me = sidOf(this.me);
-    $("#rkTabs").innerHTML = GAMES.map(x => `<button data-g="${x.id}" class="${x.id === gid ? "on" : ""}">${x.e} ${x.n}</button>`).join("");
+    const gid = this.rkG || "fl", g = GAME[gid] || {}, B = gid === "coin" ? [] : board(gid), me = sidOf(this.me);
+    $("#rkTabs").innerHTML = GAMES.map(x => `<button data-g="${x.id}" class="${x.id === gid ? "on" : ""}">${x.e} ${x.n}</button>`).join("") + `<button data-g="coin" class="${gid === "coin" ? "on" : ""}">🪙 코인왕</button>`;
+    if (gid === "coin") return this.renderCoinRank();
     $("#rkTabs").onclick = e => { const b = e.target.closest("[data-g]"); if (b){ this.rkG = b.dataset.g; this.renderRank(); } };
     $("#rkList").innerHTML = `<div class="arc-rhead">${g.kind === "duel" ? "⚔️ 이긴 횟수가 많은 순서 (친구끼리 대결만 쳐요)" : "🏆 최고 점수 순서"}</div>` + (B.length ? B.map(x => `
-      <div class="arc-rrow${x.sid === me ? " me" : ""}${x.rank <= 3 ? " t" + x.rank : ""}"><span class="rk">${x.rank <= 3 ? ["🥇","🥈","🥉"][x.rank - 1] : x.rank}</span><span class="f">${faceOf(x.sid)}</span><span class="nm">${esc(who(x.st.no))}</span>
+      <div class="arc-rrow${x.sid === me ? " me" : ""}${x.rank <= 3 ? " t" + x.rank : ""}"><span class="rk">${x.rank <= 3 ? ["🥇","🥈","🥉"][x.rank - 1] : x.rank}</span><span class="avf">${avHTMLof(x.sid, {still: true, face: true})}</span><span class="nm">${esc(who(x.st.no))} ${titleHTML(x.sid)}</span>
       <span class="v">${valTxt(g, x.r)}${g.kind === "duel" ? ` <small>${Math.round((x.r.w || 0)/Math.max(1, (x.r.w || 0) + (x.r.l || 0))*100)}%</small>` : ` <small>${x.r.plays || 0}판</small>`}</span></div>`).join("") : `<p class="arc-empty">아직 아무도 기록이 없어요. 첫 번째 1등이 되어 보세요!</p>`);
+  },
+
+  renderCoinRank(){
+    const me = sidOf(this.me), rows = roster().map(s => ({s, sid: sidOf(s.no), w: walletOf(sidOf(s.no))})).filter(x => x.w.total > 0).sort((a, b) => b.w.total - a.w.total);
+    $("#rkTabs").onclick = e => { const b = e.target.closest("[data-g]"); if (b){ this.rkG = b.dataset.g; this.renderRank(); } };
+    $("#rkList").innerHTML = `<div class="arc-rhead">🪙 지금까지 모은 코인 순서 (쓴 코인도 포함)</div>` + (rows.length ? rows.map((x, i) => `
+      <div class="arc-rrow${x.sid === me ? " me" : ""}${i < 3 ? " t" + (i + 1) : ""}"><span class="rk">${i < 3 ? ["🥇","🥈","🥉"][i] : i + 1}</span><span class="avf">${avHTMLof(x.sid, {still: true, face: true})}</span><span class="nm">${esc(who(x.s.no))} ${titleHTML(x.sid)}</span>
+      <span class="v">${x.w.total.toLocaleString()}코인 <small>지금 ${(x.w.coins || 0).toLocaleString()}</small></span></div>`).join("") : `<p class="arc-empty">아직 코인을 모은 친구가 없어요. 게임을 해서 모아 보세요!</p>`);
   },
 
   /* ---------- 선생님 ---------- */
@@ -480,7 +532,7 @@ const ARC = {
     if (this.tcTab === "kids"){
       body.innerHTML = `<p class="arc-small">비밀번호는 숫자 4자리예요. 이 기기에서 정한 비밀번호만 여기에 보이고, 다른 기기에서는 <b>🎲 새로</b>로 다시 정할 수 있어요.</p>
         <div class="arc-kids"><div class="h"><span>번호</span><span>이름(별명)</span><span>캐릭터</span><span>비밀번호</span><span></span></div>
-        ${cls.roster.map(s => `<div class="r" data-no="${s.no}"><span><input class="no" value="${s.no}" inputmode="numeric" maxlength="3"></span><span><input class="nm" value="${esc(s.name)}" maxlength="12"></span><span class="f">${faceOf(sidOf(s.no))}</span>
+        ${cls.roster.map(s => `<div class="r" data-no="${s.no}"><span><input class="no" value="${s.no}" inputmode="numeric" maxlength="3"></span><span><input class="nm" value="${esc(s.name)}" maxlength="12"></span><span class="avf">${avHTMLof(sidOf(s.no), {still: true, face: true})}</span>
           <span><input class="pw" value="${plain[s.no] || ""}" placeholder="${cls.pw[s.no] ? "●●●● (정해져 있음)" : "없음"}" inputmode="numeric" maxlength="4"></span><span><button class="arc-btn sm" data-new>🎲 새로</button><button class="arc-btn sm" data-del title="빼기">✕</button></span></div>`).join("")}</div>
         <div class="arc-row"><button class="arc-btn" id="tkAdd">➕ 학생 추가</button><button class="arc-btn" id="tkAll">🎲 비밀번호 모두 새로</button><button class="arc-btn" id="tkPrint">🖨️ 비밀번호 쪽지 인쇄</button><button class="arc-btn p" id="tkSave">💾 저장</button></div>
         <label class="arc-f">반 이름 <input id="tkName" value="${esc(cls.name)}" maxlength="20"></label>
@@ -510,8 +562,19 @@ const ARC = {
         <p class="arc-small">클래스룸·학급 홈페이지 게시판에 올리거나, 짧은 주소(예: bit.ly)로 바꿔서 칠판에 써 주세요. 이 주소를 아는 사람은 우리 반 오락실에 들어올 수 있으니 반 밖에는 알리지 않아요.</p>`
         : `<p>지금은 <b>💻 이 기기에만</b> 기록하고 있어요. 이 기기에서 아이들이 돌아가며 들어오면 돼요.</p><p>아이들 각자 태블릿·크롬북에서 하려면 <b>☁️ 저장</b> 탭에서 Firebase를 연결해 주세요. 그러면 여기에 반 입장 주소가 생겨요.</p>`;
       const c = $("#tlCopy"); if (c) c.onclick = () => { $("#tlUrl").select(); navigator.clipboard.writeText($("#tlUrl").value).then(() => toast("📋 복사했어요"), () => document.execCommand("copy")); };
+    } else if (this.tcTab === "coin"){
+      body.innerHTML = `<p class="arc-small">코인과 산 아이템은 랭킹과 따로 저장돼서, 랭킹을 지우거나 앱을 고쳐도 그대로 남아요. 칭찬할 일이 있을 때 코인을 줄 수 있어요. (하루 게임 코인 한도: ${DAY_CAP}개, 선생님이 주는 코인은 한도와 상관없어요)</p>
+        <div class="arc-row"><button class="arc-btn" data-all="10">모두 +10</button><button class="arc-btn" data-all="50">모두 +50</button><button class="arc-btn" data-all="100">모두 +100</button></div>
+        <div class="arc-coins">${cls.roster.map(s => { const sid = sidOf(s.no), w = walletOf(sid); return `<div class="r" data-sid="${sid}"><span class="avf">${avHTMLof(sid, {still: true, face: true})}</span><span class="nm">${esc(who(s.no))}</span>
+          <span class="cc">🪙 <b>${(w.coins || 0).toLocaleString()}</b><small>모은 코인 ${(w.total || 0).toLocaleString()} · 아이템 ${Object.keys(w.owned || {}).length}개</small></span>
+          <span class="bb"><button class="arc-btn sm" data-n="-10">-10</button><button class="arc-btn sm" data-n="10">+10</button><button class="arc-btn sm" data-n="50">+50</button><button class="arc-btn sm" data-n="100">+100</button></span></div>`; }).join("")}</div>`;
+      body.onclick = async e => {
+        const b = e.target.closest("[data-n]"), all = e.target.closest("[data-all]");
+        if (b){ const sid = b.closest("[data-sid]").dataset.sid; await Store.give(sid, +b.dataset.n); toast(`🪙 ${who(noOf_(sid))} ${+b.dataset.n > 0 ? "+" : ""}${b.dataset.n}`); this.teacher("coin"); }
+        if (all && confirm(`모든 학생에게 코인 ${all.dataset.all}개를 줄까요?`)){ for (const s of cls.roster) await Store.give(sidOf(s.no), +all.dataset.all); toast(`🪙 모두 +${all.dataset.all}`); this.teacher("coin"); }
+      };
     } else if (this.tcTab === "rank"){
-      body.innerHTML = `<p class="arc-small">게임별로 랭킹을 지울 수 있어요. 지우면 되돌릴 수 없어요.</p><div class="arc-rkm">${GAMES.map(g => `<div><span>${g.e} ${g.n}</span><small>${board(g.id).length}명 기록</small><button class="arc-btn sm" data-reset="${g.id}">🗑️ 지우기</button></div>`).join("")}</div>
+      body.innerHTML = `<p class="arc-small">게임별로 랭킹을 지울 수 있어요. 지우면 되돌릴 수 없어요. <b>코인과 아이템은 지워지지 않아요.</b></p><div class="arc-rkm">${GAMES.map(g => `<div><span>${g.e} ${g.n}</span><small>${board(g.id).length}명 기록</small><button class="arc-btn sm" data-reset="${g.id}">🗑️ 지우기</button></div>`).join("")}</div>
         <div class="arc-row"><button class="arc-btn" id="trAllR">🗑️ 모든 게임 랭킹 지우기</button></div>`;
       body.onclick = async e => { const b = e.target.closest("[data-reset]"); if (b && confirm(`${GAME[b.dataset.reset].n} 랭킹을 모두 지울까요?`)){ await Store.resetGame(b.dataset.reset); this.teacher("rank"); } };
       $("#trAllR").onclick = async () => { if (!confirm("모든 게임의 랭킹을 지울까요? 되돌릴 수 없어요.")) return; for (const g of GAMES) await Store.resetGame(g.id); this.teacher("rank"); };
