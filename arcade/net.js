@@ -43,6 +43,9 @@ const NET = {
   fail(msg){ const g = GAME[this.gid] || {e: "🌐", n: ""}; this.close(); this.gid = g.id; this.box(`${g.e} ${g.n} 대결`, msg, [{t: "확인", p: 1, f: () => { ARC.modal("#mdNet", false); this.showInvite(); }}]); },
   showInvite(){
     if (this.role || ARC.me === null || ARC.busy) return;
+    // ⚔️ 대결방에 들어간 친구: 방장 기기에서 온 신청은 바로 받아요
+    const au = this.auto;
+    if (au && Date.now() < au.until){ const x = this.inbox.find(i => i.from === au.from && i.g === au.g && (i.at || 0) >= au.at - 5000); if (x){ this.auto = null; this.inv = null; return this.accept(x); } }
     const cur = this.inv && this.inbox.find(x => x.id === this.inv.id);
     if (this.inv && !cur){ this.inv = null; ARC.modal("#mdNet", false); toast("친구가 대결 신청을 취소했어요"); }
     if (this.inv || !this.inbox.length) return;

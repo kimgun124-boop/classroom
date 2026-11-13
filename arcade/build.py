@@ -246,12 +246,12 @@ avp('return `<svg class="avs" viewBox=', 'return `<svg class="avs" xmlns="http:/
 out = rd("shell.html")
 for k, v in {
     "/*{{CSS_APP}}*/": css_app,
-    "/*{{CSS_ARC}}*/": rd("arcade.css"),
+    "/*{{CSS_ARC}}*/": rd("arcade.css") + "\n" + rd("lobby.css"),
     "<!--{{GAME_HTML}}-->": game_html,
     "/*{{CORE_JS}}*/": rd("core.js"),
     "/*{{AV_JS}}*/": av_js + "\n" + rd("avatar.js"),
     "/*{{GAME_JS}}*/": game_js,
-    "/*{{NEW_JS}}*/": rd("games.js") + "\n" + rd("net.js"),
+    "/*{{NEW_JS}}*/": rd("games.js") + "\n" + rd("net.js") + "\n" + rd("lobby.js"),
 }.items():
     assert out.count(k) == 1, k
     out = out.replace(k, v)
@@ -269,5 +269,14 @@ swap("Math.min(2, window.devicePixelRatio || 1)", "ARCDPR()", 6)
 swap("w = st.clientWidth - 24, h = st.clientHeight - 12", "w = st.clientWidth - 6, h = st.clientHeight - 4", 4)
 swap("(st.width - 16)/cur.W, (st.height - 16)/cur.H", "(st.width - 6)/cur.W, (st.height - 6)/cur.H")
 
+# 손들고 말해요에서 가져온 CSS 중 오락실에서 안 쓰는 규칙 빼기
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from cssprune import prune
+_s, _e = out.index("<style>"), out.index("</style>")
+_css = out[_s + 7:_e]
+assert _css.count(css_app) == 1
+_slim, _k, _d = (css_app, 0, 0) if os.environ.get("NOPRUNE") else prune(css_app, out[:_s] + out[_e:])
+out = out[:_s + 7] + _css.replace(css_app, _slim) + out[_e:]
+print(f"CSS 정리: 안 쓰는 규칙 {_d}개 뺌 ({_k}개 남김)")
 open(os.path.join(ROOT, "arcade.html"), "w", encoding="utf-8").write(out)
 print(f"arcade.html 완성 ({len(out.encode('utf-8'))//1024} KB)")

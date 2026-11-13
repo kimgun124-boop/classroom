@@ -154,6 +154,7 @@ const Store = {
   },
   async lib(){
     if (this.fb) return this.fb;
+    if (window.__FAKEFB) return this.fb = window.__FAKEFB;   // (시험용) 진짜 Firebase 대신
     const b = `https://www.gstatic.com/firebasejs/${FBV}/`;
     const [app, auth, fs] = await Promise.all([import(b + "firebase-app.js"), import(b + "firebase-auth.js"), import(b + "firebase-firestore.js")]);
     return this.fb = {app, auth, fs};
@@ -180,6 +181,13 @@ const Store = {
     this.cls = cls; this.emit();
     if (this.mode === "local") return this.saveLocal();
     await this.fs.setDoc(this.refCls, cls);
+  },
+  /* 반 정보 일부만 (관리자: 채팅·공지·게임 끄기 등) — 다른 칸은 안 건드려요 */
+  async patch(o){
+    const mg = (a, b) => { for (const k in b){ if (b[k] && typeof b[k] === "object" && !Array.isArray(b[k])){ a[k] = mg(a[k] && typeof a[k] === "object" ? Object.assign({}, a[k]) : {}, b[k]); } else a[k] = b[k]; } return a; };
+    this.cls = mg(Object.assign({}, this.cls), o); this.emit();
+    if (this.mode === "local") return this.saveLocal();
+    await this.fs.setDoc(this.refCls, o, {merge: true});
   },
   /* 캐릭터 얼굴만 (여러 아이가 동시에 바꿔도 서로 안 지워지게) */
   async putFace(no, face){
@@ -329,8 +337,10 @@ const ARC = {
     if (this.busy){ this.dirty = true; return; }   // 게임 중에는 뒤 화면을 다시 그리지 않아요(렉의 큰 원인) — 홈으로 오면 그려요
     S.className = Store.cls.name || "";
     if (this.me !== null && !this.inRoster(this.me)) { this.logout(); return; }
+    if (LOBBY.guard()) return;
     if (!$("#scrHome").hidden) this.renderHome();
     if (!$("#scrLogin").hidden) this.renderLogin();
+    if (!$("#mdTeach").hidden) ADMIN.live();
     if (!$("#mdRank").hidden) this.renderRank();
     this.syncMsg();
   },
@@ -371,11 +381,10 @@ const ARC = {
   },
 
   /* ---------- 로그인 ---------- */
-  login(){ this.me = null; this.show("scrLogin"); this.renderLogin(); },
+  login(){ this.me = null; this.show("scrLogin"); LIVE.start(); LOBBY.sig = {}; this.renderLogin(); },
   renderLogin(){
-    $("#lgClass").textContent = Store.cls.name || "우리반";
-    $("#lgNums").innerHTML = roster().map(s => `<button class="arc-num${s.t ? " tch" : ""}" data-no="${s.no}"><span class="avf">${avHTMLof(sidOf(s.no), {still: true, face: true})}</span><b>${s.t ? "선생님" : s.no}</b><small>${s.t ? "같이 해요!" : esc(s.name)}</small></button>`).join("");
-    $("#lgNums").onclick = e => { const b = e.target.closest("[data-no]"); if (b) this.askPw(+b.dataset.no, no => { this.me = no; localStorage.setItem(KEY + ".me", no); this.home(); if (!(Store.kids[sidOf(no)] || {}).av) setTimeout(() => SHOP.open(sidOf(no), true), 300); }); };
+    LOBBY.renderLogin();
+    $("#lgNums").onclick = e => { const b = e.target.closest("[data-no]"); if (b) this.askPw(+b.dataset.no, no => { this.me = no; localStorage.setItem(KEY + ".me", no); localStorage.setItem(KEY + ".in", Date.now()); this.home(); if (!(Store.kids[sidOf(no)] || {}).av) setTimeout(() => SHOP.open(sidOf(no), true), 300); }); };
     $("#lgTeach").onclick = () => this.teacherGate();
   },
   /* 숫자 패드로 비밀번호 (4자리면 바로 확인) */
@@ -406,7 +415,7 @@ const ARC = {
     this.pad({who: `<span class="avf">${avHTMLof(sidOf(no), {still: true, face: true})}</span><b>${esc(who(no))}</b>`, title: title || "비밀번호 4자리", len: 4,
       check: v => { if (Store.cls.pw[no] && pwHash(no, v) === Store.cls.pw[no]){ ok(no); return true; } return Store.cls.pw[no] ? "비밀번호가 달라요" : "아직 비밀번호가 없어요. 선생님께 말해요."; }});
   },
-  logout(){ NET.unlisten(); localStorage.removeItem(KEY + ".me"); this.me = null; this.login(); },
+  logout(){ ROOMS.leaveMine(); LIVE.ping("off"); NET.unlisten(); localStorage.removeItem(KEY + ".me"); this.me = null; this.login(); },
 
   /* ---------- 캐릭터 ---------- */
   pickFace(first){
@@ -421,32 +430,17 @@ const ARC = {
   },
 
   /* ---------- 홈 ---------- */
-  home(){ this.show("scrHome"); this.renderHome(); NET.listen(this.me);
-    $("#hmOut").onclick = () => this.logout(); $("#hmFace").onclick = () => SHOP.open(sidOf(this.me)); $("#hmRank").onclick = () => this.rank(this.lastRank || "fl"); },
-  renderHome(){
-    const me = this.me, sid = sidOf(me);
-    $("#hmClass").textContent = Store.cls.name || "우리반";
-    const w = walletOf(sid);
-    $("#hmMe").innerHTML = `<span class="avb">${avHTMLof(sid)}</span><div><b>${esc(who(me))}</b>${titleHTML(sid)}<button class="arc-coin" id="hmCoin" title="상점 열기">🪙 <b>${(w.coins || 0).toLocaleString()}</b><small>오늘 ${Math.max(0, Store.todayLeft(sid))}개 더 모을 수 있어요</small></button></div>`;
-    $("#hmCoin").onclick = () => SHOP.open(sid);
-    $("#hmGames").innerHTML = GAMES.map(g => {
-      const B = board(g.id), mine = B.find(x => x.sid === sid), top = B[0];
-      const myTxt = mine ? `내 기록 <b>${valTxt(g, mine.r)}</b> · <b>${mine.rank}</b>등` : g.kind === "duel" ? "아직 대결 기록이 없어요" : "아직 기록이 없어요";
-      const topTxt = top ? `<span class="avf">${avHTMLof(top.sid, {still: true, face: true})}</span> ${esc(nameOf(top.st.no))} <b>${valTxt(g, top.r)}</b>` : `<i>1등 자리가 비어 있어요!</i>`;
-      return `<button class="arc-game ${g.kind}" data-g="${g.id}">
-        <span class="ag-ic">${g.e}</span><span class="ag-tag">${g.kind === "duel" ? "⚔️ 둘이서 · 승리전" : "🏆 혼자 · 점수전"}</span>
-        <b class="ag-nm">${g.n}</b><small class="ag-ds">${g.d}</small>
-        <span class="ag-top">👑 ${topTxt}</span><span class="ag-my">${myTxt}</span></button>`;
-    }).join("");
-    $("#hmGames").onclick = e => { const b = e.target.closest("[data-g]"); if (b) this.play(b.dataset.g); };
-  },
+  home(){ this.show("scrHome"); LIVE.start(); LOBBY.sig = {}; this.renderHome(); NET.listen(this.me); LIVE.ping("home");
+    $("#hmOut").onclick = () => this.logout(); $("#hmFace").onclick = () => SHOP.open(sidOf(this.me)); $("#hmRank").onclick = () => this.rank(this.lastRank || "fl");
+    $("#hmAdmin").onclick = () => this.teacher("live"); LOBBY.bindHome(); },
+  renderHome(){ LOBBY.renderHome(); },
 
   /* ---------- 게임 시작 ---------- */
   prep(){ S.students = roster().map(s => ({id: sidOf(s.no), name: s.name})); S.className = Store.cls.name; },
   /* 게임 들어갈 때: 화면 꽉 차게 + 뒤 화면 멈춤 + 버벅임 감시 */
-  enter(){ FULL.on(); document.body.classList.add("arc-playing"); PERF.watch(true); },
+  enter(){ FULL.on(); document.body.classList.add("arc-playing"); PERF.watch(true); ROOMS.leaveMine(); setTimeout(() => LIVE.ping("play", this.game), 0); },
   play(gid){
-    const g = GAME[gid]; getAC(); this.game = gid; this.lastRank = gid;
+    const g = GAME[gid]; if (!LOBBY.canPlay(gid)) return; getAC(); this.game = gid; this.lastRank = gid;
     if (g.kind === "duel") return this.duelMenu(gid);
     this.enter(); this.prep(); const sid = sidOf(this.me);
     const recs = JSON.parse(JSON.stringify(Store.recs[gid] || {}));
@@ -529,7 +523,7 @@ const ARC = {
   back(){
     if (NET.role) NET.leave();
     this.busy = false; vpadShow(null); PERF.watch(false); FULL.off(); document.body.classList.remove("arc-playing");
-    setTimeout(() => { if (this.me !== null){ this.dirty = false; this.refresh(); } NET.showInvite(); }, 0);
+    setTimeout(() => { if (this.me !== null){ this.dirty = false; LOBBY.sig = {}; this.refresh(); LIVE.ping("home"); } NET.showInvite(); }, 0);
   },
 
   /* ---------- 랭킹 ---------- */
@@ -554,13 +548,16 @@ const ARC = {
 
   /* ---------- 선생님 ---------- */
   teacherGate(){
-    this.pad({who: "<b>⚙️ 선생님 화면</b>", title: "선생님 비밀번호", check: v => { if (sha256(`${Store.cls.cid}:teacher:${v}`) === Store.cls.admin){ setTimeout(() => this.teacher("kids"), 50); return true; } return "비밀번호가 달라요"; }});
+    this.pad({who: "<b>🛠️ 관리자 화면</b>", title: "선생님 비밀번호", check: v => { if (sha256(`${Store.cls.cid}:teacher:${v}`) === Store.cls.admin){ setTimeout(() => this.teacher("live"), 50); return true; } return "비밀번호가 달라요"; }});
   },
   teacher(tab){
-    this.tcTab = tab || this.tcTab || "kids"; this.modal("#mdTeach", true);
+    this.tcTab = tab || this.tcTab || "live"; this.modal("#mdTeach", true); LIVE.start();
     $$("#tcTabs button").forEach(b => b.classList.toggle("on", b.dataset.t === this.tcTab));
     $("#tcTabs").onclick = e => { const b = e.target.closest("[data-t]"); if (b) this.teacher(b.dataset.t); };
     const cls = Store.cls, plain = loadPlain(cls.cid), body = $("#tcBody");
+    $("#tcCls").textContent = cls.name || ""; body.onclick = null; body.parentNode.scrollTop = 0;
+    if (ADMIN.has(this.tcTab)) return ADMIN.render(this.tcTab, body);
+    const H = {kids: "👧 학생 · 비밀번호", coin: "🪙 코인", rank: "🏆 랭킹 관리", link: "🔗 반 입장 주소", store: "☁️ 저장"};
     if (this.tcTab === "kids"){
       body.innerHTML = `<p class="arc-small">비밀번호는 숫자 4자리예요. 이 기기에서 정한 비밀번호만 여기에 보이고, 다른 기기에서는 <b>🎲 새로</b>로 다시 정할 수 있어요.</p>
         <div class="arc-kids"><div class="h"><span>번호</span><span>이름(별명)</span><span>캐릭터</span><span>비밀번호</span><span></span></div>
@@ -622,6 +619,7 @@ const ARC = {
       $("#tsPin").onclick = async () => { const p = prompt("새 선생님 비밀번호 (숫자 4~8자리)"); if (!p) return; if (!/^\d{4,8}$/.test(p)) return alert("숫자 4~8자리로 적어 주세요."); const nc = Object.assign({}, cls, {admin: sha256(`${cls.cid}:teacher:${p}`)}); await Store.putClass(nc); toast("🔑 바꿨어요"); };
       $("#tsLeave").onclick = () => { if (!confirm(Store.mode === "cloud" ? "이 기기에서만 오락실 연결을 빼요. (Firebase의 기록은 그대로 남아요)" : "이 기기의 오락실 반 정보와 기록을 모두 지울까요? 되돌릴 수 없어요.")) return; ["local","join","me"].forEach(k => localStorage.removeItem(KEY + "." + k)); location.reload(); };
     }
+    if (H[this.tcTab]) body.insertAdjacentHTML("afterbegin", `<h3>${H[this.tcTab]}</h3>`);
   }
 };
 function fbHow(open){ return `<details class="arc-how"${open ? " open" : ""}><summary>☁️ Firebase 연결 방법 (처음 한 번, 10분쯤)</summary><ol>

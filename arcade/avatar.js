@@ -76,8 +76,21 @@ function avPhoto(sid){
   AVIMG[sid] = {k: key, u}; return u;
 }
 /* 화면에 그릴 아바타 (still: 움직이지 않게 · face: 얼굴만 크게) */
+/* ⚡ 렉 줄이기: 움직이지 않는 아바타(목록·랭킹·채팅)는 그림(img)으로 한 번만 만들어 두고 다시 써요.
+   SVG를 화면에 수십 개 그대로 넣으면 그라디언트·번짐 필터를 매번 다시 계산해서 느려져요. */
+const AVSTILL = new Map();
+function avStillURL(sid, face){
+  const a = avOf(sid), key = sid + (face ? "|f|" : "|a|") + JSON.stringify(a);
+  let u = AVSTILL.get(key); if (u) return u;
+  AVX.still = true; let svg = avatarSVG(a, "", face ? "15 13 70 70" : undefined); AVX.still = false;
+  if (!/xmlns=/.test(svg.slice(0, 200))) svg = svg.replace("<svg ", '<svg xmlns="http://www.w3.org/2000/svg" ');
+  u = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  if (AVSTILL.size > 600) AVSTILL.clear();
+  AVSTILL.set(key, u); return u;
+}
 function avHTMLof(sid, o = {}){
-  AVX.still = !!o.still; const svg = avatarSVG(avOf(sid), "", o.face ? "15 13 70 70" : undefined); AVX.still = false; return svg;
+  if (o.still) return `<img src="${avStillURL(sid, o.face)}" alt="" draggable="false" decoding="async">`;
+  AVX.still = false; const svg = avatarSVG(avOf(sid), "", o.face ? "15 13 70 70" : undefined); return svg;
 }
 function titleHTML(sid){ const t = avOf(sid).title; if (!t || t === "none") return ""; return `<span class="ttl ttl-${t}">${esc(itemName("title", t))}</span>`; }
 

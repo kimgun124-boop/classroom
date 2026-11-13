@@ -39,23 +39,49 @@
   </div>
 </section>
 
-<!-- ===== 로그인 ===== -->
+<!-- ===== 로그인 (첫 화면) ===== -->
 <section class="arc-scr" id="scrLogin" hidden>
-  <div class="arc-marquee"><h1 class="arc-logo"><span class="e">🕹️</span> <span class="g"><span id="lgClass">우리반</span> 오락실</span></h1><p class="arc-sub">내 번호를 누르고 비밀번호를 입력해요</p></div>
-  <div class="arc-nums" id="lgNums"></div>
-  <button class="arc-teach" id="lgTeach" title="선생님 화면">⚙️ 선생님</button>
+  <div class="lg-hero">
+    <h1 class="arc-logo"><span class="e">🕹️</span> <span class="g"><span id="lgClass">우리반</span> 오락실</span></h1>
+    <div class="arc-online" id="lgOnline"></div>
+    <p class="arc-sub">👋 내 번호를 누르고 비밀번호를 입력해요</p>
+  </div>
+  <div class="lg-wrap">
+    <div class="lg-left"><div class="arc-nums" id="lgNums"></div></div>
+    <aside id="lgFame"></aside>
+  </div>
+  <button class="arc-teach" id="lgTeach" title="관리자 화면">🛠️ 관리자</button>
   <div class="arc-sync" id="lgSync"></div>
   <div class="arc-credit">🕹️ 우리반 오락실 · made by <b>효석쌤</b></div>
 </section>
 
-<!-- ===== 홈 ===== -->
+<!-- ===== 홈 (로비) ===== -->
 <section class="arc-scr" id="scrHome" hidden>
   <header class="arc-top">
     <div class="arc-me" id="hmMe"></div>
-    <h1 class="arc-logo sm"><span class="e">🕹️</span> <span class="g"><span id="hmClass">우리반</span> 오락실</span></h1>
-    <div class="arc-topb"><button class="arc-btn" id="hmRank">🏆 랭킹</button><button class="arc-btn p" id="hmFace">👕 꾸미기·상점</button><button class="arc-btn" id="hmOut">🚪 로그아웃</button></div>
+    <div class="arc-brand"><h1 class="arc-logo sm"><span class="e">🕹️</span> <span class="g"><span id="hmClass">우리반</span> 오락실</span></h1><div class="arc-online" id="hmOnline"></div></div>
+    <div class="arc-topb"><button class="arc-btn" id="hmAdmin" hidden>🛠️ 관리자</button><button class="arc-btn p" id="hmFace">👕 꾸미기·상점</button><button class="arc-btn" id="hmOut">🚪 로그아웃</button></div>
   </header>
-  <div class="arc-games" id="hmGames"></div>
+  <div class="arc-notice" id="hmNotice" hidden></div>
+  <div class="arc-lobby">
+    <main class="arc-main">
+      <div class="arc-filter" id="hmFilter"><button data-f="all" class="on">🎮 전체 게임</button><button data-f="score">🏆 혼자 점수전</button><button data-f="duel">⚔️ 둘이 대결</button></div>
+      <div class="arc-games" id="hmGames"></div>
+    </main>
+    <aside class="arc-side">
+      <div class="arc-stabs" id="hmTabs"><button data-t="rank" class="on">🏆 랭킹</button><button data-t="room">⚔️ 대결방<i id="bRoom"></i></button><button data-t="chat">💬 채팅<i id="bChat"></i></button></div>
+      <div class="arc-spane" id="paneRank"></div>
+      <div class="arc-spane" id="paneRoom" hidden></div>
+      <div class="arc-spane chat" id="paneChat" hidden>
+        <div class="ch-list" id="chList"></div>
+        <div class="ch-quick" id="chQuick"></div>
+        <form class="ch-in" id="chForm" autocomplete="off"><input id="chText" maxlength="50" placeholder="친구들에게 한마디! (고운 말 😊)" enterkeyhint="send"><button id="chSend">보내기</button></form>
+        <div class="ch-msg" id="chMsg"></div>
+      </div>
+    </aside>
+  </div>
+  <div class="arc-closed" id="hmClosed" hidden></div>
+  <button hidden id="hmRank"></button>
   <div class="arc-sync" id="hmSync"></div>
   <div class="arc-credit">🕹️ 우리반 오락실 · made by <b>효석쌤</b></div>
 </section>
@@ -141,12 +167,15 @@
   </div>
 </div>
 
-<!-- ===== 선생님 화면 ===== -->
+<!-- ===== 🛠️ 관리자 화면 ===== -->
 <div class="arc-modal" id="mdTeach" hidden>
   <div class="arc-card arc-wide arc-teachc">
-    <h2>⚙️ 선생님 화면</h2>
-    <div class="arc-tabs" id="tcTabs"><button data-t="kids" class="on">👧 학생·비밀번호</button><button data-t="link">🔗 반 입장 주소</button><button data-t="coin">🪙 코인</button><button data-t="rank">🏆 랭킹 관리</button><button data-t="store">☁️ 저장</button></div>
-    <div id="tcBody"></div>
+    <div class="ad-side">
+      <h2>🛠️ 관리자</h2><div class="ad-cls" id="tcCls"></div>
+      <div class="arc-tabs" id="tcTabs"><button data-t="live">📊 지금 현황<i id="tbLive"></i></button><button data-t="chat">💬 채팅 관리</button><button data-t="room">⚔️ 대결방</button><button data-t="game">🎮 게임 · 문 닫기</button><button data-t="kids">👧 학생 · 비밀번호</button><button data-t="coin">🪙 코인</button><button data-t="rank">🏆 랭킹 관리</button><button data-t="link">🔗 반 입장 주소</button><button data-t="store">☁️ 저장</button></div>
+      <div class="ad-who">🕹️ 우리반 오락실<br>made by 효석쌤</div>
+    </div>
+    <div class="ad-body"><div id="tcBody"></div></div>
     <button class="arc-x" data-close>×</button>
   </div>
 </div>

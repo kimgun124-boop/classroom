@@ -1,0 +1,242 @@
+/* ===================== 🏠 오락실 로비 (2026.11.13) : 첫 화면 랭킹 · 대결방 · 채팅 · 관리자 ===================== */
+/* ⚡ 렉 줄이기: 고정 배경(background-attachment:fixed)·글자 번짐 필터·모달 흐림은 화면 전체를 계속 다시 그려서 뺐어요 */
+body.arc-body{background:#140f2e !important;background-attachment:scroll !important}
+.arc-body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(circle at 15% -10%,rgba(124,58,237,.55) 0,transparent 45%),radial-gradient(circle at 95% 105%,rgba(14,116,184,.5) 0,transparent 50%),radial-gradient(circle at 60% 40%,rgba(236,72,153,.12) 0,transparent 40%)}
+.arc-logo .e{filter:none;text-shadow:0 0 18px rgba(218,119,242,.7)}
+.arc-logo .g{filter:none;animation-duration:9s}
+.arc-modal{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(8,5,25,.82)}
+.ng-over{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(10,6,30,.72)}
+.arc-game .ag-ic{filter:none}
+.avb{filter:none}
+.avf img,.avb img{width:100%;height:100%;display:block;-webkit-user-drag:none}
+body.arc-playing #lgFame, body.arc-playing .arc-lobby{display:none !important}
+
+/* ---------- 공통 조각 ---------- */
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#51cf66;box-shadow:0 0 0 3px rgba(81,207,102,.25);vertical-align:middle}
+.dot.play{background:#ffa94d;box-shadow:0 0 0 3px rgba(255,169,77,.25)}
+.arc-online{display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;color:#c5f6d0;margin-top:4px}
+.arc-online .ppl{display:flex}
+.arc-online .ppl .avf{width:26px;height:26px;margin-left:-7px;box-shadow:0 0 0 2px #140f2e}
+.arc-online .ppl .avf:first-child{margin-left:0}
+.arc-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:4px 12px}
+
+/* ---------- 🔑 로그인(첫 화면) ---------- */
+#scrLogin{padding-top:14px}
+.lg-hero{text-align:center;padding:6px 0 14px;position:relative}
+.lg-hero .arc-logo{font-size:clamp(40px,6.4vw,78px);line-height:1.05;text-shadow:0 0 1px transparent}
+.lg-hero .lg-class{display:inline-block;margin-top:6px;font-size:clamp(18px,2.2vw,26px);color:#ffe066;background:rgba(255,224,102,.1);border:2px solid rgba(255,224,102,.4);border-radius:999px;padding:4px 18px;letter-spacing:1px}
+.lg-hero .arc-sub{margin:10px 0 6px}
+.lg-wrap{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:18px;max-width:1400px;margin:0 auto;align-items:start}
+.lg-h{font-size:22px;color:#e5dbff;margin:0 0 10px 4px}
+.lg-left .arc-nums{max-width:none}
+.arc-num{position:relative}
+.arc-num .dot{position:absolute;top:8px;right:8px}
+.arc-num.on{border-color:#51cf66}
+@media (max-width:1000px){ .lg-wrap{grid-template-columns:1fr} }
+
+/* 명예의 전당 */
+.fame{background:linear-gradient(180deg,#2a1f63,#17123b);border:2px solid #7c5cff;border-radius:24px;padding:14px 14px 12px;box-shadow:0 0 0 4px rgba(124,92,255,.15),0 18px 50px rgba(0,0,0,.45);position:sticky;top:12px}
+.fame h3{margin:0 0 4px;text-align:center;font-size:26px;color:#ffe066;letter-spacing:1px;text-shadow:0 0 14px rgba(255,212,59,.45)}
+.fame .fm-sub{text-align:center;font:13px "Gowun Dodum",sans-serif;color:#b9b0dd;margin-bottom:10px}
+.fm-tabs{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-bottom:10px}
+.fm-tabs button{font:15px "Jua",sans-serif;background:#1d1847;color:#d0c8ff;border:2px solid #3e3494;border-radius:10px;padding:3px 8px;cursor:pointer}
+.fm-tabs button.on{background:#6c5ce7;color:#fff;border-color:#b197fc}
+.fm-tabs .f{font-size:17px}
+.fm-gt{display:flex;align-items:center;justify-content:center;gap:8px;font-size:22px;margin:2px 0 10px}
+.fm-gt .f{font-size:30px}
+.fm-gt small{font:13px "Gowun Dodum",sans-serif;color:#a79fd0}
+.podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;align-items:end;gap:6px;margin:6px 0 10px;min-height:150px}
+.podium .pd{display:flex;flex-direction:column;align-items:center;gap:3px;text-align:center;min-width:0}
+.podium .pd .avf{width:58px;height:58px}
+.podium .pd.p1 .avf{width:76px;height:76px;box-shadow:0 0 0 3px #ffd43b,0 0 22px rgba(255,212,59,.6)}
+.podium .pd .nm{font-size:15px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.podium .pd .v{font-size:14px;color:#ffe066}
+.podium .pd .bar{width:100%;border-radius:12px 12px 4px 4px;display:grid;place-items:center;font-size:24px;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.podium .p1 .bar{height:64px;background:linear-gradient(180deg,#ffd43b,#f08c00)}
+.podium .p2 .bar{height:44px;background:linear-gradient(180deg,#dee2e6,#868e96)}
+.podium .p3 .bar{height:32px;background:linear-gradient(180deg,#e8a26a,#a0522d)}
+.podium .pd.empty{opacity:.35}
+.fm-rest{display:flex;flex-direction:column;gap:4px}
+.fm-rest .r{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border-radius:10px;padding:4px 8px;font-size:15px}
+.fm-rest .r b{width:22px;text-align:center;color:#c5b8ff;font-weight:400}
+.fm-rest .r .avf{width:26px;height:26px}
+.fm-rest .r span:not(.avf){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-rest .r i{font-style:normal;color:#ffe066}
+.fm-empty{text-align:center;color:#a79fd0;font:15px "Gowun Dodum",sans-serif;padding:30px 0}
+.fm-prog{height:3px;border-radius:3px;background:rgba(255,255,255,.08);margin-top:10px;overflow:hidden}
+.fm-prog i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#b197fc,#ffe066);transform-origin:left;animation:fmProg 7s linear infinite}
+@keyframes fmProg{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+.fame.still .fm-prog i{animation:none;transform:scaleX(0)}
+
+/* ---------- 🏠 홈(로비) ---------- */
+#scrHome{padding:12px 16px 40px}
+#scrHome .arc-top{max-width:1500px;margin-bottom:10px}
+.arc-brand{display:flex;flex-direction:column;align-items:center}
+.arc-me{background:linear-gradient(180deg,#2b2370,#1f1952);border-color:#6c5ce7}
+.arc-notice{max-width:1500px;margin:0 auto 12px;display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#5c3d00,#3a2a6b);border:2px solid #ffd43b;border-radius:16px;padding:8px 14px;font-size:18px;color:#fff3bf}
+.arc-notice[hidden]{display:none}
+.arc-notice b{color:#ffd43b;font-weight:400;flex:none}
+.arc-lobby{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:16px;max-width:1500px;margin:0 auto;align-items:start}
+.arc-main{min-width:0}
+.arc-filter{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.arc-filter button{font:17px "Jua",sans-serif;background:#1d1847;color:#d0c8ff;border:2px solid #3e3494;border-radius:12px;padding:6px 14px;cursor:pointer}
+.arc-filter button.on{background:#6c5ce7;color:#fff;border-color:#b197fc}
+.arc-lobby .arc-games{max-width:none;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+
+/* 게임 카드 */
+.arc-game{--c1:#3b2f8f;--c2:#1c1749;--gl:151,117,250;background:linear-gradient(155deg,var(--c1),var(--c2));border:2px solid rgba(var(--gl),.75);box-shadow:0 6px 0 rgba(0,0,0,.35);padding:14px 14px 12px;min-height:200px;contain:layout paint}
+.arc-game.duel{background:linear-gradient(155deg,var(--c1),var(--c2));border-color:rgba(var(--gl),.8);box-shadow:0 6px 0 rgba(0,0,0,.35)}
+.arc-game:hover,.arc-game:active,.arc-game.duel:hover{transform:translateY(-4px);box-shadow:0 10px 0 rgba(0,0,0,.35),0 0 24px rgba(var(--gl),.55)}
+.arc-game::after{content:"";position:absolute;right:-30px;top:-30px;width:120px;height:120px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 70%);pointer-events:none}
+.arc-game .ag-ic{width:70px;height:70px;border-radius:20px;display:grid;place-items:center;font-size:44px;background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 2px rgba(255,255,255,.15)}
+.arc-game .ag-nm{font-size:25px;margin-top:6px}
+.arc-game .ag-top{display:flex;align-items:center;gap:6px;margin-top:auto}
+.arc-game .ag-top .avf{width:24px;height:24px;flex:none}
+.arc-game .ag-play{position:absolute;right:12px;bottom:10px;font-size:15px;background:#fff;color:#2a1f63;border-radius:999px;padding:4px 12px;box-shadow:0 3px 0 rgba(0,0,0,.3);transition:transform .15s}
+.arc-game:hover .ag-play{transform:scale(1.08)}
+.arc-game .ag-my{padding-right:76px}
+.arc-game .ag-top i{font-style:normal}
+.arc-game .ag-ds{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.arc-game .ag-off{position:absolute;inset:0;display:grid;place-items:center;background:rgba(10,8,30,.62);font-size:20px;border-radius:20px}
+.arc-game.off{filter:grayscale(.7)}
+.g-fl{--c1:#2f6fdc;--c2:#143572;--gl:116,192,252}.g-tr{--c1:#2f9e44;--c2:#145222;--gl:105,219,124}.g-st{--c1:#7048e8;--c2:#2f1a72;--gl:177,151,252}
+.g-wm{--c1:#a0522d;--c2:#4a2410;--gl:255,169,77}.g-bk{--c1:#e8590c;--c2:#6b2405;--gl:255,146,43}.g-rn{--c1:#0c8599;--c2:#0b3a46;--gl:59,201,219}
+.g-tw{--c1:#f08c00;--c2:#6b3d00;--gl:255,212,59}.g-vb{--c1:#d6336c;--c2:#5a1030;--gl:255,135,180}.g-ah{--c1:#1971c2;--c2:#0b2e55;--gl:77,171,247}.g-pp{--c1:#c2255c;--c2:#3e0d24;--gl:250,82,82}
+
+/* 옆 패널 */
+.arc-side{position:sticky;top:10px;display:flex;flex-direction:column;height:calc(100vh - 120px);min-height:460px;background:linear-gradient(180deg,#221a57,#15113a);border:2px solid #5f4bd8;border-radius:22px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.4)}
+.arc-stabs{display:grid;grid-template-columns:repeat(3,1fr);background:rgba(0,0,0,.25)}
+.arc-stabs button{position:relative;font:18px "Jua",sans-serif;color:#c5b8ff;background:none;border:0;border-bottom:3px solid transparent;padding:11px 4px;cursor:pointer}
+.arc-stabs button.on{color:#fff;border-bottom-color:#ffd43b;background:rgba(255,255,255,.06)}
+.arc-stabs i{position:absolute;top:4px;right:8px;min-width:18px;height:18px;border-radius:9px;background:#fa5252;color:#fff;font:12px/18px "Jua",sans-serif;font-style:normal;padding:0 4px}
+.arc-stabs i:empty{display:none}
+.arc-spane{flex:1;min-height:0;overflow:auto;padding:12px}
+.arc-spane[hidden]{display:none}
+
+/* 랭킹 칸 */
+.rk-games{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.rk-games button{font:14px "Jua",sans-serif;background:#1d1847;color:#d0c8ff;border:2px solid #3e3494;border-radius:10px;padding:3px 7px;cursor:pointer}
+.rk-games button.on{background:#6c5ce7;color:#fff;border-color:#b197fc}
+.rk-games .f{font-size:16px}
+.rk-sub{display:flex;align-items:center;justify-content:space-between;gap:6px;margin:4px 0 8px;font-size:18px}
+.rk-sub .arc-seg{margin:0}
+.rk-sub .arc-seg button{font-size:14px;padding:3px 10px}
+.rk-list .arc-rrow{font-size:16px;padding:6px 10px;margin-bottom:5px}
+.rk-list .arc-rrow .avf{width:32px;height:32px}
+.rk-list .arc-rrow .rk{width:30px;font-size:17px}
+.rk-me{margin-top:8px;padding-top:8px;border-top:1px dashed #4c3fb0}
+.rk-more{width:100%;margin-top:8px}
+
+/* 대결방 칸 */
+.rm-new{background:rgba(255,255,255,.05);border:2px dashed #6c5ce7;border-radius:16px;padding:10px;margin-bottom:12px}
+.rm-new .t{font-size:18px;margin-bottom:6px}
+.rm-new .rm-gs{display:flex;gap:6px;flex-wrap:wrap}
+.rm-new .rm-gs button{flex:1;min-width:100px;font:17px "Jua",sans-serif;color:#fff;border:0;border-radius:12px;padding:10px 6px;cursor:pointer;background:linear-gradient(155deg,var(--c1),var(--c2));box-shadow:0 3px 0 rgba(0,0,0,.35)}
+.rm-new .rm-gs .f{font-size:22px;display:block}
+.rm-h{font-size:17px;color:#c5b8ff;margin:4px 0 6px}
+.rm{display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,var(--c1),var(--c2));border-radius:16px;padding:8px 10px;margin-bottom:8px;box-shadow:0 3px 0 rgba(0,0,0,.3)}
+.rm .avf{width:44px;height:44px}
+.rm .i{flex:1;min-width:0}
+.rm .i b{display:block;font-size:17px;font-weight:400}
+.rm .i small{font:13px "Gowun Dodum",sans-serif;opacity:.85}
+.rm .arc-btn{padding:8px 12px;font-size:16px}
+.rm.mine{outline:3px solid #ffd43b}
+.rm .wt{font-size:14px;animation:rmBlink 1.4s ease-in-out infinite}
+@keyframes rmBlink{50%{opacity:.4}}
+.rm-empty{text-align:center;color:#a79fd0;font:15px "Gowun Dodum",sans-serif;padding:16px 0}
+.rm-ppl{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.rm-ppl .r{display:flex;align-items:center;gap:8px;font-size:15px;background:rgba(255,255,255,.04);border-radius:10px;padding:4px 8px}
+.rm-ppl .r .avf{width:26px;height:26px}
+.rm-ppl .r span:not(.avf){flex:1}
+.rm-ppl .r small{font:12px "Gowun Dodum",sans-serif;color:#a79fd0}
+.rm-ppl .arc-btn{font-size:13px;padding:3px 8px}
+
+/* 채팅 칸 */
+.arc-spane.chat{display:flex;flex-direction:column;padding:0;overflow:hidden}
+.arc-spane.chat[hidden]{display:none}
+.ch-list{flex:1;min-height:0;overflow:auto;padding:10px 10px 4px;display:flex;flex-direction:column;gap:6px;overscroll-behavior:contain}
+.cm{display:flex;gap:7px;align-items:flex-start;max-width:92%}
+.cm .avf{width:32px;height:32px;margin-top:2px}
+.cm .bx{min-width:0}
+.cm .hd{font-size:13px;color:#b9b0dd;display:flex;gap:6px;align-items:baseline}
+.cm .hd small{font:11px "Gowun Dodum",sans-serif;opacity:.7}
+.cm p{margin:2px 0 0;background:#2f2770;border-radius:4px 14px 14px 14px;padding:6px 10px;font:16px "Gowun Dodum",sans-serif;color:#fff;word-break:break-all;white-space:pre-wrap}
+.cm.me{align-self:flex-end;flex-direction:row-reverse}
+.cm.me .hd{justify-content:flex-end}
+.cm.me p{background:#6c5ce7;border-radius:14px 4px 14px 14px}
+.cm.tch p{background:linear-gradient(90deg,#8f5b00,#5c3d00);border:1px solid #ffd43b}
+.cm.sys{align-self:center;max-width:100%}
+.cm.sys p{background:rgba(255,212,59,.12);border:1px solid rgba(255,212,59,.35);color:#ffe066;border-radius:999px;font-size:14px;text-align:center}
+.cm .del{background:none;border:0;color:#ff8787;cursor:pointer;font-size:13px;padding:0 2px}
+.ch-quick{display:flex;gap:5px;overflow-x:auto;padding:6px 10px;scrollbar-width:none}
+.ch-quick::-webkit-scrollbar{display:none}
+.ch-quick button{flex:none;font:15px "Jua",sans-serif;background:#2a2366;color:#e5dbff;border:1px solid #4c3fb0;border-radius:999px;padding:4px 10px;cursor:pointer}
+.ch-in{display:flex;gap:6px;padding:4px 10px 6px}
+.ch-in input{flex:1;min-width:0;background:#0f0b26;color:#fff;border:2px solid #4c3fb0;border-radius:12px;padding:9px 10px;font:16px "Gowun Dodum",sans-serif}
+.ch-in input:focus{outline:none;border-color:#b197fc}
+.ch-in button{font:17px "Jua",sans-serif;background:linear-gradient(180deg,#ff6bb5,#d6336c);color:#fff;border:0;border-radius:12px;padding:0 14px;cursor:pointer}
+.ch-in button:disabled,.ch-in input:disabled{opacity:.5}
+.ch-msg{min-height:20px;padding:0 12px 8px;font:13px "Gowun Dodum",sans-serif;color:#ffa8a8}
+.ch-off{padding:30px 16px;text-align:center;color:#b9b0dd;font:15px "Gowun Dodum",sans-serif;line-height:1.6}
+
+/* 문 닫힘 */
+.arc-closed{position:fixed;inset:0;z-index:250;display:grid;place-items:center;background:rgba(10,6,30,.88);text-align:center;padding:20px}
+.arc-closed[hidden]{display:none}
+.arc-closed .bx{font-size:clamp(28px,4vw,48px);color:#ffe066}
+.arc-closed .bx .f{font-size:clamp(70px,10vw,120px);display:block}
+.arc-closed small{display:block;font:18px "Gowun Dodum",sans-serif;color:#d0c8ff;margin-top:10px}
+
+@media (max-width:1100px){
+  .arc-lobby{grid-template-columns:1fr}
+  .arc-side{position:relative;top:0;height:70vh}
+}
+
+/* ---------- 🛠️ 관리자 ---------- */
+#mdTeach{padding:0}
+#mdTeach>.arc-card.arc-teachc{max-width:none;width:100%;height:100vh;max-height:none;border-radius:0;border:0;padding:0;display:grid;grid-template-columns:230px minmax(0,1fr);overflow:hidden;background:#17123b}
+.ad-side{background:linear-gradient(180deg,#2a1f63,#140f2e);border-right:2px solid #4c3fb0;padding:18px 12px;display:flex;flex-direction:column;gap:10px;overflow:auto}
+.ad-side h2{margin:0 0 6px;font-size:26px;color:#ffe066;text-align:center}
+.ad-side .ad-cls{text-align:center;font-size:15px;color:#c5b8ff;margin-top:-6px}
+#tcTabs{display:flex;flex-direction:column;gap:5px;padding:0;margin:0}
+#tcTabs button{text-align:left;font-size:17px;padding:9px 12px;border-radius:12px;position:relative}
+#tcTabs button i{position:absolute;right:10px;top:9px;font-style:normal;background:#fa5252;border-radius:9px;padding:0 6px;font-size:13px}
+#tcTabs button i:empty{display:none}
+.ad-who{margin-top:auto;text-align:center;font-size:13px;color:#8f84c7}
+.ad-body{overflow:auto;padding:22px 28px 40px}
+#tcBody h3{margin:0 0 12px;font-size:26px;color:#ffe066}
+.ad-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-bottom:16px}
+.ad-cards div{background:#221c55;border:2px solid #4c3fb0;border-radius:16px;padding:12px 14px}
+.ad-cards b{display:block;font-size:32px;color:#ffe066;font-weight:400}
+.ad-cards small{font:14px "Gowun Dodum",sans-serif;color:#b9b0dd}
+.ad-kids{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
+.ad-kid{display:flex;align-items:center;gap:10px;background:#221c55;border:2px solid #3e3494;border-radius:14px;padding:8px 10px}
+.ad-kid.on{border-color:#51cf66}.ad-kid.play{border-color:#ffa94d}
+.ad-kid .avf{width:42px;height:42px}
+.ad-kid .i{flex:1;min-width:0}
+.ad-kid .i b{display:block;font-size:17px;font-weight:400}
+.ad-kid .i small{font:13px "Gowun Dodum",sans-serif;color:#b9b0dd}
+.ad-kid .bb{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end}
+.ad-sec{background:#1d1847;border:2px solid #3e3494;border-radius:18px;padding:14px 16px;margin-bottom:14px}
+.ad-sec h4{margin:0 0 8px;font-size:20px;color:#e5dbff;font-weight:400}
+.ad-sec .arc-row{justify-content:flex-start;margin-top:8px}
+.ad-sw{display:flex;align-items:center;gap:12px;font-size:18px;cursor:pointer}
+.ad-sw input{display:none}
+.ad-sw span.k{width:54px;height:30px;border-radius:15px;background:#3e3494;position:relative;flex:none;transition:background .2s}
+.ad-sw span.k::after{content:"";position:absolute;left:4px;top:4px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s}
+.ad-sw input:checked+span.k{background:#2f9e44}
+.ad-sw input:checked+span.k::after{transform:translateX(24px)}
+.ad-sw small{font:13px "Gowun Dodum",sans-serif;color:#b9b0dd;display:block}
+.ad-in{display:flex;gap:8px}
+.ad-in input,.ad-sec textarea{flex:1;background:#120e2c;color:#fff;border:2px solid #4c3fb0;border-radius:12px;padding:9px 12px;font:16px "Gowun Dodum",sans-serif;box-sizing:border-box;width:100%}
+.ad-chat{max-height:52vh;overflow:auto;display:flex;flex-direction:column;gap:4px}
+.ad-chat .r{display:flex;align-items:center;gap:8px;background:#221c55;border-radius:10px;padding:5px 8px;font-size:15px}
+.ad-chat .r .avf{width:26px;height:26px}
+.ad-chat .r .t{flex:1;min-width:0;font-family:"Gowun Dodum",sans-serif;word-break:break-all}
+.ad-chat .r small{color:#a79fd0;font:12px "Gowun Dodum",sans-serif;flex:none}
+.ad-games{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.ad-games label{display:flex;align-items:center;gap:10px;background:#221c55;border:2px solid #3e3494;border-radius:14px;padding:10px 12px;font-size:18px;cursor:pointer}
+.ad-games label .f{font-size:26px}
+.ad-games input{width:22px;height:22px}
+.ad-mute{color:#ff8787;font-size:13px}
+@media (max-width:800px){ #mdTeach>.arc-card.arc-teachc{grid-template-columns:1fr;grid-template-rows:auto 1fr} .ad-side{border-right:0;border-bottom:2px solid #4c3fb0;padding:10px} #tcTabs{flex-direction:row;flex-wrap:wrap} .ad-who{display:none} }
