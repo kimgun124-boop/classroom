@@ -240,3 +240,34 @@ body.arc-playing #lgFame, body.arc-playing .arc-lobby{display:none !important}
 .ad-games input{width:22px;height:22px}
 .ad-mute{color:#ff8787;font-size:13px}
 @media (max-width:800px){ #mdTeach>.arc-card.arc-teachc{grid-template-columns:1fr;grid-template-rows:auto 1fr} .ad-side{border-right:0;border-bottom:2px solid #4c3fb0;padding:10px} #tcTabs{flex-direction:row;flex-wrap:wrap} .ad-who{display:none} }
+
+/* 💬 채팅: 약속 · 추방 · 이모티콘 */
+.arc-spane.chat{position:relative}
+.ch-law{margin:8px 10px 0;padding:6px 10px;border-radius:10px;background:linear-gradient(90deg,rgba(250,82,82,.25),rgba(255,212,59,.15));border:1px solid rgba(255,135,135,.55);font:13px/1.45 "Gowun Dodum",sans-serif;color:#fff}
+.ch-law b{color:#ffe066;font-family:"Jua",sans-serif;font-weight:400}
+.cm .hd .out{font-style:normal;color:#ff8787;font-size:12px}
+.cm p.big{background:none !important;border:0 !important;font-size:34px;line-height:1.15;padding:0 2px}
+.cm p.st{background:none !important;border:0 !important;font-size:64px;line-height:1.1;padding:0;animation:cePop .45s}
+@keyframes cePop{0%{transform:scale(0)}70%{transform:scale(1.2)}100%{transform:scale(1)}}
+.ch-emob{flex:none;background:#2a2366 !important;border:2px solid #4c3fb0 !important;font-size:20px !important;padding:0 8px !important}
+.ch-emo{margin:4px 10px 0;background:#120e2c;border:1px solid #4c3fb0;border-radius:12px;padding:6px;max-height:200px;display:flex;flex-direction:column}
+.ch-emo[hidden]{display:none}
+.ce-tabs{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:4px}
+.ce-tabs button{background:transparent;border:1px solid #4c3fb0;border-radius:9px;font-size:18px;padding:1px 6px;cursor:pointer;color:#fff}
+.ce-tabs button.big{font:13px "Jua",sans-serif}
+.ce-tabs button.on{background:#ffe066;border-color:#ffe066;color:#3d2a00}
+.ce-hint{margin:0 0 3px;font:12px "Gowun Dodum",sans-serif;color:#c5b8ff}
+.ce-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(36px,1fr));overflow-y:auto}
+.ce-grid button{background:none;border:0;font-size:23px;padding:2px;border-radius:8px;cursor:pointer}
+.ce-grid button:hover{background:rgba(255,255,255,.12)}
+.ce-grid.st{grid-template-columns:repeat(auto-fill,minmax(54px,1fr))}.ce-grid.st button{font-size:36px}
+.ch-banned{margin:auto;text-align:center;padding:20px 12px;font:20px "Jua",sans-serif;color:#fff}
+.ch-banned .e{font-size:64px}.ch-banned p{font:14px/1.7 "Gowun Dodum",sans-serif;color:#d0c8ff}
+.ch-rule{position:absolute;inset:0;z-index:3;background:rgba(15,10,40,.95);display:flex;align-items:center;justify-content:center;padding:12px;text-align:center;border-radius:inherit}
+.ch-rule[hidden]{display:none}
+.ch-rule .e{font-size:48px}.ch-rule h3{font:24px "Jua",sans-serif;margin:2px 0 8px;color:#ffe066;font-weight:400}
+.ch-rule ol{text-align:left;font:15px/1.8 "Gowun Dodum",sans-serif;margin:0 0 8px;padding-left:22px}
+.ch-ban{background:rgba(250,82,82,.2);border:1px solid #ff8787;border-radius:10px;padding:8px;font:14px/1.6 "Gowun Dodum",sans-serif;margin:0 0 10px}
+.ch-ban small{color:#ffc9c9}
+.ad-chat .r.out{background:#4a1d27}
+.ch-in[hidden],.ch-quick[hidden]{display:none !important}

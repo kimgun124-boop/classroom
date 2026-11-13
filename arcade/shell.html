@@ -73,10 +73,17 @@
       <div class="arc-spane" id="paneRank"></div>
       <div class="arc-spane" id="paneRoom" hidden></div>
       <div class="arc-spane chat" id="paneChat" hidden>
+        <div class="ch-law">🤝 <b>고운 말만!</b> 욕이나 친구를 놀리는 말(비방)을 하면 선생님이 채팅방에서 <b>영원히 추방</b>할 수 있어요.</div>
         <div class="ch-list" id="chList"></div>
+        <div class="ch-emo" id="chEmo" hidden></div>
         <div class="ch-quick" id="chQuick"></div>
-        <form class="ch-in" id="chForm" autocomplete="off"><input id="chText" maxlength="50" placeholder="친구들에게 한마디! (고운 말 😊)" enterkeyhint="send"><button id="chSend">보내기</button></form>
+        <form class="ch-in" id="chForm" autocomplete="off"><button type="button" class="ch-emob" id="chEmoBtn" title="이모티콘">😊</button><input id="chText" maxlength="50" placeholder="친구들에게 한마디! (고운 말 😊)" enterkeyhint="send"><button id="chSend">보내기</button></form>
         <div class="ch-msg" id="chMsg"></div>
+        <div class="ch-rule" id="chRule" hidden><div>
+          <div class="e">🤝</div><h3>채팅방 약속</h3>
+          <ol><li>친구에게 <b>고운 말</b>만 써요.</li><li><b>욕</b>, 친구를 <b>놀리고 흉보는 말(비방)</b>은 절대 안 돼요.</li><li>비밀번호 같은 <b>개인 정보</b>는 쓰지 않아요.</li></ol>
+          <p class="ch-ban">⚠️ 약속을 어기면 선생님이 채팅방에서 <b>영원히 추방</b>할 수 있어요.<br><small>나쁜 말은 보내지지 않고 선생님 화면에 기록돼요.</small></p>
+          <button type="button" class="arc-btn p big" id="chRuleOk">✋ 약속해요!</button></div></div>
       </div>
     </aside>
   </div>

@@ -98,40 +98,65 @@ const LIVE = {
 
 /* ---------- 💬 채팅 규칙: 고운 말 · 천천히 · 선생님이 끄고 켜요 ---------- */
 const CHAT = {
-  BAD: ["시발","씨발","씨바","씨빨","씹","ㅅㅂ","ㅆㅂ","ㅅ1ㅂ","병신","븅신","빙신","ㅂㅅ","ㅄ","개새","개색","새끼","색끼","섀끼","존나","졸라","좆","ㅈㄴ","ㅈ같","지랄","ㅈㄹ","닥쳐","꺼져","미친","미쳤냐","ㅁㅊ","또라이","등신","찐따","느금","니애미","니엄마","애미","애비","엠창","fuck","shit","bitch","sex","섹스","야동","죽어","뒤져","디져"],
+  BAD: ["시발","씨발","씨바","씨빨","씹","ㅅㅂ","ㅆㅂ","ㅅ1ㅂ","병신","븅신","빙신","ㅂㅅ","ㅄ","개새","개색","새끼","색끼","섀끼","존나","졸라","좆","ㅈㄴ","ㅈ같","지랄","ㅈㄹ","닥쳐","꺼져","미친","미쳤냐","ㅁㅊ","또라이","등신","찐따","느금","니애미","니엄마","애미","애비","엠창","fuck","shit","bitch","sex","섹스","야동","죽어","뒤져","디져",
+    /* 비방(놀리기·흉보기) */ "바보","멍청","한심","재수없","못생","꼴통","왕따","찌질","쓰레기","장애인","정신병","돌아이","죽여","죽을래","꺼지","닥치","sibal","tlqkf","qudtls"],
   last: 0, lastT: "",
   rules(){ return Object.assign({off: false, slow: 3}, (Store.cls || {}).chat); },
   muted(no){ const u = (((Store.cls || {}).mute) || {})[no] || 0; return u > Date.now() ? u : 0; },
-  norm(t){ return String(t).toLowerCase().replace(/[\s.,!?\-_~^*@#$%&()'"`:;+=<>\/\\|[\]{}0-9]/g, ""); },
+  norm(t){ return String(t).toLowerCase().replace(/[\s.,!?\-_~^*@#$%&()'"`:;+=<>\/\\|[\]{}0-9ㆍ·…]/g, ""); },
+  /* 🚫 영원히 추방 (선생님이 풀어 줄 때까지) */
+  banned(no){ return !!((((Store.cls || {}).chatBan) || {})[no]); },
   bad(t){ const n = this.norm(t); return this.BAD.concat(((Store.cls || {}).ban) || []).map(w => this.norm(w)).find(w => w && n.includes(w)); },
   /* 왜 못 보내는지 (보낼 수 있으면 "") */
   why(no){
     if (no === null || no === undefined) return "로그인해야 채팅할 수 있어요";
     if (isT(no)) return "";
+    if (this.banned(no)) return "🚫 채팅방에서 추방됐어요";
     const R = this.rules();
     if ((Store.cls || {}).closed) return "🔒 지금은 오락실 쉬는 시간이에요";
     if (R.off) return "🤫 선생님이 채팅을 잠깐 껐어요";
     const m = this.muted(no); if (m) return `🔇 ${hhmm(m)}까지 채팅을 쉬어요`;
     return "";
   },
-  async send(text, no = ARC.me){
+  async send(text, no = ARC.me, k){
     const t = String(text || "").replace(/\s+/g, " ").trim().slice(0, 50);
     if (!t) return "";
     const w = this.why(no); if (w) return w;
     if (!isT(no)){
       const slow = Math.max(1, +this.rules().slow || 0)*1000, left = this.last + slow - Date.now();
       if (left > 0) return `⏳ ${Math.ceil(left/1000)}초 뒤에 보낼 수 있어요`;
-      if (t === this.lastT) return "🔁 같은 말을 또 보내지 않아요";
+      if (t === this.lastT && k !== "st") return "🔁 같은 말을 또 보내지 않아요";
       if (/https?:|www\.|\.(com|net|kr|io|ly|gg)\b/i.test(t)) return "🔗 채팅에는 주소(링크)를 올리지 않아요";
-      if (this.bad(t)){ this.warn = (this.warn || 0) + 1; return "🙅 고운 말을 써 주세요! 친구가 상처받을 수 있어요"; }
+      if (this.bad(t)){
+        // 욕·비방: 보내지 않고, 선생님 화면에 경고 횟수와 그 말을 남겨요
+        this.warn = (this.warn || 0) + 1; const sid = sidOf(no), n = ((Store.kids[sid] || {}).cw || 0) + 1;
+        Store.kidTx(sid, w => Object.assign(w, {cw: (w.cw || 0) + 1, cwLast: t.slice(0, 50), cwAt: Date.now()})).catch(e => console.error(e));
+        try { tone(300, 160, .25, "sawtooth", .08); } catch(e) {}
+        return `🙅 보낼 수 없는 말이에요! 욕·비방은 선생님께 기록돼요 (경고 ${n}번). 계속하면 채팅방에서 영원히 추방될 수 있어요`;
+      }
     }
     this.last = Date.now(); this.lastT = t;
-    try { await LIVE.say({no: +no, t, at: Date.now()}); } catch(e){ console.error(e); return "⚠️ 보내지 못했어요. 인터넷을 확인해 주세요."; }
+    try { await LIVE.say(Object.assign({no: +no, t, at: Date.now()}, k === "st" ? {k} : {})); } catch(e){ console.error(e); return "⚠️ 보내지 못했어요. 인터넷을 확인해 주세요."; }
     return "";
   },
   /* 🏆 새 1등 같은 자동 알림 */
   sys(t){ if (LIVE.cloud() || Store.mode === "local") LIVE.say({no: -1, sys: 1, t: String(t).slice(0, 80), at: Date.now()}).catch(() => {}); }
 };
+
+
+/* 😊 이모티콘 고르기 */
+const CHAT_EMO = [
+  ["😀", "얼굴", "😀😃😄😁😆😅🤣😂🙂😉😊😇🥰😍🤩😘😋😛😜🤪😝🤗🤭🤫🤔😐😑😶🙄😏😴😪😮😯😲😳🥺😢😭😤😱😨😰😓🤯🥳😎🤓🧐🤠👻🤖😺😸😹😻🙀"],
+  ["❤️", "마음", "❤️🧡💛💚💙💜🤎🖤🤍💖💗💓💞💕💘💝💟❣️✨⭐🌟💫🔥💥💯🎵🎶💤💦💨"],
+  ["👍", "손", "👍👏🙌👐🤝🙏✌️🤞🤟👌👈👉👆👇☝️✋🤚🖐️👋🤙💪✍️🫶"],
+  ["🐶", "동물", "🐶🐱🐭🐹🐰🦊🐻🐼🐨🐯🦁🐮🐷🐸🐵🐔🐧🐦🐤🦆🦉🐺🐴🦄🐝🐛🦋🐌🐞🐢🐍🦖🦕🐙🦑🦀🐬🐳🐋🦈🐊🦒🐘🦔🐿️"],
+  ["🍕", "음식", "🍎🍊🍋🍌🍉🍇🍓🍒🍑🥭🍍🥝🍅🥕🌽🍟🍕🌭🍔🥪🌮🍙🍚🍜🍝🍣🍤🍦🍧🍨🍩🍪🎂🍰🧁🍫🍬🍭🍮🍯🥛🧃🧋"],
+  ["⚽", "놀이", "⚽🏀🏈⚾🎾🏐🏉🏓🏸🏒🥅⛳🏆🥇🥈🥉🏅🎮🕹️🎲🧩🎯🎳🎨🎤🎧🎸🎹🥁🚀✈️🚗🚲🛹🎡🎢🎠"],
+  ["🎉", "기타", "🎉🎊🎈🎁🎀🪄📚✏️📝📌📎🔑💡🔔📢⏰⌛🌈☀️🌙⛄❄️☔🌸🌻🌷🍀🌲🌍🏫🏠"]
+];
+const CHAT_ST = ["👍", "😂", "🥰", "😭", "😮", "🤔", "🎉", "🔥", "💯", "👏", "🙏", "😴", "🥳", "😎", "🤗", "😱", "❤️", "⭐", "🏆", "✌️", "🍀", "🐶", "🐱", "🍕"];
+const emoList = s => Array.from(new Intl.Segmenter("ko", {granularity: "grapheme"}).segment(s), x => x.segment);
+const emoOnly = t => /^(\p{Extended_Pictographic}|\p{Emoji_Component}|\u200d|\ufe0f|\s){1,16}$/u.test(t) && !/[0-9#*]/.test(t);
 
 /* ---------- ⚔️ 대결방: 방을 만들면 다른 기기 친구가 들어와서 바로 시작 ---------- */
 const ROOMS = {
@@ -255,8 +280,26 @@ const LOBBY = {
     $("#chQuick").innerHTML = ["👍","ㅋㅋㅋ","🎉 축하해!","GG!","대결할 사람? ⚔️","화이팅! 💪","잘했어 👏","고마워 😊"].map(t => `<button type="button">${t}</button>`).join("");
     $("#chQuick").onclick = e => { const b = e.target.closest("button"); if (b) this.send(b.textContent); };
     $("#chForm").onsubmit = e => { e.preventDefault(); const i = $("#chText"); this.send(i.value, () => { i.value = ""; }); };
-    $("#chList").onclick = e => { const d = e.target.closest("[data-del]"); if (d && isT(ARC.me) && confirm("이 채팅을 지울까요?")) LIVE.unsay(d.dataset.del); };
+    $("#chList").onclick = e => { const d = e.target.closest("[data-del]"), b = e.target.closest("[data-ban]");
+      if (d && isT(ARC.me) && confirm("이 채팅을 지울까요?")) LIVE.unsay(d.dataset.del);
+      if (b && isT(ARC.me)) ADMIN.ban(+b.dataset.ban, true); };
+    $("#chEmoBtn").onclick = () => { const p = $("#chEmo"); p.hidden = !p.hidden; if (!p.hidden) this.emo(); };
+    $("#chRuleOk").onclick = () => { try { localStorage.setItem(this.ruleKey(), 1); } catch(e) {} $("#chRule").hidden = true; this.chatSig = ""; this.renderSide(true); };
     this.setTab(this.tab);
+  },
+  ruleKey(){ return `${KEY}.chatOk.${(Store.cls || {}).cid}.${ARC.me}`; },
+  ruleOk(){ try { return isT(ARC.me) || !!localStorage.getItem(this.ruleKey()); } catch(e){ return true; } },
+  emo(){
+    const T = this.emoTab ?? 0, st = T === "st";
+    const list = st ? CHAT_ST : emoList(CHAT_EMO[T][2]);
+    $("#chEmo").innerHTML = `<div class="ce-tabs">${CHAT_EMO.map((c, i) => `<button type="button" data-tab="${i}" class="${T === i ? "on" : ""}" title="${c[1]}">${c[0]}</button>`).join("")}<button type="button" data-tab="st" class="big${st ? " on" : ""}">🎁 큰 이모티콘</button></div>${st ? `<p class="ce-hint">누르면 바로 크게 보내져요!</p>` : ""}<div class="ce-grid${st ? " st" : ""}">${list.map(e => `<button type="button" data-e="${e}">${e}</button>`).join("")}</div>`;
+    $("#chEmo").onclick = async e => {
+      const t = e.target.closest("[data-tab]"); if (t){ this.emoTab = t.dataset.tab === "st" ? "st" : +t.dataset.tab; this.emo(); return; }
+      const b = e.target.closest("[data-e]"); if (!b) return;
+      if (this.emoTab === "st"){ const msg = await CHAT.send(b.dataset.e, ARC.me, "st"); $("#chMsg").textContent = msg; if (!msg){ $("#chEmo").hidden = true; this.seen = Date.now(); } return; }
+      const i = $("#chText"), v = b.dataset.e; if (i.disabled || i.value.length + v.length > 50) return;
+      const p = i.selectionStart ?? i.value.length; i.value = i.value.slice(0, p) + v + i.value.slice(i.selectionEnd ?? p); i.selectionStart = i.selectionEnd = p + v.length;
+    };
   },
   async send(t, ok){
     const msg = await CHAT.send(t); $("#chMsg").textContent = msg;
@@ -339,15 +382,17 @@ const LOBBY = {
 
   /* ---- 💬 채팅 칸 ---- */
   renderChat(){
-    const me = ARC.me, why = CHAT.why(me), live = LIVE.cloud() || Store.mode === "local";
+    const me = ARC.me, why = CHAT.why(me), live = LIVE.cloud() || Store.mode === "local", out = CHAT.banned(me) && !isT(me);
     const inp = $("#chText"), btn = $("#chSend");
-    inp.disabled = btn.disabled = !!why || !live; inp.placeholder = why || "친구들에게 한마디! (고운 말 😊)";
+    inp.disabled = btn.disabled = $("#chEmoBtn").disabled = !!why || !live; inp.placeholder = why || "친구들에게 한마디! (고운 말 😊)";
+    $("#chRule").hidden = out || this.ruleOk(); $("#chQuick").hidden = out; $("#chForm").hidden = out; if (out) $("#chEmo").hidden = true;
     if (why && !$("#chMsg").textContent) $("#chMsg").textContent = "";
-    const L = LIVE.chat, sg = L.map(m => m.id).join(",") + "|" + isT(me) + "|" + (L.length ? L[L.length - 1].at : 0) + "|" + Math.floor(Date.now()/60000);
+    const L = LIVE.chat, ban = (Store.cls || {}).chatBan || {}, sg = L.map(m => m.id).join(",") + "|" + isT(me) + "|" + out + "|" + JSON.stringify(ban) + "|" + (L.length ? L[L.length - 1].at : 0) + "|" + Math.floor(Date.now()/60000);
     if (sg === this.chatSig) return; this.chatSig = sg;
     const box = $("#chList"), near = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+    if (out){ box.innerHTML = `<div class="ch-banned"><div class="e">🚫</div><b>채팅방에서 추방됐어요</b><p>욕이나 친구를 놀리는 말(비방)을 해서<br>선생님이 채팅방에서 내보냈어요.<br><small>선생님이 풀어 주기 전까지는 채팅을 볼 수도, 쓸 수도 없어요.</small></p></div>`; return; }
     box.innerHTML = L.length ? L.map(m => m.sys ? `<div class="cm sys"><p>${esc(m.t)}</p></div>`
-      : `<div class="cm${m.no === me ? " me" : ""}${isT(m.no) ? " tch" : ""}">${avI(sidOf(m.no))}<div class="bx"><div class="hd">${esc(isT(m.no) ? "🧑‍🏫 선생님" : `${m.no}번 ${nameOf(m.no)}`)} <small>${hhmm(m.at)}</small>${isT(me) ? `<button class="del" data-del="${m.id}" title="지우기">🗑️</button>` : ""}</div><p>${esc(m.t)}</p></div></div>`).join("")
+      : `<div class="cm${m.no === me ? " me" : ""}${isT(m.no) ? " tch" : ""}">${avI(sidOf(m.no))}<div class="bx"><div class="hd">${esc(isT(m.no) ? "🧑‍🏫 선생님" : `${m.no}번 ${nameOf(m.no)}`)}${ban[m.no] ? ` <i class="out">🚫 추방됨</i>` : ""} <small>${hhmm(m.at)}</small>${isT(me) ? `<button class="del" data-del="${m.id}" title="지우기">🗑️</button>${isT(m.no) || ban[m.no] ? "" : `<button class="del" data-ban="${m.no}" title="채팅방에서 영원히 추방">🚫</button>`}` : ""}</div><p class="${m.k === "st" ? "st" : emoOnly(m.t) ? "big" : ""}">${esc(m.t)}</p></div></div>`).join("")
       : `<div class="ch-off">💬 아직 채팅이 없어요.<br>첫 인사를 해 볼까요? 👋<br><small>고운 말만 써요 · 선생님도 함께 봐요</small></div>`;
     if (near || !this._scrolled){ box.scrollTop = box.scrollHeight; this._scrolled = true; }
   },
@@ -395,6 +440,10 @@ const ADMIN = {
           <div class="arc-row"><span style="align-self:center">⏳ 천천히 보내기</span><div class="arc-seg" id="acSlow" style="margin:0">${[1, 3, 5, 10, 30].map(v => `<button data-v="${v}" class="${+CHAT.rules().slow === v ? "on" : ""}">${v}초</button>`).join("")}</div></div>
           <p class="arc-small">나쁜 말(욕설 · 비하하는 말)과 주소(링크)는 자동으로 막아요. 더 막을 말이 있으면 아래에 쉼표로 적어 주세요.</p>
           <div class="ad-in"><input id="acBan" value="${esc(((c.ban) || []).join(", "))}" placeholder="예) 바보, 멍청이"><button class="arc-btn" id="acBanSave">💾 막을 말 저장</button></div></div>
+        <div class="ad-sec"><h4>🚫 영원히 추방 · ⚠️ 경고 기록</h4>
+          <p class="arc-small">아이들 채팅 칸 맨 위에 <b>“욕·비방을 하면 영원히 추방될 수 있어요”</b>가 늘 보이고, 처음 들어올 때 <b>✋ 약속해요</b>를 눌러야 써요.
+            욕·비방은 보내지지 않고 여기에 <b>경고 횟수와 그 말</b>이 남아요. <b>🚫 추방</b>하면 선생님이 <b>풀어 줄 때까지</b> 채팅을 볼 수도 쓸 수도 없어요 (🔇 10분 쉬기보다 센 벌).</p>
+          <div class="ad-chat" id="adBan"></div></div>
         <div class="ad-sec"><h4>📢 선생님 알림 (홈 맨 위에 계속 보여요)</h4>
           <div class="ad-in"><input id="acNotice" maxlength="80" value="${esc((c.notice || {}).t || "")}" placeholder="예) 5분 뒤에 수업 시작해요! 마무리해요 🙂"><button class="arc-btn p" id="acNoticeGo">📢 올리기</button><button class="arc-btn" id="acNoticeOff">내리기</button></div></div>
         <div class="ad-sec"><h4>🧑‍🏫 선생님으로 채팅 보내기</h4>
@@ -420,9 +469,16 @@ const ADMIN = {
       $("#acSayF").onsubmit = async e => { e.preventDefault(); const i = $("#acSay"), m = await CHAT.send(i.value, TEACHER); if (m) toast(m); else i.value = ""; };
       $("#acClear").onclick = async () => { if (!confirm("채팅 기록을 모두 지울까요? 되돌릴 수 없어요.")) return; try { await LIVE.clearChat(); toast("🧹 채팅을 모두 지웠어요"); } catch(e){ alert("지우지 못했어요: " + (e.message || e)); } };
       $("#adChat").onclick = e => {
-        const d = e.target.closest("[data-del]"), m = e.target.closest("[data-mute]");
+        const d = e.target.closest("[data-del]"), m = e.target.closest("[data-mute]"), b = e.target.closest("[data-ban]");
         if (d) LIVE.unsay(d.dataset.del);
         if (m) this.mute(+m.dataset.mute, 10);
+        if (b) this.ban(+b.dataset.ban, true);
+      };
+      $("#adBan").onclick = e => {
+        const b = e.target.closest("[data-ban]"), u = e.target.closest("[data-unban]"), w = e.target.closest("[data-cw]");
+        if (b) this.ban(+b.dataset.ban, true);
+        if (u) this.ban(+u.dataset.unban, false);
+        if (w) Store.kidTx(sidOf(+w.dataset.cw), x => Object.assign(x, {cw: 0, cwLast: "", cwAt: 0})).then(() => { this.sig = ""; this.live(); }).catch(er => toast(er.message));
       };
     } else if (tab === "room"){
       $("#arOn").onchange = e => this.patch({roomsOff: !e.target.checked}, e.target.checked ? "⚔️ 대결방을 열었어요" : "⏸️ 대결방을 닫았어요");
@@ -441,6 +497,10 @@ const ADMIN = {
       };
     }
     this.sig = ""; this.live({chat: 1, on: 1, rooms: 1});
+  },
+  ban(no, on){
+    if (on && !confirm(`${who(no)}을(를) 채팅방에서 영원히 추방할까요?\n선생님이 풀어 줄 때까지 채팅을 볼 수도, 쓸 수도 없어요.`)) return;
+    this.patch({chatBan: {[no]: on ? Date.now() : 0}}, on ? `🚫 ${who(no)} 채팅방에서 추방했어요` : `✅ ${who(no)} 다시 채팅할 수 있어요`);
   },
   mute(no, min){ this.patch({mute: {[no]: Date.now() + min*60000}}, `🔇 ${who(no)} ${min}분 채팅 쉬기`); },
   /* 데이터가 바뀌면 목록만 다시 (입력 칸은 그대로) */
@@ -462,8 +522,11 @@ const ADMIN = {
     }
     if (t === "chat" && $("#adChat")){
       const L = LIVE.chat.slice().reverse();
-      const html = L.length ? L.map(m => `<div class="r">${m.sys ? `<span class="f">🏆</span>` : avI(sidOf(m.no))}<b>${m.sys ? "알림" : esc(isT(m.no) ? "선생님" : `${m.no}번 ${nameOf(m.no)}`)}</b><span class="t">${esc(m.t)}</span><small>${hhmm(m.at)}</small><button class="arc-btn sm" data-del="${m.id}" title="지우기">🗑️</button>${m.sys || isT(m.no) ? "" : `<button class="arc-btn sm" data-mute="${m.no}" title="10분 채팅 쉬기">🔇</button>`}</div>`).join("") : `<p class="arc-empty">채팅 기록이 없어요</p>`;
-      if (html !== this.sig){ this.sig = html; $("#adChat").innerHTML = html; }
+      const html = L.length ? L.map(m => `<div class="r">${m.sys ? `<span class="f">🏆</span>` : avI(sidOf(m.no))}<b>${m.sys ? "알림" : esc(isT(m.no) ? "선생님" : `${m.no}번 ${nameOf(m.no)}`)}</b><span class="t">${esc(m.t)}</span><small>${hhmm(m.at)}</small><button class="arc-btn sm" data-del="${m.id}" title="지우기">🗑️</button>${m.sys || isT(m.no) ? "" : `<button class="arc-btn sm" data-mute="${m.no}" title="10분 채팅 쉬기">🔇</button>${CHAT.banned(m.no) ? "" : `<button class="arc-btn sm" data-ban="${m.no}" title="영원히 추방">🚫</button>`}`}</div>`).join("") : `<p class="arc-empty">채팅 기록이 없어요</p>`;
+      const ban = Store.cls.chatBan || {}, K = this.kids().filter(s => ban[s.no] || (walletOf(sidOf(s.no)).cw || 0) > 0).sort((a, b) => (!!ban[b.no] - !!ban[a.no]) || ((walletOf(sidOf(b.no)).cw || 0) - (walletOf(sidOf(a.no)).cw || 0)));
+      const bh = K.length ? K.map(s => { const w = walletOf(sidOf(s.no)), cw = w.cw || 0;
+        return `<div class="r${ban[s.no] ? " out" : ""}">${avI(sidOf(s.no))}<b>${s.no}번 ${esc(s.name)}</b><span class="t">${ban[s.no] ? "🚫 추방됨 · " : ""}${cw ? `⚠️ 경고 ${cw}번 · 마지막 말 “${esc(w.cwLast || "")}”` : ""}</span>${cw ? `<button class="arc-btn sm" data-cw="${s.no}">경고 지우기</button>` : ""}${ban[s.no] ? `<button class="arc-btn sm" data-unban="${s.no}">✅ 풀어 주기</button>` : `<button class="arc-btn sm" data-ban="${s.no}">🚫 추방</button>`}</div>`; }).join("") : `<p class="arc-empty">추방되거나 경고받은 친구가 없어요 👍</p>`;
+      if (html + bh !== this.sig){ this.sig = html + bh; $("#adChat").innerHTML = html; $("#adBan").innerHTML = bh; }
     }
     if (t === "room" && $("#adRooms")){
       const L = LIVE.rooms.slice().sort((a, b) => (a.at || 0) - (b.at || 0));
