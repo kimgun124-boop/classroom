@@ -38,7 +38,8 @@ const PERF = {
     this.slowSec = 0;
     if (!this.lite){ this.lite = true; document.body.classList.add("arc-lite"); }
     // (2026.11.13) 예전엔 해상도를 1배까지 내려서 태블릿에서 화면이 흐려졌어요 → 1.5배까지만 내려요
-    else if (this.dprCap > 1.5 && (window.devicePixelRatio || 1) > 1.5){ this.dprCap = 1.5; window.dispatchEvent(new Event("resize")); }
+    // 해상도는 게임 중에 바꾸지 않아요(바꾸는 순간 멈칫하고 흐려져요) — 다음 게임부터 적용돼요
+    else if (this.dprCap > 1.5 && (window.devicePixelRatio || 1) > 1.5){ this.dprCap = 1.5; }
     else return;
     try { localStorage.setItem(KEY_PERF, JSON.stringify({lite: this.lite, cap: this.dprCap})); } catch(e) {}
   }
@@ -58,8 +59,9 @@ const ARCDPR = () => PERF.dpr();
     if (maxW !== undefined || t.length > 12 || !EMO.test(t) || /^[\d#*\s]+$/.test(t)) return fill.apply(this, arguments);
     const m = /(\d+(?:\.\d+)?)px/.exec(this.font), fs = m ? +m[1] : 0;
     if (!fs || fs > 400) return fill.apply(this, arguments);
-    const tr = this.getTransform(), k0 = Math.hypot(tr.a, tr.b) || 1;
-    const k = Math.pow(1.25, Math.ceil(Math.log(k0)/Math.log(1.25)));             // 배율을 몇 단계로만 나눠 기억해요
+    const tr = this.getTransform(), k0 = Math.hypot(tr.a, tr.b) || 1, flat = !tr.b && !tr.c;
+    // 돌리지 않은 그림은 화면 배율 그대로 기억해서 1:1로 붙여요(늘이기 없음 → 늘 선명), 돌린 그림만 몇 단계로 나눠 기억해요
+    const k = flat ? Math.round(k0*100)/100 : Math.pow(1.25, Math.ceil(Math.log(k0)/Math.log(1.25)));
     const col = typeof this.fillStyle === "string" ? this.fillStyle : "#000";
     const key = `${t}|${this.font}|${this.textAlign}|${this.textBaseline}|${this.direction}|${col}|${k.toFixed(3)}`;
     let c = cache.get(key);
@@ -70,7 +72,15 @@ const ARCDPR = () => PERF.dpr();
       const g = c.getContext("2d"); g.scale(k, k);
       g.font = this.font; g.textAlign = this.textAlign; g.textBaseline = this.textBaseline; g.direction = this.direction; g.fillStyle = col;
       fill.call(g, t, pad, pad);
-      c.pad = pad; c.side = side; cache.set(key, c);
+      c.pad = pad; c.side = c.width/k; cache.set(key, c);
+    }
+    if (flat){
+      // ⚡ 화면 점(픽셀)에 딱 맞춰 붙여요 — 반 칸씩 어긋나 움직이면 그림이 뚜렷했다 흐려졌다 해요
+      const sx = tr.a < 0 ? -1 : 1, sy = tr.d < 0 ? -1 : 1, ax = Math.abs(tr.a), ay = Math.abs(tr.d);
+      const dx = Math.round(tr.a*(x - c.pad) + tr.e), dy = Math.round(tr.d*(y - c.pad) + tr.f);
+      this.save(); this.setTransform(sx, 0, 0, sy, 0, 0);
+      this.drawImage(c, sx*dx - (sx < 0 ? c.width : 0), sy*dy - (sy < 0 ? c.height : 0), c.width*ax/k, c.height*ay/k);
+      this.restore(); return;
     }
     this.drawImage(c, x - c.pad, y - c.pad, c.side, c.side);
   };

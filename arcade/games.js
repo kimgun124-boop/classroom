@@ -418,7 +418,7 @@ NG.defs.rn = () => {
       c = canvasOf(w, size*1.6, k, x2 => outlined(x2, s, w/2, size*.8, size, fill)); c.w = w; c.h = size*1.6; TS.set(key, c);
     }
     const ax = align === "center" ? x - c.w/2 : align === "right" ? x - c.w + size*.3 : x - size*.3;
-    g.drawImage(c, ax, y - c.h/2, c.w, c.h);
+    const kk = g.getTransform().a; g.drawImage(c, Math.round(ax*kk)/kk, Math.round((y - c.h/2)*kk)/kk, c.w, c.h);   // 화면 점에 맞춰
   }
 
   function jump(){
@@ -503,9 +503,9 @@ NG.defs.rn = () => {
       // 땅
       g.fillStyle = m.ground; g.fillRect(0, GY, W, H - GY);
       g.fillStyle = m.edge; g.fillRect(0, GY, W, 6);
-      g.fillStyle = m.stripe; for (let x = -(dist % 48); x < W; x += 48) g.fillRect(x, GY + 22, 24, 7);
+      g.fillStyle = m.stripe; for (let x = -Math.round((dist % 48)*k)/k; x < W; x += 48) g.fillRect(x, GY + 22, 24, 7);   // 화면 점에 맞춰 (가장자리 번쩍임 없게)
       // 눈·불씨
-      if (flakes.length){ g.fillStyle = m.snow ? "#fff" : "#ff922b"; for (const f of flakes) g.fillRect(f.x, f.y, 4, 4); }
+      if (flakes.length){ g.fillStyle = m.snow ? "#fff" : "#ff922b"; for (const f of flakes) g.fillRect(Math.round(f.x*k)/k, Math.round(f.y*k)/k, 4, 4); }
       // 사탕·아이템
       g.font = `30px ${EMOJI}`; g.textAlign = "center"; g.textBaseline = "middle";
       const bob = NG.frame*.15;
@@ -531,8 +531,9 @@ NG.defs.rn = () => {
       }
       // 글자
       for (const f of fx){ g.globalAlpha = Math.min(1, f.t/15); txt(g, f.s, f.x, f.y, f.big ? 30 : 28, "#ffe066"); } g.globalAlpha = 1;
-      txt(g, `${score()}점`, W/2, 42, 46);
-      txt(g, `🍬 ${candies}`, W - 20, 40, 28, "#fff", "right");
+      // 자주 바뀌는 숫자는 그림으로 기억하지 않고 바로 써요 (바뀔 때마다 새 그림을 만들면 멈칫해요)
+      outlined(g, `${score()}점`, W/2, 44, 46);
+      outlined(g, `🍬 ${candies}`, W - 20, 40, 28, "#fff", undefined, "right");
       if (mult() > 1) txt(g, "💎 x2", W/2, 88, 26, "#91a7ff");
       // 켜진 아이템 남은 시간
       let ix = 18;
