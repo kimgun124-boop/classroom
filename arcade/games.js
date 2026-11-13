@@ -492,3 +492,91 @@ NG.defs.pp = () => {
   };
   return self;
 };
+
+/* =====================================================================
+   🪜 얼굴 계단 — 무한의 계단처럼! 오르기 · 방향 바꾸기
+   ===================================================================== */
+NG.defs.st = () => {
+  const W = 760, H = 860, SW = 92, SH = 46, BY = 600;
+  let st, p, f, energy, score, stars, camX, camI, anim, fall, fx, over, combo, best50, keysDown;
+  const THEME = [  // 높이마다 하늘이 바뀌어요
+    {at: 0,   n: "🏫 학교 옥상",   sky: ["#74c0fc","#d0ebff"], c: ["#ffd43b","#f59f00"]},
+    {at: 60,  n: "🌅 노을 구름",   sky: ["#ff8a65","#ffe0a3"], c: ["#ff8787","#e03131"]},
+    {at: 130, n: "🌃 밤하늘",     sky: ["#1c2457","#4a3f86"], c: ["#b197fc","#7048e8"]},
+    {at: 220, n: "🌌 우주",       sky: ["#050520","#3a1162"], c: ["#63e6be","#0ca678"]},
+    {at: 330, n: "🌈 무지개 하늘", sky: ["#ff9ce6","#a5d8ff"], c: null}
+  ];
+  const themeAt = n => { let t = THEME[0]; THEME.forEach(x => { if (n >= x.at) t = x; }); return t; };
+  function gen(n){ while (st.length < n){ const last = st[st.length - 1], prevDir = st.length > 1 ? last.x - st[st.length - 2].x : 1;
+    const turnP = st.length < 6 ? .15 : .38, d = rnd(1) < turnP ? -prevDir : prevDir;
+    st.push({x: last.x + d, star: st.length > 8 && rnd(1) < .045}); } }
+  function step(turn){
+    if (over || fall) return;
+    if (turn) f = -f;
+    gen(p + 30);
+    const ok = st[p + 1].x - st[p].x === f;
+    anim = {from: p, t: 0, ok, turn};
+    if (!ok){ fall = {t: 0, x: st[p].x + f}; SFX.bad(); return; }
+    p++; score++; energy = Math.min(1, energy + .085 - Math.min(.04, score*.00008));
+    tone(turn ? 520 : 620, turn ? 780 : 900, .06, "triangle", .07);
+    if (st[p].star){ st[p].star = false; stars++; score += 4; energy = Math.min(1, energy + .25); SFX.gold(); fx.push({x: st[p].x, i: p, s: "⭐ +5", t: 45}); }
+    if (score >= best50 + 50){ best50 += 50; SFX.rec(); fx.push({x: st[p].x, i: p + 2, s: `🎉 ${best50}계단!`, t: 70, big: 1}); }
+    const th = themeAt(score), prev = themeAt(score - 1); if (th !== prev) fx.push({x: st[p].x, i: p + 3, s: th.n, t: 90, big: 1});
+  }
+  const sx = x => W/2 + (x - camX)*SW, sy = i => BY - (i - camI)*SH;
+  return { W, H,
+    get dbg(){ return {next: st[p + 1] ? st[p + 1].x - st[p].x : 0, f, score, energy}; },
+    init(){ st = [{x: 0}]; gen(40); p = 0; f = 1; energy = 1; score = 0; stars = 0; camX = 0; camI = 0; anim = null; fall = null; fx = []; over = 0; best50 = 0; keysDown = new Set(); },
+    down(x, y){ if (y > H - 170 || true) step(x < W/2); },
+    key(code, d){ if (!d){ keysDown.delete(code); return false; } if (keysDown.has(code)) return true; keysDown.add(code);
+      if (["ArrowLeft","KeyA","KeyZ"].includes(code)){ step(true); return true; } if (["ArrowRight","KeyD","KeyX","Space","ArrowUp"].includes(code)){ step(false); return true; } return false; },
+    step(){
+      if (over){ if (--over <= 0) NG.over(score, `<div>🪜 <b>${score}</b>계단 · ⭐ <b>${stars}</b>개 · ${themeAt(score).n}까지!</div>`); }
+      else if (!fall && score > 0){ energy -= .0016 + Math.min(.0085, score*.000045); if (energy <= 0){ energy = 0; fall = {t: 0, x: st[p].x, tired: 1}; SFX.bad(); } }
+      if (fall){ fall.t++; if (fall.t === 60 && !over) over = 20; }
+      if (anim){ anim.t += .2; if (anim.t >= 1) anim = null; }
+      camX += (st[p].x - camX)*.18; camI += (p - camI)*.18;
+      fx = fx.filter(e => --e.t > 0);
+    },
+    draw(g){
+      const th = themeAt(score), sky = g.createLinearGradient(0, 0, 0, H); sky.addColorStop(0, th.sky[0]); sky.addColorStop(1, th.sky[1]); g.fillStyle = sky; g.fillRect(0, 0, W, H);
+      if (score >= 130){ g.fillStyle = "#fff"; for (let i = 0; i < 60; i++){ const y = ((i*97 + camI*SH*.3) % H); g.globalAlpha = .4 + .6*Math.abs(Math.sin(NG.frame*.03 + i)); g.fillRect((i*157 - camX*SW*.2) % W + (((i*157 - camX*SW*.2) % W) < 0 ? W : 0), y, 2, 2); } g.globalAlpha = 1; }
+      else { g.fillStyle = "rgba(255,255,255,.75)"; for (let i = 0; i < 6; i++){ const x = ((i*190 - camX*SW*.3) % (W + 200) + W + 200) % (W + 200) - 100, y = ((i*140 + camI*SH*.4) % (H + 100)) - 50; g.beginPath(); g.arc(x, y, 30, 0, 7); g.arc(x + 34, y - 10, 34, 0, 7); g.arc(x + 70, y, 28, 0, 7); g.fill(); } }
+      // 계단
+      const from = Math.max(0, Math.floor(camI) - 10), to = Math.floor(camI) + 18; gen(to + 2);
+      for (let i = to; i >= from; i--){ const s = st[i], x = sx(s.x), y = sy(i);
+        const col = th.c ? (i % 2 ? th.c[0] : th.c[1]) : `hsl(${(i*24) % 360},85%,62%)`;
+        g.fillStyle = "rgba(0,0,0,.18)"; rrect(g, x - SW/2 + 6, y + 6, SW, 22, 6); g.fill();
+        g.fillStyle = col; rrect(g, x - SW/2, y, SW, 22, 6); g.fill();
+        g.fillStyle = "rgba(255,255,255,.45)"; g.fillRect(x - SW/2 + 6, y + 4, SW - 12, 4);
+        g.fillStyle = "rgba(0,0,0,.15)"; g.fillRect(x - SW/2, y + 16, SW, 6);
+        if (i % 10 === 0 && i > 0){ outlined(g, `${i}`, x, y + 11, 15, "#fff"); }
+        if (s.star){ g.font = `30px ${EMOJI}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("⭐", x, y - 22 + Math.sin(NG.frame*.1 + i)*3); } }
+      // 나
+      let px = st[p].x, pi = p, lift = 0, rot = 0, alpha = 1;
+      if (anim && anim.ok){ const t = Math.min(1, anim.t), a = st[anim.from].x; px = a + (st[p].x - a)*t; pi = anim.from + t; lift = Math.sin(t*Math.PI)*26; }
+      if (fall){ const t = fall.t; px = fall.tired ? st[p].x : st[p].x + f*.5*Math.min(1, t/10); pi = p - t*t*.004 - (fall.tired ? 0 : .3); rot = (fall.tired ? .4 : f*.25)*t*.15; alpha = Math.max(0, 1 - t/70); }
+      const X = sx(px), Y = sy(pi) - 38 - lift;
+      g.save(); g.globalAlpha = alpha; g.translate(X, Y); g.rotate(rot);
+      const run = anim ? Math.sin(anim.t*Math.PI*2)*6 : 0;
+      g.strokeStyle = "#343a40"; g.lineWidth = 7; g.lineCap = "round";
+      g.beginPath(); g.moveTo(-8, 22); g.lineTo(-8 - run, 38); g.moveTo(8, 22); g.lineTo(8 + run, 38); g.stroke();
+      g.save(); g.scale(f, 1); faceAt(g, NG.sids[0], 0, 0, 30, "#ffe066", !!fall); g.restore();
+      g.fillStyle = "#fff"; g.beginPath(); g.moveTo(f*40, -4); g.lineTo(f*50, 2); g.lineTo(f*40, 8); g.fill();
+      g.restore();
+      fx.forEach(e => { g.globalAlpha = Math.min(1, e.t/20); outlined(g, e.s, sx(e.x), sy(e.i) - 70 - (90 - e.t)*.4, e.big ? 46 : 32, e.big ? "#ffe066" : "#fff"); }); g.globalAlpha = 1;
+      // 기운 막대 · 점수
+      g.fillStyle = "rgba(0,0,0,.3)"; rrect(g, 60, 26, W - 120, 26, 13); g.fill();
+      const eg = g.createLinearGradient(60, 0, W - 60, 0); eg.addColorStop(0, "#ff6b6b"); eg.addColorStop(.4, "#ffd43b"); eg.addColorStop(1, "#69db7c");
+      g.fillStyle = eg; rrect(g, 60, 26, Math.max(26, (W - 120)*energy), 26, 13); g.fill();
+      if (energy < .25 && NG.frame % 20 < 10){ g.strokeStyle = "#ff6b6b"; g.lineWidth = 4; rrect(g, 58, 24, W - 116, 30, 15); g.stroke(); }
+      outlined(g, `${score}`, W/2, 100, 64); outlined(g, th.n, W/2, 146, 24, "#fff");
+      // 버튼
+      [[0, "🔄 방향 바꾸기", "#4dabf7"], [1, "⬆️ 오르기", "#ff6b9d"]].forEach(([k, t, c]) => { const bx = k ? W/2 + 10 : 20, bw = W/2 - 30, by = H - 120;
+        g.globalAlpha = .9; g.fillStyle = c; rrect(g, bx, by, bw, 96, 26); g.fill(); g.fillStyle = "rgba(255,255,255,.25)"; rrect(g, bx + 8, by + 8, bw - 16, 30, 16); g.fill(); g.globalAlpha = 1;
+        outlined(g, t, bx + bw/2, by + 50, 30, "#fff"); });
+      if (score === 0 && !fall) outlined(g, "다음 계단이 같은 쪽이면 ⬆️ 오르기, 반대쪽이면 🔄 방향 바꾸기!", W/2, H - 150, 22, "#fff");
+    },
+    hud(){ return `🪜 <b>${score}</b>계단 · ⭐ ${stars} · <small>← 방향 바꾸기 · → 오르기</small>`; }
+  };
+};
