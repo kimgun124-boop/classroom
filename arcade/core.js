@@ -37,13 +37,14 @@ const PERF = {
   down(){
     this.slowSec = 0;
     if (!this.lite){ this.lite = true; document.body.classList.add("arc-lite"); }
-    else if (this.dprCap > 1){ this.dprCap = 1; window.dispatchEvent(new Event("resize")); }
+    // (2026.11.13) 예전엔 해상도를 1배까지 내려서 태블릿에서 화면이 흐려졌어요 → 1.5배까지만 내려요
+    else if (this.dprCap > 1.5 && (window.devicePixelRatio || 1) > 1.5){ this.dprCap = 1.5; window.dispatchEvent(new Event("resize")); }
     else return;
     try { localStorage.setItem(KEY_PERF, JSON.stringify({lite: this.lite, cap: this.dprCap})); } catch(e) {}
   }
 };
-const KEY_PERF = "arcade.v1.perf";
-try { const p = JSON.parse(localStorage.getItem(KEY_PERF)); if (p){ PERF.lite = !!p.lite; PERF.dprCap = p.cap || 2; } } catch(e) {}
+const KEY_PERF = "arcade.v2.perf";   // v1(해상도 1배로 흐려진 기기 기억)은 버리고 새로 재요
+try { const p = JSON.parse(localStorage.getItem(KEY_PERF)); if (p){ PERF.lite = !!p.lite; PERF.dprCap = Math.max(1.5, p.cap || 2); } } catch(e) {}
 const ARCDPR = () => PERF.dpr();
 (function(){
   const P = CanvasRenderingContext2D.prototype;
@@ -274,7 +275,7 @@ const GAMES = [
   {id: "st", e: "🪜", n: "얼굴 계단",   kind: "score", d: "방향을 바꿔 가며 끝없이 올라가요"},
   {id: "wm", e: "🔨", n: "두더지 잡기", kind: "score", d: "40초 동안 튀어나오는 친구를 콩!"},
   {id: "bk", e: "🧱", n: "벽돌깨기",    kind: "score", d: "내 얼굴 공으로 벽돌을 와장창"},
-  {id: "rn", e: "🏃", n: "점프 달리기", kind: "score", d: "톡 눌러 점프! 장애물을 넘어요"},
+  {id: "rn", e: "🏃", n: "점프 달리기", kind: "score", d: "맵 7곳 · 아이템 7개! 톡 눌러 점프"},
   {id: "tw", e: "🔢", n: "2048",        kind: "score", d: "밀어서 같은 숫자를 합쳐요"},
   {id: "vb", e: "🏐", n: "얼굴 배구",   kind: "duel",  d: "둘이서 배구 대결"},
   {id: "ah", e: "🏒", n: "얼굴 에어하키", kind: "duel", d: "둘이서 하키 대결"},
