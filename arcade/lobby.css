@@ -102,7 +102,7 @@ body.arc-playing #lgFame, body.arc-playing .arc-lobby{display:none !important}
 .arc-game.off{filter:grayscale(.7)}
 .g-fl{--c1:#2f6fdc;--c2:#143572;--gl:116,192,252}.g-tr{--c1:#2f9e44;--c2:#145222;--gl:105,219,124}.g-st{--c1:#7048e8;--c2:#2f1a72;--gl:177,151,252}
 .g-wm{--c1:#a0522d;--c2:#4a2410;--gl:255,169,77}.g-bk{--c1:#e8590c;--c2:#6b2405;--gl:255,146,43}.g-rn{--c1:#0c8599;--c2:#0b3a46;--gl:59,201,219}
-.g-tw{--c1:#f08c00;--c2:#6b3d00;--gl:255,212,59}.g-vb{--c1:#d6336c;--c2:#5a1030;--gl:255,135,180}.g-ah{--c1:#1971c2;--c2:#0b2e55;--gl:77,171,247}.g-pp{--c1:#c2255c;--c2:#3e0d24;--gl:250,82,82}
+.g-tw{--c1:#f08c00;--c2:#6b3d00;--gl:255,212,59}.g-vb{--c1:#d6336c;--c2:#5a1030;--gl:255,135,180}.g-ah{--c1:#1971c2;--c2:#0b2e55;--gl:77,171,247}.g-cp{--c1:#e64980;--c2:#5f3dc4;--gl:250,162,193}.g-pp{--c1:#c2255c;--c2:#3e0d24;--gl:250,82,82}
 
 /* 옆 패널 */
 .arc-side{position:sticky;top:10px;display:flex;flex-direction:column;height:calc(100vh - 120px);min-height:460px;background:linear-gradient(180deg,#221a57,#15113a);border:2px solid #5f4bd8;border-radius:22px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.4)}
