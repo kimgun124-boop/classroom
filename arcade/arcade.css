@@ -186,3 +186,4 @@ body.arc-body{
 #scrSetup .arc-card{text-align:left}
 @media (max-width:700px){ .arc-sync{bottom:40px} }
 .arc-card [hidden]{display:none !important}
+.toast:not(.show){visibility:hidden} #undoBtn{display:none}

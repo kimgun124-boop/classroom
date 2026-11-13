@@ -2512,6 +2512,7 @@ body.arc-body{
 #scrSetup .arc-card{text-align:left}
 @media (max-width:700px){ .arc-sync{bottom:40px} }
 .arc-card [hidden]{display:none !important}
+.toast:not(.show){visibility:hidden} #undoBtn{display:none}
 
 </style>
 </head>
@@ -2531,6 +2532,7 @@ body.arc-body{
       <div class="arc-seg" id="suMode"><button data-v="local" class="on">💻 이 기기에만</button><button data-v="cloud">☁️ 반 전체 함께 (Firebase)</button></div>
       <small id="suModeHelp"></small>
     </div>
+    <div id="suHow" hidden></div>
     <label class="arc-f" id="suCfgBox" hidden>Firebase 설정 붙여넣기 <small>Firebase 콘솔의 웹 앱 설정(<code>const firebaseConfig = {...}</code>)을 통째로 붙여 넣어요</small>
       <textarea id="suCfg" rows="6" placeholder='const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "...", ... };'></textarea></label>
     <div class="arc-row"><button class="arc-btn p" id="suGo">🎮 오락실 만들기</button></div>
@@ -3063,9 +3065,9 @@ const ARC = {
   setup(){
     this.show("scrSetup");
     const help = {local: "이 기기(교실 컴퓨터 한 대)에서만 기록하고 랭킹을 봐요. 나중에 Firebase로 옮길 수 있어요.",
-                  cloud: "아이들 각자 태블릿·크롬북에서 들어와도 반 전체 랭킹이 하나로 모여요. 구글 계정으로 무료 Firebase 프로젝트를 먼저 만들어야 해요 (선생님 화면 ☁️ 저장 탭에 방법이 있어요)."};
+                  cloud: "아이들 각자 태블릿·크롬북에서 들어와도 반 전체 랭킹이 하나로 모여요. 구글 계정으로 무료 Firebase 프로젝트를 먼저 만들어야 해요 (아래에 만드는 방법이 있어요)."};
     let mode = "local";
-    const paint = () => { $$("#suMode button").forEach(b => b.classList.toggle("on", b.dataset.v === mode)); $("#suModeHelp").textContent = help[mode]; $("#suCfgBox").hidden = mode !== "cloud"; };
+    const paint = () => { $$("#suMode button").forEach(b => b.classList.toggle("on", b.dataset.v === mode)); $("#suModeHelp").textContent = help[mode]; $("#suCfgBox").hidden = mode !== "cloud"; $("#suHow").hidden = mode !== "cloud"; if (mode === "cloud" && !$("#suHow").innerHTML) $("#suHow").innerHTML = fbHow(true); };
     $("#suMode").onclick = e => { const b = e.target.closest("button"); if (b){ mode = b.dataset.v; paint(); } };
     paint();
     $("#suGo").onclick = async () => {
@@ -3262,15 +3264,9 @@ const ARC = {
       $("#trAllR").onclick = async () => { if (!confirm("모든 게임의 랭킹을 지울까요? 되돌릴 수 없어요.")) return; for (const g of GAMES) await Store.resetGame(g.id); this.teacher("rank"); };
     } else if (this.tcTab === "store"){
       body.innerHTML = `<p>지금 저장 방법: <b>${Store.mode === "cloud" ? "☁️ 반 전체 함께 (Firebase)" : "💻 이 기기에만"}</b></p>
-        ${Store.mode === "local" ? `<details class="arc-how" open><summary>☁️ Firebase 연결 방법 (처음 한 번, 10분쯤)</summary><ol>
-          <li><a href="https://console.firebase.google.com/" target="_blank" rel="noopener">Firebase 콘솔</a>에 구글 계정으로 들어가 <b>프로젝트 만들기</b> (이름 예: 우리반오락실, 애널리틱스는 꺼도 돼요)</li>
-          <li>왼쪽 <b>빌드 → Authentication → 시작하기 → 로그인 방법</b>에서 <b>익명</b>을 켜요. 같은 화면 <b>설정 → 승인된 도메인</b>에 <code>${esc(location.hostname || "kimgun124-boop.github.io")}</code>을 추가해요</li>
-          <li><b>빌드 → Firestore Database → 데이터베이스 만들기</b> (위치: asia-northeast3 서울, <b>프로덕션 모드</b>)</li>
-          <li>Firestore의 <b>규칙</b> 탭에 아래 규칙을 붙여 넣고 <b>게시</b>해요</li>
-          <li>프로젝트 설정(⚙️) → <b>내 앱 → 웹(&lt;/&gt;)</b> 앱 추가 → 나오는 <code>const firebaseConfig = {...}</code>를 복사해 아래 칸에 붙여 넣어요</li></ol>
-          <textarea readonly class="arc-rules" rows="9">${esc(RULES)}</textarea>
+        ${Store.mode === "local" ? `${fbHow(true)}
           <label class="arc-f">Firebase 설정 <textarea id="tsCfg" rows="5" placeholder="const firebaseConfig = { apiKey: ... };"></textarea></label>
-          <div class="arc-row"><button class="arc-btn p" id="tsGo">☁️ 연결하고 기록 옮기기</button></div></details>`
+          <div class="arc-row"><button class="arc-btn p" id="tsGo">☁️ 연결하고 기록 옮기기</button></div>`
         : `<p class="arc-small">반 정보와 랭킹이 Firebase에 저장돼요. 아이들 비밀번호는 바꿔서(암호처럼) 저장하고, 사진은 올리지 않아요.</p><textarea readonly class="arc-rules" rows="9">${esc(RULES)}</textarea>`}
         <hr><div class="arc-row"><button class="arc-btn" id="tsPin">🔑 선생님 비밀번호 바꾸기</button><button class="arc-btn" id="tsLeave">🚪 이 기기에서 오락실 빼기</button></div>`;
       const go = $("#tsGo"); if (go) go.onclick = async () => { const cfg = parseCfg($("#tsCfg").value); if (!cfg) return alert("Firebase 설정을 찾지 못했어요."); go.disabled = true; go.textContent = "연결하는 중…";
@@ -3280,6 +3276,14 @@ const ARC = {
     }
   }
 };
+function fbHow(open){ return `<details class="arc-how"${open ? " open" : ""}><summary>☁️ Firebase 연결 방법 (처음 한 번, 10분쯤)</summary><ol>
+          <li><a href="https://console.firebase.google.com/" target="_blank" rel="noopener">Firebase 콘솔</a>에 구글 계정으로 들어가 <b>프로젝트 만들기</b> (이름 예: 우리반오락실, 애널리틱스는 꺼도 돼요)</li>
+          <li>왼쪽 <b>빌드 → Authentication → 시작하기 → 로그인 방법</b>에서 <b>익명</b>을 켜요. 같은 화면 <b>설정 → 승인된 도메인</b>에 <code>${esc(location.hostname || "kimgun124-boop.github.io")}</code>을 추가해요</li>
+          <li><b>빌드 → Firestore Database → 데이터베이스 만들기</b> (위치: asia-northeast3 서울, <b>프로덕션 모드</b>)</li>
+          <li>Firestore의 <b>규칙</b> 탭에 아래 규칙을 붙여 넣고 <b>게시</b>해요</li>
+          <li>프로젝트 설정(⚙️) → <b>내 앱 → 웹(&lt;/&gt;)</b> 앱 추가 → 나오는 <code>const firebaseConfig = {...}</code>를 복사해 아래 칸에 붙여 넣어요</li></ol>
+          <textarea readonly class="arc-rules" rows="9">${esc(RULES)}</textarea>
+          </details>`; }
 const RULES = `rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
