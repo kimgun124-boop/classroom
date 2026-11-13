@@ -96,5 +96,19 @@ for k, v in {
 }.items():
     assert out.count(k) == 1, k
     out = out.replace(k, v)
+# ---- 5) ⚡ 렉 줄이기 · 화면 꽉 채우기 (오락실에서만)
+def swap(a, b, at_least=1):
+    global out
+    c = out.count(a)
+    if c < at_least:
+        sys.exit(f"[최적화] 바꿀 곳을 찾지 못했어요 ({c}곳): {a[:70]}")
+    out = out.replace(a, b)
+
+# 캔버스 해상도: 기기 배율(최대 2)을 그대로 쓰던 걸 → 화면 크기에 맞춘 상한(PERF.dpr)으로
+swap("Math.min(2, window.devicePixelRatio || 1)", "ARCDPR()", 6)
+# 게임판 둘레 여백을 줄여서 화면을 더 크게
+swap("w = st.clientWidth - 24, h = st.clientHeight - 12", "w = st.clientWidth - 6, h = st.clientHeight - 4", 4)
+swap("(st.width - 16)/cur.W, (st.height - 16)/cur.H", "(st.width - 6)/cur.W, (st.height - 6)/cur.H")
+
 open(os.path.join(ROOT, "arcade.html"), "w", encoding="utf-8").write(out)
 print(f"arcade.html 완성 ({len(out.encode('utf-8'))//1024} KB)")

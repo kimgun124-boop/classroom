@@ -6,6 +6,89 @@ const $$ = s => [...document.querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 let toastTimer = 0;
 function toast(msg){ $("#toastMsg").textContent = msg; $("#undoBtn").style.display = "none"; $("#toast").classList.add("show"); clearTimeout(toastTimer); toastTimer = setTimeout(() => $("#toast").classList.remove("show"), 3500); }
+/* =====================================================================
+   ⚡ 렉 줄이기 (반 전체 22명이 각자 태블릿·크롬북으로 해도 부드럽게)
+   1) 캔버스 해상도 상한: 화면이 커져도 그리는 점(픽셀) 수가 넘치지 않게
+   2) 이모지 얼굴 그림 기억: 같은 얼굴을 매 장면 글자로 다시 그리지 않고 한 번 그린 그림을 붙여요
+   3) 느린 기기 자동 감지: 게임 중 화면이 버벅이면 반짝이(그림자 번짐)를 끄고 해상도를 낮춰요
+   ===================================================================== */
+const PERF = {
+  lite: false, dprCap: 2, slowSec: 0, raf: 0,
+  // 화면 크기 × 해상도²가 약 230만 점을 넘지 않게 (태블릿 레티나에서 4배로 그리던 걸 막아요)
+  dpr(){
+    const raw = Math.min(this.dprCap, window.devicePixelRatio || 1), area = Math.max(1, innerWidth*innerHeight);
+    return Math.max(1, Math.min(raw, Math.sqrt(2.3e6/area)));
+  },
+  watch(on){
+    cancelAnimationFrame(this.raf); if (!on) return;
+    let last = 0, n = 0, sum = 0;
+    const tick = now => {
+      if (last){ const dt = now - last; if (dt < 250){ sum += dt; n++; } }   // 탭 전환 같은 긴 멈춤은 빼요
+      last = now;
+      if (n >= 90){                                       // 약 1.5초마다 평균 장면 시간 확인
+        const avg = sum/n; n = 0; sum = 0;
+        this.slowSec = avg > 24 ? this.slowSec + 1 : 0;   // 초당 42장보다 느리면 '버벅임'
+        if (this.slowSec >= 2) this.down();
+      }
+      this.raf = requestAnimationFrame(tick);
+    };
+    this.raf = requestAnimationFrame(tick);
+  },
+  down(){
+    this.slowSec = 0;
+    if (!this.lite){ this.lite = true; document.body.classList.add("arc-lite"); }
+    else if (this.dprCap > 1){ this.dprCap = 1; window.dispatchEvent(new Event("resize")); }
+    else return;
+    try { localStorage.setItem(KEY_PERF, JSON.stringify({lite: this.lite, cap: this.dprCap})); } catch(e) {}
+  }
+};
+const KEY_PERF = "arcade.v1.perf";
+try { const p = JSON.parse(localStorage.getItem(KEY_PERF)); if (p){ PERF.lite = !!p.lite; PERF.dprCap = p.cap || 2; } } catch(e) {}
+const ARCDPR = () => PERF.dpr();
+(function(){
+  const P = CanvasRenderingContext2D.prototype;
+  // 반짝이(그림자 번짐)는 캔버스에서 가장 비싼 효과라, 느린 기기에서는 꺼요
+  const sb = Object.getOwnPropertyDescriptor(P, "shadowBlur");
+  if (sb && sb.set) Object.defineProperty(P, "shadowBlur", {configurable: true, get(){ return sb.get.call(this); }, set(v){ sb.set.call(this, PERF.lite ? 0 : v); }});
+  // 이모지만 있는 글자(캐릭터 얼굴 등)는 한 번 그린 그림을 기억해 두고 붙여요 — 컬러 이모지 글자 그리기가 아주 느려요
+  const fill = P.fillText, EMO = /^(?:\p{Extended_Pictographic}|\p{Emoji_Component}|‍|️|\s)+$/u, cache = new Map();
+  P.fillText = function(text, x, y, maxW){
+    const t = String(text);
+    if (maxW !== undefined || t.length > 12 || !EMO.test(t) || /^[\d#*\s]+$/.test(t)) return fill.apply(this, arguments);
+    const m = /(\d+(?:\.\d+)?)px/.exec(this.font), fs = m ? +m[1] : 0;
+    if (!fs || fs > 400) return fill.apply(this, arguments);
+    const tr = this.getTransform(), k0 = Math.hypot(tr.a, tr.b) || 1;
+    const k = Math.pow(1.25, Math.ceil(Math.log(k0)/Math.log(1.25)));             // 배율을 몇 단계로만 나눠 기억해요
+    const col = typeof this.fillStyle === "string" ? this.fillStyle : "#000";
+    const key = `${t}|${this.font}|${this.textAlign}|${this.textBaseline}|${this.direction}|${col}|${k.toFixed(3)}`;
+    let c = cache.get(key);
+    if (!c){
+      if (cache.size > 400) cache.clear();
+      const pad = Math.ceil(fs*1.6), side = pad*2;
+      c = document.createElement("canvas"); c.width = c.height = Math.max(1, Math.ceil(side*k));
+      const g = c.getContext("2d"); g.scale(k, k);
+      g.font = this.font; g.textAlign = this.textAlign; g.textBaseline = this.textBaseline; g.direction = this.direction; g.fillStyle = col;
+      fill.call(g, t, pad, pad);
+      c.pad = pad; c.side = side; cache.set(key, c);
+    }
+    this.drawImage(c, x - c.pad, y - c.pad, c.side, c.side);
+  };
+})();
+/* 게임 화면을 꽉 차게: 브라우저 주소창·탭까지 숨겨요(크롬북·안드로이드·아이패드) */
+const FULL = {
+  on(){
+    const d = document.documentElement, f = d.requestFullscreen || d.webkitRequestFullscreen;
+    if (!f || document.fullscreenElement || document.webkitFullscreenElement) return;
+    try { const r = f.call(d, {navigationUI: "hide"}); if (r && r.catch) r.catch(() => {}); } catch(e) {}
+    try { screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape").catch(() => {}); } catch(e) {}
+  },
+  off(){
+    const x = document.exitFullscreen || document.webkitExitFullscreen;
+    if (x && (document.fullscreenElement || document.webkitFullscreenElement)){ try { const r = x.call(document); if (r && r.catch) r.catch(() => {}); } catch(e) {} }
+  }
+};
+["fullscreenchange", "webkitfullscreenchange"].forEach(t => document.addEventListener(t, () => setTimeout(() => window.dispatchEvent(new Event("resize")), 60)));
+
 let ac = null;
 function getAC(){ ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === "suspended") ac.resume(); return ac; }
 
@@ -16,7 +99,10 @@ try { S.vb = JSON.parse(localStorage.getItem(KEY + ".vb")) || {}; } catch(e) {}
 function save(){ try { localStorage.setItem(KEY + ".vb", JSON.stringify(S.vb || {})); } catch(e) {} }
 const sidOf = no => "n" + no;
 const noOf_ = sid => +String(sid).slice(1);
-const faceOf = sid => (Store.cls && Store.cls.faces && Store.cls.faces[noOf_(sid)]) || "🙂";
+const TEACHER = 0;   // 🧑‍🏫 선생님도 같이 하는 자리 (번호 0 · 비밀번호는 선생님 비밀번호)
+const faceOf = sid => (Store.cls && Store.cls.faces && Store.cls.faces[noOf_(sid)]) || (noOf_(sid) === TEACHER ? "🧑‍🏫" : "🙂");
+/* 게임·랭킹·대결에 나오는 사람: 학생 명단 + 선생님 */
+const roster = () => { const r = (Store.cls && Store.cls.roster) || []; return Store.cls && Store.cls.noTeacher ? r : r.concat([{no: TEACHER, name: "선생님", t: 1}]); };
 const photoOf = () => "";
 const avatarOf = () => null;
 const avatarSVG = () => "";
@@ -53,7 +139,8 @@ const b64d = s => JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g, "+")
 const FBV = "10.12.2";
 const Store = {
   mode: "none", cls: null, recs: {}, ok: true, err: "", subs: [], fb: null,
-  emit(){ this.subs.forEach(f => { try { f(); } catch(e) { console.error(e); } }); },
+  // 친구 22명의 기록이 한꺼번에 들어와도 화면은 0.25초에 한 번만 다시 그려요
+  emit(){ if (this._et) return; this._et = setTimeout(() => { this._et = 0; this.subs.forEach(f => { try { f(); } catch(e) { console.error(e); } }); }, 250); },
   local(){ try { return JSON.parse(localStorage.getItem(KEY + ".local")) || null; } catch(e) { return null; } },
   saveLocal(){ if (this.mode !== "local") return; try { localStorage.setItem(KEY + ".local", JSON.stringify({cls: this.cls, recs: this.recs})); } catch(e) { toast("이 기기에 저장할 자리가 부족해요"); } },
   join(){ try { return JSON.parse(localStorage.getItem(KEY + ".join")) || null; } catch(e) { return null; } },
@@ -112,10 +199,11 @@ const Store = {
     this.recs[game] = this.recs[game] || {};
     this.recs[game][sid] = merge(this.recs[game][sid], rec); this.emit();
     if (this.mode === "local") return this.saveLocal();
+    // (렉 줄이기) 예전엔 '읽고-고치고-쓰기' 묶음(transaction)이라 22명이 같은 게임 기록을 동시에 올리면 서로 기다리다 실패했어요.
+    // 내 칸(sid)만 합쳐 쓰면 다른 친구 칸은 안 건드려서 기다릴 일이 없어요. 최고 기록 비교는 실시간으로 받은 값으로 해요.
     const fs = this.fs, ref = fs.doc(this.db, "arcade", this.cid, "recs", game);
-    try {
-      await fs.runTransaction(this.db, async t => { const d = await t.get(ref); const cur = d.exists() ? d.data()[sid] : null; t.set(ref, {[sid]: merge(cur, rec)}, {merge: true}); });
-    } catch(e){ toast("⚠️ 기록을 올리지 못했어요. 인터넷을 확인해 주세요."); console.error(e); }
+    try { await fs.setDoc(ref, {[sid]: this.recs[game][sid]}, {merge: true}); }
+    catch(e){ toast("⚠️ 기록을 올리지 못했어요. 인터넷을 확인해 주세요."); console.error(e); }
   },
   /* 대결 결과: 이긴 친구 +1승, 진 친구 +1패 */
   async putDuel(game, w, l){
@@ -167,16 +255,16 @@ const GAME = Object.fromEntries(GAMES.map(g => [g.id, g]));
 
 /* ---- 랭킹 계산 ---- */
 function board(gid){
-  const g = GAME[gid], R = Store.recs[gid] || {}, roster = (Store.cls && Store.cls.roster) || [];
-  const rows = roster.map(st => ({st, sid: sidOf(st.no), r: R[sidOf(st.no)]})).filter(x => x.r && (g.kind === "duel" ? (x.r.w || 0) + (x.r.l || 0) > 0 : (x.r.plays || 0) > 0 || (x.r.best || 0) > 0));
+  const g = GAME[gid], R = Store.recs[gid] || {};
+  const rows = roster().map(st => ({st, sid: sidOf(st.no), r: R[sidOf(st.no)]})).filter(x => x.r && (g.kind === "duel" ? (x.r.w || 0) + (x.r.l || 0) > 0 : (x.r.plays || 0) > 0 || (x.r.best || 0) > 0));
   if (g.kind === "duel") rows.sort((a, b) => (b.r.w || 0) - (a.r.w || 0) || (a.r.l || 0) - (b.r.l || 0) || (a.r.at || 0) - (b.r.at || 0));
   else rows.sort((a, b) => (b.r.best || 0) - (a.r.best || 0) || (a.r.bestAt || 0) - (b.r.bestAt || 0));
   let rank = 0, prev = null; rows.forEach((x, i) => { const v = g.kind === "duel" ? `${x.r.w || 0}/${x.r.l || 0}` : x.r.best || 0; if (v !== prev){ rank = i + 1; prev = v; } x.rank = rank; });
   return rows;
 }
 const valTxt = (g, r) => g.kind === "duel" ? `${r.w || 0}승 ${r.l || 0}패` : `${r.best || 0}점`;
-const nameOf = no => { const s = ((Store.cls && Store.cls.roster) || []).find(x => x.no == no); return s ? s.name : ""; };
-const who = no => `${no}번 ${nameOf(no)}`;
+const nameOf = no => { const s = roster().find(x => x.no == no); return s ? s.name : ""; };
+const who = no => +no === TEACHER ? "🧑‍🏫 선생님" : `${no}번 ${nameOf(no)}`;
 
 /* =====================================================================
    화면
@@ -198,14 +286,15 @@ const ARC = {
     try { ok = await Store.init(); }
     catch(e){ console.error(e); this.syncMsg(`⚠️ 반 전체 기록에 연결하지 못했어요: ${e.message || e}`); $("#lgSync").innerHTML = `⚠️ 반 기록에 연결하지 못했어요. 인터넷을 확인하고 <button class="arc-btn" onclick="location.reload()">다시 연결</button>`; this.show("scrLogin"); return; }
     if (!ok) return this.setup();
-    const me = +localStorage.getItem(KEY + ".me");
-    if (me && this.inRoster(me)){ this.me = me; this.home(); } else this.login();
+    const meRaw = localStorage.getItem(KEY + ".me"), me = meRaw === null || meRaw === "" ? null : +meRaw;
+    if (this.inRoster(me)){ this.me = me; this.home(); } else this.login();
   },
-  inRoster(no){ return ((Store.cls && Store.cls.roster) || []).some(s => s.no == no); },
+  inRoster(no){ return no !== null && no !== undefined && roster().some(s => s.no == no); },
   refresh(){
     if (!Store.cls) return;
+    if (this.busy){ this.dirty = true; return; }   // 게임 중에는 뒤 화면을 다시 그리지 않아요(렉의 큰 원인) — 홈으로 오면 그려요
     S.className = Store.cls.name || "";
-    if (this.me && !this.inRoster(this.me)) { this.logout(); return; }
+    if (this.me !== null && !this.inRoster(this.me)) { this.logout(); return; }
     if (!$("#scrHome").hidden) this.renderHome();
     if (!$("#scrLogin").hidden) this.renderLogin();
     if (!$("#mdRank").hidden) this.renderRank();
@@ -251,7 +340,7 @@ const ARC = {
   login(){ this.me = null; this.show("scrLogin"); this.renderLogin(); },
   renderLogin(){
     $("#lgClass").textContent = Store.cls.name || "우리반";
-    $("#lgNums").innerHTML = Store.cls.roster.map(s => `<button class="arc-num" data-no="${s.no}"><span class="f">${faceOf(sidOf(s.no))}</span><b>${s.no}</b><small>${esc(s.name)}</small></button>`).join("");
+    $("#lgNums").innerHTML = roster().map(s => `<button class="arc-num${s.t ? " tch" : ""}" data-no="${s.no}"><span class="f">${faceOf(sidOf(s.no))}</span><b>${s.t ? "선생님" : s.no}</b><small>${s.t ? "같이 해요!" : esc(s.name)}</small></button>`).join("");
     $("#lgNums").onclick = e => { const b = e.target.closest("[data-no]"); if (b) this.askPw(+b.dataset.no, no => { this.me = no; localStorage.setItem(KEY + ".me", no); this.home(); if (!(Store.cls.facePicked || {})[no]) setTimeout(() => this.pickFace(true), 300); }); };
     $("#lgTeach").onclick = () => this.teacherGate();
   },
@@ -278,6 +367,8 @@ const ARC = {
     dots(); $("#pwPick").hidden = true; this.modal("#mdPw", true);
   },
   askPw(no, ok, title){
+    if (+no === TEACHER) return this.pad({who: `<span class="f">${faceOf(sidOf(TEACHER))}</span><b>선생님</b>`, title: title || "선생님 비밀번호",
+      check: v => { if (sha256(`${Store.cls.cid}:teacher:${v}`) === Store.cls.admin){ ok(TEACHER); return true; } return "비밀번호가 달라요"; }});
     this.pad({who: `<span class="f">${faceOf(sidOf(no))}</span><b>${esc(who(no))}</b>`, title: title || "비밀번호 4자리", len: 4,
       check: v => { if (Store.cls.pw[no] && pwHash(no, v) === Store.cls.pw[no]){ ok(no); return true; } return Store.cls.pw[no] ? "비밀번호가 달라요" : "아직 비밀번호가 없어요. 선생님께 말해요."; }});
   },
@@ -315,11 +406,13 @@ const ARC = {
   },
 
   /* ---------- 게임 시작 ---------- */
-  prep(){ S.students = Store.cls.roster.map(s => ({id: sidOf(s.no), name: s.name})); S.className = Store.cls.name; },
+  prep(){ S.students = roster().map(s => ({id: sidOf(s.no), name: s.name})); S.className = Store.cls.name; },
+  /* 게임 들어갈 때: 화면 꽉 차게 + 뒤 화면 멈춤 + 버벅임 감시 */
+  enter(){ FULL.on(); document.body.classList.add("arc-playing"); PERF.watch(true); },
   play(gid){
     const g = GAME[gid]; getAC(); this.game = gid; this.lastRank = gid;
     if (g.kind === "duel") return this.duelMenu(gid);
-    this.prep(); const sid = sidOf(this.me);
+    this.enter(); this.prep(); const sid = sidOf(this.me);
     const recs = JSON.parse(JSON.stringify(Store.recs[gid] || {}));
     if (gid === "fl"){ S.fly = {rec: recs}; this.busy = false; window.__flOpen(); window.__flTest.begin(sid); this.busy = true; }
     else if (gid === "tr"){ S.train = {rec: recs}; this.busy = false; window.__trOpen(); window.__trTest.begin(sid); this.busy = true; }
@@ -332,7 +425,7 @@ const ARC = {
     $("#duHelp").textContent = gid === "vb" ? "태블릿에서는 화면 양쪽 아래 버튼으로 움직여요 (키보드: 1P W·A·D·F / 2P 방향키·Enter)" : gid === "ah" ? "자기 쪽 화면을 손가락으로 끌어서 말렛을 움직여요" : "자기 쪽 화면을 손가락으로 위아래로 끌어요 (키보드: 1P W·S / 2P ↑·↓)";
     $$("#duLv button").forEach(b => b.classList.toggle("on", +b.dataset.v === lv));
     $("#duLv").onclick = e => { const b = e.target.closest("button"); if (b){ lv = +b.dataset.v; $$("#duLv button").forEach(x => x.classList.toggle("on", x === b)); } };
-    $("#duCpu").onclick = () => { this.modal("#mdDuel", false); const others = Store.cls.roster.filter(s => s.no != me); const cpu = others.length ? others[Math.floor(Math.random()*others.length)].no : me; this.startDuel(gid, me, cpu, true, lv); };
+    $("#duCpu").onclick = () => { this.modal("#mdDuel", false); const others = roster().filter(s => s.no != me && !s.t); const cpu = others.length ? others[Math.floor(Math.random()*others.length)].no : me; this.startDuel(gid, me, cpu, true, lv); };
     $("#duFriend").onclick = () => { this.modal("#mdDuel", false); this.pickRival(gid, opp => this.startDuel(gid, me, opp, false, lv)); };
     this.modal("#mdDuel", true);
   },
@@ -341,12 +434,12 @@ const ARC = {
     this.pad({who: `<b>⚔️ 대결할 친구가 들어와요</b>`, title: "친구 번호를 눌러요", extra: ""});
     $("#pwPad").hidden = true; $("#pwDots").hidden = true;
     $("#pwPick").hidden = false;
-    $("#pwPick").innerHTML = Store.cls.roster.filter(s => s.no != me).map(s => `<button class="arc-num" data-no="${s.no}"><span class="f">${faceOf(sidOf(s.no))}</span><b>${s.no}</b><small>${esc(s.name)}</small></button>`).join("");
+    $("#pwPick").innerHTML = roster().filter(s => s.no != me).map(s => `<button class="arc-num${s.t ? " tch" : ""}" data-no="${s.no}"><span class="f">${faceOf(sidOf(s.no))}</span><b>${s.t ? "선생님" : s.no}</b><small>${s.t ? "선생님" : esc(s.name)}</small></button>`).join("");
     $("#pwPick").onclick = e => { const b = e.target.closest("[data-no]"); if (!b) return; const no = +b.dataset.no;
       $("#pwPad").hidden = false; $("#pwDots").hidden = false; this.askPw(no, cb, `${who(no)} 비밀번호`); };
   },
   startDuel(gid, a, b, cpu, lv){
-    this.prep(); const A = sidOf(a), B = sidOf(b);
+    this.enter(); this.prep(); const A = sidOf(a), B = sidOf(b);
     if (gid === "vb" || gid === "ah"){
       const open = gid === "vb" ? window.__vbOpen : window.__ahOpen, T = gid === "vb" ? window.__vbTest : window.__ahTest;
       this.busy = false; open(); T.setMode(cpu ? "cpu" : "2p"); T.setLv(lv); T.setPick(A, B); T.start(); this.busy = true;
@@ -359,7 +452,10 @@ const ARC = {
     if (cpu){ setTimeout(() => toast("🤖 컴퓨터와 연습한 판은 랭킹에 들어가지 않아요"), 400); return; }
     Store.putDuel(gid, w, l).then(() => { const r = (Store.recs[gid] || {})[w] || {}; toast(`🏆 ${faceOf(w)} ${who(noOf_(w))} 승리! 이제 ${r.w || 1}승`); });
   },
-  back(){ this.busy = false; vpadShow(null); setTimeout(() => { if (this.me) this.renderHome(); }, 0); },
+  back(){
+    this.busy = false; vpadShow(null); PERF.watch(false); FULL.off(); document.body.classList.remove("arc-playing");
+    setTimeout(() => { if (this.me !== null){ this.dirty = false; this.refresh(); } }, 0);
+  },
 
   /* ---------- 랭킹 ---------- */
   rank(gid){ this.rkG = gid; this.modal("#mdRank", true); this.renderRank(); },
@@ -387,7 +483,8 @@ const ARC = {
         ${cls.roster.map(s => `<div class="r" data-no="${s.no}"><span><input class="no" value="${s.no}" inputmode="numeric" maxlength="3"></span><span><input class="nm" value="${esc(s.name)}" maxlength="12"></span><span class="f">${faceOf(sidOf(s.no))}</span>
           <span><input class="pw" value="${plain[s.no] || ""}" placeholder="${cls.pw[s.no] ? "●●●● (정해져 있음)" : "없음"}" inputmode="numeric" maxlength="4"></span><span><button class="arc-btn sm" data-new>🎲 새로</button><button class="arc-btn sm" data-del title="빼기">✕</button></span></div>`).join("")}</div>
         <div class="arc-row"><button class="arc-btn" id="tkAdd">➕ 학생 추가</button><button class="arc-btn" id="tkAll">🎲 비밀번호 모두 새로</button><button class="arc-btn" id="tkPrint">🖨️ 비밀번호 쪽지 인쇄</button><button class="arc-btn p" id="tkSave">💾 저장</button></div>
-        <label class="arc-f">반 이름 <input id="tkName" value="${esc(cls.name)}" maxlength="20"></label>`;
+        <label class="arc-f">반 이름 <input id="tkName" value="${esc(cls.name)}" maxlength="20"></label>
+        <label class="arc-chk"><input type="checkbox" id="tkTeach" ${cls.noTeacher ? "" : "checked"}> 🧑‍🏫 <b>선생님도 같이 하기</b> <small>로그인 화면에 '선생님' 자리가 생겨요. 선생님 비밀번호로 들어가고, 랭킹·대결에도 나와요.</small></label>`;
       body.querySelector(".arc-kids").onclick = e => { const r = e.target.closest(".r"); if (!r) return;
         if (e.target.closest("[data-new]")) r.querySelector(".pw").value = pin4();
         if (e.target.closest("[data-del]") && confirm("이 학생을 명단에서 뺄까요? (저장을 눌러야 적용돼요)")) r.remove(); };
@@ -399,9 +496,10 @@ const ARC = {
         if (rows.some(r => !r.no)) return alert("번호를 모두 숫자로 적어 주세요.");
         if (new Set(rows.map(r => r.no)).size !== rows.length) return alert("같은 번호가 두 번 있어요.");
         if (rows.some(r => r.pw && !/^\d{4}$/.test(r.pw))) return alert("비밀번호는 숫자 4자리로 적어 주세요.");
-        const nc = JSON.parse(JSON.stringify(cls)), np = {}; nc.name = $("#tkName").value.trim() || cls.name; nc.roster = []; nc.pw = {}; const faces = {};
+        const nc = JSON.parse(JSON.stringify(cls)), np = {}; nc.name = $("#tkName").value.trim() || cls.name; nc.noTeacher = !$("#tkTeach").checked; nc.roster = []; nc.pw = {}; const faces = {};
         rows.sort((a, b) => a.no - b.no).forEach(r => { nc.roster.push({no: r.no, name: r.name || `${r.no}번`}); faces[r.no] = (cls.faces || {})[r.old] || FACES[(r.no - 1) % FACES.length];
           if (r.pw){ nc.pw[r.no] = sha256(`${cls.cid}:${r.no}:${r.pw}`); np[r.no] = r.pw; } else if (r.old && cls.pw[r.old] && +r.old === r.no) nc.pw[r.no] = cls.pw[r.old]; });
+        if ((cls.faces || {})[TEACHER]) faces[TEACHER] = cls.faces[TEACHER];   // 선생님 캐릭터는 그대로
         nc.faces = faces; savePlain(cls.cid, np);
         try { await Store.putClass(nc); toast("💾 저장했어요"); this.teacher("kids"); } catch(e){ alert("저장하지 못했어요: " + e.message); }
       };

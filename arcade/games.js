@@ -130,7 +130,7 @@ NG.defs.wm = () => {
   const W = 960, H = 600, T = 40*60;
   const HX = [210, 480, 750], HY = [235, 385, 535], KEYS = ["KeyQ","KeyW","KeyE","KeyA","KeyS","KeyD","KeyZ","KeyX","KeyC"];
   let holes, t, score, combo, best, next, fx, pops, hammer, shake, hits, miss;
-  const friends = () => Store.cls.roster.map(s => sidOf(s.no));
+  const friends = () => roster().map(s => sidOf(s.no));
   return { W, H,
     init(){ holes = Array.from({length: 9}, (_, i) => ({i, x: HX[i % 3], y: HY[Math.floor(i/3)], k: null, up: 0, life: 0, hit: 0})); t = T; score = 0; combo = 0; best = 0; next = 40; fx = []; pops = []; hammer = null; shake = 0; hits = 0; miss = 0; },
     spawn(){
