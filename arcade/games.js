@@ -102,7 +102,7 @@ const NG = {
     $("#ng").hidden = false; $("#ngOver").hidden = true; $("#ngDom").innerHTML = ""; ARC.busy = true;
     const cur = this.cur = this.defs[gid]();
     cur.sids = sids; cur.opt = opt;
-    $("#ngCanvas").style.display = cur.dom ? "none" : "";
+    $("#ngCanvas").style.display = cur.dom ? "none" : ""; $("#ngCanvas").style.backgroundImage = ""; $("#ngCanvas").style.backgroundColor = "";
     this.fit(); cur.init && cur.init();
     this.last = performance.now(); this.acc = 0; this.frame = 0; this.drawnEnd = false;
     const loop = now => { this.raf = requestAnimationFrame(loop); this.acc = Math.min(100, this.acc + now - this.last); this.last = now;
@@ -119,8 +119,9 @@ const NG = {
     if (cur.dom){ cur.fit && cur.fit(st.width, st.height); return; }
     if (cur.layout) cur.layout(st.width - 6, st.height - 6);   // 가로·세로에 맞춰 게임판 모양을 바꾸는 게임
     const s = Math.min((st.width - 16)/cur.W, (st.height - 16)/cur.H), dpr = Math.min(2, window.devicePixelRatio || 1), cv = $("#ngCanvas");
-    cv.style.width = cur.W*s + "px"; cv.style.height = cur.H*s + "px"; cv.width = Math.round(cur.W*s*dpr); cv.height = Math.round(cur.H*s*dpr);
-    this.k = s*dpr; this.s = s; this.g = cv.getContext("2d");
+    const dk = cur.maxPx ? Math.max(1, Math.min(dpr, Math.sqrt(cur.maxPx/Math.max(1, cur.W*s*cur.H*s)))) : dpr;
+    cv.style.width = cur.W*s + "px"; cv.style.height = cur.H*s + "px"; cv.width = Math.round(cur.W*s*dk); cv.height = Math.round(cur.H*s*dk);
+    this.k = s*dk; this.s = s; this.g = cv.getContext("2d");
   },
   pt(e){ const r = $("#ngCanvas").getBoundingClientRect(); return {x: (e.clientX - r.left)/r.width*this.cur.W, y: (e.clientY - r.top)/r.height*this.cur.H}; },
   stop(){ cancelAnimationFrame(this.raf); this.cur = null; },
@@ -751,12 +752,88 @@ NG.defs.st = () => {
     const th = themeAt(score), prev = themeAt(score - 1); if (th !== prev){ flash = {c: "255,255,255", a: .7}; fx.push({x: sx0, i: p + 3, s: th.n, t: 100, big: 1, c: "#fff"}); }
   }
   const sx = x => W/2 + (x - camX)*SW, sy = i => BY - (i - camI)*SH;
+  /* ---------- ⚡ 렉 줄이기: 한 번 그린 그림을 기억해 두고 붙여요 ---------- */
+  const SPR = new Map(); let sprK = 0, sprW = 0, sprH = 0, warm = 0, skyNow = -1;
+  function checkK(){ const k = NG.k || 1; if (k !== sprK || W !== sprW || H !== sprH){ SPR.clear(); for (const x in BD){ if (BD[x].url) URL.revokeObjectURL(BD[x].url); delete BD[x]; } skyNow = -1; sprK = k; sprW = W; sprH = H; } }
+  function spr(key, w, h, fn){
+    let c = SPR.get(key); if (c) return c;
+    const k = sprK || NG.k || 1; c = document.createElement("canvas"); c.width = Math.max(1, Math.ceil(w*k)); c.height = Math.max(1, Math.ceil(h*k));
+    const t = c.getContext("2d"); t.scale(k, k); fn(t, w, h); SPR.set(key, c); return c;
+  }
+  /* 배경 한 장: 하늘색 + 달·행성·무지개 → 그림 파일(blob)로 만들어 CSS 배경으로 써요 (만들기는 쉬는 틈에, 따로) */
+  const BD = {};
+  function backdrop(ti){ const key = `${ti}|${W}|${H}`, b = BD[key]; return b && b.url ? b.url : null; }
+  function makeBackdrop(ti){
+    const key = `${ti}|${W}|${H}`; if (BD[key]) return; BD[key] = {};
+    const th = THEME[ti], k = Math.min(1.25, sprK || 1), c = document.createElement("canvas"); c.width = Math.round(W*k); c.height = Math.round(H*k);
+    const t = c.getContext("2d"); t.scale(k, k);
+    const gr = t.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, th.sky[0]); gr.addColorStop(1, th.sky[1]); t.fillStyle = gr; t.fillRect(0, 0, W, H);
+    if (th.deco === "moon") t.drawImage(decoSpr("moon"), W*.8 - 90, H*.16 - 90, 180, 180);
+    else if (th.deco === "planet"){ t.drawImage(decoSpr("planet"), W*.78 - 110, H*.2 - 60, 220, 120); t.fillStyle = "#4dabf7"; t.beginPath(); t.arc(W*.18, H*.32, 22, 0, 7); t.fill(); }
+    else if (th.deco === "rainbow") t.drawImage(decoSpr("rainbow" + W), W/2 - W*.55 - 10, H*.75 - W*.55 - 10, W*1.1 + 20, W*.55 + 20);
+    try { c.toBlob(bl => { if (bl) BD[key].url = URL.createObjectURL(bl); }, "image/jpeg", .9); } catch(e) {}
+  }
+  function decoSpr(n){
+    if (n === "moon") return spr("moon", 180, 180, t => { t.fillStyle = "#fff9db"; t.shadowColor = "#fff3bf"; t.shadowBlur = 40; t.beginPath(); t.arc(90, 90, 46, 0, 7); t.fill(); t.shadowBlur = 0;
+      t.globalCompositeOperation = "destination-out"; t.beginPath(); t.arc(108, 80, 40, 0, 7); t.fill(); });
+    if (n === "planet") return spr("planet", 220, 120, t => { t.fillStyle = "#ffa94d"; t.beginPath(); t.arc(110, 60, 50, 0, 7); t.fill(); t.strokeStyle = "rgba(255,224,170,.9)"; t.lineWidth = 8; t.beginPath(); t.ellipse(110, 60, 92, 20, -.35, 0, 7); t.stroke(); });
+    return spr(n, W*1.1 + 20, W*.55 + 20, t => { ["#ff6b6b","#ffa94d","#ffe066","#69db7c","#4dabf7","#b197fc"].forEach((c, k) => { t.strokeStyle = c; t.globalAlpha = .55; t.lineWidth = 18; t.beginPath(); t.arc(W*.55 + 10, W*.55 + 10, W*.55 - k*18, Math.PI, 0); t.stroke(); }); });
+  }
+  function cloudSpr(){ return spr("cloud", 140, 86, t => { t.fillStyle = "rgba(255,255,255,.85)"; t.beginPath(); t.arc(34, 52, 30, 0, 7); t.arc(68, 40, 36, 0, 7); t.arc(106, 52, 28, 0, 7); t.fill(); }); }
+  function stairSpr(col){ return spr("stair" + col, SW + 8, 36, t => {
+      t.fillStyle = "rgba(0,0,0,.2)"; rrect(t, 7, 8, SW, 26, 8); t.fill();
+      t.fillStyle = col; rrect(t, 0, 0, SW, 26, 8); t.fill();
+      t.fillStyle = "rgba(255,255,255,.5)"; rrect(t, 6, 4, SW - 12, 6, 3); t.fill();
+      t.fillStyle = "rgba(0,0,0,.18)"; t.fillRect(4, 19, SW - 8, 7); }); }
+  function starItemSpr(){ return spr("staritem", 60, 60, t => { t.shadowColor = "#ffe066"; t.shadowBlur = 16; t.font = `34px ${EMOJI}`; t.textAlign = "center"; t.textBaseline = "middle"; t.fillText("⭐", 30, 32); }); }
+  function vigSpr(){ return spr("vig", W, H, (t, w, h) => { const vg = t.createRadialGradient(w/2, h/2, Math.min(w, h)*.3, w/2, h/2, Math.max(w, h)*.7); vg.addColorStop(0, "rgba(255,0,0,0)"); vg.addColorStop(1, "rgba(255,0,0,.5)"); t.fillStyle = vg; t.fillRect(0, 0, w, h); }); }
+  function barSpr(bw, fill){ return fill
+      ? spr("barF" + bw, bw - 6, 24, (t, w, h) => { const eg = t.createLinearGradient(0, 0, w, 0); eg.addColorStop(0, "#ff6b6b"); eg.addColorStop(.45, "#ffd43b"); eg.addColorStop(1, "#69db7c"); t.fillStyle = eg; rrect(t, 0, 0, w, h, 12); t.fill(); t.fillStyle = "rgba(255,255,255,.4)"; rrect(t, 5, 3, w - 10, 6, 3); t.fill(); })
+      : spr("barB" + bw, bw, 30, (t, w, h) => { t.fillStyle = "rgba(0,0,0,.35)"; rrect(t, 0, 0, w, h, 15); t.fill(); }); }
+  function btnSpr(b, top){ return spr(`btn${b.k}|${top}|${b.w}|${b.h}`, b.w, top ? b.h - 4 : b.h, (t, w, h) => {
+      if (!top){ t.fillStyle = b.c[1]; t.globalAlpha = .93; rrect(t, 0, 0, w, h, 30); t.fill(); return; }
+      t.globalAlpha = .93; const gr = t.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, b.c[0]); gr.addColorStop(1, b.c[1]); t.fillStyle = gr; rrect(t, 0, 0, w, h, 30); t.fill();
+      t.fillStyle = "rgba(255,255,255,.28)"; rrect(t, 12, 10, w - 24, h*.28, 18); t.fill(); t.globalAlpha = 1;
+      const cx = w/2, cy = h*.38, r = 24; t.save(); t.translate(cx, cy); t.strokeStyle = "#fff"; t.fillStyle = "#fff"; t.lineWidth = 9; t.lineCap = "round"; t.lineJoin = "round"; t.shadowColor = "rgba(0,0,0,.35)"; t.shadowOffsetY = 3;
+      if (b.k){ t.beginPath(); t.moveTo(0, r); t.lineTo(0, -r + 6); t.stroke(); t.beginPath(); t.moveTo(-20, -r + 22); t.lineTo(0, -r - 2); t.lineTo(20, -r + 22); t.stroke(); }
+      else { t.beginPath(); t.arc(0, 0, r, Math.PI*.15, Math.PI*1.15); t.stroke(); t.beginPath(); t.arc(0, 0, r, Math.PI*1.15 + .5, Math.PI*2.15 - .2); t.stroke();
+        t.beginPath(); t.moveTo(r + 10, 2); t.lineTo(r, -14); t.lineTo(r - 10, 2); t.closePath(); t.fill(); t.beginPath(); t.moveTo(-r - 10, -2); t.lineTo(-r, 14); t.lineTo(-r + 10, -2); t.closePath(); t.fill(); }
+      t.restore();
+      outlined(t, b.t, w/2, h*.76, 30, "#fff"); outlined(t, b.key, b.k ? w - 28 : 28, 26, 20, "rgba(255,255,255,.85)"); }); }
+  /* 글씨도 한 번 그려서 기억해요 (점수처럼 자주 바뀌는 것도 몇 개만 기억) */
+  const TX = new Map(); let txK = 0;
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => TX.clear());
+  function txt(g, s, x, y, size, col = "#fff", align = "center", sc = 1){
+    const k = NG.k || 1; if (k !== txK){ TX.clear(); txK = k; }
+    const key = `${s}|${size}|${col}`; let c = TX.get(key);
+    if (!c){ if (TX.size > 90) TX.delete(TX.keys().next().value);
+      const m = document.createElement("canvas").getContext("2d"); m.font = `${size}px "Jua",sans-serif`;
+      const w = Math.ceil(m.measureText(s).width + size*.6), hh = Math.ceil(size*1.6);
+      c = document.createElement("canvas"); c.width = Math.ceil(w*k); c.height = Math.ceil(hh*k); const t = c.getContext("2d"); t.scale(k, k);
+      outlined(t, s, w/2, hh/2, size, col); c.w = w; c.h = hh; TX.set(key, c); }
+    else { TX.delete(key); TX.set(key, c); }
+    const w = c.w*sc, hh = c.h*sc, dx = align === "center" ? x - w/2 : align === "right" ? x - w + size*.3 : x - size*.3;
+    g.drawImage(c, dx, y - hh/2, w, hh);
+  }
+  /* 다음 하늘·계단 그림은 쉬는 틈에 미리 만들어 둬요 (하늘이 바뀌는 순간 멈칫하지 않게) */
+  function prewarm(){
+    const jobs = [];
+    THEME.forEach((th, i) => { jobs.push(() => makeBackdrop(i)); if (th.c) th.c.forEach(c => jobs.push(() => stairSpr(c))); jobs.push(() => txt({drawImage(){}}, th.n, 0, 0, 24)); jobs.push(() => txt({drawImage(){}}, th.n, 0, 0, 50)); });
+    for (let i = 0; i < 15; i++) jobs.push(() => stairSpr(`hsl(${i*24},85%,62%)`));
+    jobs.push(() => decoSpr("moon"), () => decoSpr("planet"), () => decoSpr("rainbow" + W), () => cloudSpr(), () => starItemSpr(), () => vigSpr());
+    jobs.unshift(() => makeBackdrop(THEME.indexOf(themeAt(score))));
+    const my = ++warm, idle = window.requestIdleCallback || (f => setTimeout(f, 30));
+    const run = () => { if (my !== warm || NG.cur !== self) return; checkK(); const j = jobs.shift(); if (j) j(); if (jobs.length) idle(run); };
+    idle(run);
+  }
   const self = {
+    maxPx: 1.8e6,   // 태블릿에서 너무 촘촘하게 그리지 않게 (점 180만 개까지)
     get W(){ return W; }, get H(){ return H; },
     get dbg(){ return {next: st[p + 1] ? st[p + 1].x - st[p].x : 0, f, score, energy, land, W, H}; },
-    layout,
+    setScore(n){ score = n; best50 = Math.floor(n/50)*50; },
+    layout(sw, sh){ const w0 = W, h0 = H; layout(sw, sh); if (st && (W !== w0 || H !== h0)) setTimeout(prewarm, 50); },
     init(){ st = [{x: 0, dip: 0}]; gen(50); p = 0; f = st[1].x - st[0].x; energy = 1; shownE = 1; score = 0; stars = 0; camX = 0; camI = 0; camKick = 0; anim = null; fall = null; fx = []; dust = [];
-      over = 0; best50 = 0; keysDown = new Set(); press = [0, 0]; streak = 0; lastT = 0; flipT = 0; shake = 0; flash = null; beatT = 0; crumble = -1; },
+      over = 0; best50 = 0; keysDown = new Set(); press = [0, 0]; streak = 0; lastT = 0; flipT = 0; shake = 0; flash = null; beatT = 0; crumble = -1; setTimeout(prewarm, 60); },
     down(x, y){ step(x < W/2); },
     // (2026.11.13) 예전엔 '누르고 있는 키' 목록으로 꾹 누름을 막았는데, 손을 뗀 신호(keyup)를 놓치면 그 키가 영영 안 먹었어요 → 키보드 자동 반복(e.repeat)만 막아요
     key(code, d, e){ if (!d) return false; if (e && e.repeat) return true;
@@ -775,38 +852,41 @@ NG.defs.st = () => {
       dust = dust.filter(d => (d.y += d.vy, d.vy += .25, d.x += d.dx, --d.t > 0)); fx = fx.filter(e => --e.t > 0);
     },
     draw(g){
-      const th = themeAt(score), fr = NG.frame;
+      const th = themeAt(score), fr = NG.frame, ti = THEME.indexOf(th);
+      checkK();
       g.save(); if (shake > .5) g.translate(rnd(-shake, shake), rnd(-shake, shake));
-      const gk = `${th.n}|${H}`; if (!GC.sky || GC.sky.k !== gk){ GC.sky = g.createLinearGradient(0, 0, 0, H); GC.sky.addColorStop(0, th.sky[0]); GC.sky.addColorStop(1, th.sky[1]); GC.sky.k = gk; }
-      g.fillStyle = GC.sky; g.fillRect(-30, -30, W + 60, H + 60);
-      /* 배경 꾸미기 (멀리 있는 건 천천히 움직여요) */
+      /* 배경: 미리 그려 둔 하늘을 붙여요 */
+      // 하늘과 움직이지 않는 그림(달·행성·무지개)은 미리 만든 배경 한 장으로 캔버스 뒤에 깔아요
+      const bd = backdrop(ti), want = bd ? bd : "sky" + ti;
+      if (skyNow !== want){ skyNow = want; const cv = $("#ngCanvas"); cv.style.transition = "background-color 1s";
+        cv.style.backgroundImage = bd ? `url(${bd})` : `linear-gradient(${th.sky[0]}, ${th.sky[1]})`; cv.style.backgroundSize = "100% 100%"; cv.style.backgroundColor = th.sky[1]; }
+      g.clearRect(-40, -40, W + 80, H + 80);
+      if (!bd){ if (th.deco === "moon") g.drawImage(decoSpr("moon"), W*.8 - 90, H*.16 - 90, 180, 180);
+        else if (th.deco === "planet") g.drawImage(decoSpr("planet"), W*.78 - 110, H*.2 - 60, 220, 120);
+        else if (th.deco === "rainbow") g.drawImage(decoSpr("rainbow" + W), W/2 - W*.55 - 10, H*.75 - W*.55 - 10, W*1.1 + 20, W*.55 + 20); }
       const par = (k, span) => ((-camX*SW*k) % span + span) % span;
-      if (th.deco === "cloud" || th.deco === "bird"){ g.fillStyle = "rgba(255,255,255,.8)";
+      if (th.deco === "cloud" || th.deco === "bird"){ const cl = cloudSpr();
         for (let i = 0; i < 7; i++){ const x = (par(.25, W + 260) + i*230) % (W + 260) - 130, y = ((i*157 + camI*SH*.35) % (H*.8)) + 20, s = .7 + (i % 3)*.25;
-          g.beginPath(); g.arc(x, y, 30*s, 0, 7); g.arc(x + 34*s, y - 12*s, 36*s, 0, 7); g.arc(x + 72*s, y, 28*s, 0, 7); g.fill(); }
-        if (th.deco === "bird"){ g.strokeStyle = "rgba(80,30,40,.7)"; g.lineWidth = 3; g.lineCap = "round"; for (let i = 0; i < 6; i++){ const x = (fr*1.4 + i*140) % (W + 100) - 50, y = 120 + (i % 3)*50 + Math.sin(fr*.05 + i)*8, w = Math.sin(fr*.3 + i)*7; g.beginPath(); g.moveTo(x - 10, y - w); g.lineTo(x, y); g.lineTo(x + 10, y - w); g.stroke(); } } }
-      else { g.fillStyle = "#fff"; for (let i = 0; i < 90; i++){ const x = (par(.08, W) + i*137) % W, y = ((i*97 + camI*SH*.2) % H); g.globalAlpha = .3 + .7*Math.abs(Math.sin(fr*.03 + i)); g.fillRect(x, y, i % 9 ? 2 : 3, i % 9 ? 2 : 3); } g.globalAlpha = 1;
-        if (th.deco === "moon"){ g.fillStyle = "rgba(255,243,191,.25)"; g.beginPath(); g.arc(W*.8, H*.16, 66, 0, 7); g.fill(); g.fillStyle = "#fff9db"; g.beginPath(); g.arc(W*.8, H*.16, 46, 0, 7); g.fill(); g.fillStyle = th.sky[0]; g.beginPath(); g.arc(W*.8 + 18, H*.16 - 10, 40, 0, 7); g.fill(); }
-        if (th.deco === "planet"){ const x = W*.78 - camX*4 % 100, y = H*.2; g.fillStyle = "#ffa94d"; g.beginPath(); g.arc(x, y, 50, 0, 7); g.fill(); g.strokeStyle = "rgba(255,224,170,.9)"; g.lineWidth = 8; g.beginPath(); g.ellipse(x, y, 92, 20, -.35, 0, 7); g.stroke();
-          g.fillStyle = "#4dabf7"; g.beginPath(); g.arc(W*.18, H*.32, 22, 0, 7); g.fill(); }
-        if (th.deco === "rainbow"){ ["#ff6b6b","#ffa94d","#ffe066","#69db7c","#4dabf7","#b197fc"].forEach((c, k) => { g.strokeStyle = c; g.globalAlpha = .55; g.lineWidth = 18; g.beginPath(); g.arc(W/2, H*.75, W*.55 - k*18, Math.PI, 0); g.stroke(); }); g.globalAlpha = 1; } }
+          g.drawImage(cl, x - 34*s, y - 52*s, 140*s, 86*s); }
+        if (th.deco === "bird"){ g.strokeStyle = "rgba(80,30,40,.7)"; g.lineWidth = 3; g.lineCap = "round"; g.beginPath();
+          for (let i = 0; i < 6; i++){ const x = (fr*1.4 + i*140) % (W + 100) - 50, y = 120 + (i % 3)*50 + Math.sin(fr*.05 + i)*8, w = Math.sin(fr*.3 + i)*7; g.moveTo(x - 10, y - w); g.lineTo(x, y); g.lineTo(x + 10, y - w); } g.stroke(); } }
+      else { const tw = .5 + .5*Math.sin(fr*.05); g.fillStyle = "#fff";
+        for (let n = 0; n < 2; n++){ g.globalAlpha = n ? 1 - tw*.8 : .2 + tw*.8; g.beginPath(); for (let i = n; i < 110; i += 2){ const s = i % 9 ? 2 : 3; g.rect((i*137) % W, (i*97) % H, s, s); } g.fill(); } g.globalAlpha = 1; }
       // 빨리 오를 때 속도선
-      if (streak >= 5 && !fall){ g.strokeStyle = "rgba(255,255,255,.5)"; g.lineWidth = 3; for (let i = 0; i < 16; i++){ const x = (i*97 + fr*7) % W, y = (i*131 + fr*22) % H; g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + 40 + streak*2); g.stroke(); } }
-      /* 계단 */
+      if (streak >= 5 && !fall){ g.strokeStyle = "rgba(255,255,255,.5)"; g.lineWidth = 3; g.beginPath(); for (let i = 0; i < 16; i++){ const x = (i*97 + fr*7) % W, y = (i*131 + fr*22) % H; g.moveTo(x, y); g.lineTo(x, y + 40 + streak*2); } g.stroke(); }
+      /* 계단: 색깔별로 미리 그린 계단을 붙여요 */
       const from = Math.max(0, Math.floor(camI) - Math.ceil((H - BY)/SH) - 2), to = Math.floor(camI) + Math.ceil(BY/SH) + 3; gen(to + 3);
       for (let i = to; i >= from; i--){ const s = st[i]; let x = sx(s.x), y = sy(i) + (s.dip || 0)*8;
-        if (fall && i === crumble){ y += fall.t*fall.t*.08; }
-        const col = th.c ? (i % 2 ? th.c[0] : th.c[1]) : `hsl(${(i*24) % 360},85%,62%)`, near = Math.abs(i - p) <= 1;
-        g.fillStyle = "rgba(0,0,0,.2)"; rrect(g, x - SW/2 + 7, y + 8, SW, 26, 8); g.fill();
-        g.fillStyle = col; rrect(g, x - SW/2, y, SW, 26, 8); g.fill();
-        g.fillStyle = "rgba(255,255,255,.5)"; rrect(g, x - SW/2 + 6, y + 4, SW - 12, 6, 3); g.fill();
-        g.fillStyle = "rgba(0,0,0,.18)"; g.fillRect(x - SW/2 + 4, y + 19, SW - 8, 7);
+        if (x < -SW || x > W + SW) continue;
+        if (fall && i === crumble) y += fall.t*fall.t*.08;
+        const col = th.c ? (i % 2 ? th.c[0] : th.c[1]) : `hsl(${(i % 15)*24},85%,62%)`;
+        g.drawImage(stairSpr(col), x - SW/2, y, SW + 8, 36);
         if (i === p + 1 && !fall){ g.strokeStyle = `rgba(255,255,255,${.4 + .3*Math.sin(fr*.2)})`; g.lineWidth = 3; rrect(g, x - SW/2 - 3, y - 3, SW + 6, 32, 10); g.stroke(); }
-        if (i % 10 === 0 && i > 0) outlined(g, `${i}`, x, y + 13, 16, "#fff");
-        if (s.star){ const b = Math.sin(fr*.12 + i)*4; g.save(); g.fillStyle = "rgba(255,224,102,.35)"; g.beginPath(); g.arc(x, y - 26 + b, 24, 0, 7); g.fill(); g.font = `34px ${EMOJI}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("⭐", x, y - 26 + b); g.restore(); }
-        if (near && s.dip > .3){ g.fillStyle = `rgba(255,255,255,${s.dip*.5})`; rrect(g, x - SW/2, y, SW, 26, 8); g.fill(); } }
+        if (i % 10 === 0 && i > 0) txt(g, `${i}`, x, y + 13, 16);
+        if (s.star){ const b = Math.sin(fr*.12 + i)*4; g.drawImage(starItemSpr(), x - 30, y - 56 + b, 60, 60); }
+        if (s.dip > .3 && Math.abs(i - p) <= 1){ g.fillStyle = `rgba(255,255,255,${s.dip*.5})`; rrect(g, x - SW/2, y, SW, 26, 8); g.fill(); } }
       /* 먼지 */
-      dust.forEach(d => { g.globalAlpha = d.t/30; g.fillStyle = d.star ? "#ffe066" : "rgba(255,255,255,.9)"; g.beginPath(); g.arc(sx(d.x), sy(d.i) + d.y, d.r*(d.t/22 + .3), 0, 7); g.fill(); }); g.globalAlpha = 1;
+      dust.forEach(d => { g.globalAlpha = d.t/30; g.fillStyle = d.star ? "#ffe066" : "#fff"; g.fillRect(sx(d.x) - d.r, sy(d.i) + d.y - d.r, d.r*2, d.r*2); }); g.globalAlpha = 1;
       /* 나 */
       let px = st[p].x, pi = p, lift = 0, rot = 0, alpha = 1, sqx = 1, sqy = 1;
       if (anim && anim.ok){ const t = Math.min(1, anim.t), a = st[anim.from].x; px = a + (st[p].x - a)*t; pi = anim.from + t; lift = Math.sin(t*Math.PI)*30; sqx = 1 - Math.sin(t*Math.PI)*.12; sqy = 1 + Math.sin(t*Math.PI)*.14; }
@@ -824,40 +904,25 @@ NG.defs.st = () => {
       g.restore();
       /* 글씨 효과 */
       fx.forEach(e => { const life = e.big ? 100 : 55; g.globalAlpha = Math.min(1, e.t/18); const sc = 1 + Math.max(0, (e.t - life + 10)/10)*.4;
-        outlined(g, e.s, sx(e.x), sy(e.i) - 80 - (life - e.t)*.5, (e.big ? 50 : 34)*sc, e.c || "#fff"); }); g.globalAlpha = 1;
+        txt(g, e.s, sx(e.x), sy(e.i) - 80 - (life - e.t)*.5, e.big ? 50 : 34, e.c || "#fff", "center", sc); }); g.globalAlpha = 1;
       g.restore();
       if (flash){ g.fillStyle = `rgba(${flash.c},${flash.a})`; g.fillRect(0, 0, W, H); }
-      if (energy < .22 && !fall){ const a = (.22 - energy)/.22*(.5 + .3*Math.sin(fr*.25)); const vg = g.createRadialGradient(W/2, H/2, Math.min(W, H)*.3, W/2, H/2, Math.max(W, H)*.7); vg.addColorStop(0, "rgba(255,0,0,0)"); vg.addColorStop(1, `rgba(255,0,0,${a})`); g.fillStyle = vg; g.fillRect(0, 0, W, H); }
+      if (energy < .22 && !fall){ g.globalAlpha = Math.min(1, (.22 - energy)/.22*(.5 + .3*Math.sin(fr*.25))*1.6); g.drawImage(vigSpr(), 0, 0, W, H); g.globalAlpha = 1; }
       /* 위: 기운 막대 · 점수 */
       const bw = Math.min(W - 120, 640), bx = (W - bw)/2;
-      g.fillStyle = "rgba(0,0,0,.35)"; rrect(g, bx, 22, bw, 30, 15); g.fill();
-      if (!GC.eg || GC.eg.k !== bw){ GC.eg = g.createLinearGradient(bx, 0, bx + bw, 0); GC.eg.addColorStop(0, "#ff6b6b"); GC.eg.addColorStop(.45, "#ffd43b"); GC.eg.addColorStop(1, "#69db7c"); GC.eg.k = bw; } const eg = GC.eg;
-      g.fillStyle = eg; rrect(g, bx + 3, 25, Math.max(24, (bw - 6)*Math.max(0, shownE)), 24, 12); g.fill();
-      g.fillStyle = "rgba(255,255,255,.4)"; rrect(g, bx + 8, 28, Math.max(10, (bw - 16)*Math.max(0, shownE)), 6, 3); g.fill();
-      g.font = `26px ${EMOJI}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(energy < .22 ? "🥵" : energy < .5 ? "😤" : "⚡", bx - 22, 37);
-      outlined(g, `${score}`, W/2, 108 + (camKick*-6), 74, streak >= 10 ? "#ffa94d" : "#fff"); outlined(g, th.n, W/2, 160, 24, "#fff");
-      if (streak >= 3) outlined(g, `🔥 ${streak}연속`, land ? W - 120 : W - 90, 108, 28, "#ffa94d");
-      if (stars) outlined(g, `⭐ ${stars}`, land ? 110 : 80, 108, 28, "#ffe066");
-      /* 아래: 버튼 (누르면 쏙 들어가요) */
+      g.drawImage(barSpr(bw, 0), bx, 22, bw, 30);
+      const ew = Math.max(24, (bw - 6)*Math.max(0, shownE));
+      { const bf = barSpr(bw, 1), frac = Math.min(1, ew/(bw - 6)); g.drawImage(bf, 0, 0, Math.max(1, bf.width*frac), bf.height, bx + 3, 25, ew, 24); }
+      txt(g, energy < .22 ? "🥵" : energy < .5 ? "😤" : "⚡", bx - 22, 37, 26);
+      txt(g, `${score}`, W/2, 108 - camKick*6, 74, streak >= 10 ? "#ffa94d" : "#fff"); txt(g, th.n, W/2, 160, 24);
+      if (streak >= 3) txt(g, `🔥 ${streak}연속`, land ? W - 120 : W - 90, 108, 28, "#ffa94d");
+      if (stars) txt(g, `⭐ ${stars}`, land ? 110 : 80, 108, 28, "#ffe066");
+      /* 아래: 미리 그린 버튼 (누르면 쏙 들어가요) */
       BTN.forEach(b => { const pr = press[b.k], dy = pr*8;
-        g.save(); g.globalAlpha = .93;
-        g.fillStyle = b.c[1]; rrect(g, b.x, b.y + 10, b.w, b.h, 30); g.fill();
-        const bk = `${b.k}|${b.y}|${b.h}`; if (!GC["b" + b.k] || GC["b" + b.k].k !== bk){ const q = g.createLinearGradient(0, b.y, 0, b.y + b.h); q.addColorStop(0, b.c[0]); q.addColorStop(1, b.c[1]); q.k = bk; GC["b" + b.k] = q; } const gr = GC["b" + b.k];
-        g.fillStyle = gr; rrect(g, b.x, b.y + dy, b.w, b.h - 4, 30); g.fill();
-        g.fillStyle = "rgba(255,255,255,.28)"; rrect(g, b.x + 12, b.y + 10 + dy, b.w - 24, b.h*.28, 18); g.fill();
-        if (pr > .05){ g.strokeStyle = `rgba(255,255,255,${pr})`; g.lineWidth = 6; rrect(g, b.x - pr*10, b.y - pr*10 + dy, b.w + pr*20, b.h + pr*20 - 4, 34); g.stroke(); }
-        g.globalAlpha = 1;
-        // 아이콘 (직접 그려서 어느 기기에서나 또렷해요)
-        { const cx = b.x + b.w/2, cy = b.y + b.h*.38 + dy, r = 24; g.save(); g.translate(cx, cy); g.strokeStyle = "#fff"; g.fillStyle = "#fff"; g.lineWidth = 9; g.lineCap = "round"; g.lineJoin = "round";
-          g.shadowColor = "rgba(0,0,0,.35)"; g.shadowOffsetY = 3;
-          if (b.k){ g.beginPath(); g.moveTo(0, r); g.lineTo(0, -r + 6); g.stroke(); g.beginPath(); g.moveTo(-20, -r + 22); g.lineTo(0, -r - 2); g.lineTo(20, -r + 22); g.stroke(); }
-          else { g.rotate(-press[0]*Math.PI); g.beginPath(); g.arc(0, 0, r, Math.PI*.15, Math.PI*1.15); g.stroke(); g.beginPath(); g.arc(0, 0, r, Math.PI*1.15 + .5, Math.PI*2.15 - .2); g.stroke();
-            g.beginPath(); g.moveTo(r + 10, 2); g.lineTo(r, -14); g.lineTo(r - 10, 2); g.closePath(); g.fill(); g.beginPath(); g.moveTo(-r - 10, -2); g.lineTo(-r, 14); g.lineTo(-r + 10, -2); g.closePath(); g.fill(); }
-          g.restore(); }
-        outlined(g, b.t, b.x + b.w/2, b.y + b.h*.74 + dy, land ? 30 : 30, "#fff");
-        outlined(g, b.key, b.k ? b.x + b.w - 28 : b.x + 28, b.y + 26 + dy, 20, "rgba(255,255,255,.85)");
-        g.restore(); });
-      if (score === 0 && !fall){ const y = BTN[0].y - 34; outlined(g, "다음 계단이 같은 쪽이면 ⬆️ 오르기, 반대쪽이면 🔄 방향 바꾸기!", W/2, y, land ? 24 : 21, "#fff"); }
+        g.drawImage(btnSpr(b, 0), b.x, b.y + 10, b.w, b.h);
+        g.drawImage(btnSpr(b, 1), b.x, b.y + dy, b.w, b.h - 4);
+        if (pr > .05){ g.strokeStyle = `rgba(255,255,255,${pr})`; g.lineWidth = 6; rrect(g, b.x - pr*10, b.y - pr*10 + dy, b.w + pr*20, b.h + pr*20 - 4, 34); g.stroke(); } });
+      if (score === 0 && !fall) txt(g, "다음 계단이 같은 쪽이면 ⬆️ 오르기, 반대쪽이면 🔄 방향 바꾸기!", W/2, BTN[0].y - 34, land ? 24 : 21);
     },
     hud(){ return `🪜 <b>${score}</b>계단 · ⭐ ${stars}${streak >= 3 ? ` · 🔥 ${streak}연속` : ""}`; }
   };
