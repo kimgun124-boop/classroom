@@ -284,3 +284,5 @@ body.arc-lite .arc-logo .g{animation:none !important}
 .arc-net .arc-row{justify-content:center}
 .arc-net .arc-btn{font-size:20px;padding:12px 22px}
 .arc-btn[disabled]{opacity:.45;cursor:not-allowed}
+/* 📱 게임판: 연타해도 두 번 톡 확대·길게 누름 메뉴·글자 선택이 끼어들지 않게 */
+#ng, .ng-stage, #ngCanvas{touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}

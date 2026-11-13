@@ -49,9 +49,31 @@ function faceDraw(g, sid, x, y, r, ring, sad, im){
   else { g.font = `${Math.round(r*1.4)}px ${EMOJI}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(sad ? "😵" : faceOf(sid), x, y + r*.08); }
   g.restore();
 }
-function outlined(g, txt, x, y, size, fill = "#fff", stroke = "rgba(20,15,46,.85)", align = "center"){
+function outlinedRaw(g, txt, x, y, size, fill = "#fff", stroke = "rgba(20,15,46,.85)", align = "center"){
   g.save(); g.font = `${size}px "Jua",sans-serif`; g.textAlign = align; g.textBaseline = "middle"; g.lineJoin = "round";
   g.lineWidth = Math.max(4, size*.18); g.strokeStyle = stroke; g.strokeText(txt, x, y); g.fillStyle = fill; g.fillText(txt, x, y); g.restore();
+}
+/* ⚡ 테두리 글씨는 한 번 그린 그림을 기억해 붙여요 — 테두리 글자(strokeText)는 태블릿에서 아주 무거워서
+   점수·버튼 글씨를 매 장면 다시 쓰면 화면이 버벅이고 터치 반응도 늦어졌어요 */
+const OTC = new Map(), OTM = document.createElement("canvas").getContext("2d");
+let OTready = !document.fonts || document.fonts.status === "loaded";
+if (document.fonts){ document.fonts.ready.then(() => { OTready = true; OTC.clear(); }); document.fonts.addEventListener && document.fonts.addEventListener("loadingdone", () => OTC.clear()); }
+function outlined(g, txt, x, y, size, fill = "#fff", stroke = "rgba(20,15,46,.85)", align = "center"){
+  if (!OTready) return outlinedRaw(g, txt, x, y, size, fill, stroke, align);
+  size = Math.max(1, Math.round(size));
+  const t = g.getTransform(), k0 = Math.hypot(t.a, t.b) || 1, k = Math.pow(1.25, Math.ceil(Math.log(k0)/Math.log(1.25)));
+  const key = `${txt}|${size}|${fill}|${stroke}|${k.toFixed(3)}`;
+  let c = OTC.get(key);
+  if (!c){
+    if (OTC.size > 300) OTC.clear();
+    OTM.font = `${size}px "Jua",sans-serif`;
+    const tw = OTM.measureText(String(txt)).width, pad = Math.ceil(Math.max(4, size*.18)) + 3, cw = tw + pad*2, ch = size*1.5 + pad*2;
+    c = document.createElement("canvas"); c.width = Math.max(1, Math.ceil(cw*k)); c.height = Math.max(1, Math.ceil(ch*k));
+    const x2 = c.getContext("2d"); x2.scale(k, k); outlinedRaw(x2, txt, pad, ch/2, size, fill, stroke, "left");
+    c.cw = cw; c.ch = ch; c.tw = tw; c.pad = pad; OTC.set(key, c);
+  }
+  const ax = align === "center" ? x - c.tw/2 : (align === "right" || align === "end") ? x - c.tw : x;
+  g.drawImage(c, ax - c.pad, y - c.ch/2, c.cw, c.ch);
 }
 function rrect(g, x, y, w, h, r){ g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); }
 const COLS = ["#ff6b6b","#ffa94d","#ffd43b","#69db7c","#38d9a9","#4dabf7","#748ffc","#da77f2","#f783ac"];
@@ -137,6 +159,11 @@ window.addEventListener("resize", () => NG.cur && NG.fit());
 (function(){
   const cv = $("#ngCanvas"), stg = $("#ngStage");
   stg.addEventListener("pointerdown", e => { const c = NG.cur; if (!c || NG.ended || e.target.closest(".ng-over")) return; getAC(); if (!c.dom) e.preventDefault(); const p = c.dom ? {x: e.clientX, y: e.clientY} : NG.pt(e); c.down && c.down(p.x, p.y, e.pointerId); try { stg.setPointerCapture(e.pointerId); } catch(er) {} });
+  // 📱 빠르게 연타해도 터치가 씹히지 않게: 두 번 톡(확대)·길게 누름(메뉴)·글자 선택 같은 브라우저 동작을 게임판에서 막아요
+  stg.addEventListener("touchstart", e => { const c = NG.cur; if (c && !c.dom && !NG.ended && !e.target.closest(".ng-over")) e.preventDefault(); }, {passive: false});
+  stg.addEventListener("touchend", e => { const c = NG.cur; if (c && !c.dom && !NG.ended && !e.target.closest(".ng-over")) e.preventDefault(); }, {passive: false});
+  stg.addEventListener("dblclick", e => e.preventDefault());
+  stg.addEventListener("contextmenu", e => e.preventDefault());
   stg.addEventListener("pointermove", e => { const c = NG.cur; if (!c || NG.ended) return; const p = c.dom ? {x: e.clientX, y: e.clientY} : NG.pt(e); c.move && c.move(p.x, p.y, e.pointerId); });
   const up = e => { const c = NG.cur; if (!c) return; const p = c.dom ? {x: e.clientX, y: e.clientY} : NG.pt(e); c.up && c.up(p.x, p.y, e.pointerId); };
   stg.addEventListener("pointerup", up); stg.addEventListener("pointercancel", up);
@@ -682,6 +709,7 @@ NG.defs.st = () => {
     {at: 220, n: "🌌 우주",       sky: ["#03030f","#3a1162"], c: ["#96f2d7","#0ca678"], deco: "planet"},
     {at: 330, n: "🌈 무지개 하늘", sky: ["#ff9ce6","#a5d8ff"], c: null, deco: "rainbow"}
   ];
+  const GC = {};   // ⚡ 색 번짐(그라데이션)은 한 번 만들어 계속 써요
   const themeAt = n => { let t = THEME[0]; THEME.forEach(x => { if (n >= x.at) t = x; }); return t; };
   const buzz = ms => { try { navigator.vibrate && navigator.vibrate(ms); } catch(e) {} };
   function gen(n){ while (st.length < n){ const last = st[st.length - 1], prevDir = st.length > 1 ? last.x - st[st.length - 2].x : 1;
@@ -729,7 +757,8 @@ NG.defs.st = () => {
     init(){ st = [{x: 0, dip: 0}]; gen(50); p = 0; f = st[1].x - st[0].x; energy = 1; shownE = 1; score = 0; stars = 0; camX = 0; camI = 0; camKick = 0; anim = null; fall = null; fx = []; dust = [];
       over = 0; best50 = 0; keysDown = new Set(); press = [0, 0]; streak = 0; lastT = 0; flipT = 0; shake = 0; flash = null; beatT = 0; crumble = -1; },
     down(x, y){ step(x < W/2); },
-    key(code, d){ if (!d){ keysDown.delete(code); return false; } if (keysDown.has(code)) return true; keysDown.add(code);
+    // (2026.11.13) 예전엔 '누르고 있는 키' 목록으로 꾹 누름을 막았는데, 손을 뗀 신호(keyup)를 놓치면 그 키가 영영 안 먹었어요 → 키보드 자동 반복(e.repeat)만 막아요
+    key(code, d, e){ if (!d) return false; if (e && e.repeat) return true;
       if (["ArrowLeft","KeyA","KeyZ"].includes(code)){ step(true); return true; } if (["ArrowRight","KeyD","KeyX","Space","ArrowUp","KeyW"].includes(code)){ step(false); return true; } return false; },
     step(){
       if (over){ if (--over <= 0) NG.over(score, `<div>🪜 <b>${score}</b>계단 · ⭐ <b>${stars}</b>개 · ${themeAt(score).n}까지!</div>`); }
@@ -747,7 +776,8 @@ NG.defs.st = () => {
     draw(g){
       const th = themeAt(score), fr = NG.frame;
       g.save(); if (shake > .5) g.translate(rnd(-shake, shake), rnd(-shake, shake));
-      const sky = g.createLinearGradient(0, 0, 0, H); sky.addColorStop(0, th.sky[0]); sky.addColorStop(1, th.sky[1]); g.fillStyle = sky; g.fillRect(-30, -30, W + 60, H + 60);
+      const gk = `${th.n}|${H}`; if (!GC.sky || GC.sky.k !== gk){ GC.sky = g.createLinearGradient(0, 0, 0, H); GC.sky.addColorStop(0, th.sky[0]); GC.sky.addColorStop(1, th.sky[1]); GC.sky.k = gk; }
+      g.fillStyle = GC.sky; g.fillRect(-30, -30, W + 60, H + 60);
       /* 배경 꾸미기 (멀리 있는 건 천천히 움직여요) */
       const par = (k, span) => ((-camX*SW*k) % span + span) % span;
       if (th.deco === "cloud" || th.deco === "bird"){ g.fillStyle = "rgba(255,255,255,.8)";
@@ -755,7 +785,7 @@ NG.defs.st = () => {
           g.beginPath(); g.arc(x, y, 30*s, 0, 7); g.arc(x + 34*s, y - 12*s, 36*s, 0, 7); g.arc(x + 72*s, y, 28*s, 0, 7); g.fill(); }
         if (th.deco === "bird"){ g.strokeStyle = "rgba(80,30,40,.7)"; g.lineWidth = 3; g.lineCap = "round"; for (let i = 0; i < 6; i++){ const x = (fr*1.4 + i*140) % (W + 100) - 50, y = 120 + (i % 3)*50 + Math.sin(fr*.05 + i)*8, w = Math.sin(fr*.3 + i)*7; g.beginPath(); g.moveTo(x - 10, y - w); g.lineTo(x, y); g.lineTo(x + 10, y - w); g.stroke(); } } }
       else { g.fillStyle = "#fff"; for (let i = 0; i < 90; i++){ const x = (par(.08, W) + i*137) % W, y = ((i*97 + camI*SH*.2) % H); g.globalAlpha = .3 + .7*Math.abs(Math.sin(fr*.03 + i)); g.fillRect(x, y, i % 9 ? 2 : 3, i % 9 ? 2 : 3); } g.globalAlpha = 1;
-        if (th.deco === "moon"){ g.fillStyle = "#fff9db"; g.shadowColor = "#fff3bf"; g.shadowBlur = 40; g.beginPath(); g.arc(W*.8, H*.16, 46, 0, 7); g.fill(); g.shadowBlur = 0; g.fillStyle = th.sky[0]; g.beginPath(); g.arc(W*.8 + 18, H*.16 - 10, 40, 0, 7); g.fill(); }
+        if (th.deco === "moon"){ g.fillStyle = "rgba(255,243,191,.25)"; g.beginPath(); g.arc(W*.8, H*.16, 66, 0, 7); g.fill(); g.fillStyle = "#fff9db"; g.beginPath(); g.arc(W*.8, H*.16, 46, 0, 7); g.fill(); g.fillStyle = th.sky[0]; g.beginPath(); g.arc(W*.8 + 18, H*.16 - 10, 40, 0, 7); g.fill(); }
         if (th.deco === "planet"){ const x = W*.78 - camX*4 % 100, y = H*.2; g.fillStyle = "#ffa94d"; g.beginPath(); g.arc(x, y, 50, 0, 7); g.fill(); g.strokeStyle = "rgba(255,224,170,.9)"; g.lineWidth = 8; g.beginPath(); g.ellipse(x, y, 92, 20, -.35, 0, 7); g.stroke();
           g.fillStyle = "#4dabf7"; g.beginPath(); g.arc(W*.18, H*.32, 22, 0, 7); g.fill(); }
         if (th.deco === "rainbow"){ ["#ff6b6b","#ffa94d","#ffe066","#69db7c","#4dabf7","#b197fc"].forEach((c, k) => { g.strokeStyle = c; g.globalAlpha = .55; g.lineWidth = 18; g.beginPath(); g.arc(W/2, H*.75, W*.55 - k*18, Math.PI, 0); g.stroke(); }); g.globalAlpha = 1; } }
@@ -772,7 +802,7 @@ NG.defs.st = () => {
         g.fillStyle = "rgba(0,0,0,.18)"; g.fillRect(x - SW/2 + 4, y + 19, SW - 8, 7);
         if (i === p + 1 && !fall){ g.strokeStyle = `rgba(255,255,255,${.4 + .3*Math.sin(fr*.2)})`; g.lineWidth = 3; rrect(g, x - SW/2 - 3, y - 3, SW + 6, 32, 10); g.stroke(); }
         if (i % 10 === 0 && i > 0) outlined(g, `${i}`, x, y + 13, 16, "#fff");
-        if (s.star){ const b = Math.sin(fr*.12 + i)*4; g.save(); g.shadowColor = "#ffe066"; g.shadowBlur = 16; g.font = `34px ${EMOJI}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("⭐", x, y - 26 + b); g.restore(); }
+        if (s.star){ const b = Math.sin(fr*.12 + i)*4; g.save(); g.fillStyle = "rgba(255,224,102,.35)"; g.beginPath(); g.arc(x, y - 26 + b, 24, 0, 7); g.fill(); g.font = `34px ${EMOJI}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("⭐", x, y - 26 + b); g.restore(); }
         if (near && s.dip > .3){ g.fillStyle = `rgba(255,255,255,${s.dip*.5})`; rrect(g, x - SW/2, y, SW, 26, 8); g.fill(); } }
       /* 먼지 */
       dust.forEach(d => { g.globalAlpha = d.t/30; g.fillStyle = d.star ? "#ffe066" : "rgba(255,255,255,.9)"; g.beginPath(); g.arc(sx(d.x), sy(d.i) + d.y, d.r*(d.t/22 + .3), 0, 7); g.fill(); }); g.globalAlpha = 1;
@@ -800,7 +830,7 @@ NG.defs.st = () => {
       /* 위: 기운 막대 · 점수 */
       const bw = Math.min(W - 120, 640), bx = (W - bw)/2;
       g.fillStyle = "rgba(0,0,0,.35)"; rrect(g, bx, 22, bw, 30, 15); g.fill();
-      const eg = g.createLinearGradient(bx, 0, bx + bw, 0); eg.addColorStop(0, "#ff6b6b"); eg.addColorStop(.45, "#ffd43b"); eg.addColorStop(1, "#69db7c");
+      if (!GC.eg || GC.eg.k !== bw){ GC.eg = g.createLinearGradient(bx, 0, bx + bw, 0); GC.eg.addColorStop(0, "#ff6b6b"); GC.eg.addColorStop(.45, "#ffd43b"); GC.eg.addColorStop(1, "#69db7c"); GC.eg.k = bw; } const eg = GC.eg;
       g.fillStyle = eg; rrect(g, bx + 3, 25, Math.max(24, (bw - 6)*Math.max(0, shownE)), 24, 12); g.fill();
       g.fillStyle = "rgba(255,255,255,.4)"; rrect(g, bx + 8, 28, Math.max(10, (bw - 16)*Math.max(0, shownE)), 6, 3); g.fill();
       g.font = `26px ${EMOJI}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(energy < .22 ? "🥵" : energy < .5 ? "😤" : "⚡", bx - 22, 37);
@@ -811,7 +841,7 @@ NG.defs.st = () => {
       BTN.forEach(b => { const pr = press[b.k], dy = pr*8;
         g.save(); g.globalAlpha = .93;
         g.fillStyle = b.c[1]; rrect(g, b.x, b.y + 10, b.w, b.h, 30); g.fill();
-        const gr = g.createLinearGradient(0, b.y, 0, b.y + b.h); gr.addColorStop(0, b.c[0]); gr.addColorStop(1, b.c[1]);
+        const bk = `${b.k}|${b.y}|${b.h}`; if (!GC["b" + b.k] || GC["b" + b.k].k !== bk){ const q = g.createLinearGradient(0, b.y, 0, b.y + b.h); q.addColorStop(0, b.c[0]); q.addColorStop(1, b.c[1]); q.k = bk; GC["b" + b.k] = q; } const gr = GC["b" + b.k];
         g.fillStyle = gr; rrect(g, b.x, b.y + dy, b.w, b.h - 4, 30); g.fill();
         g.fillStyle = "rgba(255,255,255,.28)"; rrect(g, b.x + 12, b.y + 10 + dy, b.w - 24, b.h*.28, 18); g.fill();
         if (pr > .05){ g.strokeStyle = `rgba(255,255,255,${pr})`; g.lineWidth = 6; rrect(g, b.x - pr*10, b.y - pr*10 + dy, b.w + pr*20, b.h + pr*20 - 4, 34); g.stroke(); }
