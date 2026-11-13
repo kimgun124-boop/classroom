@@ -312,7 +312,7 @@ const ARC = {
     $$("[data-close]").forEach(b => b.onclick = () => b.closest(".arc-modal").hidden = true);
     // 가져온 게임의 '친구 고르기' 버튼은 오락실에서는 홈으로 가요
     ["#flOther", "#trOther", "#vbToSel", "#ahToSel"].forEach(s => { const el = $(s); if (el) el.textContent = "🏠 오락실 홈"; });
-    $$(".arc-modal").forEach(m => m.addEventListener("pointerdown", e => { if (e.target === m && m.id !== "mdPw") m.hidden = true; }));
+    $$(".arc-modal").forEach(m => m.addEventListener("pointerdown", e => { if (e.target === m && m.id !== "mdPw" && m.id !== "mdNet") m.hidden = true; }));
     Store.subs.push(() => this.refresh());
     let ok = false;
     try { ok = await Store.init(); }
@@ -404,7 +404,7 @@ const ARC = {
     this.pad({who: `<span class="avf">${avHTMLof(sidOf(no), {still: true, face: true})}</span><b>${esc(who(no))}</b>`, title: title || "비밀번호 4자리", len: 4,
       check: v => { if (Store.cls.pw[no] && pwHash(no, v) === Store.cls.pw[no]){ ok(no); return true; } return Store.cls.pw[no] ? "비밀번호가 달라요" : "아직 비밀번호가 없어요. 선생님께 말해요."; }});
   },
-  logout(){ localStorage.removeItem(KEY + ".me"); this.me = null; this.login(); },
+  logout(){ NET.unlisten(); localStorage.removeItem(KEY + ".me"); this.me = null; this.login(); },
 
   /* ---------- 캐릭터 ---------- */
   pickFace(first){
@@ -419,7 +419,7 @@ const ARC = {
   },
 
   /* ---------- 홈 ---------- */
-  home(){ this.show("scrHome"); this.renderHome();
+  home(){ this.show("scrHome"); this.renderHome(); NET.listen(this.me);
     $("#hmOut").onclick = () => this.logout(); $("#hmFace").onclick = () => SHOP.open(sidOf(this.me)); $("#hmRank").onclick = () => this.rank(this.lastRank || "fl"); },
   renderHome(){
     const me = this.me, sid = sidOf(me);
@@ -461,6 +461,9 @@ const ARC = {
     $("#duLv").onclick = e => { const b = e.target.closest("button"); if (b){ lv = +b.dataset.v; $$("#duLv button").forEach(x => x.classList.toggle("on", x === b)); } };
     $("#duCpu").onclick = () => { this.modal("#mdDuel", false); const others = roster().filter(s => s.no != me && !s.t); const cpu = others.length ? others[Math.floor(Math.random()*others.length)].no : me; this.startDuel(gid, me, cpu, true, lv); };
     $("#duFriend").onclick = () => { this.modal("#mdDuel", false); this.pickRival(gid, opp => this.startDuel(gid, me, opp, false, lv)); };
+    const nb = $("#duNet"), canNet = NET.ok();
+    nb.disabled = !canNet; nb.querySelector("small").textContent = canNet ? "친구는 자기 태블릿·크롬북에서 수락만 누르면 돼요 · 이기면 랭킹 1승!" : "선생님이 ☁️ Firebase로 연결한 반에서만 할 수 있어요";
+    nb.onclick = () => { if (!canNet) return; this.modal("#mdDuel", false); this.pickNet(gid, opp => NET.invite(gid, opp)); };
     this.modal("#mdDuel", true);
   },
   pickRival(gid, cb){
@@ -472,6 +475,27 @@ const ARC = {
     $("#pwPick").onclick = e => { const b = e.target.closest("[data-no]"); if (!b) return; const no = +b.dataset.no;
       $("#pwPad").hidden = false; $("#pwDots").hidden = false; this.askPw(no, cb, `${who(no)} 비밀번호`); };
   },
+  pickNet(gid, cb){
+    const me = this.me;
+    this.pad({who: `<b>🌐 다른 기기 친구와 대결</b>`, title: "누구에게 신청할까요?", extra: ""});
+    $("#pwPad").hidden = true; $("#pwDots").hidden = true; $("#pwPick").hidden = false;
+    $("#pwPick").innerHTML = roster().filter(s => s.no != me).map(s => `<button class="arc-num${s.t ? " tch" : ""}" data-no="${s.no}"><span class="avf">${avHTMLof(sidOf(s.no), {still: true, face: true})}</span><b>${s.t ? "선생님" : s.no}</b><small>${s.t ? "선생님" : esc(s.name)}</small></button>`).join("");
+    $("#pwPick").onclick = e => { const b = e.target.closest("[data-no]"); if (!b) return; this.modal("#mdPw", false); $("#pwPad").hidden = false; $("#pwDots").hidden = false; cb(+b.dataset.no); };
+  },
+  /* 다른 기기 대결 시작 (role: host = 신청한 친구 · 왼쪽, guest = 수락한 친구 · 오른쪽) */
+  netGo(role, gid, a, b, x){
+    this.enter(); this.prep(); this.game = gid; this.lastRank = gid; getAC(); const A = sidOf(a), B = sidOf(b);
+    $$(".arc-modal").forEach(m => m.hidden = true);
+    if (gid === "vb" || gid === "ah"){
+      const N = gid === "vb" ? window.__vbNet : window.__ahNet;
+      if (!N.isOpen()){ this.busy = false; (gid === "vb" ? window.__vbOpen : window.__ahOpen)(); }
+      const out = N.begin(role, A, B, x); this.busy = true;
+      if (gid === "vb") vpadShow(true);
+      return out;
+    }
+    NG.play(gid, [A, B], {net: role}); return null;
+  },
+  netQuit(){ if (window.__vbNet) window.__vbNet.close(); if (window.__ahNet) window.__ahNet.close(); if (NG.cur && !$("#ng").hidden) NG.close(); },
   startDuel(gid, a, b, cpu, lv){
     this.enter(); this.prep(); const A = sidOf(a), B = sidOf(b);
     if (gid === "vb" || gid === "ah"){
@@ -491,13 +515,19 @@ const ARC = {
   },
   duel(gid, w, l, cpu){
     if (cpu){ setTimeout(() => toast("🤖 컴퓨터와 연습한 판은 랭킹에 들어가지 않아요"), 400); return {w: 0, l: 0}; }
+    if (NET.role){
+      NET.title(gid === "vb" ? "#vbEnd h3" : gid === "ah" ? "#ahEnd h3" : "#ngOver h3", w);
+      // 🌐 다른 기기 대결: 랭킹·코인은 신청한 친구 기기가 한 번만 올려요 (여기서는 보여 주기만)
+      if (NET.role === "guest") return {w: Math.max(0, Math.min(WIN_COIN, Store.todayLeft(w))), l: Math.max(0, Math.min(LOSE_COIN, Store.todayLeft(l)))};
+    }
     const cw = Store.earn(w, WIN_COIN), cl = Store.earn(l, LOSE_COIN);
     Store.putDuel(gid, w, l).then(() => { const r = (Store.recs[gid] || {})[w] || {}; toast(`🏆 ${who(noOf_(w))} 승리! 이제 ${r.w || 1}승 · 🪙 +${cw}`); });
     return {w: cw, l: cl};
   },
   back(){
+    if (NET.role) NET.leave();
     this.busy = false; vpadShow(null); PERF.watch(false); FULL.off(); document.body.classList.remove("arc-playing");
-    setTimeout(() => { if (this.me !== null){ this.dirty = false; this.refresh(); } }, 0);
+    setTimeout(() => { if (this.me !== null){ this.dirty = false; this.refresh(); } NET.showInvite(); }, 0);
   },
 
   /* ---------- 랭킹 ---------- */

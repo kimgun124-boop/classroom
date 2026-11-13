@@ -2603,6 +2603,14 @@ body.arc-lite .arc-logo .g{animation:none !important}
 .sh-it.on{outline:3px solid #69db7c;outline-offset:2px}
 @media (max-width:820px){ .sh-wrap{flex-direction:column;align-items:stretch} .sh-left{position:static;flex:none} .sh-prev{width:200px;height:200px;margin:0 auto} .sh-grid{max-height:none} }
 
+/* 다른 기기 대결 */
+.arc-net{text-align:center;max-width:560px}
+.arc-netmsg{font-size:19px;line-height:1.6;margin:10px 0 14px}
+.arc-netmsg small{display:block;font-size:14px;opacity:.8;margin-top:6px}
+.arc-net .arc-row{justify-content:center}
+.arc-net .arc-btn{font-size:20px;padding:12px 22px}
+.arc-btn[disabled]{opacity:.45;cursor:not-allowed}
+
 </style>
 </head>
 <body class="arc-body">
@@ -2681,7 +2689,8 @@ body.arc-lite .arc-logo .g{animation:none !important}
     <h2 id="duTitle">⚔️ 대결</h2>
     <div class="arc-duo" id="duDuo"></div>
     <div class="arc-row col">
-      <button class="arc-btn p big" id="duFriend">🧒 친구와 대결 <small>상대도 번호·비밀번호로 들어와요 · 이기면 랭킹 1승!</small></button>
+      <button class="arc-btn p big" id="duNet">🌐 다른 기기 친구와 대결 <small></small></button>
+      <button class="arc-btn p big" id="duFriend">🧒 이 기기에서 둘이 대결 <small>한 기기에서 나란히 · 상대도 번호·비밀번호로 들어와요 · 이기면 랭킹 1승!</small></button>
       <button class="arc-btn big" id="duCpu">🤖 컴퓨터와 연습 <small>랭킹에는 들어가지 않아요</small></button>
     </div>
     <div class="arc-seg" id="duLv"><button data-v="0">🐣 쉬움</button><button data-v="1" class="on">🐥 보통</button><button data-v="2">🦅 어려움</button></div>
@@ -2708,6 +2717,16 @@ body.arc-lite .arc-logo .g{animation:none !important}
       </div>
     </div>
     <button class="arc-x" data-close>×</button>
+  </div>
+</div>
+
+<!-- ===== 다른 기기 대결: 신청 · 기다리기 ===== -->
+<div class="arc-modal" id="mdNet" hidden>
+  <div class="arc-card arc-wide arc-net">
+    <h2 id="ntTitle">🌐 대결</h2>
+    <div class="arc-duo" id="ntDuo"></div>
+    <p class="arc-netmsg" id="ntMsg"></p>
+    <div class="arc-row" id="ntBtns"></div>
   </div>
 </div>
 
@@ -3267,7 +3286,7 @@ const ARC = {
     $$("[data-close]").forEach(b => b.onclick = () => b.closest(".arc-modal").hidden = true);
     // 가져온 게임의 '친구 고르기' 버튼은 오락실에서는 홈으로 가요
     ["#flOther", "#trOther", "#vbToSel", "#ahToSel"].forEach(s => { const el = $(s); if (el) el.textContent = "🏠 오락실 홈"; });
-    $$(".arc-modal").forEach(m => m.addEventListener("pointerdown", e => { if (e.target === m && m.id !== "mdPw") m.hidden = true; }));
+    $$(".arc-modal").forEach(m => m.addEventListener("pointerdown", e => { if (e.target === m && m.id !== "mdPw" && m.id !== "mdNet") m.hidden = true; }));
     Store.subs.push(() => this.refresh());
     let ok = false;
     try { ok = await Store.init(); }
@@ -3359,7 +3378,7 @@ const ARC = {
     this.pad({who: `<span class="avf">${avHTMLof(sidOf(no), {still: true, face: true})}</span><b>${esc(who(no))}</b>`, title: title || "비밀번호 4자리", len: 4,
       check: v => { if (Store.cls.pw[no] && pwHash(no, v) === Store.cls.pw[no]){ ok(no); return true; } return Store.cls.pw[no] ? "비밀번호가 달라요" : "아직 비밀번호가 없어요. 선생님께 말해요."; }});
   },
-  logout(){ localStorage.removeItem(KEY + ".me"); this.me = null; this.login(); },
+  logout(){ NET.unlisten(); localStorage.removeItem(KEY + ".me"); this.me = null; this.login(); },
 
   /* ---------- 캐릭터 ---------- */
   pickFace(first){
@@ -3374,7 +3393,7 @@ const ARC = {
   },
 
   /* ---------- 홈 ---------- */
-  home(){ this.show("scrHome"); this.renderHome();
+  home(){ this.show("scrHome"); this.renderHome(); NET.listen(this.me);
     $("#hmOut").onclick = () => this.logout(); $("#hmFace").onclick = () => SHOP.open(sidOf(this.me)); $("#hmRank").onclick = () => this.rank(this.lastRank || "fl"); },
   renderHome(){
     const me = this.me, sid = sidOf(me);
@@ -3416,6 +3435,9 @@ const ARC = {
     $("#duLv").onclick = e => { const b = e.target.closest("button"); if (b){ lv = +b.dataset.v; $$("#duLv button").forEach(x => x.classList.toggle("on", x === b)); } };
     $("#duCpu").onclick = () => { this.modal("#mdDuel", false); const others = roster().filter(s => s.no != me && !s.t); const cpu = others.length ? others[Math.floor(Math.random()*others.length)].no : me; this.startDuel(gid, me, cpu, true, lv); };
     $("#duFriend").onclick = () => { this.modal("#mdDuel", false); this.pickRival(gid, opp => this.startDuel(gid, me, opp, false, lv)); };
+    const nb = $("#duNet"), canNet = NET.ok();
+    nb.disabled = !canNet; nb.querySelector("small").textContent = canNet ? "친구는 자기 태블릿·크롬북에서 수락만 누르면 돼요 · 이기면 랭킹 1승!" : "선생님이 ☁️ Firebase로 연결한 반에서만 할 수 있어요";
+    nb.onclick = () => { if (!canNet) return; this.modal("#mdDuel", false); this.pickNet(gid, opp => NET.invite(gid, opp)); };
     this.modal("#mdDuel", true);
   },
   pickRival(gid, cb){
@@ -3427,6 +3449,27 @@ const ARC = {
     $("#pwPick").onclick = e => { const b = e.target.closest("[data-no]"); if (!b) return; const no = +b.dataset.no;
       $("#pwPad").hidden = false; $("#pwDots").hidden = false; this.askPw(no, cb, `${who(no)} 비밀번호`); };
   },
+  pickNet(gid, cb){
+    const me = this.me;
+    this.pad({who: `<b>🌐 다른 기기 친구와 대결</b>`, title: "누구에게 신청할까요?", extra: ""});
+    $("#pwPad").hidden = true; $("#pwDots").hidden = true; $("#pwPick").hidden = false;
+    $("#pwPick").innerHTML = roster().filter(s => s.no != me).map(s => `<button class="arc-num${s.t ? " tch" : ""}" data-no="${s.no}"><span class="avf">${avHTMLof(sidOf(s.no), {still: true, face: true})}</span><b>${s.t ? "선생님" : s.no}</b><small>${s.t ? "선생님" : esc(s.name)}</small></button>`).join("");
+    $("#pwPick").onclick = e => { const b = e.target.closest("[data-no]"); if (!b) return; this.modal("#mdPw", false); $("#pwPad").hidden = false; $("#pwDots").hidden = false; cb(+b.dataset.no); };
+  },
+  /* 다른 기기 대결 시작 (role: host = 신청한 친구 · 왼쪽, guest = 수락한 친구 · 오른쪽) */
+  netGo(role, gid, a, b, x){
+    this.enter(); this.prep(); this.game = gid; this.lastRank = gid; getAC(); const A = sidOf(a), B = sidOf(b);
+    $$(".arc-modal").forEach(m => m.hidden = true);
+    if (gid === "vb" || gid === "ah"){
+      const N = gid === "vb" ? window.__vbNet : window.__ahNet;
+      if (!N.isOpen()){ this.busy = false; (gid === "vb" ? window.__vbOpen : window.__ahOpen)(); }
+      const out = N.begin(role, A, B, x); this.busy = true;
+      if (gid === "vb") vpadShow(true);
+      return out;
+    }
+    NG.play(gid, [A, B], {net: role}); return null;
+  },
+  netQuit(){ if (window.__vbNet) window.__vbNet.close(); if (window.__ahNet) window.__ahNet.close(); if (NG.cur && !$("#ng").hidden) NG.close(); },
   startDuel(gid, a, b, cpu, lv){
     this.enter(); this.prep(); const A = sidOf(a), B = sidOf(b);
     if (gid === "vb" || gid === "ah"){
@@ -3446,13 +3489,19 @@ const ARC = {
   },
   duel(gid, w, l, cpu){
     if (cpu){ setTimeout(() => toast("🤖 컴퓨터와 연습한 판은 랭킹에 들어가지 않아요"), 400); return {w: 0, l: 0}; }
+    if (NET.role){
+      NET.title(gid === "vb" ? "#vbEnd h3" : gid === "ah" ? "#ahEnd h3" : "#ngOver h3", w);
+      // 🌐 다른 기기 대결: 랭킹·코인은 신청한 친구 기기가 한 번만 올려요 (여기서는 보여 주기만)
+      if (NET.role === "guest") return {w: Math.max(0, Math.min(WIN_COIN, Store.todayLeft(w))), l: Math.max(0, Math.min(LOSE_COIN, Store.todayLeft(l)))};
+    }
     const cw = Store.earn(w, WIN_COIN), cl = Store.earn(l, LOSE_COIN);
     Store.putDuel(gid, w, l).then(() => { const r = (Store.recs[gid] || {})[w] || {}; toast(`🏆 ${who(noOf_(w))} 승리! 이제 ${r.w || 1}승 · 🪙 +${cw}`); });
     return {w: cw, l: cl};
   },
   back(){
+    if (NET.role) NET.leave();
     this.busy = false; vpadShow(null); PERF.watch(false); FULL.off(); document.body.classList.remove("arc-playing");
-    setTimeout(() => { if (this.me !== null){ this.dirty = false; this.refresh(); } }, 0);
+    setTimeout(() => { if (this.me !== null){ this.dirty = false; this.refresh(); } NET.showInvite(); }, 0);
   },
 
   /* ---------- 랭킹 ---------- */
@@ -4275,7 +4324,7 @@ const SHOP = {
     let mode = "cpu", lv = 1, target = 10, pick = [null, null], cur = 0;
     let lastCross = 0, ballSide = 0;
     let P = [], ball = null, score = [0, 0], server = 0, pointT = 0, scorer = -1, frame = 0, trail = [], fx = [], shake = 0;
-    const keys = new Set(), pressed = new Set();
+    const keys = new Set(), pressed = new Set(); let netR = null, mySide = 0, srvN = 0, gSrv = -1; const NQ = [];
     const imgs = {};
     const noOf = sid => S.students.findIndex(x => x.id === sid) + 1;
     const stu = sid => S.students.find(x => x.id === sid);
@@ -4313,7 +4362,7 @@ const SHOP = {
     }
 
     /* ---- 소리 ---- */
-    function snd(kind){
+    function snd(kind){ if (netR === "host") NQ.push(["sn", kind]);
       if (!S.sound) return;
       try{
         const C = getAC(), t = C.currentTime + .005;
@@ -4340,7 +4389,7 @@ const SHOP = {
     const maxX = p => p.side ? W - p.r*.85 : NET_X - NET_W/2 - p.r*.85;
     const hitC = p => ({x: p.x, y: p.y - p.r*1.35, r: p.r*1.22});   // 머리+몸 맞는 곳
 
-    function serve(who){
+    function serve(who){ srvN++;
       server = who; scorer = -1;
       P.forEach(p => { p.x = homeX(p); p.y = GROUND; p.vx = p.vy = 0; p.ground = true; p.cool = 0; p.spikeT = 0; p.swing = 0; });
       ball = {x: who ? W*.78 + 6 : W*.22 - 6, y: 110, vx: 0, vy: 0, spin: 0, spiked: 0};
@@ -4364,7 +4413,7 @@ const SHOP = {
     };
     const GAMEKEYS = new Set([].concat(...Object.values(KEYMAP.p1), ...Object.values(KEYMAP.p2), "Space", "KeyP"));
     function ctlState(p){
-      const sets = p.ctl === "p1" && mode === "cpu" ? [KEYMAP.p1, KEYMAP.p2] : [KEYMAP[p.ctl]];
+      const sets = p.ctl === "me" || (p.ctl === "p1" && mode === "cpu") ? [KEYMAP.p1, KEYMAP.p2] : [KEYMAP[p.ctl]];
       const any = (k, set) => sets.some(m => m[k].some(c => set.has(c)));
       return {l: any("l", keys), r: any("r", keys), u: any("u", keys), d: any("d", keys), s: any("s", keys), sp: any("s", pressed), up: any("u", pressed)};
     }
@@ -4419,7 +4468,7 @@ const SHOP = {
       }
       if (state !== "play") return;
       P.forEach(p => {
-        const c = p.ctl === "cpu" ? cpu(p) : ctlState(p);
+        if (p.ctl === "net"){ if (p.cool > 0) p.cool--; if (p.swing > 0) p.swing--; return; } const c = p.ctl === "cpu" ? cpu(p) : ctlState(p);
         const sp = p.spd * (c.spdMul || 1);
         p.vx = (c.r ? sp : 0) - (c.l ? sp : 0);
         if ((c.u || c.up) && p.ground){ p.vy = -p.jump; p.ground = false; p.squash = 6; snd("jump"); }
@@ -4483,7 +4532,7 @@ const SHOP = {
         snd("point");
       }
     }
-    function endMatch(w){ window.ARC && ARC.duel("vb", P[w].sid, P[1 - w].sid, P[1].ctl === "cpu", score);
+    function endMatch(w){ if (netR === "host") NET.end(w, score); window.ARC && ARC.duel("vb", P[w].sid, P[1 - w].sid, P[1].ctl === "cpu", score);
       state = "end";
       const st = stu(P[w].sid);
       $("#vbEndPh").innerHTML = avHTML(P[w].sid, "big");
@@ -4555,7 +4604,7 @@ const SHOP = {
       g.lineWidth = 2.5; g.strokeStyle = p.col; g.beginPath(); g.arc(0, hy, hr + r*.08, 0, Math.PI*2); g.stroke();
       g.restore();
       // 머리 위 표시
-      const tag = p.ctl === "cpu" ? "🤖" : p.side ? "2P" : "1P";
+      const tag = p.ctl === "cpu" ? "🤖" : netR ? (p.ctl === "net" ? "친구" : "⬇ 나") : p.side ? "2P" : "1P";
       g.font = `16px "Jua",sans-serif`; g.textAlign = "center"; g.textBaseline = "bottom";
       g.fillStyle = p.side ? "#1971c2" : "#e8590c";
       g.fillText(tag, p.x, p.y - r*2.6 - 4);
@@ -4611,7 +4660,7 @@ const SHOP = {
       if (!open) return;
       if (!last) last = now;
       acc += Math.min(100, now - last); last = now;
-      while (acc >= 1000/60){ if (state !== "pause" && state !== "sel" && state !== "end") step(); acc -= 1000/60; }
+      while (acc >= 1000/60){ if (state !== "pause" && state !== "sel" && state !== "end") (netR === "guest" ? gstep() : step()); acc -= 1000/60; } if (netR) NET.tick(window.__vbNet);
       draw();
       raf = requestAnimationFrame(loop);
     }
@@ -4628,7 +4677,7 @@ const SHOP = {
 
     /* ---- 캐릭터 고르기 화면 ---- */
     function renderKeys(){
-      $("#vbKeys").innerHTML = mode === "cpu"
+      $("#vbKeys").innerHTML = netR ? `🌐 다른 기기 대결 · 이동 <kbd>A</kbd><kbd>D</kbd> 또는 <kbd>←</kbd><kbd>→</kbd> · 점프 <kbd>W</kbd>/<kbd>↑</kbd> · 스파이크 <kbd>F</kbd>/<kbd>Enter</kbd>` : mode === "cpu"
         ? `이동 <kbd>A</kbd><kbd>D</kbd> 또는 <kbd>←</kbd><kbd>→</kbd> · 점프 <kbd>W</kbd>/<kbd>↑</kbd> · 스파이크 <kbd>F</kbd>/<kbd>Enter</kbd> · 멈춤 <kbd>P</kbd>`
         : `1P <kbd>A</kbd><kbd>D</kbd> 이동 <kbd>W</kbd> 점프 <kbd>F</kbd> 스파이크 · 2P <kbd>←</kbd><kbd>→</kbd> 이동 <kbd>↑</kbd> 점프 <kbd>Enter</kbd> 스파이크 · 멈춤 <kbd>P</kbd>`;
     }
@@ -4685,7 +4734,7 @@ const SHOP = {
     $("#vbRand").onclick = () => { pick[0] = randPick(null); pick[1] = randPick(pick[0]); renderSel(); };
     $("#vbStart").onclick = () => { if (S.students.length < 2){ toast("학생이 2명 이상 있어야 해요", false); return; } startMatch(); };
     $("#vbReroll").onclick = () => { if (!confirm("모든 친구의 능력치를 새로 섞을까요?")) return; ensureStats(true); renderSel(); toast("🔄 능력치를 새로 섞었어요", false); };
-    $("#vbRe").onclick = startMatch;
+    $("#vbRe").onclick = () => netR ? NET.again() : startMatch();
     $("#vbToSel").onclick = toSel;
     window.addEventListener("resize", () => { if (open) fit(); });
     window.addEventListener("keydown", e => {
@@ -4696,7 +4745,7 @@ const SHOP = {
         return;
       }
       if (state === "sel" && (e.code === "Enter" || e.code === "Space") && !e.repeat && !document.querySelector(".modal.open")){ e.preventDefault(); $("#vbStart").click(); return; }
-      if (e.code === "KeyP" && (state === "play" || state === "point" || state === "pause")){
+      if (e.code === "KeyP" && !netR && (state === "play" || state === "point" || state === "pause")){
         e.preventDefault();
         if (state === "pause"){ state = $("#vbPause").dataset.prev || "play"; $("#vbPause").hidden = true; }
         else { $("#vbPause").dataset.prev = state; state = "pause"; $("#vbPause").hidden = false; }
@@ -4707,6 +4756,58 @@ const SHOP = {
     window.addEventListener("keyup", e => { if (open){ keys.delete(e.code); } }, true);
     window.addEventListener("blur", () => keys.clear());
     window.__vbEnsure = () => ensureStats();
+    /* 🌐 수락한 친구 기기: 내 선수만 움직이고 나머지는 받은 대로 그려요 */
+    function gstep(){
+      frame++;
+      if (shake > 0) shake *= .85;
+      fx = fx.filter(f => (f.t -= 1) > 0);
+      if (state === "play"){
+        ball.vy += BG; ball.x += ball.vx; ball.y += ball.vy; ball.spin += ball.vx * .02;
+        if (ball.x < BR){ ball.x = BR; ball.vx = Math.abs(ball.vx); } if (ball.x > W - BR){ ball.x = W - BR; ball.vx = -Math.abs(ball.vx); }
+        if (ball.y + BR > GROUND) ball.y = GROUND - BR;
+        const o = P[0]; o.x += o.vx; if (!o.ground){ o.vy += PG; o.y = Math.min(GROUND, o.y + o.vy); }
+        const p = P[1], c = ctlState(p), sp = p.spd;
+        p.vx = (c.r ? sp : 0) - (c.l ? sp : 0);
+        if ((c.u || c.up) && p.ground){ p.vy = -p.jump; p.ground = false; p.squash = 6; snd("jump"); }
+        if (c.sp) p.spikeT = 10;
+        p.spikeDir = c.d ? 1 : c.u ? -1 : 0;
+        if (p.spikeT > 0) p.spikeT--;
+        if (p.swing > 0) p.swing--;
+        p.x += p.vx;
+        if (!p.ground){ p.vy += PG + (c.d ? .35 : 0); p.y += p.vy; if (p.y >= GROUND){ p.y = GROUND; p.vy = 0; p.ground = true; p.squash = 6; } }
+        if (p.squash > 0) p.squash--;
+        p.x = Math.max(minX(p), Math.min(maxX(p), p.x));
+      } else if (state === "point" && ball){ ball.vy += BG*.5; ball.y = Math.min(ball.y + ball.vy*.3, GROUND - BR*.6); }
+      pressed.clear();
+    }
+    window.__vbNet = {
+      isOpen: () => open,
+      begin(role, a, b, x){
+        netR = role; mySide = role === "guest" ? 1 : 0; NQ.length = 0; mode = "cpu"; ensureStats();
+        if (role === "host"){ pick = [a, b]; startMatch(); P[1].ctl = "net"; return {st: {[a]: statsOf(a), [b]: statsOf(b)}, tg: target}; }
+        if (x && x.st) Object.assign(S.vb.stats, x.st);
+        if (x && x.tg) target = x.tg;
+        pick = [a, b]; P = [mkPlayer(a, 0, "net"), mkPlayer(b, 1, "me")]; score = [0, 0]; fx = []; trail = []; gSrv = -1;
+        ball = {x: W/2, y: 110, vx: 0, vy: 0, spin: 0, spiked: 0}; state = "play";
+        $("#vbSel").hidden = true; $("#vbEnd").hidden = true; $("#vbPause").hidden = true; renderKeys();
+      },
+      snap(){ const o = P[0]; return {st: state, sc: score, sv: server, n: srvN, fr: frame, b: ball, tr: trail, fx, sh: shake, sw: P[1].swing,
+        p: {x: o.x, y: o.y, vx: o.vx, vy: o.vy, ground: o.ground, squash: o.squash, swing: o.swing, spikeT: o.spikeT}}; },
+      ev: () => NQ.splice(0),
+      fx(e){ e.forEach(([k, a]) => { if (k === "sn") snd(a); }); },
+      apply(d){
+        if (!P[1] || P[1].ctl !== "me") return;
+        if (d.n !== gSrv){ gSrv = d.n; const p = P[1]; p.x = homeX(p); p.y = GROUND; p.vx = p.vy = 0; p.ground = true; p.spikeT = 0; p.swing = 0; }
+        state = d.st; score = d.sc; server = d.sv; frame = d.fr; ball = d.b; trail = d.tr; fx = d.fx; shake = d.sh;
+        Object.assign(P[0], d.p); P[1].swing = Math.max(P[1].swing, d.sw || 0);
+        if (state !== "end" && !$("#vbEnd").hidden) $("#vbEnd").hidden = true;
+      },
+      mine(){ const p = P[1]; return {x: p.x, y: p.y, vx: p.vx, vy: p.vy, ground: p.ground, spikeT: p.spikeT, spikeDir: p.spikeDir, squash: p.squash}; },
+      put(d){ if (P[1] && P[1].ctl === "net") Object.assign(P[1], d); },
+      end(w, sc){ if (netR !== "guest") return; score = sc; endMatch(w); },
+      reset(){ netR = null; mySide = 0; NQ.length = 0; },
+      close(){ if (open) closeVb(); }
+    };
     window.__vbOpen = openVb; window.__vbTest = { setLv(v){ lv = v; }, setTarget(v){ target = v; }, get state(){ return state; }, get score(){ return score; }, get P(){ return P; }, get ball(){ return ball; }, setMode(m){ mode = m; }, setPick(a, b){ pick = [a, b]; }, start: startMatch, step, cpuBoth(){ P[0].ctl = "cpu"; }, setTarget(n){ target = n; }, setLv(n){ lv = n; } };
   })();
   (function(){
@@ -4720,7 +4821,7 @@ const SHOP = {
     let M = [], puck = null, score = [0, 0], frame = 0, readyT = 0, readyMax = 0, goalT = 0, scorer = -1;
     let trail = [], parts = [], rings = [], texts = [], shake = 0, flash = 0, flashC = "#fff", lastHit = -1, rally = 0, best = 0, stillT = 0;
     let tbl = null, scale = 1, dpr = 1;
-    const keys = new Set(), pressed = new Set(), ptr = new Map(), imgs = {};
+    const keys = new Set(), pressed = new Set(), ptr = new Map(), imgs = {}; let netR = null, mySide = 0, srvN = 0, gSrv = -1; const NQ = [];
     const noOf = sid => S.students.findIndex(x => x.id === sid) + 1;
     const stu = sid => S.students.find(x => x.id === sid);
     const rnd = n => { try{ const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] / 4294967296 * n; }catch(e){ return Math.random() * n; } };
@@ -4743,7 +4844,7 @@ const SHOP = {
       n.buffer = b; const f = C.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = freq || 2000; f.Q.value = .8;
       const gn = C.createGain(); gn.gain.value = vol; n.connect(f).connect(gn).connect(C.destination); n.start(t);
     }
-    function snd(kind, v){
+    function snd(kind, v){ if (netR === "host") NQ.push(["sn", kind, v]);
       if (!S.sound) return;
       try{
         const C = getAC(), t = C.currentTime + .005;
@@ -4770,7 +4871,7 @@ const SHOP = {
     const maxX = m => m.side ? X1 - m.r : MX - m.r*.45;
     const minY = m => Y0 + m.r, maxY = m => Y1 - m.r;
 
-    function ready(side, first){
+    function ready(side, first){ srvN++;
       puck = {x: side ? MX + 130 : MX - 130, y: MY, vx: 0, vy: 0, a: 0};
       M.forEach(m => { m.x = homeX(m.side); m.y = MY; m.vx = m.vy = 0; m.dash = 0; m.cool = 0; m.ghosts = []; });
       trail = []; lastHit = -1; rally = 0; stillT = 0;
@@ -4794,9 +4895,9 @@ const SHOP = {
     };
     const GAMEKEYS = new Set([].concat(...Object.values(KEYMAP.p1), ...Object.values(KEYMAP.p2), "KeyP"));
     function input(m){
-      if (m.ctl === "cpu") return cpu(m);
+      if (m.ctl === "cpu") return cpu(m); if (m.ctl === "net") return {ix: 0, iy: 0};
       for (const p of ptr.values()) if (p.side === m.side) return {px: p.x, py: p.y};
-      const sets = m.ctl === "p1" && mode === "cpu" ? [KEYMAP.p1, KEYMAP.p2] : [KEYMAP[m.ctl]];
+      const sets = m.ctl === "me" || (m.ctl === "p1" && mode === "cpu") ? [KEYMAP.p1, KEYMAP.p2] : [KEYMAP[m.ctl]];
       const on = (k, set) => sets.some(s => s[k].some(c => set.has(c)));
       return {ix: (on("r", keys) ? 1 : 0) - (on("l", keys) ? 1 : 0), iy: (on("d", keys) ? 1 : 0) - (on("u", keys) ? 1 : 0), dash: on("s", pressed)};
     }
@@ -4804,7 +4905,7 @@ const SHOP = {
     cv.addEventListener("pointerdown", e => {
       if (!open || !(state === "play" || state === "ready")) return;
       e.preventDefault();
-      const p = toField(e), side = mode === "cpu" ? 0 : (p.x < MX ? 0 : 1);
+      const p = toField(e), side = mode === "cpu" ? mySide : (p.x < MX ? 0 : 1);
       for (const [id, q] of ptr) if (q.side === side) ptr.delete(id);   // 한 쪽에 손가락 하나만
       ptr.set(e.pointerId, {side, x: p.x, y: p.y, t: performance.now(), dash: false});
       try{ cv.setPointerCapture(e.pointerId); }catch(er){}
@@ -4842,9 +4943,9 @@ const SHOP = {
     }
 
     /* ---- 효과 ---- */
-    function sparks(x, y, n, col, sp){ for (let i = 0; i < n; i++){ const a = rnd(Math.PI*2), v = rnd(sp || 6) + 1; parts.push({x, y, vx: Math.cos(a)*v, vy: Math.sin(a)*v, t: 20 + rnd(20), T: 40, c: col, s: 2 + rnd(3), k: 0}); } }
-    function confetti(x, y, n, dir){ const cs = ["#ffd43b","#ff6b6b","#69db7c","#4dabf7","#da77f2","#fff"]; for (let i = 0; i < n; i++){ const a = (dir < 0 ? Math.PI : 0) + (rnd(2) - 1)*1.1, v = 4 + rnd(10); parts.push({x, y, vx: Math.cos(a)*v, vy: Math.sin(a)*v - 2, t: 60 + rnd(50), T: 110, c: cs[Math.floor(rnd(cs.length))], s: 4 + rnd(4), k: 1, r: rnd(6)}); } }
-    function say(txt, x, y, col, size, life){ texts.push({txt, x, y, c: col, s: size || 36, t: life || 50, T: life || 50}); }
+    function sparks(x, y, n, col, sp){ if (netR === "host") NQ.push(["sp", x, y, n, col, sp]); for (let i = 0; i < n; i++){ const a = rnd(Math.PI*2), v = rnd(sp || 6) + 1; parts.push({x, y, vx: Math.cos(a)*v, vy: Math.sin(a)*v, t: 20 + rnd(20), T: 40, c: col, s: 2 + rnd(3), k: 0}); } }
+    function confetti(x, y, n, dir){ if (netR === "host") NQ.push(["cf", x, y, n, dir]); const cs = ["#ffd43b","#ff6b6b","#69db7c","#4dabf7","#da77f2","#fff"]; for (let i = 0; i < n; i++){ const a = (dir < 0 ? Math.PI : 0) + (rnd(2) - 1)*1.1, v = 4 + rnd(10); parts.push({x, y, vx: Math.cos(a)*v, vy: Math.sin(a)*v - 2, t: 60 + rnd(50), T: 110, c: cs[Math.floor(rnd(cs.length))], s: 4 + rnd(4), k: 1, r: rnd(6)}); } }
+    function say(txt, x, y, col, size, life){ if (netR === "host") NQ.push(["sy", txt, x, y, col, size, life]); texts.push({txt, x, y, c: col, s: size || 36, t: life || 50, T: life || 50}); }
     function onHit(m, sp, x, y){
       lastHit = m.side; m.bump = 8; rally++;
       const smash = sp > m.maxV*.82;
@@ -4854,7 +4955,7 @@ const SHOP = {
     }
 
     /* ---- 한 칸(1/60초) ---- */
-    function moveIntent(m, c){
+    function moveIntent(m, c){ if (m.ctl === "net"){ if (m.hitT > 0) m.hitT--; if (m.bump > 0) m.bump--; return; }
       if (c.px != null){
         const tx = clamp(c.px, minX(m), maxX(m)), ty = clamp(c.py, minY(m), maxY(m));
         let dx = tx - m.x, dy = ty - m.y; const d = Math.hypot(dx, dy), cap = m.spd*2.3;
@@ -4974,7 +5075,7 @@ const SHOP = {
       if (stillT > 600 && Math.abs(puck.x - MX) < 30){ puck.vx = (rnd(2) - 1)*3; puck.vy = (rnd(2) - 1)*3; stillT = 0; }   // 가운데에 10초 넘게 멈추면 톡
       if (state === "play" && sp > 2.5){ trail.push({x: puck.x, y: puck.y, s: sp}); if (trail.length > 16) trail.shift(); } else if (trail.length) trail.shift();
     }
-    function endMatch(w){ window.ARC && ARC.duel("ah", M[w].sid, M[1 - w].sid, M[1].ctl === "cpu", score);
+    function endMatch(w){ if (netR === "host") NET.end(w, score); window.ARC && ARC.duel("ah", M[w].sid, M[1 - w].sid, M[1].ctl === "cpu", score);
       state = "end"; ptr.clear();
       const st = stu(M[w].sid);
       $("#ahEndPh").innerHTML = avHTML(M[w].sid, "big");
@@ -5145,7 +5246,7 @@ const SHOP = {
       if (!open) return;
       if (!last) last = now;
       acc += Math.min(100, now - last); last = now;
-      while (acc >= 1000/60){ if (state !== "pause" && state !== "sel" && state !== "end") step(); acc -= 1000/60; }
+      while (acc >= 1000/60){ if (state !== "pause" && state !== "sel" && state !== "end") (netR === "guest" ? gstep() : step()); acc -= 1000/60; } if (netR) NET.tick(window.__ahNet);
       draw();
       raf = requestAnimationFrame(loop);
     }
@@ -5159,7 +5260,7 @@ const SHOP = {
 
     /* ---- 캐릭터 고르기 ---- */
     function renderKeys(){
-      $("#ahKeys").innerHTML = mode === "cpu"
+      $("#ahKeys").innerHTML = netR ? `🌐 다른 기기 대결 · 화면을 손가락으로 끌거나 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>·방향키로 움직여요 · 대시 <kbd>F</kbd>/<kbd>Enter</kbd>` : mode === "cpu"
         ? `이동 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 또는 방향키 · 대시 <kbd>F</kbd>/<kbd>Enter</kbd> · 화면을 손가락으로 끌어도 돼요 · 멈춤 <kbd>P</kbd>`
         : `1P <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 이동 <kbd>F</kbd> 대시 · 2P 방향키 이동 <kbd>Enter</kbd> 대시 · 전자칠판은 자기 쪽을 손가락으로 끌어요 · 멈춤 <kbd>P</kbd>`;
     }
@@ -5195,7 +5296,7 @@ const SHOP = {
       toSel(); last = 0; cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
     }
     function closeAh(){ window.ARC && ARC.back(); open = false; cancelAnimationFrame(raf); keys.clear(); ptr.clear(); $("#airh").classList.remove("open"); state = "sel"; }
-    function togglePause(){
+    function togglePause(){ if (netR) return;
       if (state === "pause"){ state = $("#ahPause").dataset.prev || "play"; $("#ahPause").hidden = true; }
       else if (state === "play" || state === "ready" || state === "goal"){ $("#ahPause").dataset.prev = state; state = "pause"; $("#ahPause").hidden = false; ptr.clear(); }
     }
@@ -5219,19 +5320,68 @@ const SHOP = {
     });
     $("#ahRand").onclick = () => { pick[0] = randPick(null); pick[1] = randPick(pick[0]); renderSel(); };
     $("#ahStart").onclick = () => { if (S.students.length < 2){ toast("학생이 2명 이상 있어야 해요", false); return; } startMatch(); };
-    $("#ahRe").onclick = startMatch;
+    $("#ahRe").onclick = () => netR ? NET.again() : startMatch();
     $("#ahToSel").onclick = toSel;
     window.addEventListener("resize", () => { if (open) fit(); });
     window.addEventListener("keydown", e => {
       if (!open) return;
       if (e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); if (state === "sel") closeAh(); else toSel(); return; }
       if (state === "sel" && (e.code === "Enter" || e.code === "Space") && !e.repeat && !document.querySelector(".modal.open")){ e.preventDefault(); e.stopPropagation(); $("#ahStart").click(); return; }
-      if (state === "end" && (e.code === "Enter" || e.code === "Space") && !e.repeat){ e.preventDefault(); e.stopPropagation(); startMatch(); return; }
+      if (state === "end" && (e.code === "Enter" || e.code === "Space") && !e.repeat){ e.preventDefault(); e.stopPropagation(); netR ? NET.again() : startMatch(); return; }
       if (e.code === "KeyP"){ e.preventDefault(); e.stopPropagation(); togglePause(); return; }
       if (GAMEKEYS.has(e.code)){ e.preventDefault(); e.stopPropagation(); if (!e.repeat) pressed.add(e.code); keys.add(e.code); }
     }, true);
     window.addEventListener("keyup", e => { if (open) keys.delete(e.code); }, true);
     window.addEventListener("blur", () => keys.clear());
+    /* 🌐 수락한 친구 기기: 내 말렛만 움직이고 나머지는 받은 대로 그려요 */
+    let gRd = -1;
+    function gstep(){
+      frame++;
+      if (shake > 0) shake *= .86; if (flash > 0) flash -= .05;
+      parts = parts.filter(p => { p.x += p.vx; p.y += p.vy; if (p.k){ p.vy += .25; p.vx *= .98; p.r += .2; } else { p.vx *= .9; p.vy *= .9; } return --p.t > 0; });
+      rings = rings.filter(r => { r.r += 4.5; return --r.t > 0; });
+      texts = texts.filter(t => --t.t > 0);
+      if (state === "play"){ puck.x += puck.vx; puck.y += puck.vy; puck.y = clamp(puck.y, Y0 + PR, Y1 - PR); const o = M[0]; o.x = clamp(o.x + o.vx, minX(o), maxX(o)); o.y = clamp(o.y + o.vy, minY(o), maxY(o)); }
+      else if (state === "goal"){ puck.x += puck.vx; puck.y += puck.vy; puck.vx *= .9; puck.vy *= .9; }
+      else if (state === "ready" && readyT > 0) readyT--;
+      if (state === "play" || state === "ready"){
+        const m = M[1], c = input(m); moveIntent(m, c);
+        for (let s = 0; s < SUB; s++){ m.x = clamp(m.x + m.vx/SUB, minX(m), maxX(m)); m.y = clamp(m.y + m.vy/SUB, minY(m), maxY(m)); }
+      }
+      pressed.clear();
+    }
+    window.__ahNet = {
+      isOpen: () => open,
+      begin(role, a, b, x){
+        netR = role; mySide = role === "guest" ? 1 : 0; NQ.length = 0; mode = "cpu"; ensure();
+        if (role === "host"){ pick = [a, b]; startMatch(); M[1].ctl = "net"; $("#ahPauseBtn").hidden = true;
+          texts.push({txt: "⬅ 나는 왼쪽 🟠", x: MX - 230, y: MY + 150, c: SC[0].m, s: 34, t: 150, T: 150});
+          return {st: {[a]: statsOf(a), [b]: statsOf(b)}, tg: target}; }
+        if (x && x.st && S.vb && S.vb.stats) Object.assign(S.vb.stats, x.st);
+        if (x && x.tg) target = x.tg;
+        pick = [a, b]; M = [mkMallet(a, 0, "net"), mkMallet(b, 1, "me")]; score = [0, 0]; parts = []; rings = []; texts = []; trail = []; best = 0; ptr.clear(); gRd = -1;
+        puck = {x: MX, y: MY, vx: 0, vy: 0, a: 0}; readyMax = readyT = 150; state = "ready";
+        $("#ahSel").hidden = true; $("#ahEnd").hidden = true; $("#ahPause").hidden = true; $("#ahPauseBtn").hidden = true; renderKeys();
+        texts.push({txt: "나는 오른쪽 🔵 ➡", x: MX + 230, y: MY + 150, c: SC[1].m, s: 34, t: 150, T: 150});
+      },
+      snap(){ const o = M[0]; return {st: state, sc: score, rt: readyT, rm: readyMax, gt: goalT, sr: scorer, fr: frame, pk: puck, tr: trail, rg: rings, sh: shake, fl: flash, fc: flashC, rl: rally, bs: best, n: srvN,
+        m: {x: o.x, y: o.y, vx: o.vx, vy: o.vy, dash: o.dash, cool: o.cool, bump: o.bump, ghosts: o.ghosts}, bp: M[1].bump}; },
+      ev: () => NQ.splice(0),
+      fx(e){ e.forEach(([k, ...a]) => k === "sn" ? snd(...a) : k === "sp" ? sparks(...a) : k === "cf" ? confetti(...a) : k === "sy" ? say(...a) : 0); },
+      apply(d){
+        if (!M[1] || M[1].ctl !== "me") return;
+        if (d.n !== gRd){ gRd = d.n; const m = M[1]; m.x = homeX(1); m.y = MY; m.vx = m.vy = 0; m.dash = 0; m.cool = 0; m.ghosts = []; }
+        state = d.st; score = d.sc; readyT = d.rt; readyMax = d.rm; goalT = d.gt; scorer = d.sr; frame = d.fr; puck = d.pk; trail = d.tr; rings = d.rg;
+        shake = d.sh; flash = d.fl; flashC = d.fc; rally = d.rl; best = d.bs;
+        Object.assign(M[0], d.m); M[1].bump = Math.max(M[1].bump, d.bp || 0);
+        if (state !== "end" && !$("#ahEnd").hidden) $("#ahEnd").hidden = true;
+      },
+      mine(){ const m = M[1]; return {x: m.x, y: m.y, vx: m.vx, vy: m.vy, dash: m.dash, cool: m.cool, ghosts: m.ghosts}; },
+      put(d){ if (M[1] && M[1].ctl === "net") Object.assign(M[1], d); },
+      end(w, sc){ if (netR !== "guest") return; score = sc; endMatch(w); },
+      reset(){ netR = null; mySide = 0; NQ.length = 0; },
+      close(){ if (open) closeAh(); }
+    };
     window.__ahOpen = openAh; window.__ahTest = { setLv(v){ lv = v; }, setTarget(v){ target = v; }, get state(){ return state; }, get score(){ return score; }, get M(){ return M; }, get puck(){ return puck; }, setMode(m){ mode = m; }, setPick(a, b){ pick = [a, b]; }, start: startMatch, step, cpuBoth(){ M[0].ctl = "cpu"; }, setTarget(n){ target = n; }, setLv(n){ lv = n; } };
   })();
   (function(){
@@ -6501,6 +6651,7 @@ const NG = {
     this.last = performance.now(); this.acc = 0; this.frame = 0;
     const loop = now => { this.raf = requestAnimationFrame(loop); this.acc = Math.min(100, this.acc + now - this.last); this.last = now;
       while (this.acc >= 1000/60){ this.acc -= 1000/60; if (!this.ended && !this.paused){ this.frame++; cur.step && cur.step(); } }
+      if (cur.netAd && opt.net) NET.tick(cur.netAd);
       if (cur.draw){ const g = this.g; g.setTransform(this.k, 0, 0, this.k, 0, 0); cur.draw(g); }
       if (this.frame % 6 === 0 && cur.hud) $("#ngHud").innerHTML = cur.hud(); };
     this.raf = requestAnimationFrame(loop);
@@ -6515,6 +6666,7 @@ const NG = {
   },
   pt(e){ const r = $("#ngCanvas").getBoundingClientRect(); return {x: (e.clientX - r.left)/r.width*this.cur.W, y: (e.clientY - r.top)/r.height*this.cur.H}; },
   stop(){ cancelAnimationFrame(this.raf); this.cur = null; },
+  again(){ if (this.opt.net) NET.again(); else this.play(this.gid, this.sids, this.opt); },
   close(){ this.stop(); $("#ng").hidden = true; $("#ngHud").innerHTML = ""; ARC.back(); },
   conf(n){ return `<div class="ng-conf">${Array.from({length: n}, () => `<i style="left:${rnd(100)}%;background:${COLS[Math.floor(rnd(COLS.length))]};animation-duration:${2 + rnd(2.5)}s;animation-delay:${rnd(.8)}s"></i>`).join("")}</div>`; },
   /* 혼자 하는 게임 끝 */
@@ -6543,7 +6695,7 @@ const NG = {
     $("#ngOver").hidden = false;
   }
 };
-$("#ngOver").addEventListener("click", e => { const b = e.target.closest("[data-ng]"); if (!b) return; if (b.dataset.ng === "again") NG.play(NG.gid, NG.sids, NG.opt); else NG.close(); });
+$("#ngOver").addEventListener("click", e => { const b = e.target.closest("[data-ng]"); if (!b) return; if (b.dataset.ng === "again") NG.again(); else NG.close(); });
 $("#ngClose").onclick = () => NG.close();
 window.addEventListener("resize", () => NG.cur && NG.fit());
 (function(){
@@ -6554,7 +6706,7 @@ window.addEventListener("resize", () => NG.cur && NG.fit());
   stg.addEventListener("pointerup", up); stg.addEventListener("pointercancel", up);
   window.addEventListener("keydown", e => { const c = NG.cur; if (!c || $("#ng").hidden) return;
     if (e.key === "Escape"){ e.preventDefault(); NG.close(); return; }
-    if (NG.ended){ if (e.code === "Enter" || e.code === "Space"){ e.preventDefault(); NG.play(NG.gid, NG.sids, NG.opt); } return; }
+    if (NG.ended){ if (e.code === "Enter" || e.code === "Space"){ e.preventDefault(); NG.again(); } return; }
     if (c.key && c.key(e.code, true, e)) e.preventDefault(); });
   window.addEventListener("keyup", e => { const c = NG.cur; if (c && c.key && !$("#ng").hidden) c.key(e.code, false, e); });
 })();
@@ -6843,36 +6995,49 @@ NG.defs.pp = () => {
   const W = 960, H = 600, PH = 120, PWd = 18, X = [46, W - 46], WIN = 7, BRr = 12;
   let py, ty, ball, score, serveT, rally, bestRally, keys, ptrs, fx, trail, aiErr;
   const cpu = () => NG.opt.cpu, lv = () => NG.opt.lv ?? 1;
+  /* 🌐 다른 기기 대결: host = 신청한 친구(왼쪽, 공·점수를 정해요), guest = 수락한 친구(오른쪽) */
+  const net = () => NG.opt.net, mine = () => net() === "guest" ? 1 : 0, NQ = [];
+  const sfx = k => { SFX[k](); if (net() === "host") NQ.push(k); };
   function serve(to){ ball = {x: W/2, y: H/2, vx: 0, vy: 0}; serveT = 70; ball.to = to; rally = 0; }
-  return { W, H,
+  function paddles(){
+    if (cpu() || net()){ const m = mine(); if (keys.has("KeyW") || keys.has("ArrowUp")) ty[m] = py[m] - 14; if (keys.has("KeyS") || keys.has("ArrowDown")) ty[m] = py[m] + 14; }
+    else { if (keys.has("KeyW")) ty[0] = py[0] - 14; if (keys.has("KeyS")) ty[0] = py[0] + 14; if (keys.has("ArrowUp")) ty[1] = py[1] - 14; if (keys.has("ArrowDown")) ty[1] = py[1] + 14; }
+    if (cpu()){
+      const L = [{s: 5.5, e: 70, r: 26}, {s: 8, e: 38, r: 14}, {s: 11, e: 16, r: 6}][lv()];
+      if (NG.frame % L.r === 0) aiErr = rnd(-L.e, L.e);
+      let target = H/2;
+      if (ball.vx > 0){ let bx = ball.x, by = ball.y, vy = ball.vy; const steps = (X[1] - bx)/Math.max(1, ball.vx); by += vy*steps; while (by < 0 || by > H){ by = by < 0 ? -by : 2*H - by; } target = by + aiErr; }
+      ty[1] = py[1] + clampN(target - py[1], -L.s, L.s);
+    }
+    for (const k of [0, 1]){
+      if (net() && k !== mine()) continue;   // 친구 탁구채는 친구 기기에서 받아요
+      ty[k] = clampN(ty[k], PH/2, H - PH/2); py[k] += (ty[k] - py[k])*(cpu() && k === 1 ? 1 : .5); py[k] = clampN(py[k], PH/2, H - PH/2);
+    }
+  }
+  const self = { W, H,
     init(){ py = [H/2, H/2]; ty = [H/2, H/2]; score = [0, 0]; keys = new Set(); ptrs = new Map(); fx = []; trail = []; bestRally = 0; aiErr = 0; serve(rnd(1) < .5 ? 0 : 1); },
-    down(x, y, id){ const side = cpu() ? 0 : (x < W/2 ? 0 : 1); ptrs.set(id, side); ty[side] = y; },
+    down(x, y, id){ const side = net() ? mine() : cpu() ? 0 : (x < W/2 ? 0 : 1); ptrs.set(id, side); ty[side] = y; },
     move(x, y, id){ if (ptrs.has(id)) ty[ptrs.get(id)] = y; },
     up(x, y, id){ ptrs.delete(id); },
     key(code, d){ if (["KeyW","KeyS","ArrowUp","ArrowDown"].includes(code)){ d ? keys.add(code) : keys.delete(code); return true; } return false; },
     step(){
-      if (keys.has("KeyW")) ty[0] = py[0] - 14; if (keys.has("KeyS")) ty[0] = py[0] + 14;
-      if (!cpu()){ if (keys.has("ArrowUp")) ty[1] = py[1] - 14; if (keys.has("ArrowDown")) ty[1] = py[1] + 14; }
-      else { if (keys.has("ArrowUp")) ty[0] = py[0] - 14; if (keys.has("ArrowDown")) ty[0] = py[0] + 14;
-        const L = [{s: 5.5, e: 70, r: 26}, {s: 8, e: 38, r: 14}, {s: 11, e: 16, r: 6}][lv()];
-        if (NG.frame % L.r === 0) aiErr = rnd(-L.e, L.e);
-        let target = H/2;
-        if (ball.vx > 0){ let bx = ball.x, by = ball.y, vy = ball.vy; const steps = (X[1] - bx)/Math.max(1, ball.vx); by += vy*steps; while (by < 0 || by > H){ by = by < 0 ? -by : 2*H - by; } target = by + aiErr; }
-        ty[1] = py[1] + clampN(target - py[1], -L.s, L.s); }
-      for (const k of [0, 1]){ ty[k] = clampN(ty[k], PH/2, H - PH/2); py[k] += (ty[k] - py[k])*(cpu() && k === 1 ? 1 : .5); py[k] = clampN(py[k], PH/2, H - PH/2); }
-      if (serveT > 0){ if (--serveT === 0){ const a = rnd(-.5, .5), s = 7; ball.vx = Math.cos(a)*s*(ball.to ? 1 : -1); ball.vy = Math.sin(a)*s; } }
+      paddles();
+      if (net() === "guest"){   // 공은 친구 기기에서 받은 걸 조금씩 이어서 그려요
+        if (serveT > 0) serveT--;
+        else { ball.x += ball.vx; ball.y += ball.vy; if (ball.y < BRr){ ball.y = BRr; ball.vy = Math.abs(ball.vy); } if (ball.y > H - BRr){ ball.y = H - BRr; ball.vy = -Math.abs(ball.vy); } }
+      } else if (serveT > 0){ if (--serveT === 0){ const a = rnd(-.5, .5), s = 7; ball.vx = Math.cos(a)*s*(ball.to ? 1 : -1); ball.vy = Math.sin(a)*s; } }
       else {
         for (let k = 0; k < 3; k++){
           ball.x += ball.vx/3; ball.y += ball.vy/3;
-          if (ball.y < BRr){ ball.y = BRr; ball.vy = Math.abs(ball.vy); SFX.wall(); } if (ball.y > H - BRr){ ball.y = H - BRr; ball.vy = -Math.abs(ball.vy); SFX.wall(); }
+          if (ball.y < BRr){ ball.y = BRr; ball.vy = Math.abs(ball.vy); sfx("wall"); } if (ball.y > H - BRr){ ball.y = H - BRr; ball.vy = -Math.abs(ball.vy); sfx("wall"); }
           for (const s of [0, 1]){ const px = X[s], dirOk = s === 0 ? ball.vx < 0 : ball.vx > 0;
             if (dirOk && Math.abs(ball.x - px) < PWd/2 + BRr && Math.abs(ball.y - py[s]) < PH/2 + BRr){
               const off = clampN((ball.y - py[s])/(PH/2), -1, 1), sp = Math.min(19, Math.hypot(ball.vx, ball.vy) + .55), a = off*.95;
               ball.vx = Math.cos(a)*sp*(s === 0 ? 1 : -1); ball.vy = Math.sin(a)*sp; ball.x = px + (s === 0 ? 1 : -1)*(PWd/2 + BRr + 1);
-              rally++; bestRally = Math.max(bestRally, rally); SFX.pong(); for (let i = 0; i < 8; i++) fx.push({x: ball.x, y: ball.y, vx: rnd(-3, 3)*(s ? -1 : 1) + (s ? -3 : 3), vy: rnd(-3, 3), t: 20, c: s ? "#ff8787" : "#74c0fc"}); } }
+              rally++; bestRally = Math.max(bestRally, rally); sfx("pong"); for (let i = 0; i < 8; i++) fx.push({x: ball.x, y: ball.y, vx: rnd(-3, 3)*(s ? -1 : 1) + (s ? -3 : 3), vy: rnd(-3, 3), t: 20, c: s ? "#ff8787" : "#74c0fc"}); } }
         }
-        if (ball.x < -30 || ball.x > W + 30){ const w = ball.x < 0 ? 1 : 0; score[w]++; SFX.pt(); fx.push({x: W/2, y: H/2 - 60, s: `${score[0]} : ${score[1]}`, t: 60, big: 1});
-          if (score[w] >= WIN){ NG.win(w, `${score[0]} : ${score[1]}${bestRally > 4 ? ` · 최고 랠리 ${bestRally}번` : ""}`); return; } serve(1 - w); }
+        if (ball.x < -30 || ball.x > W + 30){ const w = ball.x < 0 ? 1 : 0; score[w]++; sfx("pt"); fx.push({x: W/2, y: H/2 - 60, s: `${score[0]} : ${score[1]}`, t: 60, big: 1});
+          if (score[w] >= WIN){ const txt = `${score[0]} : ${score[1]}${bestRally > 4 ? ` · 최고 랠리 ${bestRally}번` : ""}`; if (net() === "host") NET.end(w, score, txt); NG.win(w, txt); return; } serve(1 - w); }
       }
       trail.push({x: ball.x, y: ball.y}); if (trail.length > 10) trail.shift();
       fx = fx.filter(f => (f.vx !== undefined ? (f.x += f.vx, f.y += f.vy) : (f.y -= .5), --f.t > 0));
@@ -6886,15 +7051,202 @@ NG.defs.pp = () => {
       trail.forEach((t, i) => { g.globalAlpha = i/trail.length*.4; g.fillStyle = "#fff"; g.beginPath(); g.arc(t.x, t.y, BRr*(i/trail.length), 0, 7); g.fill(); }); g.globalAlpha = 1;
       [0, 1].forEach(s => { const c = s ? "#ffa8a8" : "#a5d8ff"; g.fillStyle = c; rrect(g, X[s] - PWd/2, py[s] - PH/2, PWd, PH, 9); g.fill(); g.fillStyle = "rgba(255,255,255,.6)"; g.fillRect(X[s] - 3, py[s] - PH/2 + 8, 4, PH - 16);
         const fxp = X[s] + (s ? 40 : -40); faceAt(g, NG.sids[s], clampN(fxp, 26, W - 26), py[s], 22, c);
+        if (net() && s === mine()) outlined(g, "나", clampN(fxp, 26, W - 26), py[s] - 40, 20, "#ffe066");
         if (s === 1 && cpu()){ g.font = `20px ${EMOJI}`; g.textAlign = "center"; g.fillText("🤖", X[s] - 2, py[s] - PH/2 - 14); } });
       g.fillStyle = "#fff"; g.shadowColor = "#fff"; g.shadowBlur = 14; g.beginPath(); g.arc(ball.x, ball.y, BRr, 0, 7); g.fill(); g.shadowBlur = 0;
       fx.forEach(f => { if (f.s){ g.globalAlpha = Math.min(1, f.t/20); outlined(g, f.s, f.x, f.y, 60, "#ffe066"); } else { g.globalAlpha = f.t/20; g.fillStyle = f.c; g.fillRect(f.x, f.y, 5, 5); } }); g.globalAlpha = 1;
       if (serveT > 0) outlined(g, serveT > 35 ? "준비…" : "시작!", W/2, H/2 + 70, 40, "#fff");
-      if (score[0] + score[1] === 0 && serveT > 0) outlined(g, cpu() ? "화면을 위아래로 끌어요 (W·S 또는 ↑·↓)" : "왼쪽 친구는 왼쪽 화면, 오른쪽 친구는 오른쪽 화면을 끌어요", W/2, H - 50, 24, "#fff");
+      if (score[0] + score[1] === 0 && serveT > 0) outlined(g, net() ? `나는 ${mine() ? "오른쪽" : "왼쪽"}! 화면을 위아래로 끌어요 (W·S 또는 ↑·↓)` : cpu() ? "화면을 위아래로 끌어요 (W·S 또는 ↑·↓)" : "왼쪽 친구는 왼쪽 화면, 오른쪽 친구는 오른쪽 화면을 끌어요", W/2, H - 50, 24, "#fff");
     },
-    hud(){ return `${esc(who(noOf_(NG.sids[0])))} <b>${score[0]}</b> : <b>${score[1]}</b> ${cpu() ? "🤖 컴퓨터" : esc(who(noOf_(NG.sids[1])))} · ${WIN}점 먼저!`; }
+    hud(){ return `${esc(who(noOf_(NG.sids[0])))} <b>${score[0]}</b> : <b>${score[1]}</b> ${cpu() ? "🤖 컴퓨터" : esc(who(noOf_(NG.sids[1])))} · ${WIN}점 먼저!${net() ? " · 🌐 다른 기기 대결" : ""}`; },
+    netAd: {
+      snap: () => ({b: ball, p: py[0], sc: score, sv: serveT, rl: rally, br: bestRally, fx}),
+      ev: () => NQ.splice(0),
+      fx(e){ e.forEach(k => SFX[k] && SFX[k]()); },
+      apply(d){ if (net() !== "guest") return; ball = d.b; py[0] = ty[0] = d.p; score = d.sc; serveT = d.sv; rally = d.rl; bestRally = d.br; fx = d.fx; },
+      mine: () => ({y: py[1]}),
+      put(d){ if (net() === "host"){ py[1] = ty[1] = d.y; } },
+      end(w, sc, txt){ if (net() !== "guest" || NG.ended) return; score = sc; NG.win(w, txt); },
+      reset(){}
+    }
   };
+  return self;
 };
+
+/* =====================================================================
+   🌐 다른 기기 친구와 대결
+   - 신청·수락은 Firebase(arcade/{반}/rooms)에 잠깐 쪽지를 두고 주고받아요
+   - 연결되면 게임은 두 기기가 직접(WebRTC) 주고받아요 → 빠르고, Firebase 사용량도 거의 안 들어요
+   - 신청한 친구(왼쪽)가 '심판' 기기예요: 공·점수는 심판 기기가 정하고, 자기 선수는 각자 기기가 움직여요
+   ===================================================================== */
+const NET = {
+  role: null, on: false, gid: null, rid: null, a: null, b: null, pc: null, u: null, r: null,
+  seq: 0, inSeq: 0, lt: 0, timer: 0, dcT: 0, unRoom: null, unInbox: null, inbox: [], inv: null, me: null, sig: null,
+  ICE: [{urls: ["stun:stun.l.google.com:19302", "stun:stun1.l.google.com:19302"]}],
+  ok(){ return !!(this.sig || Store.mode === "cloud") && "RTCPeerConnection" in window; },
+
+  /* ---- 신청 쪽지 (Firebase) ---- */
+  S(){
+    if (this.sig) return this.sig;
+    const fs = Store.fs, col = () => fs.collection(Store.db, "arcade", Store.cid, "rooms");
+    return {
+      async create(o){ const ref = fs.doc(col()); await fs.setDoc(ref, o); return ref.id; },
+      watch(id, cb){ return fs.onSnapshot(fs.doc(col(), id), s => cb(s.exists() ? s.data() : null), () => {}); },
+      update(id, o){ return fs.updateDoc(fs.doc(col(), id), o); },
+      del(id){ return fs.deleteDoc(fs.doc(col(), id)).catch(() => {}); },
+      inbox(no, cb){ return fs.onSnapshot(fs.query(col(), fs.where("to", "==", no)), qs => { const l = []; qs.forEach(d => l.push(Object.assign({id: d.id}, d.data()))); cb(l); }, e => console.warn(e)); }
+    };
+  },
+  /* 로그인하면 나에게 온 신청을 기다려요 */
+  listen(me){
+    if (!this.ok() || (this.unInbox && this.me === me)) return;
+    this.unlisten(); this.me = me;
+    try { this.unInbox = this.S().inbox(me, l => { this.inbox = l.filter(x => x.st === "wait" && x.offer && Math.abs(Date.now() - (x.at || 0)) < 120000).sort((a, b) => b.at - a.at); this.showInvite(); }); }
+    catch(e){ console.warn(e); }
+  },
+  unlisten(){ if (this.unInbox) this.unInbox(); this.unInbox = null; this.inbox = []; this.me = null; if (this.inv){ this.inv = null; ARC.modal("#mdNet", false); } },
+
+  /* ---- 화면: 기다리기 / 신청 받기 ---- */
+  duo(a, b){ const g = GAME[this.gid] || {}, f = n => `<span class="avf">${avHTMLof(sidOf(n), {still: true, face: true})}</span>`; return `<div class="p">${f(a)}<b>${esc(who(a))}</b></div><div class="vs">${g.e || "VS"}</div><div class="p">${f(b)}<b>${esc(who(b))}</b></div>`; },
+  box(title, msg, btns){
+    $("#ntTitle").textContent = title; $("#ntDuo").innerHTML = this.a != null && this.b != null ? this.duo(this.a, this.b) : "";
+    $("#ntMsg").innerHTML = msg; $("#ntBtns").innerHTML = btns.map((b, i) => `<button class="arc-btn${b.p ? " p" : ""}" data-i="${i}">${b.t}</button>`).join("");
+    $("#ntBtns").onclick = e => { const x = e.target.closest("[data-i]"); if (x) btns[+x.dataset.i].f(); };
+    ARC.modal("#mdNet", true);
+  },
+  wait(msg){ const g = GAME[this.gid]; this.box(`🌐 ${g.e} ${g.n} 대결`, msg, [{t: "✕ 그만두기", f: () => this.cancel()}]); },
+  fail(msg){ const g = GAME[this.gid] || {e: "🌐", n: ""}; this.close(); this.gid = g.id; this.box(`${g.e} ${g.n} 대결`, msg, [{t: "확인", p: 1, f: () => { ARC.modal("#mdNet", false); this.showInvite(); }}]); },
+  showInvite(){
+    if (this.role || ARC.me === null || ARC.busy) return;
+    const cur = this.inv && this.inbox.find(x => x.id === this.inv.id);
+    if (this.inv && !cur){ this.inv = null; ARC.modal("#mdNet", false); toast("친구가 대결 신청을 취소했어요"); }
+    if (this.inv || !this.inbox.length) return;
+    if (!$("#mdNet").hidden) return;   // 다른 안내를 보고 있어요
+    const x = this.inv = this.inbox[0], g = GAME[x.g]; if (!g){ this.inv = null; return; }
+    this.gid = x.g; this.a = x.from; this.b = ARC.me;
+    ["#mdDuel", "#mdRank", "#mdPw"].forEach(q => { const m = $(q); if (m) m.hidden = true; });
+    this.box(`⚔️ 대결 신청이 왔어요!`, `<b>${esc(iga(who(x.from)))}</b> <b>${g.e} ${g.n}</b> 대결을 신청했어요!<br><small>수락하면 친구 기기와 연결돼요. 이기면 랭킹 +1승!</small>`,
+      [{t: "🙅 다음에", f: () => { this.inv = null; ARC.modal("#mdNet", false); this.S().update(x.id, {st: "no"}).catch(() => {}); this.a = this.b = null; }},
+       {t: "⚔️ 수락!", p: 1, f: () => { this.inv = null; this.accept(x); }}]);
+    try { tone(660, 990, .12, "triangle", .12); tone(990, 1320, .15, "triangle", .12, .13); } catch(e) {}
+  },
+
+  /* ---- 연결 ---- */
+  mkPc(){
+    const pc = this.pc = new RTCPeerConnection({iceServers: this.ICE});
+    pc.onconnectionstatechange = () => { if (this.pc !== pc) return; const s = pc.connectionState;
+      if (s === "failed") this.lost();
+      else if (s === "disconnected"){ clearTimeout(this.dcT); this.dcT = setTimeout(() => { if (this.pc === pc && pc.connectionState === "disconnected") this.lost(); }, 5000); } };
+    return pc;
+  },
+  gather(){ const pc = this.pc; return new Promise(res => { if (pc.iceGatheringState === "complete") return res(); const t = setTimeout(res, 3000); pc.addEventListener("icegatheringstatechange", () => { if (pc.iceGatheringState === "complete"){ clearTimeout(t); res(); } }); }); },
+  wire(){
+    [this.u, this.r].forEach(c => { if (!c || c._w) return; c._w = 1;
+      c.onmessage = e => { let m; try { m = JSON.parse(e.data); } catch(er){ return; } this.msg(m); };
+      c.onopen = () => this.ready(); c.onclose = () => { if (this.on) this.lost(); }; });
+    this.ready();
+  },
+  connWait(){ clearTimeout(this.timer); this.timer = setTimeout(() => { if (!this.on) this.fail(`🔌 두 기기가 연결되지 않았어요.<br><small>두 기기가 <b>같은 와이파이</b>에 연결돼 있는지 확인하고 다시 해 보세요. 학교 와이파이가 기기끼리 연결을 막아 두었으면 안 될 수 있어요. 그럴 때는 한 기기에서 🧒 둘이 대결을 해요.</small>`); }, 20000); },
+
+  async invite(gid, to){
+    this.close(); this.role = "host"; this.gid = gid; this.a = ARC.me; this.b = to;
+    this.wait(`⏳ <b>${esc(who(to))}</b>에게 신청하는 중…`);
+    try {
+      const pc = this.mkPc();
+      this.u = pc.createDataChannel("u", {ordered: false, maxRetransmits: 0}); this.r = pc.createDataChannel("r"); this.wire();
+      await pc.setLocalDescription(await pc.createOffer()); await this.gather();
+      if (this.pc !== pc) return;
+      this.rid = await this.S().create({g: gid, from: this.a, to, st: "wait", offer: pc.localDescription.sdp, at: Date.now()});
+      if (this.pc !== pc){ this.S().del(this.rid); return; }
+      this.wait(`📨 <b>${esc(who(to))}</b>의 화면에 신청이 떴어요.<br>친구가 <b>⚔️ 수락</b>을 누르면 바로 시작해요!<br><small>친구도 자기 기기에서 오락실에 로그인해 있어야 해요.</small>`);
+      this.unRoom = this.S().watch(this.rid, d => {
+        if (this.pc !== pc || this.on) return;
+        if (!d) return this.fail("신청이 사라졌어요. 다시 신청해 보세요.");
+        if (d.st === "no") return this.fail(`🙏 <b>${esc(iga(who(to)))}</b> 다음에 하재요.`);
+        if (d.answer && !pc.currentRemoteDescription){ pc.setRemoteDescription({type: "answer", sdp: d.answer}).catch(e => this.fail("연결하지 못했어요: " + e.message)); this.wait("🔌 친구 기기와 연결하는 중…"); this.connWait(); }
+      });
+      this.timer = setTimeout(() => { if (this.pc === pc && !this.on && !pc.currentRemoteDescription) this.fail(`⌛ <b>${esc(iga(who(to)))}</b> 대답이 없어요.<br><small>친구가 자기 기기에서 오락실에 로그인해 있는지 확인해요.</small>`); }, 60000);
+    } catch(e){ console.error(e); this.fail("신청하지 못했어요: " + (e.message || e)); }
+  },
+  async accept(x){
+    this.close(); this.role = "guest"; this.gid = x.g; this.a = x.from; this.b = ARC.me; this.rid = x.id;
+    this.wait("🔌 친구 기기와 연결하는 중…");
+    try {
+      const pc = this.mkPc();
+      pc.ondatachannel = e => { if (e.channel.label === "u") this.u = e.channel; else this.r = e.channel; this.wire(); };
+      await pc.setRemoteDescription({type: "offer", sdp: x.offer});
+      await pc.setLocalDescription(await pc.createAnswer()); await this.gather();
+      if (this.pc !== pc) return;
+      await this.S().update(x.id, {answer: pc.localDescription.sdp, st: "go"});
+      this.unRoom = this.S().watch(x.id, d => { if (this.pc === pc && !this.on && !d) this.fail("친구가 신청을 취소했어요."); });
+      this.connWait();
+    } catch(e){ console.error(e); this.fail("연결하지 못했어요: " + (e.message || e)); }
+  },
+  cancel(){
+    if (this.rid && !this.on){ if (this.role === "host") this.S().del(this.rid); else this.S().update(this.rid, {st: "no"}).catch(() => {}); }
+    this.close(); ARC.modal("#mdNet", false); this.showInvite();
+  },
+  /* 두 통로가 다 열리면 시작 */
+  ready(){
+    if (this.on || !this.u || !this.r || this.u.readyState !== "open" || this.r.readyState !== "open") return;
+    this.on = true; clearTimeout(this.timer); ARC.modal("#mdNet", false);
+    if (this.unRoom){ this.unRoom(); this.unRoom = null; }
+    if (this.role === "host"){ this.S().del(this.rid); this.go(); }
+  },
+
+  /* ---- 게임 ---- */
+  ad(){ return this.gid === "vb" ? window.__vbNet : this.gid === "ah" ? window.__ahNet : this.gid === "pp" ? (NG.cur && NG.gid === "pp" && NG.cur.netAd) : null; },
+  go(){   // 심판(신청한 친구) 기기가 시작해요
+    const x = ARC.netGo("host", this.gid, this.a, this.b);
+    this.sendR({t: "start", g: this.gid, a: this.a, b: this.b, x});
+  },
+  again(){
+    if (!this.on) return;
+    if (this.role === "host") return this.go();
+    this.sendR({t: "re"}); toast("🔁 친구에게 한 판 더 하자고 보냈어요");
+  },
+  end(w, sc, txt){ this.sendR({t: "end", w, sc, txt}); },
+  tick(A){
+    if (!this.on || !A) return;
+    const t = performance.now(); if (t - this.lt < 14) return; this.lt = t;
+    if (this.role === "host"){ this.send({t: "s", d: A.snap()}); const e = A.ev(); if (e.length) this.sendR({t: "ev", e}); }
+    else this.send({t: "i", d: A.mine()});
+  },
+  send(o){ const c = this.u; if (!c || c.readyState !== "open" || c.bufferedAmount > 65536) return; o.q = ++this.seq; try { c.send(JSON.stringify(o)); } catch(e) {} },
+  sendR(o){ const c = this.r; if (c && c.readyState === "open") try { c.send(JSON.stringify(o)); } catch(e) {} },
+  msg(m){
+    if (m.t === "s" || m.t === "i"){ if (m.q <= this.inSeq) return; this.inSeq = m.q; const A = this.ad(); if (A) (m.t === "s" ? A.apply(m.d) : A.put(m.d)); return; }
+    if (m.t === "ev"){ const A = this.ad(); if (A) A.fx(m.e); return; }
+    if (m.t === "start"){ if (this.role === "guest"){ this.gid = m.g; ARC.netGo("guest", m.g, m.a, m.b, m.x); } return; }
+    if (m.t === "end"){ const A = this.ad(); if (A) A.end(m.w, m.sc, m.txt); return; }
+    if (m.t === "re"){ if (this.role === "host"){ toast("🔁 친구가 한 판 더 하재요!"); this.go(); } return; }
+    if (m.t === "bye") return this.lost(true);
+  },
+  /* 이긴 쪽/진 쪽 제목을 내 기기 기준으로 */
+  title(sel, wsid){ setTimeout(() => { const h = $(sel); if (h && this.role) h.textContent = wsid === sidOf(ARC.me) ? "🏆 내가 이겼어요!" : "😢 아쉽게 졌어요! 한 판 더?"; }, 0); },
+
+  /* ---- 끝내기 ---- */
+  leave(){ if (!this.role) return; this.sendR({t: "bye"}); this.close(); },
+  lost(bye){
+    if (!this.role) return;
+    const was = this.on, opp = this.role === "host" ? this.b : this.a;
+    this.close();
+    if (was){ ARC.netQuit(); toast(bye ? `👋 ${iga(who(opp))} 대결을 끝냈어요` : "⚠️ 친구 기기와 연결이 끊겼어요"); }
+    else this.fail("⚠️ 친구 기기와 연결이 끊겼어요.");
+  },
+  close(){
+    clearTimeout(this.timer); clearTimeout(this.dcT);
+    if (this.unRoom){ this.unRoom(); this.unRoom = null; }
+    if (this.rid && this.role === "host" && !this.on) this.S().del(this.rid);
+    const pc = this.pc, u = this.u, r = this.r; this.pc = this.u = this.r = null;
+    setTimeout(() => { try { u && u.close(); r && r.close(); pc && pc.close(); } catch(e) {} }, 150);   // 'bye'가 먼저 가게 잠깐 기다려요
+    [window.__vbNet, window.__ahNet].forEach(A => A && A.reset());
+    this.role = null; this.on = false; this.rid = null; this.seq = 0; this.inSeq = 0;
+  }
+};
+/* 받침에 따라 이/가 */
+function iga(s){ const c = String(s).charCodeAt(String(s).length - 1); return c >= 0xAC00 && c <= 0xD7A3 ? s + ((c - 0xAC00) % 28 ? "이" : "가") : s + "이(가)"; }
+window.NET = NET;
 
 </script>
 <script>ARC.boot();</script>

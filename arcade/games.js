@@ -71,6 +71,7 @@ const NG = {
     this.last = performance.now(); this.acc = 0; this.frame = 0;
     const loop = now => { this.raf = requestAnimationFrame(loop); this.acc = Math.min(100, this.acc + now - this.last); this.last = now;
       while (this.acc >= 1000/60){ this.acc -= 1000/60; if (!this.ended && !this.paused){ this.frame++; cur.step && cur.step(); } }
+      if (cur.netAd && opt.net) NET.tick(cur.netAd);
       if (cur.draw){ const g = this.g; g.setTransform(this.k, 0, 0, this.k, 0, 0); cur.draw(g); }
       if (this.frame % 6 === 0 && cur.hud) $("#ngHud").innerHTML = cur.hud(); };
     this.raf = requestAnimationFrame(loop);
@@ -85,6 +86,7 @@ const NG = {
   },
   pt(e){ const r = $("#ngCanvas").getBoundingClientRect(); return {x: (e.clientX - r.left)/r.width*this.cur.W, y: (e.clientY - r.top)/r.height*this.cur.H}; },
   stop(){ cancelAnimationFrame(this.raf); this.cur = null; },
+  again(){ if (this.opt.net) NET.again(); else this.play(this.gid, this.sids, this.opt); },
   close(){ this.stop(); $("#ng").hidden = true; $("#ngHud").innerHTML = ""; ARC.back(); },
   conf(n){ return `<div class="ng-conf">${Array.from({length: n}, () => `<i style="left:${rnd(100)}%;background:${COLS[Math.floor(rnd(COLS.length))]};animation-duration:${2 + rnd(2.5)}s;animation-delay:${rnd(.8)}s"></i>`).join("")}</div>`; },
   /* 혼자 하는 게임 끝 */
@@ -113,7 +115,7 @@ const NG = {
     $("#ngOver").hidden = false;
   }
 };
-$("#ngOver").addEventListener("click", e => { const b = e.target.closest("[data-ng]"); if (!b) return; if (b.dataset.ng === "again") NG.play(NG.gid, NG.sids, NG.opt); else NG.close(); });
+$("#ngOver").addEventListener("click", e => { const b = e.target.closest("[data-ng]"); if (!b) return; if (b.dataset.ng === "again") NG.again(); else NG.close(); });
 $("#ngClose").onclick = () => NG.close();
 window.addEventListener("resize", () => NG.cur && NG.fit());
 (function(){
@@ -124,7 +126,7 @@ window.addEventListener("resize", () => NG.cur && NG.fit());
   stg.addEventListener("pointerup", up); stg.addEventListener("pointercancel", up);
   window.addEventListener("keydown", e => { const c = NG.cur; if (!c || $("#ng").hidden) return;
     if (e.key === "Escape"){ e.preventDefault(); NG.close(); return; }
-    if (NG.ended){ if (e.code === "Enter" || e.code === "Space"){ e.preventDefault(); NG.play(NG.gid, NG.sids, NG.opt); } return; }
+    if (NG.ended){ if (e.code === "Enter" || e.code === "Space"){ e.preventDefault(); NG.again(); } return; }
     if (c.key && c.key(e.code, true, e)) e.preventDefault(); });
   window.addEventListener("keyup", e => { const c = NG.cur; if (c && c.key && !$("#ng").hidden) c.key(e.code, false, e); });
 })();
@@ -413,36 +415,49 @@ NG.defs.pp = () => {
   const W = 960, H = 600, PH = 120, PWd = 18, X = [46, W - 46], WIN = 7, BRr = 12;
   let py, ty, ball, score, serveT, rally, bestRally, keys, ptrs, fx, trail, aiErr;
   const cpu = () => NG.opt.cpu, lv = () => NG.opt.lv ?? 1;
+  /* 🌐 다른 기기 대결: host = 신청한 친구(왼쪽, 공·점수를 정해요), guest = 수락한 친구(오른쪽) */
+  const net = () => NG.opt.net, mine = () => net() === "guest" ? 1 : 0, NQ = [];
+  const sfx = k => { SFX[k](); if (net() === "host") NQ.push(k); };
   function serve(to){ ball = {x: W/2, y: H/2, vx: 0, vy: 0}; serveT = 70; ball.to = to; rally = 0; }
-  return { W, H,
+  function paddles(){
+    if (cpu() || net()){ const m = mine(); if (keys.has("KeyW") || keys.has("ArrowUp")) ty[m] = py[m] - 14; if (keys.has("KeyS") || keys.has("ArrowDown")) ty[m] = py[m] + 14; }
+    else { if (keys.has("KeyW")) ty[0] = py[0] - 14; if (keys.has("KeyS")) ty[0] = py[0] + 14; if (keys.has("ArrowUp")) ty[1] = py[1] - 14; if (keys.has("ArrowDown")) ty[1] = py[1] + 14; }
+    if (cpu()){
+      const L = [{s: 5.5, e: 70, r: 26}, {s: 8, e: 38, r: 14}, {s: 11, e: 16, r: 6}][lv()];
+      if (NG.frame % L.r === 0) aiErr = rnd(-L.e, L.e);
+      let target = H/2;
+      if (ball.vx > 0){ let bx = ball.x, by = ball.y, vy = ball.vy; const steps = (X[1] - bx)/Math.max(1, ball.vx); by += vy*steps; while (by < 0 || by > H){ by = by < 0 ? -by : 2*H - by; } target = by + aiErr; }
+      ty[1] = py[1] + clampN(target - py[1], -L.s, L.s);
+    }
+    for (const k of [0, 1]){
+      if (net() && k !== mine()) continue;   // 친구 탁구채는 친구 기기에서 받아요
+      ty[k] = clampN(ty[k], PH/2, H - PH/2); py[k] += (ty[k] - py[k])*(cpu() && k === 1 ? 1 : .5); py[k] = clampN(py[k], PH/2, H - PH/2);
+    }
+  }
+  const self = { W, H,
     init(){ py = [H/2, H/2]; ty = [H/2, H/2]; score = [0, 0]; keys = new Set(); ptrs = new Map(); fx = []; trail = []; bestRally = 0; aiErr = 0; serve(rnd(1) < .5 ? 0 : 1); },
-    down(x, y, id){ const side = cpu() ? 0 : (x < W/2 ? 0 : 1); ptrs.set(id, side); ty[side] = y; },
+    down(x, y, id){ const side = net() ? mine() : cpu() ? 0 : (x < W/2 ? 0 : 1); ptrs.set(id, side); ty[side] = y; },
     move(x, y, id){ if (ptrs.has(id)) ty[ptrs.get(id)] = y; },
     up(x, y, id){ ptrs.delete(id); },
     key(code, d){ if (["KeyW","KeyS","ArrowUp","ArrowDown"].includes(code)){ d ? keys.add(code) : keys.delete(code); return true; } return false; },
     step(){
-      if (keys.has("KeyW")) ty[0] = py[0] - 14; if (keys.has("KeyS")) ty[0] = py[0] + 14;
-      if (!cpu()){ if (keys.has("ArrowUp")) ty[1] = py[1] - 14; if (keys.has("ArrowDown")) ty[1] = py[1] + 14; }
-      else { if (keys.has("ArrowUp")) ty[0] = py[0] - 14; if (keys.has("ArrowDown")) ty[0] = py[0] + 14;
-        const L = [{s: 5.5, e: 70, r: 26}, {s: 8, e: 38, r: 14}, {s: 11, e: 16, r: 6}][lv()];
-        if (NG.frame % L.r === 0) aiErr = rnd(-L.e, L.e);
-        let target = H/2;
-        if (ball.vx > 0){ let bx = ball.x, by = ball.y, vy = ball.vy; const steps = (X[1] - bx)/Math.max(1, ball.vx); by += vy*steps; while (by < 0 || by > H){ by = by < 0 ? -by : 2*H - by; } target = by + aiErr; }
-        ty[1] = py[1] + clampN(target - py[1], -L.s, L.s); }
-      for (const k of [0, 1]){ ty[k] = clampN(ty[k], PH/2, H - PH/2); py[k] += (ty[k] - py[k])*(cpu() && k === 1 ? 1 : .5); py[k] = clampN(py[k], PH/2, H - PH/2); }
-      if (serveT > 0){ if (--serveT === 0){ const a = rnd(-.5, .5), s = 7; ball.vx = Math.cos(a)*s*(ball.to ? 1 : -1); ball.vy = Math.sin(a)*s; } }
+      paddles();
+      if (net() === "guest"){   // 공은 친구 기기에서 받은 걸 조금씩 이어서 그려요
+        if (serveT > 0) serveT--;
+        else { ball.x += ball.vx; ball.y += ball.vy; if (ball.y < BRr){ ball.y = BRr; ball.vy = Math.abs(ball.vy); } if (ball.y > H - BRr){ ball.y = H - BRr; ball.vy = -Math.abs(ball.vy); } }
+      } else if (serveT > 0){ if (--serveT === 0){ const a = rnd(-.5, .5), s = 7; ball.vx = Math.cos(a)*s*(ball.to ? 1 : -1); ball.vy = Math.sin(a)*s; } }
       else {
         for (let k = 0; k < 3; k++){
           ball.x += ball.vx/3; ball.y += ball.vy/3;
-          if (ball.y < BRr){ ball.y = BRr; ball.vy = Math.abs(ball.vy); SFX.wall(); } if (ball.y > H - BRr){ ball.y = H - BRr; ball.vy = -Math.abs(ball.vy); SFX.wall(); }
+          if (ball.y < BRr){ ball.y = BRr; ball.vy = Math.abs(ball.vy); sfx("wall"); } if (ball.y > H - BRr){ ball.y = H - BRr; ball.vy = -Math.abs(ball.vy); sfx("wall"); }
           for (const s of [0, 1]){ const px = X[s], dirOk = s === 0 ? ball.vx < 0 : ball.vx > 0;
             if (dirOk && Math.abs(ball.x - px) < PWd/2 + BRr && Math.abs(ball.y - py[s]) < PH/2 + BRr){
               const off = clampN((ball.y - py[s])/(PH/2), -1, 1), sp = Math.min(19, Math.hypot(ball.vx, ball.vy) + .55), a = off*.95;
               ball.vx = Math.cos(a)*sp*(s === 0 ? 1 : -1); ball.vy = Math.sin(a)*sp; ball.x = px + (s === 0 ? 1 : -1)*(PWd/2 + BRr + 1);
-              rally++; bestRally = Math.max(bestRally, rally); SFX.pong(); for (let i = 0; i < 8; i++) fx.push({x: ball.x, y: ball.y, vx: rnd(-3, 3)*(s ? -1 : 1) + (s ? -3 : 3), vy: rnd(-3, 3), t: 20, c: s ? "#ff8787" : "#74c0fc"}); } }
+              rally++; bestRally = Math.max(bestRally, rally); sfx("pong"); for (let i = 0; i < 8; i++) fx.push({x: ball.x, y: ball.y, vx: rnd(-3, 3)*(s ? -1 : 1) + (s ? -3 : 3), vy: rnd(-3, 3), t: 20, c: s ? "#ff8787" : "#74c0fc"}); } }
         }
-        if (ball.x < -30 || ball.x > W + 30){ const w = ball.x < 0 ? 1 : 0; score[w]++; SFX.pt(); fx.push({x: W/2, y: H/2 - 60, s: `${score[0]} : ${score[1]}`, t: 60, big: 1});
-          if (score[w] >= WIN){ NG.win(w, `${score[0]} : ${score[1]}${bestRally > 4 ? ` · 최고 랠리 ${bestRally}번` : ""}`); return; } serve(1 - w); }
+        if (ball.x < -30 || ball.x > W + 30){ const w = ball.x < 0 ? 1 : 0; score[w]++; sfx("pt"); fx.push({x: W/2, y: H/2 - 60, s: `${score[0]} : ${score[1]}`, t: 60, big: 1});
+          if (score[w] >= WIN){ const txt = `${score[0]} : ${score[1]}${bestRally > 4 ? ` · 최고 랠리 ${bestRally}번` : ""}`; if (net() === "host") NET.end(w, score, txt); NG.win(w, txt); return; } serve(1 - w); }
       }
       trail.push({x: ball.x, y: ball.y}); if (trail.length > 10) trail.shift();
       fx = fx.filter(f => (f.vx !== undefined ? (f.x += f.vx, f.y += f.vy) : (f.y -= .5), --f.t > 0));
@@ -456,12 +471,24 @@ NG.defs.pp = () => {
       trail.forEach((t, i) => { g.globalAlpha = i/trail.length*.4; g.fillStyle = "#fff"; g.beginPath(); g.arc(t.x, t.y, BRr*(i/trail.length), 0, 7); g.fill(); }); g.globalAlpha = 1;
       [0, 1].forEach(s => { const c = s ? "#ffa8a8" : "#a5d8ff"; g.fillStyle = c; rrect(g, X[s] - PWd/2, py[s] - PH/2, PWd, PH, 9); g.fill(); g.fillStyle = "rgba(255,255,255,.6)"; g.fillRect(X[s] - 3, py[s] - PH/2 + 8, 4, PH - 16);
         const fxp = X[s] + (s ? 40 : -40); faceAt(g, NG.sids[s], clampN(fxp, 26, W - 26), py[s], 22, c);
+        if (net() && s === mine()) outlined(g, "나", clampN(fxp, 26, W - 26), py[s] - 40, 20, "#ffe066");
         if (s === 1 && cpu()){ g.font = `20px ${EMOJI}`; g.textAlign = "center"; g.fillText("🤖", X[s] - 2, py[s] - PH/2 - 14); } });
       g.fillStyle = "#fff"; g.shadowColor = "#fff"; g.shadowBlur = 14; g.beginPath(); g.arc(ball.x, ball.y, BRr, 0, 7); g.fill(); g.shadowBlur = 0;
       fx.forEach(f => { if (f.s){ g.globalAlpha = Math.min(1, f.t/20); outlined(g, f.s, f.x, f.y, 60, "#ffe066"); } else { g.globalAlpha = f.t/20; g.fillStyle = f.c; g.fillRect(f.x, f.y, 5, 5); } }); g.globalAlpha = 1;
       if (serveT > 0) outlined(g, serveT > 35 ? "준비…" : "시작!", W/2, H/2 + 70, 40, "#fff");
-      if (score[0] + score[1] === 0 && serveT > 0) outlined(g, cpu() ? "화면을 위아래로 끌어요 (W·S 또는 ↑·↓)" : "왼쪽 친구는 왼쪽 화면, 오른쪽 친구는 오른쪽 화면을 끌어요", W/2, H - 50, 24, "#fff");
+      if (score[0] + score[1] === 0 && serveT > 0) outlined(g, net() ? `나는 ${mine() ? "오른쪽" : "왼쪽"}! 화면을 위아래로 끌어요 (W·S 또는 ↑·↓)` : cpu() ? "화면을 위아래로 끌어요 (W·S 또는 ↑·↓)" : "왼쪽 친구는 왼쪽 화면, 오른쪽 친구는 오른쪽 화면을 끌어요", W/2, H - 50, 24, "#fff");
     },
-    hud(){ return `${esc(who(noOf_(NG.sids[0])))} <b>${score[0]}</b> : <b>${score[1]}</b> ${cpu() ? "🤖 컴퓨터" : esc(who(noOf_(NG.sids[1])))} · ${WIN}점 먼저!`; }
+    hud(){ return `${esc(who(noOf_(NG.sids[0])))} <b>${score[0]}</b> : <b>${score[1]}</b> ${cpu() ? "🤖 컴퓨터" : esc(who(noOf_(NG.sids[1])))} · ${WIN}점 먼저!${net() ? " · 🌐 다른 기기 대결" : ""}`; },
+    netAd: {
+      snap: () => ({b: ball, p: py[0], sc: score, sv: serveT, rl: rally, br: bestRally, fx}),
+      ev: () => NQ.splice(0),
+      fx(e){ e.forEach(k => SFX[k] && SFX[k]()); },
+      apply(d){ if (net() !== "guest") return; ball = d.b; py[0] = ty[0] = d.p; score = d.sc; serveT = d.sv; rally = d.rl; bestRally = d.br; fx = d.fx; },
+      mine: () => ({y: py[1]}),
+      put(d){ if (net() === "host"){ py[1] = ty[1] = d.y; } },
+      end(w, sc, txt){ if (net() !== "guest" || NG.ended) return; score = sc; NG.win(w, txt); },
+      reset(){}
+    }
   };
+  return self;
 };

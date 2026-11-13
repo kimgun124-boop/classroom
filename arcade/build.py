@@ -82,6 +82,145 @@ patch("ah", "window.__ahTest = {", "window.__ahOpen = openAh; window.__ahTest = 
 patch("fl", "window.__flTest = {", "window.__flOpen = openFl; window.__flTest = { begin,")
 patch("tr", "window.__trTest = {", "window.__trOpen = openTr; window.__trTest = {")
 
+# ---- 🌐 다른 기기 친구와 대결 (net.js) ----
+# 신청한 친구 기기(host)가 공·점수를 정하고, 수락한 친구 기기(guest)는 자기 선수만 움직여서 보내요.
+LOOP = 'while (acc >= 1000/60){ if (state !== "pause" && state !== "sel" && state !== "end") step(); acc -= 1000/60; }'
+NETVARS = ' let netR = null, mySide = 0, srvN = 0, gSrv = -1; const NQ = [];'
+
+# --- 배구
+patch("vb", "    const keys = new Set(), pressed = new Set();\n", "    const keys = new Set(), pressed = new Set();" + NETVARS + "\n")
+patch("vb", "function snd(kind){", 'function snd(kind){ if (netR === "host") NQ.push(["sn", kind]);')
+patch("vb", "function serve(who){", "function serve(who){ srvN++;")
+patch("vb", 'const sets = p.ctl === "p1" && mode === "cpu" ?', 'const sets = p.ctl === "me" || (p.ctl === "p1" && mode === "cpu") ?')
+patch("vb", 'const c = p.ctl === "cpu" ? cpu(p) : ctlState(p);', 'if (p.ctl === "net"){ if (p.cool > 0) p.cool--; if (p.swing > 0) p.swing--; return; } const c = p.ctl === "cpu" ? cpu(p) : ctlState(p);')
+patch("vb", "function endMatch(w){ window.ARC", 'function endMatch(w){ if (netR === "host") NET.end(w, score); window.ARC')
+patch("vb", 'const tag = p.ctl === "cpu" ? "🤖" : p.side ? "2P" : "1P";', 'const tag = p.ctl === "cpu" ? "🤖" : netR ? (p.ctl === "net" ? "친구" : "⬇ 나") : p.side ? "2P" : "1P";')
+patch("vb", LOOP, LOOP.replace("step();", '(netR === "guest" ? gstep() : step());') + " if (netR) NET.tick(window.__vbNet);")
+patch("vb", 'if (e.code === "KeyP" && (state === "play"', 'if (e.code === "KeyP" && !netR && (state === "play"')
+patch("vb", '$("#vbKeys").innerHTML = mode === "cpu"', '$("#vbKeys").innerHTML = netR ? `🌐 다른 기기 대결 · 이동 <kbd>A</kbd><kbd>D</kbd> 또는 <kbd>←</kbd><kbd>→</kbd> · 점프 <kbd>W</kbd>/<kbd>↑</kbd> · 스파이크 <kbd>F</kbd>/<kbd>Enter</kbd>` : mode === "cpu"')
+patch("vb", '$("#vbRe").onclick = startMatch;', '$("#vbRe").onclick = () => netR ? NET.again() : startMatch();')
+patch("vb", "    window.__vbOpen = openVb;", r'''    /* 🌐 수락한 친구 기기: 내 선수만 움직이고 나머지는 받은 대로 그려요 */
+    function gstep(){
+      frame++;
+      if (shake > 0) shake *= .85;
+      fx = fx.filter(f => (f.t -= 1) > 0);
+      if (state === "play"){
+        ball.vy += BG; ball.x += ball.vx; ball.y += ball.vy; ball.spin += ball.vx * .02;
+        if (ball.x < BR){ ball.x = BR; ball.vx = Math.abs(ball.vx); } if (ball.x > W - BR){ ball.x = W - BR; ball.vx = -Math.abs(ball.vx); }
+        if (ball.y + BR > GROUND) ball.y = GROUND - BR;
+        const o = P[0]; o.x += o.vx; if (!o.ground){ o.vy += PG; o.y = Math.min(GROUND, o.y + o.vy); }
+        const p = P[1], c = ctlState(p), sp = p.spd;
+        p.vx = (c.r ? sp : 0) - (c.l ? sp : 0);
+        if ((c.u || c.up) && p.ground){ p.vy = -p.jump; p.ground = false; p.squash = 6; snd("jump"); }
+        if (c.sp) p.spikeT = 10;
+        p.spikeDir = c.d ? 1 : c.u ? -1 : 0;
+        if (p.spikeT > 0) p.spikeT--;
+        if (p.swing > 0) p.swing--;
+        p.x += p.vx;
+        if (!p.ground){ p.vy += PG + (c.d ? .35 : 0); p.y += p.vy; if (p.y >= GROUND){ p.y = GROUND; p.vy = 0; p.ground = true; p.squash = 6; } }
+        if (p.squash > 0) p.squash--;
+        p.x = Math.max(minX(p), Math.min(maxX(p), p.x));
+      } else if (state === "point" && ball){ ball.vy += BG*.5; ball.y = Math.min(ball.y + ball.vy*.3, GROUND - BR*.6); }
+      pressed.clear();
+    }
+    window.__vbNet = {
+      isOpen: () => open,
+      begin(role, a, b, x){
+        netR = role; mySide = role === "guest" ? 1 : 0; NQ.length = 0; mode = "cpu"; ensureStats();
+        if (role === "host"){ pick = [a, b]; startMatch(); P[1].ctl = "net"; return {st: {[a]: statsOf(a), [b]: statsOf(b)}, tg: target}; }
+        if (x && x.st) Object.assign(S.vb.stats, x.st);
+        if (x && x.tg) target = x.tg;
+        pick = [a, b]; P = [mkPlayer(a, 0, "net"), mkPlayer(b, 1, "me")]; score = [0, 0]; fx = []; trail = []; gSrv = -1;
+        ball = {x: W/2, y: 110, vx: 0, vy: 0, spin: 0, spiked: 0}; state = "play";
+        $("#vbSel").hidden = true; $("#vbEnd").hidden = true; $("#vbPause").hidden = true; renderKeys();
+      },
+      snap(){ const o = P[0]; return {st: state, sc: score, sv: server, n: srvN, fr: frame, b: ball, tr: trail, fx, sh: shake, sw: P[1].swing,
+        p: {x: o.x, y: o.y, vx: o.vx, vy: o.vy, ground: o.ground, squash: o.squash, swing: o.swing, spikeT: o.spikeT}}; },
+      ev: () => NQ.splice(0),
+      fx(e){ e.forEach(([k, a]) => { if (k === "sn") snd(a); }); },
+      apply(d){
+        if (!P[1] || P[1].ctl !== "me") return;
+        if (d.n !== gSrv){ gSrv = d.n; const p = P[1]; p.x = homeX(p); p.y = GROUND; p.vx = p.vy = 0; p.ground = true; p.spikeT = 0; p.swing = 0; }
+        state = d.st; score = d.sc; server = d.sv; frame = d.fr; ball = d.b; trail = d.tr; fx = d.fx; shake = d.sh;
+        Object.assign(P[0], d.p); P[1].swing = Math.max(P[1].swing, d.sw || 0);
+        if (state !== "end" && !$("#vbEnd").hidden) $("#vbEnd").hidden = true;
+      },
+      mine(){ const p = P[1]; return {x: p.x, y: p.y, vx: p.vx, vy: p.vy, ground: p.ground, spikeT: p.spikeT, spikeDir: p.spikeDir, squash: p.squash}; },
+      put(d){ if (P[1] && P[1].ctl === "net") Object.assign(P[1], d); },
+      end(w, sc){ if (netR !== "guest") return; score = sc; endMatch(w); },
+      reset(){ netR = null; mySide = 0; NQ.length = 0; },
+      close(){ if (open) closeVb(); }
+    };
+    window.__vbOpen = openVb;''')
+
+# --- 에어하키
+patch("ah", "const keys = new Set(), pressed = new Set(), ptr = new Map(), imgs = {};", "const keys = new Set(), pressed = new Set(), ptr = new Map(), imgs = {};" + NETVARS)
+patch("ah", "function snd(kind, v){", 'function snd(kind, v){ if (netR === "host") NQ.push(["sn", kind, v]);')
+patch("ah", "function sparks(x, y, n, col, sp){", 'function sparks(x, y, n, col, sp){ if (netR === "host") NQ.push(["sp", x, y, n, col, sp]);')
+patch("ah", "function confetti(x, y, n, dir){", 'function confetti(x, y, n, dir){ if (netR === "host") NQ.push(["cf", x, y, n, dir]);')
+patch("ah", "function say(txt, x, y, col, size, life){", 'function say(txt, x, y, col, size, life){ if (netR === "host") NQ.push(["sy", txt, x, y, col, size, life]);')
+patch("ah", "function ready(side, first){", "function ready(side, first){ srvN++;")
+patch("ah", 'if (m.ctl === "cpu") return cpu(m);', 'if (m.ctl === "cpu") return cpu(m); if (m.ctl === "net") return {ix: 0, iy: 0};')
+patch("ah", 'const sets = m.ctl === "p1" && mode === "cpu" ?', 'const sets = m.ctl === "me" || (m.ctl === "p1" && mode === "cpu") ?')
+patch("ah", "function moveIntent(m, c){", 'function moveIntent(m, c){ if (m.ctl === "net"){ if (m.hitT > 0) m.hitT--; if (m.bump > 0) m.bump--; return; }')
+patch("ah", 'side = mode === "cpu" ? 0 :', 'side = mode === "cpu" ? mySide :')
+patch("ah", "function endMatch(w){ window.ARC", 'function endMatch(w){ if (netR === "host") NET.end(w, score); window.ARC')
+patch("ah", LOOP, LOOP.replace("step();", '(netR === "guest" ? gstep() : step());') + " if (netR) NET.tick(window.__ahNet);")
+patch("ah", "function togglePause(){", "function togglePause(){ if (netR) return;")
+patch("ah", '$("#ahKeys").innerHTML = mode === "cpu"', '$("#ahKeys").innerHTML = netR ? `🌐 다른 기기 대결 · 화면을 손가락으로 끌거나 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>·방향키로 움직여요 · 대시 <kbd>F</kbd>/<kbd>Enter</kbd>` : mode === "cpu"')
+patch("ah", '$("#ahRe").onclick = startMatch;', '$("#ahRe").onclick = () => netR ? NET.again() : startMatch();')
+patch("ah", "e.stopPropagation(); startMatch(); return; }", "e.stopPropagation(); netR ? NET.again() : startMatch(); return; }")
+patch("ah", "    window.__ahOpen = openAh;", r'''    /* 🌐 수락한 친구 기기: 내 말렛만 움직이고 나머지는 받은 대로 그려요 */
+    let gRd = -1;
+    function gstep(){
+      frame++;
+      if (shake > 0) shake *= .86; if (flash > 0) flash -= .05;
+      parts = parts.filter(p => { p.x += p.vx; p.y += p.vy; if (p.k){ p.vy += .25; p.vx *= .98; p.r += .2; } else { p.vx *= .9; p.vy *= .9; } return --p.t > 0; });
+      rings = rings.filter(r => { r.r += 4.5; return --r.t > 0; });
+      texts = texts.filter(t => --t.t > 0);
+      if (state === "play"){ puck.x += puck.vx; puck.y += puck.vy; puck.y = clamp(puck.y, Y0 + PR, Y1 - PR); const o = M[0]; o.x = clamp(o.x + o.vx, minX(o), maxX(o)); o.y = clamp(o.y + o.vy, minY(o), maxY(o)); }
+      else if (state === "goal"){ puck.x += puck.vx; puck.y += puck.vy; puck.vx *= .9; puck.vy *= .9; }
+      else if (state === "ready" && readyT > 0) readyT--;
+      if (state === "play" || state === "ready"){
+        const m = M[1], c = input(m); moveIntent(m, c);
+        for (let s = 0; s < SUB; s++){ m.x = clamp(m.x + m.vx/SUB, minX(m), maxX(m)); m.y = clamp(m.y + m.vy/SUB, minY(m), maxY(m)); }
+      }
+      pressed.clear();
+    }
+    window.__ahNet = {
+      isOpen: () => open,
+      begin(role, a, b, x){
+        netR = role; mySide = role === "guest" ? 1 : 0; NQ.length = 0; mode = "cpu"; ensure();
+        if (role === "host"){ pick = [a, b]; startMatch(); M[1].ctl = "net"; $("#ahPauseBtn").hidden = true;
+          texts.push({txt: "⬅ 나는 왼쪽 🟠", x: MX - 230, y: MY + 150, c: SC[0].m, s: 34, t: 150, T: 150});
+          return {st: {[a]: statsOf(a), [b]: statsOf(b)}, tg: target}; }
+        if (x && x.st && S.vb && S.vb.stats) Object.assign(S.vb.stats, x.st);
+        if (x && x.tg) target = x.tg;
+        pick = [a, b]; M = [mkMallet(a, 0, "net"), mkMallet(b, 1, "me")]; score = [0, 0]; parts = []; rings = []; texts = []; trail = []; best = 0; ptr.clear(); gRd = -1;
+        puck = {x: MX, y: MY, vx: 0, vy: 0, a: 0}; readyMax = readyT = 150; state = "ready";
+        $("#ahSel").hidden = true; $("#ahEnd").hidden = true; $("#ahPause").hidden = true; $("#ahPauseBtn").hidden = true; renderKeys();
+        texts.push({txt: "나는 오른쪽 🔵 ➡", x: MX + 230, y: MY + 150, c: SC[1].m, s: 34, t: 150, T: 150});
+      },
+      snap(){ const o = M[0]; return {st: state, sc: score, rt: readyT, rm: readyMax, gt: goalT, sr: scorer, fr: frame, pk: puck, tr: trail, rg: rings, sh: shake, fl: flash, fc: flashC, rl: rally, bs: best, n: srvN,
+        m: {x: o.x, y: o.y, vx: o.vx, vy: o.vy, dash: o.dash, cool: o.cool, bump: o.bump, ghosts: o.ghosts}, bp: M[1].bump}; },
+      ev: () => NQ.splice(0),
+      fx(e){ e.forEach(([k, ...a]) => k === "sn" ? snd(...a) : k === "sp" ? sparks(...a) : k === "cf" ? confetti(...a) : k === "sy" ? say(...a) : 0); },
+      apply(d){
+        if (!M[1] || M[1].ctl !== "me") return;
+        if (d.n !== gRd){ gRd = d.n; const m = M[1]; m.x = homeX(1); m.y = MY; m.vx = m.vy = 0; m.dash = 0; m.cool = 0; m.ghosts = []; }
+        state = d.st; score = d.sc; readyT = d.rt; readyMax = d.rm; goalT = d.gt; scorer = d.sr; frame = d.fr; puck = d.pk; trail = d.tr; rings = d.rg;
+        shake = d.sh; flash = d.fl; flashC = d.fc; rally = d.rl; best = d.bs;
+        Object.assign(M[0], d.m); M[1].bump = Math.max(M[1].bump, d.bp || 0);
+        if (state !== "end" && !$("#ahEnd").hidden) $("#ahEnd").hidden = true;
+      },
+      mine(){ const m = M[1]; return {x: m.x, y: m.y, vx: m.vx, vy: m.vy, dash: m.dash, cool: m.cool, ghosts: m.ghosts}; },
+      put(d){ if (M[1] && M[1].ctl === "net") Object.assign(M[1], d); },
+      end(w, sc){ if (netR !== "guest") return; score = sc; endMatch(w); },
+      reset(){ netR = null; mySide = 0; NQ.length = 0; },
+      close(){ if (open) closeAh(); }
+    };
+    window.__ahOpen = openAh;''')
+
 game_js = "\n".join(mods[k] for k in ("vb", "ah", "fl", "tr"))
 
 # ---- 3-1) 👕 아바타 그리기 (index.html의 아바타 모듈 + 오락실 고급 아이템 자리)
@@ -112,7 +251,7 @@ for k, v in {
     "/*{{CORE_JS}}*/": rd("core.js"),
     "/*{{AV_JS}}*/": av_js + "\n" + rd("avatar.js"),
     "/*{{GAME_JS}}*/": game_js,
-    "/*{{NEW_JS}}*/": rd("games.js"),
+    "/*{{NEW_JS}}*/": rd("games.js") + "\n" + rd("net.js"),
 }.items():
     assert out.count(k) == 1, k
     out = out.replace(k, v)

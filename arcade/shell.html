@@ -90,7 +90,8 @@
     <h2 id="duTitle">⚔️ 대결</h2>
     <div class="arc-duo" id="duDuo"></div>
     <div class="arc-row col">
-      <button class="arc-btn p big" id="duFriend">🧒 친구와 대결 <small>상대도 번호·비밀번호로 들어와요 · 이기면 랭킹 1승!</small></button>
+      <button class="arc-btn p big" id="duNet">🌐 다른 기기 친구와 대결 <small></small></button>
+      <button class="arc-btn p big" id="duFriend">🧒 이 기기에서 둘이 대결 <small>한 기기에서 나란히 · 상대도 번호·비밀번호로 들어와요 · 이기면 랭킹 1승!</small></button>
       <button class="arc-btn big" id="duCpu">🤖 컴퓨터와 연습 <small>랭킹에는 들어가지 않아요</small></button>
     </div>
     <div class="arc-seg" id="duLv"><button data-v="0">🐣 쉬움</button><button data-v="1" class="on">🐥 보통</button><button data-v="2">🦅 어려움</button></div>
@@ -117,6 +118,16 @@
       </div>
     </div>
     <button class="arc-x" data-close>×</button>
+  </div>
+</div>
+
+<!-- ===== 다른 기기 대결: 신청 · 기다리기 ===== -->
+<div class="arc-modal" id="mdNet" hidden>
+  <div class="arc-card arc-wide arc-net">
+    <h2 id="ntTitle">🌐 대결</h2>
+    <div class="arc-duo" id="ntDuo"></div>
+    <p class="arc-netmsg" id="ntMsg"></p>
+    <div class="arc-row" id="ntBtns"></div>
   </div>
 </div>
 
