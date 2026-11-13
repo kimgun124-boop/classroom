@@ -322,11 +322,13 @@ const GAMES = [
   {id: "tw", e: "🔢", n: "2048",        kind: "score", d: "밀어서 같은 숫자를 합쳐요"},
   {id: "vb", e: "🏐", n: "얼굴 배구",   kind: "duel",  d: "둘이서 배구 대결"},
   {id: "ah", e: "🏒", n: "얼굴 에어하키", kind: "duel", d: "둘이서 하키 대결"},
-  {id: "pp", e: "🏓", n: "얼굴 탁구",   kind: "duel",  d: "둘이서 탁구 대결"}
+  {id: "pp", e: "🏓", n: "얼굴 탁구",   kind: "duel",  d: "둘이서 탁구 대결"},
+  {id: "wb", e: "💦", n: "물풍선 대작전", kind: "duel", multi: 1, d: "미로에서 물풍선 펑! 최대 6명"},
+  {id: "bs", e: "🫧", n: "버블 특공대", kind: "score", d: "로봇을 거품에 가둬 날려 보내요"}
 ];
 const GAME = Object.fromEntries(GAMES.map(g => [g.id, g]));
 /* 점수 → 코인 (한 판 최대 50, 기본 2) */
-const COIN_RATE = {fl: 1, st: 1/3, tr: 2, wm: .8, bk: 1/40, rn: 1/6, tw: 1/80};
+const COIN_RATE = {fl: 1, st: 1/3, tr: 2, wm: .8, bk: 1/40, rn: 1/6, tw: 1/80, bs: 1/250};
 const coinsFor = (gid, score) => Math.min(50, 2 + Math.floor((score || 0)*(COIN_RATE[gid] || 0)));
 const WIN_COIN = 25, LOSE_COIN = 5, BEST_COIN = 10;
 

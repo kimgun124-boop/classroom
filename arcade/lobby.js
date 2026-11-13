@@ -334,7 +334,7 @@ const LOBBY = {
       const myTxt = mine ? `내 기록 <b>${valTxt(g, mine.r)}</b> · <b>${mine.rank}</b>등` : g.kind === "duel" ? "아직 대결 기록이 없어요" : "아직 기록이 없어요";
       const topTxt = top ? `${avI(top.sid)} <span>${esc(isT(top.st.no) ? "선생님" : nameOf(top.st.no))}</span> <b>${valTxt(g, top.r)}</b>` : `<i>1등 자리가 비어 있어요!</i>`;
       return `<button class="arc-game ${g.kind} g-${g.id}${off ? " off" : ""}" data-g="${g.id}">
-        <span class="ag-ic f">${g.e}</span><span class="ag-tag">${g.kind === "duel" ? "⚔️ 둘이서 · 승리전" : "🏆 혼자 · 점수전"}</span>
+        <span class="ag-ic f">${g.e}</span><span class="ag-tag">${g.multi ? "🎉 최대 6명 · 승리전" : g.kind === "duel" ? "⚔️ 둘이서 · 승리전" : "🏆 혼자 · 점수전"}</span>
         <b class="ag-nm">${g.n}</b><small class="ag-ds">${g.d}</small><span class="ag-play">▶ PLAY</span>
         <span class="ag-top">👑 ${topTxt}</span><span class="ag-my">${myTxt}</span>${off ? `<span class="ag-off">⏸️ 꺼 둔 게임 (선생님만 보여요)</span>` : ""}</button>`;
     }).join(""));
@@ -371,7 +371,7 @@ const LOBBY = {
   renderRoom(){
     if (!NET.ok()){ this.put("paneRoom", `<div class="ch-off">⚔️ 대결방은 선생님이 <b>☁️ Firebase</b>로 연결한 반에서 쓸 수 있어요.<br><br>지금은 게임 카드를 눌러 <b>🧒 이 기기에서 둘이 대결</b>을 해요!</div>`); return; }
     if ((Store.cls || {}).roomsOff){ this.put("paneRoom", `<div class="ch-off">⏸️ 선생님이 대결방을 잠깐 닫았어요.</div>`); return; }
-    const duels = this.visGames().filter(g => g.kind === "duel" && gameOn(g.id)), my = ROOMS.myRoom(), L = ROOMS.list().filter(r => r.host !== ARC.me);
+    const duels = this.visGames().filter(g => g.kind === "duel" && !g.multi && gameOn(g.id)), my = ROOMS.myRoom(), L = ROOMS.list().filter(r => r.host !== ARC.me);
     const card = (r, mine) => { const g = GAME[r.g]; return `<div class="rm g-${r.g}${mine ? " mine" : ""}">${avI(sidOf(r.host))}<div class="i"><b>${g.e} ${g.n}</b><small>${mine ? "내가 만든 방" : `방장 ${esc(who(r.host))}`} · ${agoTxt(r.at)}</small></div>${mine ? `<span class="wt">⏳ 기다리는 중</span><button class="arc-btn sm" data-close>✕ 닫기</button>` : `<button class="arc-btn p" data-join="${r.id}">⚔️ 들어가기</button>`}</div>`; };
     const ppl = LIVE.onlineList().filter(s => s.no !== ARC.me);
     this.put("paneRoom", `${my ? card(my, true) : ROOMS.mine === "…" ? `<div class="rm-empty">방 만드는 중…</div>` : `<div class="rm-new"><div class="t">🏠 방 만들기 <small style="font:13px 'Gowun Dodum',sans-serif;color:#b9b0dd">친구가 들어오면 바로 시작!</small></div><div class="rm-gs">${duels.map(g => `<button class="g-${g.id}" data-new="${g.id}"><span class="f">${g.e}</span>${g.n}</button>`).join("") || "<small>지금 켜진 대결 게임이 없어요</small>"}</div></div>`}
