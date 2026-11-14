@@ -326,6 +326,7 @@ const GAMES = [
   {id: "pp", e: "🏓", n: "얼굴 탁구",   kind: "duel",  d: "둘이서 탁구 대결"},
   {id: "wb", e: "💦", n: "물풍선 대작전", kind: "duel", multi: 1, d: "미로에서 물풍선 펑! 최대 6명"},
   {id: "bs", e: "🫧", n: "버블 특공대", kind: "score", d: "로봇을 거품에 가둬 날려 보내요"},
+  {id: "sk", e: "🌥️", n: "하늘 무사단", kind: "score", tag: "🤝 최대 4명 · 협동 점수전", d: "구름 위 슈팅! 캐릭터 4명 · 스킬 · 보스"},
   {id: "bp", e: "🧩", n: "블록 퍼즐",   kind: "score", d: "조각을 끌어 놓고 줄을 채우면 펑!"},
   {id: "fm", e: "🍑", n: "과일 합치기", kind: "score", d: "같은 과일끼리 합쳐 수박까지!"},
   {id: "jm", e: "💎", n: "보석 맞추기", kind: "score", d: "같은 보석 3개 한 줄로 · 90초"},
@@ -333,7 +334,7 @@ const GAMES = [
 ];
 const GAME = Object.fromEntries(GAMES.map(g => [g.id, g]));
 /* 점수 → 코인 (한 판 최대 50, 기본 2) */
-const COIN_RATE = {fl: 1, st: 1/3, tr: 2, wm: .8, bk: 1/40, rn: 1/6, tw: 1/80, bs: 1/250, cp: 1/8, bp: 1/40, fm: 1/30, jm: 1/200, ws: 1/25};
+const COIN_RATE = {fl: 1, st: 1/3, tr: 2, wm: .8, bk: 1/40, rn: 1/6, tw: 1/80, bs: 1/250, sk: 1/1500, cp: 1/8, bp: 1/40, fm: 1/30, jm: 1/200, ws: 1/25};
 const coinsFor = (gid, score) => Math.min(50, 2 + Math.floor((score || 0)*(COIN_RATE[gid] || 0)));
 const WIN_COIN = 25, LOSE_COIN = 5, BEST_COIN = 10;
 

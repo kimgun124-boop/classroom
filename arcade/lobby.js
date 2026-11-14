@@ -334,7 +334,7 @@ const LOBBY = {
       const myTxt = mine ? `내 기록 <b>${valTxt(g, mine.r)}</b> · <b>${mine.rank}</b>등` : g.kind === "duel" ? "아직 대결 기록이 없어요" : "아직 기록이 없어요";
       const topTxt = top ? `${avI(top.sid)} <span>${esc(isT(top.st.no) ? "선생님" : nameOf(top.st.no))}</span> <b>${valTxt(g, top.r)}</b>` : `<i>1등 자리가 비어 있어요!</i>`;
       return `<button class="arc-game ${g.kind} g-${g.id}${off ? " off" : ""}" data-g="${g.id}">
-        <span class="ag-ic f">${g.e}</span><span class="ag-tag">${g.multi ? "🎉 최대 6명 · 승리전" : g.kind === "duel" ? "⚔️ 둘이서 · 승리전" : "🏆 혼자 · 점수전"}</span>
+        <span class="ag-ic f">${g.e}</span><span class="ag-tag">${g.tag ? g.tag : g.multi ? "🎉 최대 6명 · 승리전" : g.kind === "duel" ? "⚔️ 둘이서 · 승리전" : "🏆 혼자 · 점수전"}</span>
         <b class="ag-nm">${g.n}</b><small class="ag-ds">${g.d}</small><span class="ag-play">▶ PLAY</span>
         <span class="ag-top">👑 ${topTxt}</span><span class="ag-my">${myTxt}</span>${off ? `<span class="ag-off">⏸️ 꺼 둔 게임 (선생님만 보여요)</span>` : ""}</button>`;
     }).join(""));
