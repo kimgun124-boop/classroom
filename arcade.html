@@ -8173,17 +8173,22 @@ NG.defs.wb = () => {
   }
 
   /* ---------- 화면 배치 (가로·세로) ---------- */
+  /* 📱 화면 비율에 맞춰 양옆(가로) · 아래(세로) 판을 넓히고, 조작 버튼은 그 판 안에만 두어 미로를 가리지 않아요 */
   function layout(sw, sh){
-    land = sw/Math.max(1, sh) >= 1.2;
+    const asp = sw/Math.max(1, sh);
+    land = asp >= 1.2;
     const two = local.length >= 2;
-    if (land){ const side = 236; W = FW + side*2; H = FH + TOP + 10; FX = side; FY = TOP;
-      PADS = two ? [{pl: local[0], t: "d", x: side/2, y: H - 150, r: 92}, {pl: local[0], t: "b", x: side/2, y: TOP + 140, r: 66},
-                    {pl: local[1], t: "d", x: W - side/2, y: H - 150, r: 92}, {pl: local[1], t: "b", x: W - side/2, y: TOP + 140, r: 66}]
-                 : [{pl: local[0], t: "d", x: side/2, y: H - 160, r: 96}, {pl: local[0], t: "b", x: W - side/2, y: H - 160, r: 84}];
-    } else { W = Math.max(FW + 16, 820); H = FH + TOP + 300; FX = (W - FW)/2; FY = TOP;
+    if (land){ H = FH + TOP + 10; const side = Math.round(Math.max(236, Math.min(440, (H*asp - FW)/2))); W = FW + side*2; FX = side; FY = TOP;
+      const rd = Math.round(Math.min(two ? 100 : 128, side*.42)), rb = Math.round(Math.min(two ? 70 : 108, side*.34));
+      PADS = two ? [{pl: local[0], t: "d", x: side/2, y: H - rd - 40, r: rd}, {pl: local[0], t: "b", x: side/2, y: H - rd*2 - rb - 90, r: rb},
+                    {pl: local[1], t: "d", x: W - side/2, y: H - rd - 40, r: rd}, {pl: local[1], t: "b", x: W - side/2, y: H - rd*2 - rb - 90, r: rb}]
+                 : [{pl: local[0], t: "d", x: side/2, y: H - rd - 50, r: rd}, {pl: local[0], t: "b", x: W - side/2, y: H - rb - 60, r: rb}];
+    } else { W = Math.max(FW + 16, 820); FX = (W - FW)/2; FY = TOP;
+      H = Math.round(Math.max(FH + TOP + 300, Math.min(FH + TOP + 760, W*sh/Math.max(1, sw))));
+      const big = H - (FH + TOP) > 420, by = H - (big ? 230 : 160);   // 📱 아래 판이 넓으면 버튼을 크게, 엄지가 닿는 높이에
       PADS = two ? [{pl: local[0], t: "d", x: 130, y: H - 150, r: 100}, {pl: local[0], t: "b", x: 310, y: H - 150, r: 64},
                     {pl: local[1], t: "b", x: W - 310, y: H - 150, r: 64}, {pl: local[1], t: "d", x: W - 130, y: H - 150, r: 100}]
-                 : [{pl: local[0], t: "d", x: 160, y: H - 150, r: 110}, {pl: local[0], t: "b", x: W - 160, y: H - 150, r: 92}];
+                 : [{pl: local[0], t: "d", x: big ? 190 : 170, y: by, r: big ? 140 : 120}, {pl: local[0], t: "b", x: W - (big ? 190 : 170), y: by, r: big ? 118 : 100}];
     }
     layerDirty = true;
   }
@@ -8272,7 +8277,7 @@ NG.defs.wb = () => {
     });
   }
   function padAt(x, y){ return PADS.find(p => Math.hypot(x - p.x, y - p.y) < p.r*1.3); }
-  function padDir(p, x, y){ const dx = x - p.x, dy = y - p.y; if (Math.hypot(dx, dy) < p.r*.18) return 0; return Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 3 : 4) : (dy < 0 ? 1 : 2); }
+  function padDir(p, x, y, v){ const dx = x - (v && v.cx != null ? v.cx : p.x), dy = y - (v && v.cy != null ? v.cy : p.y); if (Math.hypot(dx, dy) < p.r*.18) return 0; return Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 3 : 4) : (dy < 0 ? 1 : 2); }
   function pressBomb(pi){ IN[pi].b++; }
 
   /* ---------- 🌐 온라인: 방장 기기 → 친구 기기 ---------- */
@@ -8297,9 +8302,10 @@ NG.defs.wb = () => {
     down(x, y, id){
       const pd = padAt(x, y); if (!pd) return;
       if (pd.t === "b"){ if (party === "guest"){ PARTY.input.b++; } else pressBomb(pd.pl); ptr.set(id, {pl: pd.pl, t: "b"}); return; }
-      ptr.set(id, {pl: pd.pl, t: "d", pad: pd, dir: padDir(pd, x, y)});
+      // 📱 엄지가 닿은 자리가 가운데가 돼요 (방향판 안에서)
+      const lim = pd.r*.7, v = {pl: pd.pl, t: "d", pad: pd, cx: Math.max(pd.x - lim, Math.min(pd.x + lim, x)), cy: Math.max(pd.y - lim, Math.min(pd.y + lim, y))}; v.dir = padDir(pd, x, y, v); ptr.set(id, v);
     },
-    move(x, y, id){ const v = ptr.get(id); if (v && v.t === "d") v.dir = padDir(v.pad, x, y); },
+    move(x, y, id){ const v = ptr.get(id); if (v && v.t === "d") v.dir = padDir(v.pad, x, y, v); },
     up(x, y, id){ ptr.delete(id); },
     key(code, d){
       for (let s = 0; s < 2; s++){ const m = DK[s], dir = code === m.u ? 1 : code === m.d ? 2 : code === m.l ? 3 : code === m.r ? 4 : 0;
@@ -8384,9 +8390,9 @@ NG.defs.wb = () => {
       outlined(g, `${rd}라운드`, side/2, 58, 18, "#ffe066");
       // 패드
       PADS.forEach(pd => { if (party === "guest" && pd.pl !== myIdx) return; const c = padSpr(pd.t, pd.r, PCOL[pd.pl]);
-        let on = false; ptr.forEach(v => { if (v.pl === pd.pl && v.t === pd.t) on = true; });
-        g.globalAlpha = on ? 1 : .85; G2.put(g, c, pd.x - pd.r - 4, pd.y - pd.r - 4 + (on && pd.t === "b" ? 4 : 0)); g.globalAlpha = 1;
-        if (pd.t === "d"){ ptr.forEach(v => { if (v.pl === pd.pl && v.t === "d" && v.dir){ const a = [0, -Math.PI/2, Math.PI/2, Math.PI, 0][v.dir]; g.fillStyle = PCOL[pd.pl]; g.beginPath(); g.arc(pd.x + Math.cos(a)*pd.r*.6, pd.y + Math.sin(a)*pd.r*.6, pd.r*.24, 0, 7); g.fill(); } }); }
+        let on = false, cx = pd.x, cy = pd.y; ptr.forEach(v => { if (v.pl === pd.pl && v.t === pd.t){ on = true; if (v.cx != null){ cx = v.cx; cy = v.cy; } } });
+        g.globalAlpha = on ? 1 : .85; G2.put(g, c, cx - pd.r - 4, cy - pd.r - 4 + (on && pd.t === "b" ? 4 : 0)); g.globalAlpha = 1;
+        if (pd.t === "d"){ ptr.forEach(v => { if (v.pl === pd.pl && v.t === "d" && v.dir){ const a = [0, -Math.PI/2, Math.PI/2, Math.PI, 0][v.dir]; g.fillStyle = PCOL[pd.pl]; g.beginPath(); g.arc(cx + Math.cos(a)*pd.r*.6, cy + Math.sin(a)*pd.r*.6, pd.r*.24, 0, 7); g.fill(); } }); }
         if (pd.t === "d" && (local.length >= 2 || N > 2)) outlined(g, `${pd.pl + 1}P`, pd.x, pd.y - pd.r - 16, 22, PCOL[pd.pl]); });
       // 큰 글씨
       if (banner && banner.k > 0){ const a = Math.min(1, banner.k/15); g.globalAlpha = a; outlined(g, banner.t, FX + FW/2, FY + FH/2 - 24, 64, banner.c || "#fff"); if (banner.s) outlined(g, banner.s, FX + FW/2, FY + FH/2 + 34, 30, "#ffe066"); g.globalAlpha = 1; }
@@ -9096,17 +9102,37 @@ NG.defs.bs = () => {
   const sfx = k => { playS(k); if (party === "host") NQ.push(["s", k]); };
 
   /* ---------- 화면 배치 (가로·세로, 1명·2명) ---------- */
+  /* 📱 가로 화면이 길쭉하면(핸드폰) 양옆 남는 자리에 조작 버튼을 두어 놀이 화면을 가리지 않아요 */
+  let PX = 0, PAN = false;
   function layout(sw, sh){
-    land = sw/Math.max(1, sh) >= 1.15;
-    const two = local.length >= 2, a = local[0], b = local[1];
+    const asp = sw/Math.max(1, sh), two = local.length >= 2, a = local[0], b = local[1];
+    land = asp >= 1.15;
     if (land){ W = 1280; VH = 720; H = 720;
-      CT = two ? [{t: "stick", pl: a, x: 120, y: VH - 130, r: 86}, {t: "shoot", pl: a, x: 272, y: VH - 78, r: 60}, {t: "jump", pl: a, x: 262, y: VH - 205, r: 54}, {t: "bomb", pl: a, x: 56, y: VH - 280, r: 40},
-                  {t: "stick", pl: b, x: W - 120, y: VH - 130, r: 86}, {t: "shoot", pl: b, x: W - 272, y: VH - 78, r: 60}, {t: "jump", pl: b, x: W - 262, y: VH - 205, r: 54}, {t: "bomb", pl: b, x: W - 56, y: VH - 280, r: 40}]
-                : [{t: "stick", pl: a, x: 160, y: VH - 150, r: 100}, {t: "shoot", pl: a, x: W - 290, y: VH - 115, r: 80}, {t: "jump", pl: a, x: W - 115, y: VH - 160, r: 76}, {t: "bomb", pl: a, x: W - 105, y: VH - 330, r: 52}];
-    } else { W = 760; VH = 760; H = VH + 380;
-      CT = two ? [{t: "stick", pl: a, x: 110, y: VH + 200, r: 88}, {t: "shoot", pl: a, x: 280, y: VH + 275, r: 60}, {t: "jump", pl: a, x: 280, y: VH + 130, r: 56}, {t: "bomb", pl: a, x: 110, y: VH + 58, r: 38},
-                  {t: "stick", pl: b, x: W - 110, y: VH + 200, r: 88}, {t: "shoot", pl: b, x: W - 280, y: VH + 275, r: 60}, {t: "jump", pl: b, x: W - 280, y: VH + 130, r: 56}, {t: "bomb", pl: b, x: W - 110, y: VH + 58, r: 38}]
-                : [{t: "stick", pl: a, x: 180, y: VH + 200, r: 120}, {t: "shoot", pl: a, x: W - 270, y: VH + 250, r: 88}, {t: "jump", pl: a, x: W - 110, y: VH + 155, r: 80}, {t: "bomb", pl: a, x: W - 105, y: VH + 310, r: 52}];
+      PX = Math.round(Math.max(0, Math.min(420, (VH*asp - W)/2)));
+      PAN = PX >= 150;
+      if (PAN && !two){
+        const r = Math.round(Math.min(124, PX*.46)), rb = Math.round(Math.min(96, PX*.38)), rj = Math.round(rb*.92), bx = W + PX/2;
+        CT = [{t: "stick", pl: a, x: -PX/2, y: VH - r - 46, r, free: 1},
+              {t: "shoot", pl: a, x: bx, y: VH - rb - 40, r: rb},
+              {t: "jump", pl: a, x: bx, y: VH - rb*2 - rj - 76, r: rj},
+              {t: "bomb", pl: a, x: -PX/2, y: Math.max(120, VH - r*2 - 150), r: Math.round(Math.min(54, PX*.2))}];
+      } else if (PAN){
+        const r = Math.round(Math.min(96, PX*.4)), rb = Math.round(Math.min(64, PX*.27)), L = -PX/2, Rr = W + PX/2;
+        CT = [{t: "stick", pl: a, x: L, y: VH - r - 40, r, free: 1}, {t: "shoot", pl: a, x: L - rb*.45, y: VH - r*2 - rb - 70, r: rb}, {t: "jump", pl: a, x: L + rb*.55, y: VH - r*2 - rb*3 - 80, r: Math.round(rb*.9)}, {t: "bomb", pl: a, x: L, y: 70, r: 36},
+              {t: "stick", pl: b, x: Rr, y: VH - r - 40, r, free: 1}, {t: "shoot", pl: b, x: Rr + rb*.45, y: VH - r*2 - rb - 70, r: rb}, {t: "jump", pl: b, x: Rr - rb*.55, y: VH - r*2 - rb*3 - 80, r: Math.round(rb*.9)}, {t: "bomb", pl: b, x: Rr, y: 70, r: 36}];
+      } else {
+        const o = PX*.6;   // 태블릿: 화면 가장자리 쪽으로 붙이고, 손대지 않을 땐 흐리게
+        CT = two ? [{t: "stick", pl: a, x: 120 - o, y: VH - 130, r: 86, free: 1}, {t: "shoot", pl: a, x: 272 - o, y: VH - 78, r: 60}, {t: "jump", pl: a, x: 262 - o, y: VH - 205, r: 54}, {t: "bomb", pl: a, x: 56 - o, y: VH - 280, r: 40},
+                    {t: "stick", pl: b, x: W - 120 + o, y: VH - 130, r: 86, free: 1}, {t: "shoot", pl: b, x: W - 272 + o, y: VH - 78, r: 60}, {t: "jump", pl: b, x: W - 262 + o, y: VH - 205, r: 54}, {t: "bomb", pl: b, x: W - 56 + o, y: VH - 280, r: 40}]
+                  : [{t: "stick", pl: a, x: 150 - o, y: VH - 140, r: 100, free: 1}, {t: "shoot", pl: a, x: W - 270 + o, y: VH - 105, r: 78}, {t: "jump", pl: a, x: W - 105 + o, y: VH - 150, r: 72}, {t: "bomb", pl: a, x: W - 95 + o, y: VH - 310, r: 50}];
+      }
+    } else { W = 760; PX = 0; PAN = false;
+      H = Math.round(Math.max(1140, Math.min(1700, W*sh/Math.max(1, sw))));   // 📱 세로로 긴 화면: 놀이 화면을 위로 더 크게, 조작판은 손가락이 편한 아래쪽에
+      VH = H - 380;
+      const B = H - 380;
+      CT = two ? [{t: "stick", pl: a, x: 110, y: B + 200, r: 88, free: 1}, {t: "shoot", pl: a, x: 280, y: B + 275, r: 60}, {t: "jump", pl: a, x: 280, y: B + 130, r: 56}, {t: "bomb", pl: a, x: 110, y: B + 58, r: 38},
+                  {t: "stick", pl: b, x: W - 110, y: B + 200, r: 88, free: 1}, {t: "shoot", pl: b, x: W - 280, y: B + 275, r: 60}, {t: "jump", pl: b, x: W - 280, y: B + 130, r: 56}, {t: "bomb", pl: b, x: W - 110, y: B + 58, r: 38}]
+                : [{t: "stick", pl: a, x: 180, y: B + 200, r: 120, free: 1}, {t: "shoot", pl: a, x: W - 270, y: B + 250, r: 88}, {t: "jump", pl: a, x: W - 110, y: B + 155, r: 80}, {t: "bomb", pl: a, x: W - 105, y: B + 310, r: 52}];
     }
     const old = GY; GY = VH - GT;
     if (P && old !== GY){ const d = GY - old, mv = o => o.y += d; P.forEach(mv); [ens, items, crates, plats, trapped, shots, ebul, fx].forEach(L => L.forEach(mv)); if (boss){ boss.y += d; boss.ty += d; } }
@@ -9126,7 +9152,7 @@ NG.defs.bs = () => {
   function backdrop(){
     const T = th(), cv = $("#ngCanvas"); cv.style.backgroundColor = T.base;
     BSBG.want = `${T.id}|${W}|${VH}`; if (!BSBG.cache.has(BSBG.want)) cv.style.backgroundImage = "";
-    bgMake(T, (url, key) => { if (NG.cur !== self || BSBG.want !== key) return; cv.style.backgroundImage = `url(${url})`; cv.style.backgroundSize = `100% ${VH/H*100}%`; cv.style.backgroundRepeat = "no-repeat"; cv.style.backgroundPosition = "top left"; });
+    bgMake(T, (url, key) => { if (NG.cur !== self || BSBG.want !== key) return; cv.style.backgroundImage = `url(${url})`; cv.style.backgroundSize = `${W/(W + 2*PX)*100}% ${VH/H*100}%`; cv.style.backgroundRepeat = "no-repeat"; cv.style.backgroundPosition = "50% 0"; });
   }
   /* ⚡ 다음 맵 그림은 왕로봇을 쓰러뜨리는 동안 미리 그려 둬요 (맵이 바뀔 때 멈칫하지 않게) */
   function prewarmNext(){ const nx = BS_TH[stage % BS_TH.length], cur = stage;
@@ -9136,10 +9162,10 @@ NG.defs.bs = () => {
   const nearSpr = () => sp("near" + th().id, 900, 150, (t, w, h) => bsNear(t, th(), w, h));
   const grSpr = () => sp("gr" + th().id, 128, GT, (t, w, h) => bsGround(t, th(), w, h));
   function strip(g, c, w, off, y, sx){
-    const k = NG.k || 1, cw = Math.max(1, Math.floor(w*k)), ch = c.height, dy = Math.round(y*k);
-    g.setTransform(1, 0, 0, 1, 0, 0);
+    const k = NG.k || 1, cw = Math.max(1, Math.floor(w*k)), ch = c.height, dy = Math.round(y*k), ox = Math.round(PX*k);
+    g.setTransform(1, 0, 0, 1, ox, 0);
     for (let x = -Math.round(((off*k) % cw + cw) % cw) + Math.round(sx*k); x < W*k; x += cw) g.drawImage(c, 0, 0, cw, ch, x, dy, cw, ch);
-    g.setTransform(k, 0, 0, k, 0, 0);
+    g.setTransform(k, 0, 0, k, ox, 0);
   }
   const platSpr = w => sp(`pl${th().id}${w}`, w + 8, 40, (t) => { const [c1, c2, c3] = th().plat;
     t.fillStyle = "rgba(0,0,0,.25)"; t.beginPath(); t.roundRect ? t.roundRect(8, 14, w - 4, 24, 10) : t.rect(8, 14, w - 4, 24); t.fill();
@@ -9446,8 +9472,8 @@ NG.defs.bs = () => {
     startT++;
   }
   const self = {
-    get W(){ return W; }, get H(){ return H; }, maxPx: 1.9e6, layout,
-    get dbg(){ return {P, cam, stage, score, ens, boss, camMax, stEnd, items, shots, ebul, trapped}; },
+    get W(){ return W + 2*PX; }, get H(){ return H; }, maxPx: 1.9e6, layout,
+    get dbg(){ return {P, cam, stage, score, ens, boss, camMax, stEnd, items, shots, ebul, trapped, CT, PX}; },
     cheat(o){ if (o.p) Object.assign(P[o.i || 0], o.p); if (o.cam != null) cam = o.cam; if (o.stage){ stage = o.stage; stEnd = cam - 600; newStage(); } },
     init(){
       stage = 1; stEnd = 0; score = 0; kills = 0; flash = 0; shake = 0; startT = 0; clearT = 0; overT = 0; eid = 0; ended = false; NQ = []; bcLocal = 0; lastS = 0;
@@ -9477,10 +9503,13 @@ NG.defs.bs = () => {
       if (!ended) sim();
       if (party === "host" && NG.frame % 2 === 0){ if (NQ.length) PARTY.sendAll({t: "ev", ev: NQ.splice(0)}); PARTY.sendAll({t: "s", n: ++PARTY.seq, s: snap()}); }
     },
-    down(x, y, id){ const c = hitCT(x, y); if (!c){ ptr.set(id, {t: "shoot", pl: local[0]}); return; }
-      ptr.set(id, {t: c.t, pl: c.pl, c, sx: 0, sy: 0});
-      if (c.t === "stick") stickAt(ptr.get(id), x, y); else if (c.t === "jump") P[c.pl].jb = 8; else if (c.t === "bomb") bombPress(c.pl); },
-    move(x, y, id){ const v = ptr.get(id); if (v && v.t === "stick") stickAt(v, x, y); },
+    down(x, y, id){ x -= PX; const c = hitCT(x, y); if (!c){ ptr.set(id, {t: "shoot", pl: local[0]}); return; }
+      const v = {t: c.t, pl: c.pl, c, sx: 0, sy: 0}; ptr.set(id, v);
+      // 📱 막대는 엄지가 닿은 자리가 가운데가 돼요 (막대 영역 안에서)
+      if (c.t === "stick" && c.free){ const lim = c.r*1.25; v.cx = Math.max(c.x - lim, Math.min(c.x + lim, x)); v.cy = Math.max(c.y - lim, Math.min(Math.min(c.y + lim, H - c.r*.5), y));
+        if (PAN){ v.cx = Math.max(c.x < 0 ? -PX + c.r*.55 : W + c.r*.55, Math.min(c.x < 0 ? -c.r*.55 : W + PX - c.r*.55, v.cx)); } }
+      if (c.t === "stick") stickAt(v, x, y); else if (c.t === "jump") P[c.pl].jb = 8; else if (c.t === "bomb") bombPress(c.pl); },
+    move(x, y, id){ const v = ptr.get(id); if (v && v.t === "stick") stickAt(v, x - PX, y); },
     up(x, y, id){ ptr.delete(id); },
     key(code, d){
       const two = local.length >= 2;
@@ -9497,13 +9526,23 @@ NG.defs.bs = () => {
   };
   function bombPress(pi){ if (party === "guest"){ if (P[pi].bombs > 0 && !P[pi].dead) bcLocal++; } else popBomb(P[pi]); }
   function hitCT(x, y){ let best = null, bd = 1e9; CT.forEach(c => { if (party === "guest" && c.pl !== myIdx) return; const dd = Math.hypot(x - c.x, y - c.y); if (dd < c.r*(c.t === "stick" ? 1.6 : 1.3) && dd < bd){ bd = dd; best = c; } });
-    if (!best && local.length < 2 && x < W*.42 && y > VH*.45) best = CT[0]; return best; }
-  function stickAt(v, x, y){ const c = v.c, dx = (x - c.x)/(c.r*.7), dy = (y - c.y)/(c.r*.7), m = Math.hypot(dx, dy); v.sx = m > 1 ? dx/m : dx; v.sy = m > 1 ? dy/m : dy; }
+    if (!best && local.length < 2 && (x < 0 || (!PAN && x < W*.42 && y > VH*.45))) best = CT[0];
+    if (!best && local.length >= 2 && PAN && (x < 0 || x > W)) best = CT.find(c => c.t === "stick" && (x < 0) === (c.x < 0));
+    return best; }
+  function stickAt(v, x, y){ const c = v.c, ox = v.cx ?? c.x, oy = v.cy ?? c.y, dx = (x - ox)/(c.r*.7), dy = (y - oy)/(c.r*.7), m = Math.hypot(dx, dy); v.sx = m > 1 ? dx/m : dx; v.sy = m > 1 ? dy/m : dy; }
 
   /* ---------- 그리기 ---------- */
   function draw(g){
-    g.clearRect(0, 0, W, H);
-    const fr = NG.frame, k = NG.k || 1, sx = shake ? (rnd() - .5)*shake*.9 : 0, sy = shake ? (rnd() - .5)*shake*.6 : 0, X = x => x - cam;
+    const k = NG.k || 1; g.clearRect(0, 0, W + 2*PX, H);
+    if (PX){ g.fillStyle = "#140d2e"; g.fillRect(0, 0, PX, H); g.fillRect(PX + W, 0, PX, H); g.fillStyle = "rgba(255,255,255,.12)"; g.fillRect(PX - 3, 0, 3, H); g.fillRect(PX + W, 0, 3, H); }
+    g.setTransform(k, 0, 0, k, Math.round(PX*k), 0);
+    if (PX){ g.save(); g.beginPath(); g.rect(0, 0, W, H); g.clip(); }
+    drawWorld(g, k);
+    if (PX) g.restore();
+    drawCtrls(g);
+  }
+  function drawWorld(g, k){
+    const fr = NG.frame, sx = shake ? (rnd() - .5)*shake*.9 : 0, sy = shake ? (rnd() - .5)*shake*.6 : 0, X = x => x - cam;
     strip(g, midSpr(), 1024, cam*.3, GY - 270 + sy, sx); strip(g, nearSpr(), 900, cam*.62, GY - 146 + sy, sx); strip(g, grSpr(), 128, cam, GY + sy, sx);
     g.save(); g.translate(sx, sy);
     plats.forEach(q => { if (q.x - cam < W + 10 && q.x + q.w - cam > -10) g.drawImage(platSpr(q.w), X(q.x) - 3, q.y - 3, q.w + 8, 40); });
@@ -9576,13 +9615,16 @@ NG.defs.bs = () => {
     if (startT < 260 && !overT){ g.globalAlpha = Math.min(1, (260 - startT)/40);
       const h1 = local.length >= 2 ? "1P: A·D 움직이기 W 위로 F 쏘기 G 점프 H 폭탄  /  2P: ←→ ↑ K 쏘기 L 점프 O 폭탄" : land ? "← → 움직이기 · ↑ 위로 쏘기 · Z 쏘기 · X 점프(두 번!) · C 폭탄" : "왼쪽 막대로 움직이고 · 오른쪽 버튼으로 쏘고 뛰어요!";
       outlined(g, h1, W/2, VH*.6, land ? (local.length >= 2 ? 20 : 26) : 22, "#fff"); g.globalAlpha = 1; }
-    // 조작 버튼
+  }
+  function drawCtrls(g){
     if (!land){ g.fillStyle = "rgba(15,10,40,.88)"; g.fillRect(0, VH, W, H - VH); g.fillStyle = "rgba(255,255,255,.14)"; g.fillRect(0, VH, W, 3); if (local.length >= 2){ g.fillRect(W/2 - 1, VH + 20, 2, H - VH - 40); } }
+    const over = land && !PAN;   // 놀이 화면 위에 겹칠 때는 손대지 않으면 흐리게
     CT.forEach(c => { if (party === "guest" && c.pl !== myIdx) return; const p = P[c.pl]; if (!p) return; const col = BS_PC[c.pl][0];
-      if (c.t === "bomb" && p.bombs <= 0) g.globalAlpha = .35;
       let on = false, st = null; ptr.forEach(v => { if (v.pl === c.pl && v.t === c.t){ on = true; if (c.t === "stick") st = v; } });
-      G2.put(g, ctrlSpr(c.t, c.r, on && c.t !== "stick", col), c.x - c.r - 6, c.y - c.r - 6);
-      if (c.t === "stick"){ const kx = st ? st.sx : 0, ky = st ? st.sy : 0; G2.put(g, knobSpr(col), c.x + kx*c.r*.6 - 40, c.y + ky*c.r*.6 - 40); }
+      g.globalAlpha = (c.t === "bomb" && p.bombs <= 0) ? .3 : over && !on ? .55 : 1;
+      const cx = st && st.cx != null ? st.cx : c.x, cy = st && st.cy != null ? st.cy : c.y;
+      G2.put(g, ctrlSpr(c.t, c.r, on && c.t !== "stick", col), cx - c.r - 6, cy - c.r - 6);
+      if (c.t === "stick"){ const kx = st ? st.sx : 0, ky = st ? st.sy : 0, kr = c.r*.42; g.drawImage(knobSpr(col), cx + kx*c.r*.6 - kr, cy + ky*c.r*.6 - kr, kr*2, kr*2); }
       if (c.t === "bomb") G2.put(g, icoTxt([["", "×" + p.bombs]], 18), c.x + c.r*.45, c.y - c.r*1.15);
       if (c.t === "stick" && local.length >= 2) outlined(g, `${c.pl + 1}P`, c.x, c.y - c.r - 18, 20, col);
       g.globalAlpha = 1; });
