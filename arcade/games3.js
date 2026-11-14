@@ -116,7 +116,7 @@ NG.defs.bp = () => {
       PZ.stepParts(parts); PZ.stepFx(fx); shake *= .85;
     },
     draw(g){
-      g.drawImage(G2.spr(`bpbg${W}`, W, H, t => PZ.wall(t, W, H, "#ffe3f1", "#e5dbff", "rgba(255,255,255,.55)")), 0, 0, W, H);
+      G2.bg(g, `bpbg${W}`, W, H, t => PZ.wall(t, W, H, "#ffe3f1", "#e5dbff", "rgba(255,255,255,.55)"));
       g.save(); if (shake > .5) g.translate(rnd(-shake, shake), rnd(-shake, shake));
       G2.put(g, G2.spr(`bpboard${C}`, C*N + 24, C*N + 24, t => { t.fillStyle = "rgba(120,80,160,.18)"; rrect(t, 0, 6, C*N + 24, C*N + 18, 28); t.fill();
         t.fillStyle = "#fff8fd"; rrect(t, 0, 0, C*N + 24, C*N + 18, 28); t.fill();
@@ -228,10 +228,10 @@ NG.defs.fm = () => {
       PZ.stepParts(parts); PZ.stepFx(fx);
     },
     draw(g){
-      g.drawImage(G2.spr("fmbg", W, H, t => { PZ.wall(t, W, H, "#fff0e6", "#ffe3ec", "rgba(255,255,255,.6)");
+      G2.bg(g, "fmbg" + W, W, H, t => { PZ.wall(t, W, H, "#fff0e6", "#ffe3ec", "rgba(255,255,255,.6)");
         t.fillStyle = "rgba(255,255,255,.55)"; rrect(t, L - 14, TOP - 30, R - L + 28, B - TOP + 44, 36); t.fill();
         t.strokeStyle = "rgba(255,150,170,.9)"; t.lineWidth = 8; rrect(t, L - 14, TOP - 30, R - L + 28, B - TOP + 44, 36); t.stroke();
-        t.fillStyle = "#ffd6e0"; rrect(t, L - 4, B, R - L + 8, 18, 9); t.fill(); }), 0, 0, W, H);
+        t.fillStyle = "#ffd6e0"; rrect(t, L - 4, B, R - L + 8, 18, 9); t.fill(); });
       // 위험선
       const warn = dangerT > 0;
       g.strokeStyle = warn ? `rgba(255,70,110,${.5 + .4*Math.sin(NG.frame*.3)})` : "rgba(255,140,170,.45)"; g.lineWidth = 4; g.setLineDash([16, 12]);
@@ -348,9 +348,9 @@ NG.defs.jm = () => {
       PZ.stepParts(parts); PZ.stepFx(fx);
     },
     draw(g){
-      g.drawImage(G2.spr("jmbg", W, H, t => { PZ.wall(t, W, H, "#e7e5ff", "#ffe0f0", "rgba(255,255,255,.55)");
+      G2.bg(g, "jmbg" + W, W, H, t => { PZ.wall(t, W, H, "#e7e5ff", "#ffe0f0", "rgba(255,255,255,.55)");
         t.fillStyle = "rgba(255,255,255,.65)"; rrect(t, BX - 14, BY - 14, C*N + 28, C*N + 28, 30); t.fill();
-        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++){ t.fillStyle = (r + c) % 2 ? "rgba(214,204,255,.45)" : "rgba(255,230,245,.6)"; rrect(t, BX + c*C + 3, BY + r*C + 3, C - 6, C - 6, 16); t.fill(); } }), 0, 0, W, H);
+        for (let r = 0; r < N; r++) for (let c = 0; c < N; c++){ t.fillStyle = (r + c) % 2 ? "rgba(214,204,255,.45)" : "rgba(255,230,245,.6)"; rrect(t, BX + c*C + 3, BY + r*C + 3, C - 6, C - 6, 16); t.fill(); } });
       if (sel){ g.fillStyle = "rgba(255,255,255,.85)"; rrect(g, BX + sel[1]*C + 2, BY + sel[0]*C + 2, C - 4, C - 4, 18); g.fill(); }
       if (hint && !busy){ const a = .35 + .3*Math.sin(NG.frame*.15); g.strokeStyle = `rgba(255,255,255,${a + .3})`; g.lineWidth = 5; hint.forEach(([r, c]) => { rrect(g, BX + c*C + 4, BY + r*C + 4, C - 8, C - 8, 16); g.stroke(); }); }
       g.save(); g.beginPath(); g.rect(BX - 6, BY - 6, C*N + 12, C*N + 12); g.clip();
@@ -463,7 +463,7 @@ NG.defs.ws = () => {
       PZ.stepParts(parts); PZ.stepFx(fx);
     },
     draw(g){
-      g.drawImage(G2.spr(`wsbg${W}`, W, H, t => PZ.wall(t, W, H, "#d3f9f0", "#e5dbff", "rgba(255,255,255,.55)")), 0, 0, W, H);
+      G2.bg(g, `wsbg${W}`, W, H, t => PZ.wall(t, W, H, "#d3f9f0", "#e5dbff", "rgba(255,255,255,.55)"));
       const ts = tubeSpr();
       tubes.forEach((t, i) => { const p = pos[i], lift = sel === i ? 36 : 0;
         drawLiquid(g, p.x, p.y, t, lift);

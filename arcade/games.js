@@ -102,7 +102,7 @@ const NG = {
     $("#ng").hidden = false; $("#ngOver").hidden = true; $("#ngDom").innerHTML = ""; ARC.busy = true;
     const cur = this.cur = this.defs[gid]();
     cur.sids = sids; cur.opt = opt;
-    $("#ngCanvas").style.display = cur.dom ? "none" : ""; $("#ngCanvas").style.backgroundImage = ""; $("#ngCanvas").style.backgroundColor = "";
+    $("#ngCanvas").style.display = cur.dom ? "none" : ""; $("#ngCanvas").style.backgroundImage = ""; $("#ngCanvas").style.backgroundColor = ""; if (typeof G2 !== "undefined") G2.bgId = null;
     this.fit(); cur.init && cur.init();
     this.last = performance.now(); this.acc = 0; this.frame = 0; this.drawnEnd = false;
     const loop = now => { this.raf = requestAnimationFrame(loop); this.acc = Math.min(100, this.acc + now - this.last); this.last = now;
@@ -124,7 +124,7 @@ const NG = {
     this.k = s*dk; this.s = s; this.g = cv.getContext("2d");
   },
   pt(e){ const r = $("#ngCanvas").getBoundingClientRect(); return {x: (e.clientX - r.left)/r.width*this.cur.W, y: (e.clientY - r.top)/r.height*this.cur.H}; },
-  stop(){ cancelAnimationFrame(this.raf); this.cur = null; },
+  stop(){ cancelAnimationFrame(this.raf); const c = this.cur; this.cur = null; this.paused = false; if (c && c.destroy){ try { c.destroy(); } catch(e) {} } },
   again(){ if (this.opt.net) NET.again(); else this.play(this.gid, this.sids, this.opt); },
   close(){ this.stop(); $("#ng").hidden = true; $("#ngHud").innerHTML = ""; ARC.back(); },
   conf(n){ return `<div class="ng-conf">${Array.from({length: n}, () => `<i style="left:${rnd(100)}%;background:${COLS[Math.floor(rnd(COLS.length))]};animation-duration:${2 + rnd(2.5)}s;animation-delay:${rnd(.8)}s"></i>`).join("")}</div>`; },
@@ -221,11 +221,11 @@ NG.defs.wm = () => {
       if (hammer && --hammer.t <= 0) hammer = null; if (shake > 0) shake *= .85;
     },
     draw(g){
+      const fever = t < 10*60;
+      G2.bg(g, "wm" + (fever ? 1 : 0), W, H, x => { const sky = x.createLinearGradient(0, 0, 0, H); sky.addColorStop(0, fever ? "#ff8787" : "#74c0fc"); sky.addColorStop(.35, fever ? "#ffc078" : "#a5d8ff"); sky.addColorStop(.36, "#8ce99a"); sky.addColorStop(1, "#51cf66");
+        x.fillStyle = sky; x.fillRect(0, 0, W, H); x.fillStyle = "rgba(43,138,62,.35)"; for (let i = 0; i < 60; i++) x.fillRect((i*97) % W, 230 + (i*53) % 360, 3, 9); });
       g.save(); if (shake > .5) g.translate(rnd(-shake, shake), rnd(-shake, shake));
-      const fever = t < 10*60, sky = g.createLinearGradient(0, 0, 0, H); sky.addColorStop(0, fever ? "#ff8787" : "#74c0fc"); sky.addColorStop(.35, fever ? "#ffc078" : "#a5d8ff"); sky.addColorStop(.36, "#8ce99a"); sky.addColorStop(1, "#51cf66");
-      g.fillStyle = sky; g.fillRect(-20, -20, W + 40, H + 40);
       g.fillStyle = "rgba(255,255,255,.85)"; [[120, 70], [420, 50], [780, 80]].forEach(([x, y], i) => { const xx = (x + NG.frame*.2*(i + 1)) % (W + 200) - 100; g.beginPath(); g.arc(xx, y, 26, 0, 7); g.arc(xx + 30, y - 10, 30, 0, 7); g.arc(xx + 60, y, 24, 0, 7); g.fill(); });
-      g.fillStyle = "rgba(43,138,62,.35)"; for (let i = 0; i < 60; i++){ const x = (i*97) % W, y = 230 + (i*53) % 360; g.fillRect(x, y, 3, 9); }
       holes.forEach(h => {
         g.fillStyle = "#5c3d1e"; g.beginPath(); g.ellipse(h.x, h.y, 92, 30, 0, 0, 7); g.fill();
         g.fillStyle = "#2b1a0b"; g.beginPath(); g.ellipse(h.x, h.y, 80, 22, 0, 0, 7); g.fill();

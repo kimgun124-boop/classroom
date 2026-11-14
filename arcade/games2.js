@@ -18,6 +18,22 @@ const G2 = {
   },
   /* 화면 점에 딱 맞춰 붙이기 (흐려짐 없이) */
   put(g, c, x, y, w = c.w, h = c.h){ const k = NG.k || 1; g.drawImage(c, Math.round(x*k)/k, Math.round(y*k)/k, w, h); },
+  /* ⚡ 움직이지 않는 배경은 캔버스 뒤 그림(CSS)으로 한 번만 깔아요 — 매 장면 화면 전체를 다시 칠하지 않고 지우기만 해서 훨씬 가벼워요 */
+  bgId: null, bgReady: false, bgUrl: "",
+  bg(g, key, w, h, fn){
+    const id = key + "|" + (NG.k || 1), cv = $("#ngCanvas");
+    if (this.bgId === id && this.bgReady && cv.style.backgroundImage){ g.clearRect(0, 0, w, h); return; }
+    const s = this.spr("bg:" + key, w, h, fn);
+    g.drawImage(s, 0, 0, w, h);
+    if (this.bgId === id) return;
+    this.bgId = id; this.bgReady = false;
+    try { s.toBlob(bl => { if (this.bgId !== id || !bl) return;
+      const u = URL.createObjectURL(bl), im = new Image();
+      im.onload = () => { if (this.bgId !== id){ URL.revokeObjectURL(u); return; }
+        if (this.bgUrl) URL.revokeObjectURL(this.bgUrl); this.bgUrl = u;
+        cv.style.backgroundImage = `url(${u})`; cv.style.backgroundSize = "100% 100%"; this.bgReady = true; };
+      im.src = u; }, "image/png"); } catch(e) {}
+  },
   emo(t, e, x, y, size){ t.font = `${size}px ${EMOJI}`; t.textAlign = "center"; t.textBaseline = "middle"; t.fillText(e, x, y); }
 };
 

@@ -1,0 +1,50 @@
+/* 🎵 리듬 스타 — 노래 고르기 화면 */
+.g-rh{--c1:#7048e8;--c2:#1b0f4d;--gl:240,101,149}
+.rh-menu{position:absolute;inset:0;z-index:4;display:flex;align-items:stretch;justify-content:center;overflow:auto;padding:14px;color:#fff;touch-action:pan-y}
+.rh-menu[hidden]{display:none}
+.rh-in{width:min(1180px,100%);display:flex;flex-direction:column;gap:12px}
+.rh-head{display:flex;align-items:center;gap:12px}
+.rh-logo{flex:1;font:34px "Jua",sans-serif;background:linear-gradient(90deg,#ff9ee0,#9be7ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.rh-logo small{display:block;font-size:16px;color:#cdbcff;-webkit-text-fill-color:#cdbcff}
+.rh-logo small b{color:#ffe38a;-webkit-text-fill-color:#ffe38a}
+.rh-me{width:64px;height:64px;border-radius:50%;overflow:hidden;border:3px solid #ff8ed1;background:#fff;flex:none}
+.rh-me img{width:100%;height:100%;display:block}
+.rh-body{display:grid;grid-template-columns:1.5fr 1fr;gap:14px;min-height:0}
+.rh-songs{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;align-content:start}
+.rh-song{position:relative;display:flex;align-items:center;gap:12px;text-align:left;color:#fff;cursor:pointer;border:2px solid rgba(255,255,255,.14);border-radius:20px;padding:10px 12px;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--c1,#555) 55%,#120a33),color-mix(in srgb,var(--c2,#333) 40%,#120a33));font-family:inherit;transition:transform .12s,border-color .12s}
+.rh-song:hover{transform:translateY(-2px)}
+.rh-song.on{border-color:#fff;box-shadow:0 0 0 3px rgba(255,142,209,.55),0 10px 26px rgba(0,0,0,.35)}
+.rh-song .jk{flex:none;width:58px;height:58px;border-radius:16px;display:grid;place-items:center;font-size:32px;background:linear-gradient(135deg,var(--c1,#555),var(--c2,#333));box-shadow:inset 0 0 0 2px rgba(255,255,255,.35)}
+.rh-song .tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.rh-song .tx b{font:21px "Jua",sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rh-song .tx small{font-size:12px;color:#e3d9ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rh-song .tx i{font-style:normal;font-size:12px;color:#bfb0ef;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rh-song .bst{flex:none;display:flex;flex-direction:column;align-items:center;font:26px "Jua",sans-serif;color:#ffe38a;line-height:1}
+.rh-song .bst small{font-size:11px;color:#e3d9ff;margin-top:3px}
+.rh-song .del{position:absolute;right:6px;top:4px;font-size:14px;opacity:.7}
+.rh-song.add{--c1:#495057;--c2:#212529;border-style:dashed}
+.rh-side{background:rgba(20,12,55,.78);border:2px solid rgba(180,140,255,.35);border-radius:22px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;align-self:start;position:sticky;top:0}
+.rh-k{font:18px "Jua",sans-serif;color:#e7ddff;margin-top:4px}
+.rh-k small{display:block;font:12px sans-serif;color:#a99ad8}
+.rh-k b{color:#ffe38a;margin-left:4px}
+.rh-diff{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.rh-diff button,.rh-emo button{font:18px "Jua",sans-serif;color:#fff;background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.18);border-radius:14px;padding:8px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.rh-diff button small{font-size:13px;color:#d6c8ff}
+.rh-diff button em{font-style:normal;font-size:12px;color:#ffe38a}
+.rh-diff button.on{border-color:var(--dc);background:color-mix(in srgb,var(--dc) 35%,transparent);box-shadow:0 0 14px color-mix(in srgb,var(--dc) 60%,transparent)}
+.rh-emo{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.rh-emo button{font-size:22px;letter-spacing:2px;padding:6px 2px}
+.rh-emo button.on{border-color:#ff8ed1;background:rgba(255,142,209,.25)}
+.rh-side input[type=range]{width:100%;accent-color:#ff8ed1}
+.rh-chk{display:flex;align-items:center;gap:8px;font-size:15px;color:#e7ddff}
+.rh-go{font-size:28px !important;padding:12px !important;margin-top:6px}
+.rh-msg{min-height:20px;font-size:14px;color:#9be7ff;text-align:center}
+.rh-msg.bad{color:#ff9eb5}
+.rh-res{display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:6px}
+.rh-res .rk{font:72px/1 "Jua",sans-serif;background:linear-gradient(180deg,#fff6a8,#ff9ee0 60%,#9be7ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.rh-res .rk-F,.rh-res .rk-D{background:linear-gradient(180deg,#dee2e6,#868e96);-webkit-background-clip:text;background-clip:text}
+.rh-res .cn{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;font:16px "Jua",sans-serif}
+.rh-res .fc{color:#ffe38a}
+@media (max-width:820px), (orientation:portrait){ .rh-body{grid-template-columns:1fr} .rh-side{position:static} .rh-logo{font-size:28px} }
+body.arc-lite .rh-song{transition:none}

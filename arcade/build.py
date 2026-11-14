@@ -246,12 +246,12 @@ avp('return `<svg class="avs" viewBox=', 'return `<svg class="avs" xmlns="http:/
 out = rd("shell.html")
 for k, v in {
     "/*{{CSS_APP}}*/": css_app,
-    "/*{{CSS_ARC}}*/": rd("arcade.css") + "\n" + rd("lobby.css") + "\n" + rd("gift.css"),
+    "/*{{CSS_ARC}}*/": rd("arcade.css") + "\n" + rd("lobby.css") + "\n" + rd("gift.css") + "\n" + rd("rhythm.css"),
     "<!--{{GAME_HTML}}-->": game_html,
     "/*{{CORE_JS}}*/": rd("core.js"),
     "/*{{AV_JS}}*/": av_js + "\n" + rd("avatar.js"),
     "/*{{GAME_JS}}*/": game_js,
-    "/*{{NEW_JS}}*/": rd("games.js") + "\n" + rd("net.js") + "\n" + rd("lobby.js") + "\n" + rd("gift.js") + "\n" + rd("games2.js") + "\n" + rd("color.js") + "\n" + rd("games3.js") + "\n" + rd("games4.js"),
+    "/*{{NEW_JS}}*/": rd("games.js") + "\n" + rd("net.js") + "\n" + rd("lobby.js") + "\n" + rd("gift.js") + "\n" + rd("games2.js") + "\n" + rd("color.js") + "\n" + rd("games3.js") + "\n" + rd("games4.js") + "\n" + rd("rhythm.js"),
 }.items():
     assert out.count(k) == 1, k
     out = out.replace(k, v)

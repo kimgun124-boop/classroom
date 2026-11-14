@@ -105,12 +105,14 @@ function titleHTML(sid){ const t = avOf(sid).title; if (!t || t === "none") retu
 const AVX = {
   still: false,
   A(s){ return this.still ? "" : s; },   // 움직임은 still 일 때 빼요
-  bg(a, id){ const f = this.BG[a.xbg]; return f ? f.call(this, id) : ""; },
+  bg(a, id){ if (a.bg === "none") return "<g/>";   // (리듬 스타 무대 위 캐릭터: 배경 없이)
+    const f = this.BG[a.xbg]; return f ? f.call(this, id) : ""; },
   under(a, id){ const f = this.AU[a.aura]; return f ? f.call(this, id) : ""; },
   over(a, id){ let s = ""; const f = this.FX[a.fx]; if (f) s += f.call(this, id);
     if (a.pet && PET_E[a.pet]) s += `<g><ellipse cx="85" cy="97" rx="9" ry="2.4" fill="#000" opacity=".25"/><g>${this.A(`<animateTransform attributeName="transform" type="translate" values="0 0;0 -3;0 0" dur="1.2s" repeatCount="indefinite"/>`)}<text x="85" y="94" font-size="19" text-anchor="middle" font-family="Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif">${PET_E[a.pet]}</text></g></g>`;
     return s; },
-  frame(a, id){ const f = this.FR[a.xfr]; return f ? f.call(this, id) : ""; },
+  frame(a, id){ if (a.frame === "none") return "<g/>";
+    const f = this.FR[a.xfr]; return f ? f.call(this, id) : ""; },
   stars(n, seed, col = "#fff", maxY = 70){ let s = ""; for (let i = 0; i < n; i++){ const x = (i*37 + seed*13) % 97 + 1.5, y = (i*53 + seed*7) % maxY + 2, r = .5 + (i % 3)*.35;
     s += `<circle cx="${x}" cy="${y}" r="${r}" fill="${col}">${this.A(`<animate attributeName="opacity" values="1;.2;1" dur="${1.5 + (i % 4)*.6}s" begin="${(i*.37) % 2}s" repeatCount="indefinite"/>`)}</circle>`; } return s; },
   fall(n, seed, shape, dur = 6, sway = 6){ let s = ""; for (let i = 0; i < n; i++){ const x = (i*29 + seed*17) % 96 + 2, d = dur + (i % 4)*1.2, b = -((i*1.7) % d);

@@ -117,8 +117,7 @@ NG.defs.cp = () => {
       if (flash > 0) flash -= .03; if (shake > 0) shake *= .8;
     },
     draw(g){
-      const bg = this.bgG || (this.bgG = (() => { const gr = g.createLinearGradient(0, 0, W, H); gr.addColorStop(0, "#ffe3ec"); gr.addColorStop(.5, "#e5dbff"); gr.addColorStop(1, "#d0ebff"); return gr; })());
-      g.fillStyle = bg; g.fillRect(0, 0, W, H);
+      G2.bg(g, "cpbg" + W + "x" + H, W, H, t => { const gr = t.createLinearGradient(0, 0, W, H); gr.addColorStop(0, "#ffe3ec"); gr.addColorStop(.5, "#e5dbff"); gr.addColorStop(1, "#d0ebff"); t.fillStyle = gr; t.fillRect(0, 0, W, H); });
       g.save(); if (shake > .5) g.translate(rnd(-shake, shake), rnd(-shake, shake));
       if (dirty || !bimg || bimg.width !== Math.ceil(BS*(NG.k || 1))) render();
       g.drawImage(bimg, BX, BY, BS, BS);
