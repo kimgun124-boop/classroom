@@ -1605,7 +1605,7 @@ NG.defs.bs = () => {
       const v = {t: c.t, pl: c.pl, c, sx: 0, sy: 0}; ptr.set(id, v);
       // 📱 막대는 엄지가 닿은 자리가 가운데가 돼요 (막대 영역 안에서)
       if (c.t === "stick" && c.free){ const lim = c.r*1.25; v.cx = Math.max(c.x - lim, Math.min(c.x + lim, x)); v.cy = Math.max(c.y - lim, Math.min(Math.min(c.y + lim, H - c.r*.5), y));
-        if (PAN){ v.cx = Math.max(c.x < 0 ? -PX + c.r*.55 : W + c.r*.55, Math.min(c.x < 0 ? -c.r*.55 : W + PX - c.r*.55, v.cx)); } }
+        if (PAN){ v.cx = Math.max(c.x < 0 ? -PX + c.r + 6 : W + c.r + 6, Math.min(c.x < 0 ? -c.r - 6 : W + PX - c.r - 6, v.cx)); } }
       if (c.t === "stick") stickAt(v, x, y); else if (c.t === "jump") P[c.pl].jb = 8; else if (c.t === "bomb") bombPress(c.pl); },
     move(x, y, id){ const v = ptr.get(id); if (v && v.t === "stick") stickAt(v, x - PX, y); },
     up(x, y, id){ ptr.delete(id); },

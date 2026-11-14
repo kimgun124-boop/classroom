@@ -365,9 +365,19 @@ NG.defs.qd = () => {
   }
   function press(pi, b){ if (party === "guest"){ const u = qdUnpack(PARTY.input.b || 0); if (b === "a") u[0]++; else if (b === "j") u[1]++; else u[2]++; PARTY.input.b = qdPack(...u); } else IN[pi][b]++; }
   /* 화면 단추 (손가락) */
-  const PADS = [{t: "st", x: 165, y: 575, r: 105}, {t: "a", x: 1150, y: 600, r: 76, e: "⚔️"}, {t: "j", x: 1012, y: 640, r: 56, e: "🦘"}, {t: "s", x: 1062, y: 488, r: 52, e: "✨"}];
-  const padAt = (x, y) => PADS.find(p => Math.hypot(x - p.x, y - p.y) < p.r*1.35) || (x < W*.42 && y > H*.45 ? PADS[0] : null);
-  function stickSet(v, x, y){ const p = PADS[0], dx = x - p.x, dy = y - p.y, d = Math.hypot(dx, dy); v.sx = x; v.sy = y;
+  /* 📱 가로가 길쭉한 화면(핸드폰)은 양옆 남는 자리에 단추를 두어 싸움터를 가리지 않아요 */
+  const PADS0 = [{t: "st", x: 165, y: 575, r: 105}, {t: "a", x: 1150, y: 600, r: 76, e: "⚔️"}, {t: "j", x: 1012, y: 640, r: 56, e: "🦘"}, {t: "s", x: 1062, y: 488, r: 52, e: "✨"}];
+  let PADS = PADS0, PX = 0;
+  function layout(sw, sh){
+    PX = Math.round(Math.max(0, Math.min(420, (H*sw/Math.max(1, sh) - W)/2)));
+    if (PX < 150){ PX = 0; PADS = PADS0; return; }
+    const r = Math.round(Math.min(124, PX*.46)), ra = Math.round(Math.min(92, PX*.36)), rj = Math.round(ra*.8), rs = Math.round(ra*.7), bx = W + PX/2;
+    PADS = [{t: "st", x: -PX/2, y: H - r - 46, r}, {t: "a", x: bx, y: H - ra - 40, r: ra, e: "⚔️"}, {t: "j", x: bx, y: H - ra*2 - rj - 70, r: rj, e: "🦘"}, {t: "s", x: bx, y: H - ra*2 - rj*2 - rs - 100, r: rs, e: "✨"}];
+  }
+  const padAt = (x, y) => PADS.find(p => Math.hypot(x - p.x, y - p.y) < p.r*1.35) || (x < 0 || (!PX && x < W*.42 && y > H*.45) ? PADS[0] : null);
+  function stickSet(v, x, y){ const p = PADS[0];
+    if (v.cx == null){ const lim = p.r*1.2; v.cx = Math.max(p.x - lim, Math.min(p.x + lim, x)); v.cy = Math.max(p.y - lim, Math.min(p.y + lim, y)); if (PX){ v.cx = Math.max(-PX + p.r + 6, Math.min(-p.r - 6, v.cx)); v.cy = Math.min(H - p.r*.5, v.cy); } }   // 📱 엄지가 닿은 곳이 막대 가운데
+    const dx = x - v.cx, dy = y - v.cy, d = Math.hypot(dx, dy); v.sx = x; v.sy = y;
     if (d < 22){ v.dx = v.dy = 0; return; } const a = Math.atan2(dy, dx), o = Math.round(a/(Math.PI/4)); v.dx = Math.round(Math.cos(o*Math.PI/4)); v.dy = Math.round(Math.sin(o*Math.PI/4)); }
 
   /* ---------- 공격 ---------- */
@@ -765,6 +775,14 @@ NG.defs.qd = () => {
   }
   function bar(g, x, y, w, h, v, c, bg = "#1b1230"){ g.fillStyle = bg; g.fillRect(x - 2, y - 2, w + 4, h + 4); g.fillStyle = "#495057"; g.fillRect(x, y, w, h); g.fillStyle = c; g.fillRect(x, y, Math.max(0, Math.min(1, v))*w, h); g.fillStyle = "rgba(255,255,255,.35)"; g.fillRect(x, y, Math.max(0, Math.min(1, v))*w, Math.max(1, h*.3)); }
   function draw(g){
+    const k = NG.k || 1;
+    if (PX){ g.setTransform(k, 0, 0, k, 0, 0); g.clearRect(0, 0, W + 2*PX, H); g.fillStyle = "#140d2e"; g.fillRect(0, 0, PX, H); g.fillRect(PX + W, 0, PX, H); g.fillStyle = "rgba(255,255,255,.12)"; g.fillRect(PX - 3, 0, 3, H); g.fillRect(PX + W, 0, 3, H);
+      g.setTransform(k, 0, 0, k, Math.round(PX*k), 0); g.save(); g.beginPath(); g.rect(0, 0, W, H); g.clip(); }
+    drawMain(g);
+    if (PX) g.restore();
+    drawPads(g);
+  }
+  function drawMain(g){
     const S = QST[stage], sh = shake > .5 ? rr(-shake, shake) : 0, sv = shake > .5 ? rr(-shake, shake)*.6 : 0;
     g.save(); g.translate(sh, sv);
     // 배경 3겹
@@ -836,22 +854,25 @@ NG.defs.qd = () => {
       if (goT > 0 && (goT >> 4) % 2) outlined(g, "GO ▶▶", W - 140, 330, 60, "#ffe066");
     }
     if (banner){ const a = Math.min(1, banner.k/20); g.globalAlpha = a; if (banner.t) outlined(g, banner.t, W/2, 290, 78, "#ffe066"); if (banner.s) outlined(g, banner.s, W/2, banner.t ? 360 : 300, 34, "#fff"); g.globalAlpha = 1; }
+  }
+  function drawPads(g){
     // 손가락 단추
     if (!NG.ended && (party !== "guest" || true) && ("ontouchstart" in window || navigator.maxTouchPoints > 0)){
       PADS.forEach(pd => { let on = false, sv = null; ptr.forEach(v => { if (v.t === pd.t){ on = true; sv = v; } });
-        g.globalAlpha = on ? .55 : .3; g.fillStyle = pd.t === "st" ? "#fff" : pd.t === "a" ? "#ff6b6b" : pd.t === "j" ? "#4dabf7" : "#cc5de8"; g.beginPath(); g.arc(pd.x, pd.y, pd.r, 0, 7); g.fill(); g.globalAlpha = 1;
-        if (pd.t === "st"){ const kx = sv ? clampN(sv.sx - pd.x, -60, 60) : 0, ky = sv ? clampN(sv.sy - pd.y, -60, 60) : 0; g.fillStyle = "rgba(255,255,255,.8)"; g.beginPath(); g.arc(pd.x + kx, pd.y + ky, 40, 0, 7); g.fill(); }
+        const cx = sv && sv.cx != null ? sv.cx : pd.x, cy = sv && sv.cx != null ? sv.cy : pd.y;
+        g.globalAlpha = PX ? (on ? .85 : .6) : on ? .55 : .3; g.fillStyle = pd.t === "st" ? "#fff" : pd.t === "a" ? "#ff6b6b" : pd.t === "j" ? "#4dabf7" : "#cc5de8"; g.beginPath(); g.arc(cx, cy, pd.r, 0, 7); g.fill(); g.globalAlpha = 1;
+        if (pd.t === "st"){ const lim = pd.r*.57, kx = sv ? clampN(sv.sx - cx, -lim, lim) : 0, ky = sv ? clampN(sv.sy - cy, -lim, lim) : 0; g.fillStyle = "rgba(255,255,255,.8)"; g.beginPath(); g.arc(cx + kx, cy + ky, pd.r*.38, 0, 7); g.fill(); }
         else { g.font = `${pd.r*.8}px ${EMOJI}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(pd.e, pd.x, pd.y + 2); } });
     }
   }
 
-  const self = { W, H, maxPx: 1280*720*1.6,
+  const self = { get W(){ return W + 2*PX; }, H, layout, maxPx: 1280*720*1.6,
     init(){ init(); if (party) PARTY.attach(self, null); },
     step, draw,
-    down(x, y, id){ const pd = padAt(x, y); if (!pd) return; const pi = local[0];
+    down(x, y, id){ x -= PX; const pd = padAt(x, y); if (!pd) return; const pi = local[0];
       if (pd.t === "st"){ const v = {t: "st"}; stickSet(v, x, y); ptr.set(id, v); return; }
       ptr.set(id, {t: pd.t}); press(pi, pd.t); },
-    move(x, y, id){ const v = ptr.get(id); if (v && v.t === "st") stickSet(v, x, y); },
+    move(x, y, id){ const v = ptr.get(id); if (v && v.t === "st") stickSet(v, x - PX, y); },
     up(x, y, id){ ptr.delete(id); },
     key(code, d, e){
       const ms = maps(); let used = false;
