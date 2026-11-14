@@ -370,11 +370,12 @@ NG.defs.qd = () => {
   let PADS = PADS0, PX = 0;
   function layout(sw, sh){
     PX = Math.round(Math.max(0, Math.min(420, (H*sw/Math.max(1, sh) - W)/2)));
+    if (window.VK_ON){ PX = 0; PADS = []; return; }   // ⌨️ 화면 키보드를 쓸 땐 화면 단추를 숨겨요
     if (PX < 150){ PX = 0; PADS = PADS0; return; }
     const r = Math.round(Math.min(124, PX*.46)), ra = Math.round(Math.min(92, PX*.36)), rj = Math.round(ra*.8), rs = Math.round(ra*.7), bx = W + PX/2;
     PADS = [{t: "st", x: -PX/2, y: H - r - 46, r}, {t: "a", x: bx, y: H - ra - 40, r: ra, e: "⚔️"}, {t: "j", x: bx, y: H - ra*2 - rj - 70, r: rj, e: "🦘"}, {t: "s", x: bx, y: H - ra*2 - rj*2 - rs - 100, r: rs, e: "✨"}];
   }
-  const padAt = (x, y) => PADS.find(p => Math.hypot(x - p.x, y - p.y) < p.r*1.35) || (x < 0 || (!PX && x < W*.42 && y > H*.45) ? PADS[0] : null);
+  const padAt = (x, y) => !PADS.length ? null : PADS.find(p => Math.hypot(x - p.x, y - p.y) < p.r*1.35) || (x < 0 || (!PX && x < W*.42 && y > H*.45) ? PADS[0] : null);
   function stickSet(v, x, y){ const p = PADS[0];
     if (v.cx == null){ const lim = p.r*1.2; v.cx = Math.max(p.x - lim, Math.min(p.x + lim, x)); v.cy = Math.max(p.y - lim, Math.min(p.y + lim, y)); if (PX){ v.cx = Math.max(-PX + p.r + 6, Math.min(-p.r - 6, v.cx)); v.cy = Math.min(H - p.r*.5, v.cy); } }   // 📱 엄지가 닿은 곳이 막대 가운데
     const dx = x - v.cx, dy = y - v.cy, d = Math.hypot(dx, dy); v.sx = x; v.sy = y;

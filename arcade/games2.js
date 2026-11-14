@@ -288,6 +288,7 @@ NG.defs.wb = () => {
                     {pl: local[1], t: "b", x: W - 310, y: H - 150, r: 64}, {pl: local[1], t: "d", x: W - 130, y: H - 150, r: 100}]
                  : [{pl: local[0], t: "d", x: big ? 190 : 170, y: by, r: big ? 140 : 120}, {pl: local[0], t: "b", x: W - (big ? 190 : 170), y: by, r: big ? 118 : 100}];
     }
+    if (window.VK_ON){ PADS = []; if (!land) H = FH + TOP + 24; }   // ⌨️ 화면 키보드를 쓸 땐 화면 단추를 숨겨요
     layerDirty = true;
   }
 
@@ -1538,6 +1539,7 @@ NG.defs.bs = () => {
                   {t: "stick", pl: b, x: W - 110, y: B + 200, r: 88, free: 1}, {t: "shoot", pl: b, x: W - 280, y: B + 275, r: 60}, {t: "jump", pl: b, x: W - 280, y: B + 130, r: 56}, {t: "bomb", pl: b, x: W - 110, y: B + 58, r: 38}]
                 : [{t: "stick", pl: a, x: 180, y: B + 200, r: 120, free: 1}, {t: "shoot", pl: a, x: W - 270, y: B + 250, r: 88}, {t: "jump", pl: a, x: W - 110, y: B + 155, r: 80}, {t: "bomb", pl: a, x: W - 105, y: B + 310, r: 52}];
     }
+    if (window.VK_ON){ CT = []; PX = 0; PAN = false; if (!land){ VH = 760; H = 760; } }   // ⌨️ 화면 키보드를 쓸 땐 화면 단추를 숨겨요
     const old = GY; GY = VH - GT;
     if (P && old !== GY){ const d = GY - old, mv = o => o.y += d; P.forEach(mv); [ens, items, crates, plats, trapped, shots, ebul, fx].forEach(L => L.forEach(mv)); if (boss){ boss.y += d; boss.ty += d; } }
     if (stage) backdrop();

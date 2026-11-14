@@ -313,6 +313,7 @@ function parseCfg(t){
    게임 목록
    ===================================================================== */
 const GAMES = [
+  {id: "rd", e: "🐾", n: "동물 랜덤 디펜스", kind: "score", tag: "⭐ 대표 게임 · 🤝 최대 4명 협동", d: "동물을 뽑고 3마리 합쳐 더 세게! 100단계 · 보스 · 친구와 함께 지켜요"},
   {id: "fl", e: "🐤", n: "얼굴 날기",   kind: "score", d: "연필 사이를 날아요 · 아이템과 맵 6단계"},
   {id: "tr", e: "🚂", n: "얼굴 기차",   kind: "score", d: "친구들을 태워 기차를 길게!"},
   {id: "st", e: "🪜", n: "얼굴 계단",   kind: "score", d: "방향을 바꿔 가며 끝없이 올라가요"},
@@ -336,7 +337,7 @@ const GAMES = [
 ];
 const GAME = Object.fromEntries(GAMES.map(g => [g.id, g]));
 /* 점수 → 코인 (한 판 최대 50, 기본 2) */
-const COIN_RATE = {qd: 1/600, rh: 1/22000, fl: 1, st: 1/3, tr: 2, wm: .8, bk: 1/40, rn: 1/6, tw: 1/80, bs: 1/250, sk: 1/1500, cp: 1/8, bp: 1/40, fm: 1/30, jm: 1/200, ws: 1/25};
+const COIN_RATE = {rd: 1/400, qd: 1/600, rh: 1/22000, fl: 1, st: 1/3, tr: 2, wm: .8, bk: 1/40, rn: 1/6, tw: 1/80, bs: 1/250, sk: 1/1500, cp: 1/8, bp: 1/40, fm: 1/30, jm: 1/200, ws: 1/25};
 const coinsFor = (gid, score) => Math.min(50, 2 + Math.floor((score || 0)*(COIN_RATE[gid] || 0)));
 const WIN_COIN = 25, LOSE_COIN = 5, BEST_COIN = 10;
 

@@ -776,7 +776,7 @@ NG.defs.st = () => {
     if (th.deco === "moon") t.drawImage(decoSpr("moon"), W*.8 - 90, H*.16 - 90, 180, 180);
     else if (th.deco === "planet"){ t.drawImage(decoSpr("planet"), W*.78 - 110, H*.2 - 60, 220, 120); t.fillStyle = "#4dabf7"; t.beginPath(); t.arc(W*.18, H*.32, 22, 0, 7); t.fill(); }
     else if (th.deco === "rainbow") t.drawImage(decoSpr("rainbow" + W), W/2 - W*.55 - 10, H*.75 - W*.55 - 10, W*1.1 + 20, W*.55 + 20);
-    try { c.toBlob(bl => { if (bl) BD[key].url = URL.createObjectURL(bl); }, "image/jpeg", .9); } catch(e) {}
+    try { c.toBlob(bl => { if (bl && BD[key]) BD[key].url = URL.createObjectURL(bl); }, "image/jpeg", .9); } catch(e) {}
   }
   function decoSpr(n){
     if (n === "moon") return spr("moon", 180, 180, t => { t.fillStyle = "#fff9db"; t.shadowColor = "#fff3bf"; t.shadowBlur = 40; t.beginPath(); t.arc(90, 90, 46, 0, 7); t.fill(); t.shadowBlur = 0;

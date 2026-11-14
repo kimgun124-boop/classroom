@@ -251,7 +251,7 @@ for k, v in {
     "/*{{CORE_JS}}*/": rd("core.js"),
     "/*{{AV_JS}}*/": av_js + "\n" + rd("avatar.js"),
     "/*{{GAME_JS}}*/": game_js,
-    "/*{{NEW_JS}}*/": rd("games.js") + "\n" + rd("net.js") + "\n" + rd("lobby.js") + "\n" + rd("gift.js") + "\n" + rd("games2.js") + "\n" + rd("color.js") + "\n" + rd("games3.js") + "\n" + rd("games4.js") + "\n" + rd("games5.js") + "\n" + rd("coop.js") + "\n" + rd("rhythm.js") + "\n" + rd("social.js"),
+    "/*{{NEW_JS}}*/": rd("games.js") + "\n" + rd("net.js") + "\n" + rd("lobby.js") + "\n" + rd("gift.js") + "\n" + rd("games2.js") + "\n" + rd("color.js") + "\n" + rd("games3.js") + "\n" + rd("games4.js") + "\n" + rd("games5.js") + "\n" + rd("coop.js") + "\n" + rd("games6.js") + "\n" + rd("vkey.js") + "\n" + rd("rhythm.js") + "\n" + rd("social.js"),
 }.items():
     assert out.count(k) == 1, k
     out = out.replace(k, v)

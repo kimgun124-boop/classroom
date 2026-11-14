@@ -479,7 +479,7 @@ NG.defs.sk = () => {
   }
 
   /* ---------- 터치 버튼 ---------- */
-  function pads(){ const L = []; if (!TOUCH) return L;
+  function pads(){ const L = []; if (!TOUCH || window.VK_ON) return L;
     const mine = party === "guest" ? [myIdx] : local;
     if (mine.length >= 2){ L.push({t: "sk", pl: mine[0], x: 92, y: H - 104, r: 56}, {t: "bm", pl: mine[0], x: 222, y: H - 66, r: 42}, {t: "sk", pl: mine[1], x: W - 92, y: H - 104, r: 56}, {t: "bm", pl: mine[1], x: W - 222, y: H - 66, r: 42}); }
     else L.push({t: "sk", pl: mine[0], x: W - 96, y: H - 106, r: 60}, {t: "bm", pl: mine[0], x: W - 236, y: H - 66, r: 44});
