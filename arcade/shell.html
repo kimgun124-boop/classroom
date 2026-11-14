@@ -83,6 +83,8 @@
       <div class="arc-spane" id="paneCoop" hidden></div>
       <div class="arc-spane" id="paneRoom" hidden></div>
       <div class="arc-spane chat" id="paneChat" hidden>
+        <div class="cr-bar" id="crBar" hidden></div>
+        <div id="crHd" hidden></div>
         <div class="ch-law">🤝 <b>고운 말만!</b> 욕이나 친구를 놀리는 말(비방)을 하면 선생님이 채팅방에서 <b>영원히 추방</b>할 수 있어요.</div>
         <div class="ch-list" id="chList"></div>
         <div class="ch-emo" id="chEmo" hidden></div>
@@ -182,6 +184,19 @@
     <p class="arc-netmsg" id="ntMsg"></p>
     <div class="arc-row" id="ntBtns"></div>
   </div>
+</div>
+
+<!-- ===== 👤 친구 프로필 ===== -->
+<div class="arc-modal" id="mdProf" hidden>
+  <div class="arc-card arc-wide pf-card"><div id="pfBody"></div><button class="arc-x" data-close>×</button></div>
+</div>
+<!-- ===== 💬 대화방 만들기 ===== -->
+<div class="arc-modal" id="mdCrMake" hidden>
+  <div class="arc-card arc-wide cr-card"><h2>➕ 대화방 만들기</h2><div id="crMkBody"></div>
+    <div class="arc-row"><button class="arc-btn" data-close>취소</button><button class="arc-btn p" id="crMkGo">💬 방 만들기</button></div><button class="arc-x" data-close>×</button></div>
+</div>
+<div class="arc-modal" id="mdCrSheet" hidden>
+  <div class="arc-card arc-wide cr-card"><h2 id="crShT"></h2><div id="crShB"></div><button class="arc-x" data-close>×</button></div>
 </div>
 
 <!-- ===== 랭킹 ===== -->

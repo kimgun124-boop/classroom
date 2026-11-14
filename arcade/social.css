@@ -1,0 +1,77 @@
+/* 👥 친구 프로필 · 💬 대화방 */
+#paneChat [data-pf],#paneRank [data-pf],#paneRoom [data-pf],#hmOnline [data-pf]{cursor:pointer}
+#paneChat .cm .avf[data-pf]:hover,#paneRank .avf[data-pf]:hover{box-shadow:0 0 0 2px #ffd43b}
+.cr-bar{display:flex;gap:6px;overflow-x:auto;padding:8px 10px 2px;scrollbar-width:none;flex:none}
+.cr-bar::-webkit-scrollbar{display:none}
+.cr-chip{position:relative;flex:none;display:inline-flex;align-items:center;gap:4px;max-width:150px;font:15px "Jua",sans-serif;color:#e5dbff;background:#221c55;border:2px solid #3d3392;border-radius:999px;padding:4px 11px 4px 7px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cr-chip .f{font-size:17px}
+.cr-chip.on{background:linear-gradient(180deg,#8f6bff,#6c5ce7);border-color:#cbbcff;color:#fff}
+.cr-chip.peek{border-style:dashed;opacity:.85}
+.cr-chip.dm{border-color:#f783ac}
+.cr-chip.add{background:none;border-style:dashed;color:#ffd43b;border-color:#8f7a2b}
+.cr-chip .nb{position:absolute;top:-1px;right:-1px;font:11px/16px "Jua",sans-serif;font-style:normal;min-width:16px;height:16px;border-radius:999px;background:#ff4d6d;color:#fff;text-align:center;padding:0 3px}
+.cr-hd{margin:6px 10px 0;padding:8px 10px;border-radius:14px;background:linear-gradient(135deg,#2b2370,#1d1850);border:1px solid #4c3fb0;display:flex;flex-direction:column;gap:6px}
+.cr-hd .t{display:flex;align-items:baseline;gap:6px;min-width:0}
+.cr-hd .t .f{font-size:22px}
+.cr-hd .t b{font:19px "Jua",sans-serif;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cr-hd .t small{font:12px "Gowun Dodum",sans-serif;color:#b9b0dd;white-space:nowrap}
+.cr-hd .ppl{display:flex;gap:2px;align-items:center;flex-wrap:wrap}
+.cr-hd .ppl .avf{width:26px;height:26px}
+.cr-hd .ppl small{color:#b9b0dd;font-size:12px;margin-left:4px}
+.cr-hd .acts{display:flex;gap:5px;flex-wrap:wrap}
+.cr-hd .arc-btn.sm{padding:4px 10px;font-size:14px}
+#paneChat.in-room .ch-law{display:none}
+.cr-game{display:flex;align-items:center;gap:9px;margin-top:3px;padding:9px 11px;border-radius:14px;background:linear-gradient(135deg,color-mix(in srgb,var(--c1,#6c5ce7) 70%,#1d1850),color-mix(in srgb,var(--c2,#2b2370) 60%,#1d1850));border:2px solid rgba(255,255,255,.25);min-width:220px}
+.cr-game .ic{font-size:32px;flex:none}
+.cr-game .i{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cr-game .i b{font:16px "Jua",sans-serif;color:#fff}
+.cr-game .i small{font:12px "Gowun Dodum",sans-serif;color:#e5dbff}
+.cr-sc{margin:4px 0 0;padding:0;list-style:none;font:13px "Gowun Dodum",sans-serif;color:#fff}
+.cr-sc b{color:#ffe066;font-family:"Jua",sans-serif;font-weight:400}
+.cr-game .arc-btn{flex:none}
+.cm.me .cr-game{flex-direction:row}
+/* 만들기 · 설정 창 */
+.cr-card{max-width:620px;position:relative}
+.cr-f{display:flex;flex-direction:column;gap:6px;margin:10px 0;font:16px "Jua",sans-serif;color:#e5dbff}
+.cr-f small{font:12px "Gowun Dodum",sans-serif;color:#b9b0dd}
+.cr-f input{background:#0f0b26;color:#fff;border:2px solid #4c3fb0;border-radius:12px;padding:9px 11px;font:16px "Gowun Dodum",sans-serif}
+.cr-emos{display:flex;flex-wrap:wrap;gap:5px}
+.cr-emos button{font-size:22px;width:42px;height:42px;border-radius:12px;background:#221c55;border:2px solid #3d3392;cursor:pointer}
+.cr-emos button.on{border-color:#ffd43b;background:#3d3392}
+.cr-pick{display:flex;flex-wrap:wrap;gap:5px;max-height:240px;overflow:auto}
+.cr-pick button,.cr-m{display:inline-flex;align-items:center;gap:5px;font:14px "Jua",sans-serif;color:#e5dbff;background:#221c55;border:2px solid #3d3392;border-radius:999px;padding:3px 10px 3px 3px;cursor:pointer}
+.cr-pick button.on{background:#6c5ce7;border-color:#cbbcff;color:#fff}
+.cr-pick .avf{width:24px;height:24px}
+.cr-m button{background:none;border:0;cursor:pointer;font-size:12px;padding:0 2px}
+.cr-gh{font:15px "Jua",sans-serif;color:#ffd43b;margin:12px 0 6px}
+.cr-gs{display:flex;flex-wrap:wrap;gap:6px}
+.cr-gs button{display:inline-flex;align-items:center;gap:5px;font:15px "Jua",sans-serif;color:#fff;border:2px solid rgba(255,255,255,.25);border-radius:14px;padding:7px 12px;cursor:pointer;background:linear-gradient(135deg,var(--c1,#4c3fb0),var(--c2,#2b2370))}
+.cr-gs button .f{font-size:20px}
+.cr-gs button:disabled{opacity:.6}
+/* 👤 프로필 */
+.pf-card{max-width:560px;position:relative}
+.pf-top{display:flex;gap:16px;align-items:center}
+.pf-av{flex:none;width:130px;height:130px;border-radius:24px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+.pf-av img,.pf-av svg{width:100%;height:100%;display:block}
+.pf-i{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;align-items:flex-start}
+.pf-i .nm{font:26px "Jua",sans-serif;color:#fff}
+.pf-i .st{font:14px "Gowun Dodum",sans-serif}
+.pf-i .st .on{color:#69db7c}.pf-i .st .on.play{color:#ffd43b}.pf-i .st .off{color:#a79fd0}
+.pf-say{margin:2px 0 0;padding:7px 11px;border-radius:4px 14px 14px 14px;background:#2f2770;color:#fff;font:15px "Gowun Dodum",sans-serif;max-width:100%;word-break:break-all}
+.pf-say i{color:#a79fd0}
+.pf-bio{display:flex;gap:5px;width:100%}
+.pf-bio input{flex:1;min-width:0;background:#0f0b26;color:#fff;border:2px solid #4c3fb0;border-radius:10px;padding:7px 9px;font:14px "Gowun Dodum",sans-serif}
+.pf-msg{font:12px "Gowun Dodum",sans-serif;color:#ffd43b;min-height:14px}
+.pf-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0 4px}
+.pf-stats div{background:#221c55;border:1px solid #3d3392;border-radius:14px;padding:8px;text-align:center}
+.pf-stats b{display:block;font:19px "Jua",sans-serif;color:#fff}
+.pf-stats small{font:12px "Gowun Dodum",sans-serif;color:#b9b0dd}
+.pf-h{font:16px "Jua",sans-serif;color:#ffd43b;margin:12px 0 6px}
+.pf-recs{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:6px;max-height:250px;overflow:auto}
+.pf-r{display:flex;align-items:center;gap:7px;padding:6px 10px;border-radius:12px;background:linear-gradient(135deg,color-mix(in srgb,var(--c1,#4c3fb0) 45%,#1d1850),#1d1850);border:1px solid #3d3392}
+.pf-r .f{font-size:20px}
+.pf-r .n{flex:1;min-width:0;font:14px "Jua",sans-serif;color:#e5dbff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pf-r b{font:14px "Jua",sans-serif;color:#fff}
+.pf-r i{font-style:normal;font:13px "Jua",sans-serif;color:#b9b0dd;min-width:30px;text-align:right}
+.pf-acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+@media (max-width:520px){ .pf-top{flex-direction:column;text-align:center} .pf-i{align-items:center} .pf-av{width:110px;height:110px} }

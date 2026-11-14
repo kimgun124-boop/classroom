@@ -8,7 +8,7 @@
 const hhmm = t => { const d = new Date(t || 0); return `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`; };
 const agoTxt = t => { const m = Math.floor((Date.now() - (t || 0))/60000); return m < 1 ? "방금" : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m/60)}시간 전` : `${Math.floor(m/1440)}일 전`; };
 const isT = no => +no === TEACHER;
-const avI = (sid, cls = "avf") => `<span class="${cls}">${avHTMLof(sid, {still: true, face: true})}</span>`;
+let avI = (sid, cls = "avf") => `<span class="${cls}">${avHTMLof(sid, {still: true, face: true})}</span>`;
 const gameOn = gid => !((Store.cls && Store.cls.off) || {})[gid];
 
 /* =====================================================================
