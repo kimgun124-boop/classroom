@@ -119,6 +119,11 @@ const NG = {
     if (cur.dom){ cur.fit && cur.fit(st.width, st.height); return; }
     if (cur.layout) cur.layout(st.width - 6, st.height - 6);   // 가로·세로에 맞춰 게임판 모양을 바꾸는 게임
     const s = Math.min((st.width - 16)/cur.W, (st.height - 16)/cur.H), dpr = Math.min(2, window.devicePixelRatio || 1), cv = $("#ngCanvas");
+    if (cur.pixW){   // 도트 게임: 정수 배로 키워서 점이 모두 같은 크기 (정수 배가 화면을 너무 덜 채우면 꽉 채우기)
+      const nf = cur.W*s*dpr/cur.pixW, ni = Math.max(1, Math.floor(nf)), n = ni/nf >= .9 ? ni : nf, kk = n*cur.pixW/cur.W;
+      cv.width = Math.round(n*cur.pixW); cv.height = Math.round(cur.H*kk); cv.style.width = cv.width/dpr + "px"; cv.style.height = cv.height/dpr + "px"; cv.style.imageRendering = "pixelated";
+      this.k = kk; this.s = kk/dpr; this.g = cv.getContext("2d"); return; }
+    cv.style.imageRendering = "";
     const dk = cur.maxPx ? Math.max(1, Math.min(dpr, Math.sqrt(cur.maxPx/Math.max(1, cur.W*s*cur.H*s)))) : dpr;
     cv.style.width = cur.W*s + "px"; cv.style.height = cur.H*s + "px"; cv.width = Math.round(cur.W*s*dk); cv.height = Math.round(cur.H*s*dk);
     this.k = s*dk; this.s = s; this.g = cv.getContext("2d");
