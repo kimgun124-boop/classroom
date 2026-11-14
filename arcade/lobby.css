@@ -271,3 +271,5 @@ body.arc-playing #lgFame, body.arc-playing .arc-lobby{display:none !important}
 .ch-ban small{color:#ffc9c9}
 .ad-chat .r.out{background:#4a1d27}
 .ch-in[hidden],.ch-quick[hidden]{display:none !important}
+/* 🌸 차분한 퍼즐 4종 카드 색 */
+.g-bp{--c1:#e64980;--c2:#5c1638;--gl:255,143,177}.g-fm{--c1:#f76707;--c2:#6b2a05;--gl:255,184,107}.g-jm{--c1:#7048e8;--c2:#2b1a63;--gl:177,151,252}.g-ws{--c1:#0ca678;--c2:#06402f;--gl:126,224,181}
