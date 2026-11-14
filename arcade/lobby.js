@@ -1,7 +1,7 @@
 /* =====================================================================
    🏠 오락실 로비 (2026.11.13)
    - 첫 화면(로그인)에 🏆 명예의 전당 · 🟢 지금 접속 중
-   - 홈: 게임 카드 + 옆 패널 [🏆 랭킹 | ⚔️ 대결방 | 💬 채팅]
+   - 홈: 게임 카드 + 옆 패널 [🏆 랭킹 | 🤝 협동방 | ⚔️ 대결방 | 💬 채팅]
    - 🛠️ 관리자: 지금 현황 · 채팅 관리 · 대결방 · 게임 끄기/문 닫기
    - ⚡ 렉 줄이기: 바뀐 칸만 다시 그리기, 아바타는 그림으로 한 번만, 접속 신호는 4분에 한 번
    ===================================================================== */
@@ -273,6 +273,7 @@ const LOBBY = {
       if (d){ this.rk.day = d.dataset.day === "1"; this.renderRank(); }
       if (big) ARC.rank(this.rk.g);
     };
+    $("#paneCoop").onclick = e => window.COOP && COOP.click(e);
     $("#paneRoom").onclick = e => {
       const n = e.target.closest("[data-new]"), j = e.target.closest("[data-join]"), x = e.target.closest("[data-close]");
       if (n) ROOMS.open(n.dataset.new); if (j) ROOMS.join(j.dataset.join); if (x) ROOMS.close();
@@ -308,7 +309,7 @@ const LOBBY = {
   },
   setTab(t){
     this.tab = t; $$("#hmTabs button").forEach(b => b.classList.toggle("on", b.dataset.t === t));
-    $("#paneRank").hidden = t !== "rank"; $("#paneRoom").hidden = t !== "room"; $("#paneChat").hidden = t !== "chat";
+    $("#paneRank").hidden = t !== "rank"; $("#paneRoom").hidden = t !== "room"; $("#paneCoop").hidden = t !== "coop"; $("#paneChat").hidden = t !== "chat";
     if (t === "chat"){ this.seen = Date.now(); this.chatSig = ""; }
     this.renderSide(true);
     if (t === "chat"){ const l = $("#chList"); l.scrollTop = l.scrollHeight; }
@@ -340,12 +341,13 @@ const LOBBY = {
     }).join(""));
   },
   renderSide(force){
-    if (force){ delete this.sig.paneRank; delete this.sig.paneRoom; }
+    if (force){ delete this.sig.paneRank; delete this.sig.paneRoom; delete this.sig.paneCoop; }
+    const CO = window.COOP; if (CO){ CO.sync(); const nc = CO.list().filter(r => !CO.full(r)).length; $("#bCoop").textContent = nc || ""; }
     const unread = LIVE.chat.filter(m => (m.at || 0) > this.seen && m.no !== ARC.me && !m.sys).length;
     if (this.tab === "chat"){ this.seen = Math.max(this.seen, ...LIVE.chat.map(m => m.at || 0), 0); }
     $("#bChat").textContent = this.tab === "chat" || !unread ? "" : unread > 9 ? "9+" : unread;
     const nr = ROOMS.ok() ? ROOMS.list().filter(r => r.host !== ARC.me).length : 0; $("#bRoom").textContent = nr || "";
-    if (this.tab === "rank") this.renderRank(); else if (this.tab === "room") this.renderRoom(); else this.renderChat();
+    if (this.tab === "rank") this.renderRank(); else if (this.tab === "room") this.renderRoom(); else if (this.tab === "coop"){ if (window.COOP) COOP.render(); } else this.renderChat();
   },
 
   /* ---- 🏆 랭킹 칸 ---- */
@@ -454,6 +456,8 @@ const ADMIN = {
           <div class="arc-row"><button class="arc-btn" id="acClear">🧹 채팅 모두 지우기</button></div></div>`
       : tab === "room" ? `
         <div class="ad-sec">${this.sw("arOn", !c.roomsOff, "⚔️ 대결방 열기", "닫으면 새 방을 만들거나 들어갈 수 없어요 (이 기기에서 둘이 대결은 그대로)")}</div>
+        <div class="ad-sec">${this.sw("acoOn", !c.coopOff, "🤝 협동방 열기", "닫으면 여럿이 하는 게임의 온라인 방을 만들거나 들어갈 수 없어요 (한 기기에서 함께하기는 그대로)")}
+          <div class="arc-row" style="margin-top:8px"><button class="arc-btn" id="acoAll">🧹 열린 협동방 모두 닫기</button></div></div>
         <div class="ad-sec"><h4>🚪 지금 열린 방</h4><div id="adRooms"></div><div class="arc-row"><button class="arc-btn" id="arAll">🧹 모든 방 닫기</button></div></div>`
       : `
         <div class="ad-sec"><h4>🔒 오락실 문</h4>
@@ -483,6 +487,8 @@ const ADMIN = {
       };
     } else if (tab === "room"){
       $("#arOn").onchange = e => this.patch({roomsOff: !e.target.checked}, e.target.checked ? "⚔️ 대결방을 열었어요" : "⏸️ 대결방을 닫았어요");
+      $("#acoOn").onchange = e => this.patch({coopOff: !e.target.checked}, e.target.checked ? "🤝 협동방을 열었어요" : "⏸️ 협동방을 닫았어요");
+      $("#acoAll").onclick = async () => { const n = window.COOP ? await COOP.closeAll() : 0; toast(`🧹 협동방 ${n}개를 닫았어요`); };
       $("#arAll").onclick = async () => { for (const r of LIVE.rooms.slice()) await LIVE.delRoom(r.id); toast("🧹 모든 방을 닫았어요"); };
       $("#adRooms").onclick = e => { const x = e.target.closest("[data-rm]"); if (x) LIVE.delRoom(x.dataset.rm); };
     } else if (tab === "game"){

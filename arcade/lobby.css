@@ -106,10 +106,10 @@ body.arc-playing #lgFame, body.arc-playing .arc-lobby{display:none !important}
 
 /* 옆 패널 */
 .arc-side{position:sticky;top:10px;display:flex;flex-direction:column;height:calc(100vh - 120px);min-height:460px;background:linear-gradient(180deg,#221a57,#15113a);border:2px solid #5f4bd8;border-radius:22px;overflow:hidden;box-shadow:0 18px 50px rgba(0,0,0,.4)}
-.arc-stabs{display:grid;grid-template-columns:repeat(3,1fr);background:rgba(0,0,0,.25)}
-.arc-stabs button{position:relative;font:18px "Jua",sans-serif;color:#c5b8ff;background:none;border:0;border-bottom:3px solid transparent;padding:11px 4px;cursor:pointer}
+.arc-stabs{display:grid;grid-template-columns:repeat(4,1fr);background:rgba(0,0,0,.25)}
+.arc-stabs button{position:relative;font:16px "Jua",sans-serif;white-space:nowrap;color:#c5b8ff;background:none;border:0;border-bottom:3px solid transparent;padding:11px 4px;cursor:pointer}
 .arc-stabs button.on{color:#fff;border-bottom-color:#ffd43b;background:rgba(255,255,255,.06)}
-.arc-stabs i{position:absolute;top:4px;right:8px;min-width:18px;height:18px;border-radius:9px;background:#fa5252;color:#fff;font:12px/18px "Jua",sans-serif;font-style:normal;padding:0 4px}
+.arc-stabs i{position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:#fa5252;color:#fff;font:11px/16px "Jua",sans-serif;font-style:normal;padding:0 4px}
 .arc-stabs i:empty{display:none}
 .arc-spane{flex:1;min-height:0;overflow:auto;padding:12px}
 .arc-spane[hidden]{display:none}
