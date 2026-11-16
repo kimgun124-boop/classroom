@@ -2,6 +2,26 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
+<meta name="arc-build" content="{{BUILD}}">
+<script>
+/* 🔄 늘 최신 오락실: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
+(function(){
+  var B = "{{BUILD}}", K = "arcade.reloaded";
+  function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
+  function chk(){
+    if (!idle()) return;
+    fetch("arcade-version.json?_=" + Date.now(), {cache: "no-store"}).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
+      if (!j || !j.b || j.b === B || !idle()) return;
+      try { if (sessionStorage.getItem(K) === j.b) return; sessionStorage.setItem(K, j.b); } catch(e){}
+      var u = new URL(location.href); u.searchParams.set("v", j.b); location.replace(u.toString());
+    }).catch(function(){});
+  }
+  chk();
+  document.addEventListener("visibilitychange", function(){ if (!document.hidden) chk(); });
+  window.addEventListener("pageshow", function(e){ if (e.persisted) chk(); });
+  setInterval(chk, 10 * 60 * 1000);
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#140f2e">
 <title>🕹️ 우리반 오락실 · made by 효석쌤</title>

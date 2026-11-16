@@ -278,5 +278,10 @@ assert _css.count(css_app) == 1
 _slim, _k, _d = (css_app, 0, 0) if os.environ.get("NOPRUNE") else prune(css_app, out[:_s] + out[_e:])
 out = out[:_s + 7] + _css.replace(css_app, _slim) + out[_e:]
 print(f"CSS 정리: 안 쓰는 규칙 {_d}개 뺌 ({_k}개 남김)")
+# 🔄 버전 표시: 내용이 바뀌면 번호도 바뀌어서, 열려 있는 오락실이 새 버전을 알아채요
+import hashlib, json
+_build = hashlib.sha1(out.encode("utf-8")).hexdigest()[:10]
+out = out.replace("{{BUILD}}", _build)
+open(os.path.join(ROOT, "arcade-version.json"), "w", encoding="utf-8").write(json.dumps({"b": _build}) + "\n")
 open(os.path.join(ROOT, "arcade.html"), "w", encoding="utf-8").write(out)
 print(f"arcade.html 완성 ({len(out.encode('utf-8'))//1024} KB)")

@@ -2,6 +2,26 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
+<meta name="arc-build" content="193c48c49d">
+<script>
+/* 🔄 늘 최신 오락실: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
+(function(){
+  var B = "193c48c49d", K = "arcade.reloaded";
+  function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
+  function chk(){
+    if (!idle()) return;
+    fetch("arcade-version.json?_=" + Date.now(), {cache: "no-store"}).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
+      if (!j || !j.b || j.b === B || !idle()) return;
+      try { if (sessionStorage.getItem(K) === j.b) return; sessionStorage.setItem(K, j.b); } catch(e){}
+      var u = new URL(location.href); u.searchParams.set("v", j.b); location.replace(u.toString());
+    }).catch(function(){});
+  }
+  chk();
+  document.addEventListener("visibilitychange", function(){ if (!document.hidden) chk(); });
+  window.addEventListener("pageshow", function(e){ if (e.persisted) chk(); });
+  setInterval(chk, 10 * 60 * 1000);
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#140f2e">
 <title>🕹️ 우리반 오락실 · made by 효석쌤</title>
@@ -237,6 +257,10 @@ input:focus,textarea:focus{outline:none;border-color:var(--accent)}
 .day{background:#faf4ea;padding:6px 14px;font-family:"Jua";font-size:14px;color:var(--ink-soft);position:sticky;top:0}
 .tabs{display:flex;gap:6px;margin:10px 0 12px}
 .empty{padding:30px;text-align:center;color:var(--ink-soft)}
+.arch{border:2px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px}
+.arch .when{font-family:"Jua";color:var(--ink-soft);font-size:14px;margin-bottom:6px}
+.arch .list{display:flex;flex-wrap:wrap;gap:6px}
+.arch .list span{background:#faf4ea;border-radius:10px;padding:3px 9px;font-size:14px}
 @media (max-width:560px){.grid{grid-template-columns:repeat(2,1fr);gap:10px}
 .card{min-height:160px;padding:12px}
 .name{font-size:20px}
