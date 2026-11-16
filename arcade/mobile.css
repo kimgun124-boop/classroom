@@ -16,25 +16,30 @@
 
   /* ---------- 🏠 홈 ---------- */
   #scrHome{padding:calc(10px + env(safe-area-inset-top)) 16px calc(var(--m-nav) + 28px + env(safe-area-inset-bottom));min-height:100dvh}
-  #scrHome .arc-top{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"brand btns" "me me";gap:12px 10px;margin:0 0 14px;align-items:center}
+  #scrHome .arc-top{display:grid;grid-template-columns:minmax(0,1fr);grid-template-areas:"brand" "me" "btns";gap:12px;margin:0 0 16px;align-items:center}
 
-  /* 반 이름 (왼쪽 위) */
-  #scrHome .arc-brand{grid-area:brand;align-items:flex-start;min-width:0}
-  #scrHome .arc-logo.sm{font-size:21px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;letter-spacing:0}
+  /* 반 이름 + 접속 인원 */
+  #scrHome .arc-brand{grid-area:brand;flex-direction:row;align-items:center;justify-content:space-between;gap:10px;min-width:0;padding:2px 2px 0}
+  #scrHome .arc-logo.sm{font-size:21px;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;letter-spacing:0}
   #scrHome .arc-logo .e{text-shadow:none;font-size:18px;margin-right:2px}
   #scrHome .arc-logo .g{animation:none;background:linear-gradient(90deg,#fff,#d9d0ff);-webkit-background-clip:text;background-clip:text}
-  #scrHome .arc-online{justify-content:flex-start;font:12px "Gowun Dodum",sans-serif;color:#9be7ad;margin-top:3px;gap:6px}
+  #scrHome .arc-online{flex:none;margin:0;justify-content:flex-end}
+  #scrHome .arc-online .arc-pill{white-space:nowrap;font:12px "Gowun Dodum",sans-serif;color:#b6f0c4;gap:5px;padding:4px 8px 4px 9px;background:rgba(81,207,102,.1);border-color:rgba(81,207,102,.25)}
+  #scrHome .arc-online .arc-pill b{font-weight:700}
+  #scrHome .arc-online .ppl{margin-left:2px}
   #scrHome .arc-online .ppl .avf{width:20px;height:20px;margin-left:-6px;box-shadow:0 0 0 2px var(--m-bg)}
   #scrHome .arc-online .ppl .avf:first-child{margin-left:0}
+  #scrHome .arc-online .ppl .avf:nth-child(n+4){display:none}
   #scrHome .arc-online .dot{width:7px;height:7px;box-shadow:0 0 0 3px rgba(81,207,102,.18)}
 
-  /* 아이콘 버튼 (오른쪽 위) */
-  #scrHome .arc-topb{grid-area:btns;gap:6px;flex-wrap:nowrap}
-  #scrHome .arc-topb .arc-btn{width:40px;height:40px;padding:0;display:grid;place-items:center;border-radius:13px;border:1px solid var(--m-ln);background:var(--m-sf);box-shadow:none;font-size:19px}
+  /* 바로 가기 버튼 (프로필 아래 한 줄) */
+  #scrHome .arc-topb{grid-area:btns;display:flex;gap:8px;flex-wrap:nowrap}
+  #scrHome .arc-topb .arc-btn{flex:1 1 0;min-width:0;height:48px;padding:0 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border-radius:14px;border:1px solid var(--m-ln);background:var(--m-sf);box-shadow:none;font-size:11.5px;color:#d6cff7;line-height:1.1}
   #scrHome .arc-topb .arc-btn[hidden]{display:none}
-  #scrHome .arc-topb .arc-btn .lb{display:none}
-  #scrHome .arc-topb .arc-btn.p{background:linear-gradient(160deg,#ff7ac0,#d6336c);border-color:transparent;box-shadow:0 4px 14px rgba(214,51,108,.35)}
-  #scrHome .arc-topb .arc-btn:active{transform:scale(.92)}
+  #scrHome .arc-topb .arc-btn .ic{font-size:18px}
+  #scrHome .arc-topb .arc-btn .lb{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  #scrHome .arc-topb .arc-btn.p{background:linear-gradient(160deg,rgba(255,122,192,.28),rgba(214,51,108,.22));border-color:rgba(255,122,192,.45);color:#fff}
+  #scrHome .arc-topb .arc-btn:active{transform:scale(.95)}
 
   /* 내 프로필 카드 */
   #scrHome .arc-me{grid-area:me;display:flex;align-items:center;gap:12px;padding:12px;border-radius:20px;border:1px solid rgba(177,151,252,.22);background:linear-gradient(135deg,rgba(124,92,255,.22),rgba(124,92,255,.06) 60%),rgba(255,255,255,.03);min-width:0}
@@ -126,12 +131,42 @@
   .rk-list .arc-rrow{border-radius:14px;padding:8px 12px}
   .rk-more{border-radius:14px;border-width:1px;background:var(--m-sf);font-size:16px}
 
-  /* 채팅 */
-  .ch-law{font-size:12.5px;border-radius:12px;margin:0 16px 6px}
-  .ch-in{padding:6px 12px 10px}
-  .ch-in input{border-width:1px;border-radius:999px;padding:10px 14px;background:rgba(255,255,255,.06)}
-  .ch-in button{border-radius:999px;padding:0 16px}
-  .ch-quick{padding:6px 12px}
+  /* 💬 채팅 — 메신저처럼 깔끔하게 */
+  #paneChat{background:var(--m-bg)}
+  .cr-bar{padding:2px 16px 8px;gap:6px}
+  .cr-chip{font-size:13px;border-width:1px;border-color:var(--m-ln);background:var(--m-sf);padding:5px 11px 5px 8px;color:#d6cff7}
+  .cr-chip .f{font-size:15px}
+  .cr-chip.on{background:#fff;color:#1b1340;border-color:#fff}
+  .cr-chip.add{border-style:solid;border-color:rgba(255,212,59,.35);background:rgba(255,212,59,.08);color:#ffe066}
+  .cr-chip.peek{border-style:solid}
+  .cr-hd{margin:0 16px 4px;border-radius:14px;background:var(--m-sf);border-color:var(--m-ln)}
+  .ch-law{margin:0 16px 4px;padding:7px 10px;border-radius:10px;background:rgba(255,212,59,.07);border:0;font-size:11.5px;line-height:1.4;color:#d8cfa6;text-align:center}
+  .ch-law b{color:#ffe066}
+  .ch-list{padding:10px 14px 8px;gap:10px;border-top:1px solid var(--m-ln)}
+  .cm{max-width:84%;gap:8px}
+  .cm .avf{width:34px;height:34px;margin-top:0}
+  .cm .bx{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
+  .cm.me .bx{align-items:flex-end}
+  .cm .hd{font-size:12px;color:#aaa2d4;gap:5px;align-items:center;padding:0 4px;margin-bottom:3px}
+  .cm .hd small{font-size:10.5px;opacity:.6}
+  .cm .del{font-size:11px;opacity:.55;padding:0 1px}
+  .cm p{margin:0;max-width:100%;background:#2a2360;border-radius:4px 18px 18px 18px;padding:8px 13px;font-size:15px;line-height:1.45}
+  .cm.me{flex-direction:row-reverse}
+  .cm.me .avf{display:none}
+  .cm.me .hd{flex-direction:row-reverse}
+  .cm.me p{background:linear-gradient(160deg,#8f7cff,#6c5ce7);border-radius:18px 4px 18px 18px}
+  .cm.tch p{background:linear-gradient(160deg,#6b4800,#4a3200);border:1px solid rgba(255,212,59,.5)}
+  .cm.sys{max-width:92%;align-self:center}
+  .cm.sys p{background:rgba(255,212,59,.08);border:0;border-radius:12px;padding:5px 12px;font-size:12px;line-height:1.45;color:#f0d77a;text-align:center}
+  .ch-quick{padding:8px 12px 2px;gap:6px;border-top:1px solid var(--m-ln)}
+  .ch-quick button{font-size:13px;padding:5px 11px;border-color:var(--m-ln);background:var(--m-sf)}
+  .ch-in{padding:6px 12px 10px;gap:8px;align-items:center}
+  .ch-in input{height:42px;box-sizing:border-box;border:1px solid var(--m-ln);border-radius:999px;padding:0 16px;background:rgba(255,255,255,.07);font-size:15px}
+  .ch-in input:focus{border-color:#a594ff}
+  .ch-in .ch-emob{width:42px;height:42px;padding:0 !important;border-radius:50% !important;border:1px solid var(--m-ln) !important;background:var(--m-sf) !important;display:grid;place-items:center}
+  .ch-in #chSend{height:42px;border-radius:999px;padding:0 16px;font-size:15px;background:linear-gradient(160deg,#8f7cff,#6c5ce7)}
+  .ch-msg{padding:0 16px 4px;min-height:0}
+  .ch-emo{margin:4px 12px 0;border-color:var(--m-ln);border-radius:16px}
 
   /* 대결방·협동방 */
   .rm-new{border-width:1px;border-style:solid;border-color:var(--m-ln);background:var(--m-sf);border-radius:18px}

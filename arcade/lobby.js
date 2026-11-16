@@ -404,7 +404,7 @@ const LOBBY = {
   renderChat(){
     const me = ARC.me, why = CHAT.why(me), live = LIVE.cloud() || Store.mode === "local", out = CHAT.banned(me) && !isT(me);
     const inp = $("#chText"), btn = $("#chSend");
-    inp.disabled = btn.disabled = $("#chEmoBtn").disabled = !!why || !live; inp.placeholder = why || "친구들에게 한마디! (고운 말 😊)";
+    inp.disabled = btn.disabled = $("#chEmoBtn").disabled = !!why || !live; inp.placeholder = why || "고운 말로 한마디 😊";
     $("#chRule").hidden = out || this.ruleOk(); $("#chQuick").hidden = out; $("#chForm").hidden = out; if (out) $("#chEmo").hidden = true;
     if (why && !$("#chMsg").textContent) $("#chMsg").textContent = "";
     const L = LIVE.chat, ban = (Store.cls || {}).chatBan || {}, sg = L.map(m => m.id).join(",") + "|" + isT(me) + "|" + out + "|" + JSON.stringify(ban) + "|" + (L.length ? L[L.length - 1].at : 0) + "|" + Math.floor(Date.now()/60000);
