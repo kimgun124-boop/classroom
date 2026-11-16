@@ -7,7 +7,8 @@
       버튼판은 HTML 하나로 한 번만 만들고, 누를 때는 클래스 하나만 바꿔요 (다시 그리기 없음).
    ===================================================================== */
 const VK = {
-  on: (() => { try { return localStorage.getItem("arcade.vk") === "1"; } catch(e){ return false; } })(),
+  /* 처음엔: 손가락 화면(태블릿·폰)에서만 켜요. 진짜 키보드·마우스가 있는 컴퓨터는 꺼진 채로 */
+  on: (() => { try { const v = localStorage.getItem("arcade.vk"); if (v !== null) return v === "1"; return matchMedia("(pointer: coarse)").matches && !matchMedia("(any-pointer: fine)").matches; } catch(e){ return false; } })(),
   two: false, gid: null, sig: "", held: new Map(), dpads: new Map(), rep: new Map(),
   /* 키 이름 → 눌린 글자 (몇몇 게임은 e.key를 봐요) */
   keyOf(code){ return code === "Space" ? " " : code.startsWith("Key") ? code.slice(3).toLowerCase() : code.startsWith("Digit") ? code.slice(5) : code; },
@@ -18,8 +19,6 @@ const VK = {
   layout(gid, two){
     const A = this.AR, P1 = this.P1, P2 = this.P2, lr = m => ({l: m.l, r: m.r}), ud = m => ({u: m.u, d: m.d});
     const L = {
-      rd: two ? [{c: 0, b: [["Space", "🎲", "뽑기", 1], ["KeyQ", "🔀", "합치기"], ["KeyE", "💎", "행운"]]}, {c: 1, b: [["Enter", "🎲", "뽑기", 1], ["KeyM", "🔀", "합치기"], ["KeyL", "💎", "행운"]]}]
-              : [{b: [["Space", "🎲", "뽑기", 1], ["KeyQ", "🔀", "합치기", 1]]}, {b: [["Digit1", "⬆️", "일반·희귀"], ["Digit2", "⬆️", "영웅·전설"], ["Digit3", "⬆️", "신화"]], g: 1}, {b: [["KeyE", "💎", "행운"], ["KeyF", "⏩", "빠르게"]], g: 1}],
       wm: [{grid: 3, b: [["KeyQ", "", "1"], ["KeyW", "", "2"], ["KeyE", "", "3"], ["KeyA", "", "4"], ["KeyS", "", "5"], ["KeyD", "", "6"], ["KeyZ", "", "7"], ["KeyX", "", "8"], ["KeyC", "", "9"]]}],
       bk: [{d: lr(A)}, {b: [["Space", "🚀", "발사", 1]]}],
       rn: [{b: [["Space", "⤴️", "점프", 2]]}],
@@ -28,7 +27,6 @@ const VK = {
       fl: [{b: [["Space", "🐤", "날기", 2]]}],
       st: [{b: [["ArrowLeft", "🔄", "방향 바꾸기", 2]]}, {b: [["ArrowRight", "⬆️", "오르기", 2]]}],
       fm: [{d: Object.assign(lr(A), {rep: 1})}, {b: [["Space", "⬇️", "떨어뜨리기", 1]]}],
-      rh: [{lanes: 1, b: [["KeyD", "", "1"], ["KeyF", "", "2"], ["KeyJ", "", "3"], ["KeyK", "", "4"]]}],
       pp: two ? [{c: 0, d: ud(P1)}, {c: 1, d: ud(P2)}] : [{d: ud(A)}],
       vb: two ? [{c: 0, d: lr(P1), b: [["KeyW", "⤴️", "점프"], ["KeyF", "💥", "스파이크"]]}, {c: 1, d: lr(P2), b: [["ArrowUp", "⤴️", "점프"], ["Enter", "💥", "스파이크"]]}]
               : [{d: lr(P1)}, {b: [["KeyW", "⤴️", "점프", 1], ["KeyF", "💥", "스파이크", 1]]}],
@@ -44,9 +42,11 @@ const VK = {
     };
     return L[gid] || null;
   },
-  TWO: ["rd", "pp", "vb", "ah", "wb", "bs", "qd", "sk"],
+  /* 🐾 랜덤 디펜스 · 🎵 리듬 스타는 게임 화면에 큰 손가락 단추가 이미 있어서 화면 키보드가 필요 없어요 (화면을 덜 가려요) */
+  TWO: ["pp", "vb", "ah", "wb", "bs", "qd", "sk"],
   /* 지금 열린 게임 */
   active(){
+    if (!$("#scrHome").hidden && $("#ng").hidden && !["#volley", "#airh", "#flappy", "#train"].some(s => { const el = $(s); return el && el.classList.contains("open"); })) return null;   // 로비에서는 절대 안 보여요
     if (typeof NG !== "undefined" && NG.cur && !$("#ng").hidden){ const g = NG.gid, o = NG.opt || {};
       const two = (o.local || []).length >= 2 || (g === "pp" && !o.cpu && !o.net); return {gid: g, two, auto: true}; }
     const L = [["vb", "#volley"], ["ah", "#airh"], ["fl", "#flappy"], ["tr", "#train"]];
@@ -58,7 +58,7 @@ const VK = {
     document.body.insertAdjacentHTML("beforeend", `<button class="vk-tog" id="vkTog" hidden title="화면 키보드">⌨️</button><div class="vk-bar" id="vkBar" hidden><div class="vk-in" id="vkIn"></div><button class="vk-two" id="vkTwo" hidden>👫 둘이</button></div>`);
     const tog = $("#vkTog"), bar = $("#vkBar");
     tog.addEventListener("pointerdown", e => { e.preventDefault(); e.stopPropagation(); this.set(!this.on); });
-    $("#vkTwo").addEventListener("pointerdown", e => { e.preventDefault(); e.stopPropagation(); this.two = !this.two; this.sig = ""; this.tick(); });
+    $("#vkTwo").addEventListener("pointerdown", e => { e.preventDefault(); e.stopPropagation(); this.two = !this.two; this.sig = "?"; this.tick(); });
     bar.addEventListener("pointerdown", e => this.pd(e), {passive: false});
     bar.addEventListener("pointermove", e => this.pm(e), {passive: false});
     ["pointerup", "pointercancel"].forEach(t => bar.addEventListener(t, e => this.pu(e)));
@@ -66,10 +66,17 @@ const VK = {
     ["contextmenu", "selectstart", "dblclick"].forEach(t => bar.addEventListener(t, e => e.preventDefault()));
     bar.addEventListener("touchstart", e => e.preventDefault(), {passive: false});   // 길게 누르기 확대경·스크롤 막기
     window.addEventListener("blur", () => this.releaseAll());
+    // ⌨️ 진짜 키보드를 누르면 화면 키보드는 알아서 숨어요 (화면을 덜 가리게)
+    window.addEventListener("keydown", e => { if (!e.isTrusted || !this.on || !window.VK_ON || /^(INPUT|TEXTAREA)$/.test(e.target.tagName || "")) return;
+      if (["Escape", "Tab", "Meta", "Alt", "Control", "Shift"].includes(e.key)) return;
+      this.set(false); try { toast("⌨️ 진짜 키보드를 써서 화면 키보드를 숨겼어요 (위 ⌨️ 단추로 다시 켜요)"); } catch(er) {} }, true);
+    // 게임을 닫으면 바로 숨겨요
+    const nc = NG.close; NG.close = function(){ const r = nc.apply(this, arguments); VK.releaseAll(); VK.tick(); return r; };
     document.addEventListener("visibilitychange", () => { if (document.hidden) this.releaseAll(); });
     setInterval(() => this.tick(), 350);
   },
-  set(on){ this.on = on; try { localStorage.setItem("arcade.vk", on ? "1" : "0"); } catch(e) {} if (!on) this.releaseAll(); this.sig = ""; this.tick(); try { navigator.vibrate && navigator.vibrate(10); } catch(e) {} },
+  /* (끌 때도 꼭 다시 그려요 — 예전엔 ⌨️로 꺼도 버튼판이 남아 화면을 가렸어요) */
+  set(on){ this.on = on; try { localStorage.setItem("arcade.vk", on ? "1" : "0"); } catch(e) {} if (!on) this.releaseAll(); this.sig = "?"; this.tick(); try { navigator.vibrate && navigator.vibrate(10); } catch(e) {} },
   tick(){
     const a = this.active(), L = a && this.layout(a.gid, a.two);
     const tog = $("#vkTog"); tog.hidden = !L; if (L) tog.classList.toggle("on", this.on);
@@ -137,7 +144,7 @@ const VK = {
 window.VK = VK;
 (function(){
   const css = document.createElement("style");
-  css.textContent = `:root{--vkh:min(34vh,290px)}@media (orientation:landscape){:root{--vkh:min(33vh,180px)}}
+  css.textContent = `:root{--vkh:min(32vh,270px)}@media (orientation:landscape){:root{--vkh:min(28vh,160px)}}
 body.vk-on .ng-ov .ng-top{padding:4px 12px}body.vk-on .ng-ov .ng-top h2{font-size:18px}body.vk-on .ng-ov .ng-hud{font-size:15px}
 @media (orientation:landscape) and (max-height:520px){body.vk-on .ng-ov .ng-top h2{display:none}body.vk-on .ng-ov .ng-top .pk-x,.vk-tog.in{width:36px;height:36px;font-size:20px}}
 body.vk-on .ng-ov,body.vk-on #volley,body.vk-on #airh,body.vk-on #flappy,body.vk-on #train{height:calc(100dvh - var(--vkh)) !important;bottom:auto !important}

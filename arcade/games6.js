@@ -104,7 +104,7 @@ NG.defs.rd = () => {
     if (d < w) return [.5 + d, .5]; d -= w; if (d < h) return [COLS - .5, .5 + d]; d -= h; if (d < w) return [COLS - .5 - d, ROWS - .5]; d -= w; return [.5, ROWS - .5 - d]; }
   const cx = c => BX + c*C, cy = r => BY + r*C;
   const slotXY = (z, s) => [ZO[z][0] + (s % ZC) + .5, ZO[z][1] + Math.floor(s/ZC) + .5];
-  const UOFF = [[[0, 0]], [[-.19, .02], [.19, .02]], [[0, -.18], [-.2, .15], [.2, .15]]];
+  const UOFF = [[[0, -.04]], [[-.21, 0], [.21, 0]], [[0, -.2], [-.22, .13], [.22, .13]]];
 
   /* ---------- 그림 ---------- */
   function buildLayer(){
@@ -117,9 +117,19 @@ NG.defs.rd = () => {
     // 길 (빙글빙글)
     t.save(); rrect(t, 0, 0, w, h - 4, C*.3); t.clip();
     t.fillStyle = BSA.lg(t, 0, 0, 0, h, [[0, T.pa[0]], [1, T.pa[1]]]); t.fillRect(0, 0, w, C); t.fillRect(0, h - C - 4, w, C + 4); t.fillRect(0, 0, C, h); t.fillRect(w - C, 0, C, h);
-    const rr = BSA.rng(7 + wave); t.fillStyle = "rgba(255,255,255,.18)";
+    // 🧱 길 돌판 (칸마다 둥근 돌 · 위 빛 · 아래 그림자)
+    const rr = BSA.rng(7 + wave);
+    for (let d = 0; d < PL; d++){ const [px, py] = posAt(d), x0 = (px - .5)*C, y0 = (py - .5)*C, j = (rr() - .5)*C*.04;
+      t.fillStyle = "rgba(0,0,0,.13)"; rrect(t, x0 + C*.07, y0 + C*.1 + j, C*.86, C*.84, C*.2); t.fill();
+      t.fillStyle = BSA.lg(t, 0, y0, 0, y0 + C, [[0, "rgba(255,255,255,.28)"], [1, "rgba(255,255,255,.06)"]]); rrect(t, x0 + C*.07, y0 + C*.06 + j, C*.86, C*.84, C*.2); t.fill(); }
+    t.fillStyle = "rgba(255,255,255,.18)";
     for (let i = 0; i < 2*(COLS + ROWS)*3; i++){ const [px, py] = posAt(rr()*PL); t.beginPath(); t.ellipse(px*C + (rr() - .5)*C*.7, py*C + (rr() - .5)*C*.7, C*.08 + rr()*C*.06, C*.05 + rr()*C*.04, 0, 0, 7); t.fill(); }
     t.strokeStyle = "rgba(0,0,0,.18)"; t.lineWidth = 3; t.strokeRect(C, C, w - 2*C, h - 2*C - 4);
+    // 🌿 풀밭 무늬 (풀잎 · 작은 꽃)
+    { const gx0 = C, gy0 = C, gw = w - 2*C, gh = h - 2*C - 4, fl = ["#ffffff", "#ffd6e7", "#fff3bf"];
+      for (let i = 0; i < Math.round(gw*gh/(C*C)*9); i++){ const x = gx0 + rr()*gw, y = gy0 + rr()*gh, s = C*(.05 + rr()*.05);
+        if (rr() < .12){ t.fillStyle = fl[Math.floor(rr()*3)]; t.globalAlpha = .7; t.beginPath(); t.arc(x, y, s*.45, 0, 7); t.fill(); t.globalAlpha = 1; continue; }
+        t.strokeStyle = "rgba(0,0,0,.12)"; t.lineWidth = 2; t.lineCap = "round"; t.beginPath(); t.moveTo(x - s*.6, y - s*.9); t.lineTo(x, y); t.lineTo(x + s*.6, y - s*.9); t.moveTo(x, y); t.lineTo(x, y - s*1.1); t.stroke(); } }
     // 길 화살표
     t.fillStyle = "rgba(255,255,255,.35)"; for (let d = 1; d < PL; d += 3){ const [x0, y0] = posAt(d), [x1, y1] = posAt(d + .3), a = Math.atan2(y1 - y0, x1 - x0); t.save(); t.translate(x0*C, y0*C); t.rotate(a); t.beginPath(); t.moveTo(C*.16, 0); t.lineTo(-C*.08, -C*.12); t.lineTo(-C*.08, C*.12); t.closePath(); t.fill(); t.restore(); }
     t.restore();
@@ -132,24 +142,9 @@ NG.defs.rd = () => {
     // 꾸미기 (네 귀퉁이)
     const dz = [...th().deco]; [[.5, .5], [COLS - .5, .5], [COLS - .5, ROWS - .5], [.5, ROWS - .5]].forEach(([x, y], i) => { G2.emo(t, dz[i % dz.length], x*C, y*C, C*.62); });
   }
-  const unitSpr = (k, s) => sp(`u${k}${s}`, s, s, (t) => { const A = RD_A[k], G = RD_G[A.g], m = s/2;
-    t.fillStyle = "rgba(0,0,0,.25)"; t.beginPath(); t.ellipse(m, s*.92, s*.36, s*.08, 0, 0, 7); t.fill();
-    t.fillStyle = BSA.rg(t, m - s*.12, m - s*.16, 2, s*.46, [[0, "#fff"], [.7, G.c2], [1, G.c]]); t.beginPath(); t.arc(m, m, s*.44, 0, 7); t.fill();
-    if (A.g === 4 && t.createConicGradient){ const cg = t.createConicGradient(0, m, m); ["#ff6b6b", "#ffd43b", "#69db7c", "#4dabf7", "#cc5de8", "#ff6b6b"].forEach((c, i) => cg.addColorStop(i/5, c)); t.strokeStyle = cg; }
-    else t.strokeStyle = G.c;
-    t.lineWidth = Math.max(3, s*.075); t.stroke(); t.strokeStyle = "rgba(27,18,51,.6)"; t.lineWidth = 1.5; t.beginPath(); t.arc(m, m, s*.48, 0, 7); t.stroke();
-    G2.emo(t, A.e, m, m + s*.03, s*.58);
-    if (A.g >= 3){ t.fillStyle = A.g === 4 ? "#ff6b9a" : "#f59f00"; t.font = `bold ${Math.round(s*.2)}px sans-serif`; t.textAlign = "center"; t.textBaseline = "middle"; t.fillText(A.g === 4 ? "★★" : "★", m, s*.1); } });
-  function slimeSpr(kind, f){ const T = th(), s = Math.round(kind === 2 ? C*1.25 : kind === 1 ? C*.85 : C*.6);   // 그릴 크기 그대로 (늘이기 없이)
-    return sp(`sl${T.n}${kind}${f}`, s, s, (t) => { const m = s/2, sq = f ? .06 : 0, by = s*.62, rw = s*(.42 + sq), rh = s*(.34 - sq);
-      t.fillStyle = "rgba(0,0,0,.22)"; t.beginPath(); t.ellipse(m, s*.93, s*.34, s*.07, 0, 0, 7); t.fill();
-      if (kind === 1){ t.fillStyle = "#fff3bf"; [[-1], [1]].forEach(([d]) => { t.beginPath(); t.moveTo(m + d*rw*.45, by - rh*.75); t.lineTo(m + d*rw*.85, by - rh*1.45); t.lineTo(m + d*rw*.15, by - rh*.95); t.closePath(); t.fill(); }); }
-      t.beginPath(); t.ellipse(m, by, rw, rh, 0, Math.PI, 0); t.lineTo(m + rw, by + rh*.55); t.quadraticCurveTo(m, by + rh*.85, m - rw, by + rh*.55); t.closePath();
-      t.fillStyle = BSA.rg(t, m - rw*.35, by - rh*.5, 2, rw*1.2, [[0, "#fff"], [.35, T.sl[0]], [1, T.sl[1]]]); t.fill(); BSA.ol(t, Math.max(2, s*.045));
-      t.fillStyle = "rgba(255,255,255,.55)"; t.beginPath(); t.ellipse(m - rw*.45, by - rh*.55, rw*.16, rh*.12, -.5, 0, 7); t.fill();
-      const ey = by - rh*.1, ex = rw*.34, er = s*.075; [-1, 1].forEach(d => { t.fillStyle = "#fff"; t.beginPath(); t.arc(m + d*ex, ey, er*1.25, 0, 7); t.fill(); t.fillStyle = T.ey === "#fff" ? "#1b1233" : T.ey; t.beginPath(); t.arc(m + d*ex + er*.25, ey + (f ? er*.2 : 0), er*.7, 0, 7); t.fill(); });
-      t.strokeStyle = "#1b1233"; t.lineWidth = Math.max(1.5, s*.03); t.beginPath(); t.arc(m, ey + er*1.6, er*.8, .2, Math.PI - .2); t.stroke();
-      if (kind === 2){ t.fillStyle = "#ffd43b"; t.beginPath(); const cy0 = by - rh - s*.02; t.moveTo(m - s*.2, cy0); t.lineTo(m - s*.22, cy0 - s*.16); t.lineTo(m - s*.1, cy0 - s*.07); t.lineTo(m, cy0 - s*.2); t.lineTo(m + s*.1, cy0 - s*.07); t.lineTo(m + s*.22, cy0 - s*.16); t.lineTo(m + s*.2, cy0); t.closePath(); t.fill(); BSA.ol(t, 2); } }); }
+  const unitSpr = (k, s) => RDA.unitSpr(k, s);   // 🎨 직접 그린 동물 (rdart.js)
+  function slimeSpr(kind, f){ const T = th(), ti = Math.min(9, Math.floor((Math.max(1, wave) - 1)/10)), s = Math.round(kind === 2 ? C*1.3 : kind === 1 ? C*.88 : C*.62);   // 그릴 크기 그대로 (늘이기 없이)
+    return sp(`sl2${ti}${kind}${f}${s}`, s, s, t => RDA.slime(t, s, kind, f, T, ti)); }
   const orbSpr = g => { const s = 2*(10 + g*3); return sp("orb" + g + s, s, s, t => { const c = RD_G[g].c, m = s/2; t.fillStyle = BSA.rg(t, m, m, 1, m, [[0, "#fff"], [.4, c], [1, "rgba(255,255,255,0)"]]); t.fillRect(0, 0, s, s); }); };
   const ringSpr = c => sp("ring" + c, 96, 96, t => { t.strokeStyle = c; t.lineWidth = 5; t.beginPath(); t.arc(48, 48, 44, 0, 7); t.stroke(); t.globalAlpha = .25; t.fillStyle = c; t.fill(); });
   /* 그림 글자 + 숫자를 한 장으로 (테두리 글씨에 그림 글자가 섞이면 숫자가 깨지는 기기가 있어요) */
@@ -209,7 +204,7 @@ NG.defs.rd = () => {
     popAt(z, j, `${RD_A[k].e} ${RD_A[k].n}${g + 1 >= 3 ? "!!" : "!"}`, RD_G[g + 1].c); fxRing(z, j, RD_G[g + 1].c); }
   const upCost = (z, g) => [30, 90, 250][g]*(Z[z].up[g] + 1);
   const upMul = (z, g) => 1 + .3*Z[z].up[g < 2 ? 0 : g < 4 ? 1 : 2];
-  function toastZ(z, s){ if (isMine(z)) FX.push({tx: s, x: W/2, y: H - BOTH - 26, t: 90, c: "#fff", ui: 1, z}); else if (party === "host" && remote(z)) NQ.push(["t", z, s]); }
+  function toastZ(z, s){ if (isMine(z)){ for (let i = FX.length - 1; i >= 0; i--) if (FX[i].ui && FX[i].z === z) FX.splice(i, 1); } if (isMine(z)) FX.push({tx: s, x: W/2, y: H - BOTH - 26, t: 90, c: "#fff", ui: 1, z}); else if (party === "host" && remote(z)) NQ.push(["t", z, s]); }
   function popAt(z, i, s, c){ if (i < 0) return; const [x, y] = slotXY(z, i); FX.push({tx: s, x, y: y - .4, t: 70, c, cell: 1}); if (party === "host") NQ.push(["p", z, i, s, c]); }
   function fxRing(z, i, c){ if (i < 0) return; const [x, y] = slotXY(z, i); FX.push({ring: 1, x, y, t: 26, c}); if (party === "host") NQ.push(["r", +x.toFixed(2), +y.toFixed(2), c]); }
 
@@ -233,7 +228,7 @@ NG.defs.rd = () => {
           if (mt > 1) tg = tg.sort((a, b) => b.tr - a.tr).slice(0, mt);
           q.cd[u] = A.cd; q.hit = 8;
           const ox = sx + UOFF[q.n - 1][u][0], oy = sy + UOFF[q.n - 1][u][1];
-          tg.forEach(e => { PR.push({x0: ox, y0: oy, e, x1: e.x, y1: e.y, t: 0, T: 7, g: A.g}); if (viz) return;
+          tg.forEach(e => { PR.push({x0: ox, y0: oy, e, x1: e.x, y1: e.y, t: 0, T: 8, g: A.g, k: q.k}); if (viz) return;
             const cr = A.cr && R.f() < A.cr, dm = A.d*upMul(z, A.g)*(BUF ? BUF[z][i] : 1)*(cr ? 3 : 1);
             hitE(e, dm, A); if (cr && fxN.t < 6){ fxN.t++; FX.push({tx: "치명타!", x: e.x, y: e.y - .35, t: 34, c: "#ff6b6b", cell: 1, sm: 1}); }
             if (A.sp){ for (const o of E){ if (o !== e && (o.x - e.x)**2 + (o.y - e.y)**2 < A.sp*A.sp) hitE(o, dm*.6, A); } } });
@@ -358,11 +353,18 @@ NG.defs.rd = () => {
     // 총알
     if (PR.length > 90) PR.splice(0, PR.length - 90);
     for (let i = PR.length - 1; i >= 0; i--){ const p = PR[i]; p.t++; const a = p.t/p.T, tx = p.e && E.includes(p.e) ? p.e.x : p.x1, ty = p.e && E.includes(p.e) ? p.e.y : p.y1; p.x1 = tx; p.y1 = ty;
-      const x = cx(p.x0 + (tx - p.x0)*a), y = cy(p.y0 + (ty - p.y0)*a) - Math.sin(a*Math.PI)*C*.2, s = 10 + p.g*3; G2.put(g, orbSpr(p.g), x - s, y - s);
+      const x = cx(p.x0 + (tx - p.x0)*a), y = cy(p.y0 + (ty - p.y0)*a) - Math.sin(a*Math.PI)*C*.22, sh = RDA.shotSpr(p.k, p.g);
+      if (p.t > 1){ const a0 = (p.t - 2)/p.T, x0 = cx(p.x0 + (tx - p.x0)*a0), y0 = cy(p.y0 + (ty - p.y0)*a0) - Math.sin(a0*Math.PI)*C*.22; g.globalAlpha = .35; g.drawImage(sh, x0 - sh.w*.35, y0 - sh.h*.35, sh.w*.7, sh.h*.7); g.globalAlpha = 1; }
+      G2.put(g, sh, x - sh.w/2, y - sh.h/2);
       if (p.t >= p.T) PR.splice(i, 1); }
     // 효과
     for (let i = FX.length - 1; i >= 0; i--){ const f = FX[i]; f.t--; if (f.t <= 0){ FX.splice(i, 1); continue; }
       if (f.ring){ const T = 26, a = 1 - f.t/T, rr = (f.r || 1)*C*(.3 + a*.7); g.globalAlpha = Math.min(1, f.t/10)*.8; g.drawImage(ringSpr(f.c), cx(f.x) - rr, cy(f.y) - rr, rr*2, rr*2); g.globalAlpha = 1; continue; }
+      if (f.tx && f.cell && !f.sm && f.t > 40 && !/^\+/.test(f.tx)){   // ✨ 뽑기·합치기: 칸 위로 빛기둥
+        const a = (f.t - 40)/30, bx = cx(f.x), by0 = cy(f.y + .4), bw = C*.62*(.6 + a*.4);
+        g.globalAlpha = a*.8; g.fillStyle = BSA.lg(g, 0, by0 - C*1.6, 0, by0, [[0, "rgba(255,255,255,0)"], [.7, f.c], [1, "#ffffff"]]); g.fillRect(bx - bw/2, by0 - C*1.6, bw, C*1.6);
+        if (f.c === RD_G[3].c || f.c === RD_G[4].c){ g.globalAlpha = a*.35; g.fillStyle = f.c === RD_G[4].c ? "#ffd6f5" : "#fff3bf"; g.fillRect(0, 0, W, H); }
+        g.globalAlpha = 1; }
       if (f.tx){ g.globalAlpha = Math.min(1, f.t/18); const x = f.cell ? cx(f.x) : f.x, y = (f.cell ? cy(f.y) : f.y) - (f.ui ? 0 : (70 - f.t)*.5); G2.put(g, lbl(splitE(f.tx), f.sm ? 14 : f.ui ? 22 : 18, f.c), x - lbl(splitE(f.tx), f.sm ? 14 : f.ui ? 22 : 18, f.c).w/2, y - 14); g.globalAlpha = 1; } }
     // 친구 이름표
     if (N > 1) for (let z = 0; z < N; z++){ const [ox, oy] = ZO[z]; faceAt(g, SIDS[z], cx(ox) + 14, cy(oy) + 14, 13, RD_PC[z]); }
@@ -375,7 +377,7 @@ NG.defs.rd = () => {
     uL = uL || document.createElement("canvas"); const w = Math.ceil(COLS*C*k), h = Math.ceil(ROWS*C*k); if (uL.width !== w || uL.height !== h){ uL.width = w; uL.height = h; }
     const t = uL.getContext("2d"); t.setTransform(1, 0, 0, 1, 0, 0); t.clearRect(0, 0, w, h); t.setTransform(k, 0, 0, k, 0, 0);
     const us = Math.round(C*.62);
-    for (let z = 0; z < N; z++) Z[z].s.forEach((q, i) => { if (!q.k) return; const [x, y] = slotXY(z, i), n = q.n, s = n === 1 ? us : Math.round(us*.78), spr = unitSpr(q.k, s);
+    for (let z = 0; z < N; z++) Z[z].s.forEach((q, i) => { if (!q.k) return; const [x, y] = slotXY(z, i), n = q.n, s = Math.round(C*(n === 1 ? .94 : n === 2 ? .7 : .62)), spr = unitSpr(q.k, s);
       if (n >= 3 && RD_A[q.k].g < 4 && isMine(z)){ t.globalAlpha = .5; t.fillStyle = RD_G[RD_A[q.k].g + 1].c; rrect(t, (x - .46)*C, (y - .46)*C, C*.92, C*.92, C*.18); t.fill(); t.globalAlpha = 1; }
       for (let u = 0; u < n; u++){ const o = UOFF[n - 1][u]; t.drawImage(spr, Math.round((x + o[0])*C - s/2), Math.round((y + o[1])*C - s/2), s, s); }
       if (n >= 2){ const l = lbl([`×${n}`], 13, n >= 3 ? "#ffe066" : "#fff"); t.drawImage(l, (x + .48)*C - 30, (y + .5)*C - 22, l.w, l.h); } });
@@ -422,7 +424,7 @@ NG.defs.rd = () => {
       else G2.put(g, btnSpr(b.w, b.h, "#ff8787", "#c92a2a", ["💰", `팔기 +${RD_G[RD_A[q.k].g].sell}`], 16), b.x, b.y); });
     if (sel){ const q = Z[sel.z].s[sel.i]; if (q.k){ const A = RD_A[q.k], [x, y] = slotXY(sel.z, sel.i), l = lbl([A.e, `${A.n}`, `(${RD_G[A.g].n})`, `공격 ${Math.round(A.d*upMul(sel.z, A.g))}`, "·", A.t], 15, RD_G[A.g].c2);
       const px = Math.max(6, Math.min(W - l.w - 6, cx(x) - l.w/2)), py = Math.max(TOPH + 56, cy(y) - C*.62 - 34); g.fillStyle = "rgba(15,10,40,.85)"; rrect(g, px - 6, py - 4, l.w + 12, l.h + 8, 10); g.fill(); G2.put(g, l, px, py); } }
-    if (drag && drag.on){ const q = Z[drag.z].s[drag.i]; if (q.k){ const s = Math.round(C*.7); g.globalAlpha = .85; g.drawImage(unitSpr(q.k, s), drag.x - s/2, drag.y - s/2, s, s); g.globalAlpha = 1; } }
+    if (drag && drag.on){ const q = Z[drag.z].s[drag.i]; if (q.k){ const s = Math.round(C*.94); g.globalAlpha = .85; g.drawImage(unitSpr(q.k, s), drag.x - s/2, drag.y - s/2, s, s); g.globalAlpha = 1; } }
   }
 
   /* ---------- 손가락 ---------- */
