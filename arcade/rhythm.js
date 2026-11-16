@@ -8,7 +8,14 @@
    ===================================================================== */
 function rhRng(seed){ let s = seed >>> 0 || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >> 17; s ^= s << 5; s >>>= 0; return s/4294967296; }; }
 const RH_N = 5;   // 🎹 5줄
-const RH_KEYS = [["KeyD", "KeyS", "KeyA", "ArrowLeft", "Digit1"], ["KeyF", "ArrowDown", "Digit2"], ["Space", "KeyG", "KeyH", "KeyV", "KeyB", "KeyN", "Digit3"], ["KeyJ", "ArrowUp", "Digit4"], ["KeyK", "KeyL", "Semicolon", "ArrowRight", "Digit5"]];
+/* ⌨️ 키 배치 (노래 고르기 화면에서 골라요) — 숫자 1~5는 언제나 같이 돼요 */
+const RH_KEYSET = [
+  {id: "row", n: "D F G H J", d: "한 줄로 나란히 (추천)", k: ["KeyD", "KeyF", "KeyG", "KeyH", "KeyJ"], show: ["D", "F", "G", "H", "J"]},
+  {id: "two", n: "S D F J K", d: "양손으로 나눠서", k: ["KeyS", "KeyD", "KeyF", "KeyJ", "KeyK"], show: ["S", "D", "F", "J", "K"]},
+  {id: "space", n: "D F SPACE J K", d: "가운데 스페이스바", k: ["KeyD", "KeyF", "Space", "KeyJ", "KeyK"], show: ["D", "F", "SPACE", "J", "K"]}
+];
+function rhKeyMap(id){ const K = RH_KEYSET.find(x => x.id === id) || RH_KEYSET[0], of = {};
+  K.k.forEach((c, l) => { of[c] = l; of["Digit" + (l + 1)] = l; of["Numpad" + (l + 1)] = l; }); return {K, of, show: K.show}; }
 const RH_DIFF = [{n: "쉬움", e: "🌱", c: "#51cf66", mul: .7}, {n: "보통", e: "⭐", c: "#4dabf7", mul: .85}, {n: "어려움", e: "🔥", c: "#ff6b6b", mul: 1},
                  {n: "매우 어려움", e: "💀", c: "#cc5de8", mul: 1.1}, {n: "마스터", e: "👑", c: "#ffc93c", mul: 1.2}];
 const RH_EMO = [
@@ -458,10 +465,10 @@ function rhChartFrom(on, dur, diff){
    ===================================================================== */
 const RH_JW = [.05, .09, .135];            // 판정 창(초): PERFECT · GREAT · GOOD
 const RH_JN = ["PERFECT", "GREAT", "GOOD", "MISS"], RH_JC = ["#fff27a", "#7cf3ff", "#9dff9a", "#ff7b9c"], RH_JV = [1, .75, .4, 0];
-const RH_LANE = ["#ff7ad9", "#6ee7ff", "#ffd166", "#6ee7ff", "#ff7ad9"], RH_KEYN = ["D", "F", "SPACE", "J", "K"];
+const RH_LANE = ["#ff7ad9", "#6ee7ff", "#ffd166", "#6ee7ff", "#ff7ad9"];
 const RH_SPD = [1, 10];
-const RH_KEY_OF = {}; RH_KEYS.forEach((ks, l) => ks.forEach(k => { RH_KEY_OF[k] = l; }));   // 노트 속도 범위 (게임 중에도 − + 로 바꿔요)
-const RH_PREF = () => { const d = {speed: 2.5, emo: 0, off: 0, tap: true, vol: .9, song: "star", diff: 0, gen: "all"}; let p; try { p = Object.assign(d, JSON.parse(localStorage.getItem("arcade.rh.pref")) || {}); } catch(e) { p = d; }
+   // 노트 속도 범위 (게임 중에도 − + 로 바꿔요)
+const RH_PREF = () => { const d = {speed: 2.5, emo: 0, off: 0, tap: true, vol: .9, song: "star", diff: 0, gen: "all", keys: "row"}; let p; try { p = Object.assign(d, JSON.parse(localStorage.getItem("arcade.rh.pref")) || {}); } catch(e) { p = d; }
   p.speed = Math.max(RH_SPD[0], Math.min(RH_SPD[1], +p.speed || 2.5)); p.diff = Math.max(0, Math.min(RH_DIFF.length - 1, p.diff | 0)); return p; };
 const rhSavePref = p => { try { localStorage.setItem("arcade.rh.pref", JSON.stringify(p)); } catch(e) {} };
 const rhBestKey = sid => "arcade.rh.best." + sid;
@@ -476,7 +483,7 @@ NG.defs.rh = () => {
   const Z5 = v => new Array(RH_N).fill(v);
   let notes = [], ptr = Z5(0), held = Z5(null), down = Z5(0), beam = Z5(0), ptrLane = {}, spdT = 0;
   let score = 0, combo = 0, maxC = 0, cnt = [0, 0, 0, 0], jSum = 0, jN = 0, totalJ = 1, life = 1000, judge = null, fx = [], emo = [], fail = false, endAt = 0;
-  let lvNow = 1, preview = null, menuEl = null, avImgC = null, tapBuf = null, pausedAt = 0, bpm = 120, beat0 = 0, hitFlash = 0;
+  let KM = rhKeyMap(pref.keys), lvNow = 1, preview = null, menuEl = null, avImgC = null, tapBuf = null, pausedAt = 0, bpm = 120, beat0 = 0, hitFlash = 0;
   const ac = () => getAC();
 
   /* ---- 화면 배치 ---- */
@@ -540,7 +547,7 @@ NG.defs.rh = () => {
       const pg = t.createLinearGradient(0, L.pad - 32, 0, L.pad + 32); pg.addColorStop(0, "rgba(255,255,255,.13)"); pg.addColorStop(1, "rgba(255,255,255,.03)");
       t.fillStyle = pg; rrect(t, x0 + 5, L.pad - 32, w, 64, 16); t.fill();
       t.strokeStyle = RH_LANE[l] + "88"; t.lineWidth = 2; t.stroke();
-      t.fillStyle = "rgba(255,255,255,.7)"; t.font = `${RH_KEYN[l].length > 1 ? 18 : 28}px "Jua",sans-serif`; t.textAlign = "center"; t.textBaseline = "middle"; t.fillText(RH_KEYN[l], (x0 + x1)/2, L.pad); }
+      t.fillStyle = "rgba(255,255,255,.7)"; t.font = `${KM.show[l].length > 1 ? 18 : 28}px "Jua",sans-serif`; t.textAlign = "center"; t.textBaseline = "middle"; t.fillText(KM.show[l], (x0 + x1)/2, L.pad); }
   }
   /* 노트: 빛나는 보석 막대 (한 번 그려 두고 붙여요) */
   const noteSpr = (l, w) => G2.spr(`rhn5${l}${w}`, w + 24, 48, t => {
@@ -636,7 +643,7 @@ NG.defs.rh = () => {
     const gens = Object.keys(RH_GEN).filter(k => RH_SONGS.some(S => S.gen === k)), gc = k => RH_SONGS.filter(S => S.gen === k).length;
     const chips = [["all", `전체 ${RH_SONGS.length}`]].concat(gens.map(k => [k, `${RH_GEN[k].n} ${gc(k)}`]), [["my", `🎧 내 노래${mine.length ? " " + mine.length : ""}`]]);
     return `<div class="rh-in">
-      <div class="rh-head"><div class="rh-logo">🎵 리듬 스타 <small>떨어지는 노트를 판정선에서 딱! · 키보드 <b>D F SPACE J K</b> 또는 화면 톡 · 게임 중 <b>− +</b> 로 속도 조절</small></div>
+      <div class="rh-head"><div class="rh-logo">🎵 리듬 스타 <small>떨어지는 노트를 판정선에서 딱! · 키보드 <b id="rhKN">${KM.K.n}</b>(숫자 1~5도 돼요) 또는 화면 톡 · 게임 중 <b>− +</b> 로 속도 조절</small></div>
         <span class="rh-me">${avHTMLof(SID, {still: true, face: true})}</span></div>
       <div class="rh-body">
         <div class="rh-left">
@@ -648,6 +655,8 @@ NG.defs.rh = () => {
         </div>
         <div class="rh-side">
           <div id="rhSide">${sideHTML()}</div>
+          <div class="rh-k">키 배치 <small>숫자 1 2 3 4 5 키도 언제나 돼요</small></div>
+          <div class="rh-keys">${RH_KEYSET.map(k => `<button data-rhk="${k.id}" class="${KM.K.id === k.id ? "on" : ""}"><b>${k.n}</b><small>${k.d}</small></button>`).join("")}</div>
           <div class="rh-k">노트 속도 <b id="rhSpV">${pref.speed.toFixed(1)}</b><small>게임 중에도 오른쪽 위 − + 또는 키보드 − = 로 바꿔요</small></div>
           <input type="range" min="${RH_SPD[0]}" max="${RH_SPD[1]}" step=".5" value="${pref.speed}" data-rhp="speed">
           <details class="rh-more"><summary>⚙️ 더 맞추기 (이모티콘 · 박자 · 톡 소리)</summary>
@@ -693,7 +702,8 @@ NG.defs.rh = () => {
     } catch(e) { msg("노래를 불러오지 못했어요 😢 다른 곡을 골라 주세요", true); }
   }
   function onMenuClick(e){
-    const t = e.target.closest("[data-rhs],[data-rhd],[data-rhe],[data-rhgo],[data-rhdel],[data-rhg]"); if (!t) return;
+    const t = e.target.closest("[data-rhs],[data-rhd],[data-rhe],[data-rhgo],[data-rhdel],[data-rhg],[data-rhk]"); if (!t) return;
+    if (t.dataset.rhk){ pref.keys = t.dataset.rhk; rhSavePref(pref); KM = rhKeyMap(pref.keys); menuEl.querySelectorAll("[data-rhk]").forEach(b => b.classList.toggle("on", b === t)); const kn = $("#rhKN"); if (kn) kn.textContent = KM.K.n; return; }
     getAC();
     if (t.dataset.rhdel){ e.preventDefault(); e.stopPropagation(); const id = t.dataset.rhdel; if (!confirm("이 노래를 이 기기에서 지울까요?")) return;
       RHDB.del(id.slice(3)).then(async () => { RH_BUF.delete(id); mine = await RHDB.all().catch(() => []); if (pref.song === id) pref.song = "star"; showMenu(); }); return; }
@@ -803,7 +813,7 @@ NG.defs.rh = () => {
   /* ---- 그리기 ---- */
   function drawPlay(g){
     const tt = clock();
-    G2.bg(g, `rhbg${W}${song.id}`, W, H, bgDraw);
+    G2.bg(g, `rhbg${W}${song.id}${KM.K.id}`, W, H, bgDraw);
     // 박자에 맞춰 반짝이는 지평선 빛 + 이퀄라이저
     const bph = tt > 0 ? (tt*bpm/60) % 1 : 0, pulse = Math.pow(1 - bph, 3);
     g.globalAlpha = .35 + pulse*.55; g.drawImage(glowSpr(), L.cx - 300, L.hy - 110, 600, 260); g.globalAlpha = 1;
@@ -940,7 +950,7 @@ NG.defs.rh = () => {
       if (code === "KeyP" || code === "Enter" || code === "Backspace"){ if (isDown && !(e && e.repeat)) NG.paused ? resume() : pause(); return true; }
       const sp = {Minus: -.5, NumpadSubtract: -.5, BracketLeft: -.5, PageDown: -.5, Equal: .5, NumpadAdd: .5, BracketRight: .5, PageUp: .5}[code];
       if (sp){ if (isDown) setSpeed(pref.speed + sp); return true; }
-      const l = RH_KEY_OF[code]; if (l === undefined) return false;
+      const l = KM.of[code]; if (l === undefined){ if (NG.paused && isDown && code === "Space"){ resume(); return true; } return false; }
       if (NG.paused){ if (isDown && code === "Space") resume(); return true; }
       const ts = e && e.timeStamp ? e.timeStamp : undefined;
       if (isDown){ if (!(e && e.repeat)) press(l, clock(ts)); } else release(l, clock(ts));

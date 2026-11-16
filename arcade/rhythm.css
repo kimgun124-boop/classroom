@@ -52,6 +52,11 @@
 .rh-diff em{font-style:normal;font-size:11px;color:#ffe38a;min-height:13px}
 .rh-diff button.on{border-color:var(--dc);background:color-mix(in srgb,var(--dc) 30%,transparent);box-shadow:0 0 16px color-mix(in srgb,var(--dc) 55%,transparent)}
 .rh-diff button.on b{color:#fff}
+.rh-keys{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.rh-keys button{color:#fff;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.14);border-radius:14px;padding:6px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;line-height:1.2}
+.rh-keys b{font:16px "Jua",sans-serif;white-space:nowrap;letter-spacing:.5px}
+.rh-keys small{font-size:11px;color:#c9bbf5}
+.rh-keys button.on{border-color:#9be7ff;background:rgba(110,231,255,.2);box-shadow:0 0 14px rgba(110,231,255,.35)}
 .rh-emo{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .rh-emo button{font:20px "Jua",sans-serif;color:#fff;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.14);border-radius:14px;padding:5px 2px;cursor:pointer;letter-spacing:2px}
 .rh-emo button.on{border-color:#ff8ed1;background:rgba(255,142,209,.25)}
