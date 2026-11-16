@@ -137,6 +137,7 @@ body.big .clock .hm{font-size:72px}
 .ck-sum div{background:#faf4ea;border-radius:14px;padding:8px 14px;font-size:14px;color:var(--ink-soft)}
 .ck-sum b{font-family:"Jua";font-weight:400;font-size:22px;color:var(--ink);margin-right:4px}
 .ck-sum .warn b{color:#c23356}
+.ck-sum .good b{color:#2f8a5b}
 .pend{display:flex;align-items:center;gap:10px;border:2px solid #ffc9d5;background:#fff6f8;border-radius:16px;padding:10px 12px}
 .pend .who{font-family:"Jua";font-size:18px}
 .pend .who i{font-style:normal;font-size:13px;color:var(--ink-soft);margin-right:4px}
@@ -12645,8 +12646,8 @@ NG.defs.rd = () => {
   const party = O.party || null, myIdx = party === "guest" ? O.idx : 0;
   const local = party === "guest" ? [O.idx] : (O.local || [0]).slice(0, 2);
   const remote = i => party === "host" && O.remote && O.remote[i] != null;
-  const ZC = 6, ZR = 3, ZS = ZC*ZR, LIMIT = 100 + 40*(N - 1);
-  let W = 1280, H = 720, land = true, C = 90, BX = 0, BY = 0, COLS = 8, ROWS = 5, GC = 1, TOPH = 70, BOTH = 120, ZO = [], PATH = [], PL = 0, layer = null, layerKey = "";
+  const ZS = 18, LIMIT = 100 + 40*(N - 1);
+  let W = 1280, H = 720, land = true, C = 90, BX = 0, BY = 0, COLS = 8, ROWS = 5, GC = 1, TOPH = 70, BOTH = 120, ZO = [], LN = [], CELL = new Map(), MAPI = -1, lastSW = 1280, lastSH = 720, layer = null, layerKey = "";
   let Z, PS, E, PR, FX, MS, wave, waveT, spawnLeft, spawnT, state, overT, score, kills, bossK, eid, gv, speed, banner, sel, drag, ptr, panel, NQ, outbox, aseq, lastAct, sndT, ended, seed, bossTimer, frame;
   const R = (() => { let s = 1; return {seed(v){ s = (v >>> 0) || 1; }, f(){ s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s/4294967296; }}; })();
   const th = () => RD_TH[Math.min(9, Math.floor((Math.max(1, wave) - 1)/10))];
@@ -12690,67 +12691,87 @@ NG.defs.rd = () => {
     if (land){ W = 1280; H = 720; TOPH = 62; BOTH = 112; GC = N === 1 ? 1 : 2; }
     else { W = 720; H = Math.round(Math.max(1120, Math.min(1500, W*sh/Math.max(1, sw)))); TOPH = 70; BOTH = two ? 250 : 220; GC = 1; }
     if (window.VK_ON) BOTH = two && !land ? 120 : 64;   // ⌨️ 화면 키보드가 있으면 아래 단추 대신 금·보석만
-    const GR = Math.ceil(N/GC); COLS = GC*ZC + 2; ROWS = GR*ZR + 2;
-    const aw = W - 16, ah = H - TOPH - BOTH - 12;
-    C = Math.floor(Math.min(112, aw/COLS, ah/ROWS)); BX = Math.round((W - COLS*C)/2); BY = Math.round(TOPH + 6 + (ah - ROWS*C)/2);
-    ZO = []; for (let z = 0; z < Math.max(N, GC*GR); z++) ZO.push([1 + (z % GC)*ZC, 1 + Math.floor(z/GC)*ZR]);
-    const a = .5, b = COLS - .5, c = ROWS - .5;
-    PATH = [[a, a], [b, a], [b, c], [a, c], [a, a]]; PL = 2*((COLS - 1) + (ROWS - 1));
+    /* 🗺️ 맵: 사람마다 자기 길(한 바퀴)과 동물 자리 18칸 — 10단계마다 맵 모양이 바뀌어요 */
+    lastSW = sw; lastSH = sh;
+    const ti = Math.min(9, Math.floor((Math.max(1, wave || 1) - 1)/10)); MAPI = ti;
+    const M = N >= 3 ? RD_RING8 : RD_MAPS[ti % RD_MAPS.length], TP = rdParse(M, !land && N === 1);
+    if (N >= 3) GC = 2; else if (N === 2) GC = land ? 2 : 1;
+    const GR = Math.ceil(N/GC); COLS = GC*TP.w; ROWS = GR*TP.h;
+    const aw = W - 16, ah = H - TOPH - BOTH - 44;   // 위쪽 미션 줄 자리를 비워요
+    C = Math.floor(Math.min(112, aw/COLS, ah/ROWS)); BX = Math.round((W - COLS*C)/2); BY = Math.round(TOPH + 34 + (ah - ROWS*C)/2);
+    LN = []; CELL = new Map(); ZO = [];
+    for (let z = 0; z < N; z++){ const ox = (z % GC)*TP.w, oy = Math.floor(z/GC)*TP.h; ZO.push([ox, oy]);
+      const L = {ox, oy, w: TP.w, h: TP.h, map: TP, path: TP.path.map(([x, y]) => [ox + x + .5, oy + y + .5]), slots: TP.slots.map(([x, y]) => [ox + x + .5, oy + y + .5]), front: TP.front};
+      L.slots.forEach(([x, y], s) => CELL.set(Math.floor(x) + "," + Math.floor(y), {z, i: s})); LN.push(L); }
     layerKey = ""; panel = null;
   }
-  function posAt(d){ d = ((d % PL) + PL) % PL; const w = COLS - 1, h = ROWS - 1;
-    if (d < w) return [.5 + d, .5]; d -= w; if (d < h) return [COLS - .5, .5 + d]; d -= h; if (d < w) return [COLS - .5 - d, ROWS - .5]; d -= w; return [.5, ROWS - .5 - d]; }
+  const plOf = l => (LN[l] || LN[0]).path.length;
+  function posAt(d, l){ const P = (LN[l || 0] || LN[0]).path, n = P.length; d = ((d % n) + n) % n; const i = Math.floor(d), f = d - i, a = P[i], b = P[(i + 1) % n]; return [a[0] + (b[0] - a[0])*f, a[1] + (b[1] - a[1])*f]; }
+  /* 맵이 바뀌면(10단계마다) 길·자리를 다시 만들어요 */
+  function remap(){ const ti = Math.min(9, Math.floor((Math.max(1, wave) - 1)/10)); if (ti !== MAPI) layout(lastSW, lastSH); }
   const cx = c => BX + c*C, cy = r => BY + r*C;
-  const slotXY = (z, s) => [ZO[z][0] + (s % ZC) + .5, ZO[z][1] + Math.floor(s/ZC) + .5];
+  const slotXY = (z, s) => LN[z] ? LN[z].slots[s] : [0, 0];
+  const isFront = (z, s) => LN[z] ? LN[z].front[s] : true;
   const UOFF = [[[0, -.04]], [[-.21, 0], [.21, 0]], [[0, -.2], [-.22, .13], [.22, .13]]];
 
   /* ---------- 그림 ---------- */
   function buildLayer(){
-    const key = `${th().n}|${W}|${H}|${C}|${N}`; if (key === layerKey && layer) return; layerKey = key;
+    const key = `${th().n}|${W}|${H}|${C}|${N}|${MAPI}`; if (key === layerKey && layer) return; layerKey = key;
     const k = NG.k || 1; layer = layer || document.createElement("canvas"); layer.width = Math.ceil(COLS*C*k); layer.height = Math.ceil(ROWS*C*k);
-    const t = layer.getContext("2d"); t.setTransform(k, 0, 0, k, 0, 0); t.clearRect(0, 0, COLS*C, ROWS*C); const T = th(), w = COLS*C, h = ROWS*C;
-    // 바깥 테두리 · 풀밭
-    t.fillStyle = "rgba(0,0,0,.25)"; rrect(t, 4, 8, w - 4, h - 4, C*.3); t.fill();
-    t.fillStyle = BSA.lg(t, 0, 0, 0, h, [[0, T.gr[0]], [1, T.gr[1]]]); rrect(t, 0, 0, w, h - 4, C*.3); t.fill();
-    // 길 (빙글빙글)
-    t.save(); rrect(t, 0, 0, w, h - 4, C*.3); t.clip();
-    t.fillStyle = BSA.lg(t, 0, 0, 0, h, [[0, T.pa[0]], [1, T.pa[1]]]); t.fillRect(0, 0, w, C); t.fillRect(0, h - C - 4, w, C + 4); t.fillRect(0, 0, C, h); t.fillRect(w - C, 0, C, h);
-    // 🧱 길 돌판 (칸마다 둥근 돌 · 위 빛 · 아래 그림자)
-    const rr = BSA.rng(7 + wave);
-    for (let d = 0; d < PL; d++){ const [px, py] = posAt(d), x0 = (px - .5)*C, y0 = (py - .5)*C, j = (rr() - .5)*C*.04;
-      t.fillStyle = "rgba(0,0,0,.13)"; rrect(t, x0 + C*.07, y0 + C*.1 + j, C*.86, C*.84, C*.2); t.fill();
-      t.fillStyle = BSA.lg(t, 0, y0, 0, y0 + C, [[0, "rgba(255,255,255,.28)"], [1, "rgba(255,255,255,.06)"]]); rrect(t, x0 + C*.07, y0 + C*.06 + j, C*.86, C*.84, C*.2); t.fill(); }
-    t.fillStyle = "rgba(255,255,255,.18)";
-    for (let i = 0; i < 2*(COLS + ROWS)*3; i++){ const [px, py] = posAt(rr()*PL); t.beginPath(); t.ellipse(px*C + (rr() - .5)*C*.7, py*C + (rr() - .5)*C*.7, C*.08 + rr()*C*.06, C*.05 + rr()*C*.04, 0, 0, 7); t.fill(); }
-    t.strokeStyle = "rgba(0,0,0,.18)"; t.lineWidth = 3; t.strokeRect(C, C, w - 2*C, h - 2*C - 4);
-    // 길 화살표
-    t.fillStyle = "rgba(255,255,255,.35)"; for (let d = 1; d < PL; d += 3){ const [x0, y0] = posAt(d), [x1, y1] = posAt(d + .3), a = Math.atan2(y1 - y0, x1 - x0); t.save(); t.translate(x0*C, y0*C); t.rotate(a); t.beginPath(); t.moveTo(C*.16, 0); t.lineTo(-C*.08, -C*.12); t.lineTo(-C*.08, C*.12); t.closePath(); t.fill(); t.restore(); }
-    t.restore();
-    // 🏔️ 동물 마을 섬 (입체: 옆면 → 윗면 → 칸 받침돌)
-    const ti = Math.min(9, Math.floor((Math.max(1, wave) - 1)/10)), TP = RD_TOP[ti];
-    ZO.forEach((o, z) => { const own = z < N, col = own ? RD_PC[z] : "#868e96", x0 = o[0]*C + 4, y0 = o[1]*C + 2, ww = ZC*C - 8, hh = ZR*C - 10, dep = C*.2;
-      t.fillStyle = "rgba(0,0,0,.28)"; rrect(t, x0 + 4, y0 + dep + 6, ww, hh, C*.24); t.fill();
-      t.fillStyle = BSA.lg(t, 0, y0 + hh, 0, y0 + hh + dep, [[0, TP.side[0]], [1, TP.side[1]]]); rrect(t, x0, y0 + dep, ww, hh, C*.24); t.fill();
-      // 옆면 흙 줄무늬
-      t.save(); rrect(t, x0, y0 + dep, ww, hh, C*.24); t.clip(); t.fillStyle = "rgba(0,0,0,.12)"; for (let k = 0; k < ww; k += C*.35) t.fillRect(x0 + k, y0 + hh - 2, C*.12, dep + 4); t.restore();
-      t.fillStyle = BSA.lg(t, 0, y0, 0, y0 + hh, [[0, TP.top[0]], [1, TP.top[1]]]); rrect(t, x0, y0, ww, hh, C*.24); t.fill();
-      t.strokeStyle = "rgba(255,255,255,.45)"; t.lineWidth = 3; t.beginPath(); t.moveTo(x0 + C*.24, y0 + 2); t.lineTo(x0 + ww - C*.24, y0 + 2); t.stroke();
-      t.strokeStyle = col; t.lineWidth = 3; t.globalAlpha = own ? .9 : .35; rrect(t, x0, y0, ww, hh, C*.24); t.stroke(); t.globalAlpha = 1;
-      // 윗면 무늬 (맵마다)
-      t.save(); rrect(t, x0, y0, ww, hh, C*.24); t.clip();
-      for (let i = 0; i < Math.round(ww*hh/(C*C)*7); i++){ const x = x0 + rr()*ww, y = y0 + rr()*hh, s = C*(.05 + rr()*.05);
-        if (rr() < .14){ t.fillStyle = TP.dot[Math.floor(rr()*TP.dot.length)]; t.globalAlpha = .75; t.beginPath(); t.arc(x, y, s*.45, 0, 7); t.fill(); t.globalAlpha = 1; continue; }
-        t.strokeStyle = TP.tuft; t.lineWidth = 2; t.lineCap = "round"; t.beginPath(); t.moveTo(x - s*.6, y - s*.9); t.lineTo(x, y); t.lineTo(x + s*.6, y - s*.9); t.moveTo(x, y); t.lineTo(x, y - s*1.1); t.stroke(); }
+    const t = layer.getContext("2d"); t.setTransform(k, 0, 0, k, 0, 0); t.clearRect(0, 0, layer.width, layer.height);
+    const T = th(), ti = Math.min(9, Math.floor((Math.max(1, wave) - 1)/10)), TP = RD_TOP[ti], rr = BSA.rng(7 + ti*13), dep = C*.26;
+    LN.forEach((L, z) => {
+      const x0 = L.ox*C + 3, y0 = L.oy*C + 3, ww = L.w*C - 6, hh = L.h*C - 6 - dep*.6, col = RD_PC[z], cell = (x, y) => [(L.ox + x)*C, (L.oy + y)*C];
+      /* 🏔️ 섬 덩어리 (그림자 → 절벽 옆면 → 윗면) */
+      t.fillStyle = "rgba(0,0,0,.3)"; rrect(t, x0 + 6, y0 + dep + 10, ww, hh, C*.4); t.fill();
+      t.fillStyle = BSA.lg(t, 0, y0 + hh - C*.2, 0, y0 + hh + dep, [[0, TP.side[0]], [1, TP.side[1]]]); rrect(t, x0, y0 + dep, ww, hh, C*.4); t.fill();
+      t.save(); rrect(t, x0, y0 + dep, ww, hh, C*.4); t.clip();
+      for (let x = x0; x < x0 + ww; x += C*.42){ t.fillStyle = "rgba(0,0,0,.13)"; t.fillRect(x, y0 + hh - 4, C*.16, dep + 8); t.fillStyle = "rgba(255,255,255,.08)"; t.fillRect(x + C*.2, y0 + hh + dep*.35, C*.12, dep*.3); }
       t.restore();
-      if (!own){ RDA.prop(t, ti, o[0]*C + ZC*C/2, o[1]*C + ZR*C/2, C*1.4, z); return; }
-      // 칸 받침돌: 옆면(어둡게) + 윗면(밝게) + 반짝 테두리
-      for (let s = 0; s < ZS; s++){ const x = (o[0] + (s % ZC))*C, y = (o[1] + Math.floor(s/ZC))*C;
-        t.fillStyle = TP.slot[2]; rrect(t, x + C*.08, y + C*.16, C*.84, C*.8, C*.2); t.fill();
-        t.fillStyle = BSA.lg(t, 0, y + C*.04, 0, y + C*.84, [[0, TP.slot[0]], [1, TP.slot[1]]]); rrect(t, x + C*.08, y + C*.04, C*.84, C*.8, C*.2); t.fill();
-        t.strokeStyle = "rgba(255,255,255,.55)"; t.lineWidth = 2; t.beginPath(); t.moveTo(x + C*.22, y + C*.07); t.lineTo(x + C*.78, y + C*.07); t.stroke();
-        t.fillStyle = "rgba(0,0,0,.07)"; t.beginPath(); t.ellipse(x + C*.5, y + C*.78, C*.3, C*.07, 0, 0, 7); t.fill(); } });
-    // 🌳 네 귀퉁이 입체 소품 (맵마다 달라요)
-    [[.5, .5], [COLS - .5, .5], [COLS - .5, ROWS - .5], [.5, ROWS - .5]].forEach(([x, y], i) => RDA.prop(t, ti, x*C, y*C, C*.92, i));
+      t.fillStyle = BSA.lg(t, 0, y0, 0, y0 + hh, [[0, TP.top[0]], [1, TP.top[1]]]); rrect(t, x0, y0, ww, hh, C*.4); t.fill();
+      // 윗면 빛 얼룩 · 풀 무늬
+      t.save(); rrect(t, x0, y0, ww, hh, C*.4); t.clip();
+      for (let i = 0; i < L.w*L.h*.8; i++){ const x = x0 + rr()*ww, y = y0 + rr()*hh, r = C*(.4 + rr()*.7); t.fillStyle = rr() < .5 ? "rgba(255,255,255,.07)" : "rgba(0,0,0,.05)"; t.beginPath(); t.ellipse(x, y, r, r*.6, 0, 0, 7); t.fill(); }
+      for (let i = 0; i < L.w*L.h*5; i++){ const x = x0 + rr()*ww, y = y0 + rr()*hh, s2 = C*(.05 + rr()*.05);
+        if (rr() < .16){ t.fillStyle = TP.dot[Math.floor(rr()*TP.dot.length)]; t.globalAlpha = .8; t.beginPath(); t.arc(x, y, s2*.45, 0, 7); t.fill(); t.globalAlpha = 1; continue; }
+        t.strokeStyle = TP.tuft; t.lineWidth = 2; t.lineCap = "round"; t.beginPath(); t.moveTo(x - s2*.6, y - s2*.9); t.lineTo(x, y); t.lineTo(x + s2*.6, y - s2*.9); t.moveTo(x, y); t.lineTo(x, y - s2*1.1); t.stroke(); }
+      t.restore();
+      t.strokeStyle = "rgba(255,255,255,.5)"; t.lineWidth = 3; t.beginPath(); t.moveTo(x0 + C*.4, y0 + 2); t.lineTo(x0 + ww - C*.4, y0 + 2); t.stroke();
+      if (N > 1){ t.strokeStyle = col; t.lineWidth = 4; t.globalAlpha = .85; rrect(t, x0, y0, ww, hh, C*.4); t.stroke(); t.globalAlpha = 1; }
+      /* 🧱 몬스터 길: 두꺼운 테두리 → 길 바닥 → 돌판 */
+      const P = L.path.map(([x, y]) => [x*C, y*C]), loop = g2 => { g2.beginPath(); P.forEach(([x, y], i) => i ? g2.lineTo(x, y) : g2.moveTo(x, y)); g2.closePath(); };
+      t.lineJoin = "round"; t.lineCap = "round";
+      t.save(); t.translate(0, C*.07); loop(t); t.strokeStyle = "rgba(0,0,0,.28)"; t.lineWidth = C*.98; t.stroke(); t.restore();
+      loop(t); t.strokeStyle = TP.side[0]; t.lineWidth = C*.98; t.stroke();
+      loop(t); t.strokeStyle = T.pa[1]; t.lineWidth = C*.86; t.stroke();
+      loop(t); t.strokeStyle = T.pa[0]; t.lineWidth = C*.72; t.stroke();
+      L.path.forEach(([px, py], d) => { const x = px*C, y = py*C;
+        for (let q = 0; q < 3; q++){ const a = rr()*6.28, r = C*(.12 + rr()*.16), ex = x + Math.cos(a)*r, ey = y + Math.sin(a)*r, s2 = C*(.1 + rr()*.07);
+          t.fillStyle = "rgba(0,0,0,.12)"; t.beginPath(); t.ellipse(ex, ey + 2, s2, s2*.7, 0, 0, 7); t.fill();
+          t.fillStyle = "rgba(255,255,255,.3)"; t.beginPath(); t.ellipse(ex, ey, s2, s2*.7, 0, 0, 7); t.fill(); } });
+      // 길 화살표 (몬스터가 가는 쪽)
+      t.fillStyle = "rgba(255,255,255,.55)";
+      for (let d = 1; d < P.length; d += 3){ const a = P[d], b = P[(d + 1) % P.length], an = Math.atan2(b[1] - a[1], b[0] - a[0]);
+        t.save(); t.translate((a[0] + b[0])/2, (a[1] + b[1])/2); t.rotate(an); t.beginPath(); t.moveTo(C*.13, 0); t.lineTo(-C*.07, -C*.11); t.lineTo(-C*.07, C*.11); t.closePath(); t.fill(); t.restore(); }
+      /* 🌳 꾸미기 칸 (나무·바위·꽃) */
+      L.map.deco.forEach(([dx, dy], i) => { const [x, y] = cell(dx, dy), r = rr(); if (L.map.house && L.map.house[0] === dx && L.map.house[1] === dy) return;
+        if (r < .42) RDA.prop(t, ti, x + C*.5, y + C*.62, C*(.68 + rr()*.18), i + z);
+        else if (r < .7){ t.fillStyle = "rgba(0,0,0,.18)"; t.beginPath(); t.ellipse(x + C*.5, y + C*.72, C*.26, C*.08, 0, 0, 7); t.fill();
+          t.fillStyle = BSA.lg(t, 0, y + C*.4, 0, y + C*.75, [[0, "#ced4da"], [1, "#868e96"]]); t.beginPath(); t.ellipse(x + C*.5, y + C*.6, C*.24, C*.16, 0, 0, 7); t.fill(); RDA.ol(t, 2);
+          t.fillStyle = "rgba(255,255,255,.5)"; t.beginPath(); t.ellipse(x + C*.43, y + C*.53, C*.08, C*.04, -.4, 0, 7); t.fill(); }
+        else for (let f = 0; f < 4; f++){ const fx = x + C*(.2 + rr()*.6), fy = y + C*(.3 + rr()*.5); t.fillStyle = TP.dot[f % TP.dot.length]; for (let pe = 0; pe < 5; pe++){ t.beginPath(); t.arc(fx + Math.cos(pe*1.26)*C*.045, fy + Math.sin(pe*1.26)*C*.045, C*.035, 0, 7); t.fill(); } t.fillStyle = "#fff3bf"; t.beginPath(); t.arc(fx, fy, C*.025, 0, 7); t.fill(); } });
+      /* 🪨 동물 자리: 입체 받침돌 (앞줄 ⚔️ 따뜻한 테두리 · 뒷줄 🏹 시원한 테두리) */
+      L.map.slots.forEach(([sx, sy], s) => { const [x, y] = cell(sx, sy), fr = L.front[s];
+        t.fillStyle = "rgba(0,0,0,.22)"; rrect(t, x + C*.08, y + C*.2, C*.86, C*.8, C*.22); t.fill();
+        t.fillStyle = TP.slot[2]; rrect(t, x + C*.06, y + C*.14, C*.88, C*.8, C*.22); t.fill();
+        t.fillStyle = BSA.lg(t, 0, y + C*.03, 0, y + C*.83, [[0, TP.slot[0]], [1, TP.slot[1]]]); rrect(t, x + C*.06, y + C*.03, C*.88, C*.8, C*.22); t.fill();
+        t.strokeStyle = fr ? "rgba(255,135,135,.85)" : "rgba(116,192,252,.85)"; t.lineWidth = 2.5; rrect(t, x + C*.08, y + C*.05, C*.84, C*.76, C*.2); t.stroke();
+        t.strokeStyle = "rgba(255,255,255,.6)"; t.lineWidth = 2; t.beginPath(); t.moveTo(x + C*.24, y + C*.07); t.lineTo(x + C*.76, y + C*.07); t.stroke();
+        t.globalAlpha = .28; G2.emo(t, fr ? "⚔️" : "🏹", x + C*.5, y + C*.45, C*.34); t.globalAlpha = 1; });
+      /* 🏡 지켜야 하는 동물 마을 · 👾 몬스터 문 */
+      if (L.map.house){ const [x, y] = cell(L.map.house[0], L.map.house[1]); RDA.house(t, x + C*.5, y + C*.55, C*1.0, ti); }
+      RDA.portal(t, P[0][0], P[0][1], C*.8);
+    });
   }
   const unitSpr = (k, s) => RDA.unitSpr(k, s);   // 🎨 직접 그린 동물 (rdart.js)
   function slimeSpr(kind, f){ const T = th(), ti = Math.min(9, Math.floor((Math.max(1, wave) - 1)/10)), s = Math.round(kind === 2 ? C*1.3 : kind === 1 ? C*.88 : kind === 4 ? C*.86 : kind === 3 ? C*.66 : C*.62);   // 그릴 크기 그대로 (늘이기 없이)
@@ -12775,7 +12796,7 @@ NG.defs.rd = () => {
     const k = pool[Math.floor(R.f()*pool.length)];
     const n = k === "keep" ? Math.max(12, Math.round(LIMIT*.25)) : k === "merge" ? 1 + (wave > 25 ? 1 : 0) : k === "sum" ? 4 + Math.floor(R.f()*3) : k === "kill" ? Math.round(25*(1 + .6*(N - 1))) : 1;
     MS = {k, n, p: 0, st: 0};   // st: 0 진행 · 1 성공 · 2 실패
-    if (k === "gold") spawn(3); if (k === "chest") spawn(4);
+    if (k === "gold") spawn(3, wave % N); if (k === "chest") spawn(4, wave % N);
   }
   function msWin(quiet){ if (!MS || MS.st) return; MS.st = 1; const its = Z.map((p, z) => { const it = rndItem(); giveItem(z, it); return it; }); if (quiet){ sfx("big"); return; }
     banner = {t: "🎯 미션 성공!", s: `🎒 ${local.map(z => RD_IT[its[z]].e + RD_IT[its[z]].n).join(" · ")} 받았어요`, k: 110, c: "#69db7c"}; sfx("big");
@@ -12789,15 +12810,18 @@ NG.defs.rd = () => {
     if (wave > 1) Z.forEach((p, z) => { p.gold += 10 + Math.floor(wave*1.5); const b = RL(z, "bank"); if (b) p.gold += 30*b + Math.min(60*b, Math.floor(p.gold*.05*b)); });
     if (boss){ spawn(2); bossTimer = waveT; banner = {t: `👑 ${wave}단계 보스!`, s: "60초 안에 꼭 잡아요!", k: 150, c: "#ff6b6b"}; sfx("boss"); }
     else { if (mini) spawn(1); banner = {t: `🏁 ${wave}단계`, s: wave % 10 === 1 ? th().n + "에 왔어요!" : mini ? "😈 중간 보스가 섞여 있어요" : "", k: 110}; sfx("wave"); }
-    if (wave % 10 === 1){ layerKey = ""; setSky(); }
+    remap(); if (wave % 10 === 1){ layerKey = ""; setSky(); }
     newMission(); if (MS && !banner.s) banner.s = `${RD_MS[MS.k].e} 미션: ${RD_MS[MS.k].t(MS.n)}`;
     if (msOk) banner.s = "🎯 지난 미션 성공! 🎒 아이템을 받았어요";
     if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c || ""]);
   }
   /* 몬스터: 0 슬라임 · 1 😈 중간 보스 · 2 👑 보스 · 3 🟡 황금 슬라임(빨라요, 놓치면 도망) · 4 🎁 보물상자(느리고 단단) */
   const KSPD = kind => (kind === 2 ? 1.15 : kind === 1 ? 1.55 : kind === 3 ? 3.4 : kind === 4 ? .9 : 2.05 + Math.min(.6, wave*.012))/60;
-  function spawn(kind){ const h = hpAt(wave)*(kind === 2 ? 20*(1 + .5*(N - 1)) : kind === 1 ? 10*(1 + .3*(N - 1)) : kind === 3 ? 5*(1 + .4*(N - 1)) : kind === 4 ? 16*(1 + .4*(N - 1)) : 1);
-    E.push({id: ++eid, kind, d: 0, tr: 0, hp: h, mhp: h, spd: KSPD(kind), slT: 0, slF: 0, stT: 0, x: .5, y: .5, f: R.f()*60|0}); }
+  /* 사람마다 자기 길이 있어서, 몬스터는 길마다 번갈아 나와요 (보스·중간 보스는 길마다 한 마리씩 나눠서) */
+  let laneRR = 0;
+  function spawn(kind, l){ if (l == null){ if (kind === 1 || kind === 2){ for (let q = 0; q < N; q++) spawn(kind, q); return; } l = laneRR++ % N; }
+    const h = hpAt(wave)*(kind === 2 ? 20*(1 + .5*(N - 1))/N : kind === 1 ? 10*(1 + .3*(N - 1))/N : kind === 3 ? 5 : kind === 4 ? 16 : 1);
+    const p0 = posAt(0, l); E.push({id: ++eid, kind, l, d: 0, tr: 0, hp: h, mhp: h, spd: KSPD(kind), slT: 0, slF: 0, stT: 0, x: p0[0], y: p0[1], f: R.f()*60|0}); }
   function setSky(){ const cv = $("#ngCanvas"); cv.style.backgroundImage = (bgURL ? `url(${bgURL}),` : "") + th().sky; cv.style.backgroundColor = "#1c1d52";
     if (bgURL){ cv.style.backgroundSize = `${COLS*C/W*100}% ${ROWS*C/H*100}%, 100% 100%`; cv.style.backgroundPosition = `${W > COLS*C ? BX/(W - COLS*C)*100 : 0}% ${H > ROWS*C ? BY/(H - ROWS*C)*100 : 0}%, 0 0`; cv.style.backgroundRepeat = "no-repeat"; } else { cv.style.backgroundSize = ""; cv.style.backgroundPosition = ""; } }
   /* ⚡ 판 그림은 CSS 배경으로 (매 장면 붙이지 않아요) — 준비되기 전에는 캔버스에 붙여요 */
@@ -12849,7 +12873,7 @@ NG.defs.rd = () => {
   const upCost = (z, g) => Math.round([30, 90, 250][g]*(Z[z].up[g] + 1)*(1 - .25*RL(z, "cheap")));
   const upMul = (z, g) => 1 + .3*Z[z].up[g < 2 ? 0 : g < 4 ? 1 : 2];
   function toastZ(z, s){ if (isMine(z)){ for (let i = FX.length - 1; i >= 0; i--) if (FX[i].ui && FX[i].z === z) FX.splice(i, 1); } if (isMine(z)) FX.push({tx: s, x: W/2, y: H - BOTH - 26, t: 90, c: "#fff", ui: 1, z}); else if (party === "host" && remote(z)) NQ.push(["t", z, s]); }
-  function popAt(z, i, s, c){ if (i < 0) return; const [x, y] = slotXY(z, i); FX.push({tx: s, x, y: y - .4, t: 70, c, cell: 1}); if (party === "host") NQ.push(["p", z, i, s, c]); }
+  function popAt(z, i, s, c, nb){ if (i < 0) return; const [x, y] = slotXY(z, i); FX.push({tx: s, x, y: y - .4, t: nb ? 50 : 70, c, cell: 1, nb}); if (party === "host") NQ.push(["p", z, i, s, c, nb ? 1 : 0]); }
   function fxRing(z, i, c){ if (i < 0) return; const [x, y] = slotXY(z, i); FX.push({ring: 1, x, y, t: 26, c}); if (party === "host") NQ.push(["r", +x.toFixed(2), +y.toFixed(2), c]); }
 
   /* ---------- 싸움 (방장 기기) ---------- */
@@ -12863,22 +12887,53 @@ NG.defs.rd = () => {
     fxN.t = FX.reduce((a, f) => a + (f.sm ? 1 : 0), 0); fxN.r = FX.reduce((a, f) => a + (f.k ? 1 : 0), 0);
     if (!viz && bufV !== gv){ BUF = buffMap(); bufV = gv; }
     for (let z = 0; z < Z.length; z++){ const p = Z[z];
-      const rB = .5*RL(z, "rng"), crB = .1*RL(z, "crit"), cdM = 1/(1 + .15*RL(z, "spd"));
+      const rB = .5*RL(z, "rng"), crB = .1*RL(z, "crit"), cdM0 = 1/(1 + .15*RL(z, "spd"));
       for (let i = 0; i < ZS; i++){ const q = p.s[i]; if (!q.k) continue; const A = RD_A[q.k], [sx, sy] = slotXY(z, i), r2 = (A.r + rB)*(A.r + rB);
+        const tb = tbAt(z, sx, sy), cdM = cdM0/tb.s, pm = (A.ro === "r" && !isFront(z, i) ? 1.25 : 1)*tb.a;   // 🏹 원거리는 뒷줄에서 +25% · 🦁🦄 스킬 응원
         for (let u = 0; u < q.n; u++){ if (--q.cd[u] > 0) continue;
           // 가장 앞서가는 몬스터부터
           let tg = [], best = -1; const mt = A.mt || 1;
           for (const e of E){ const dx = e.x - sx, dy = e.y - sy; if (dx*dx + dy*dy > r2) continue; if (mt === 1){ if (e.tr > best){ best = e.tr; tg[0] = e; } } else tg.push(e); }
           if (!tg.length){ q.cd[u] = 6; continue; }
           if (mt > 1) tg = tg.sort((a, b) => b.tr - a.tr).slice(0, mt);
-          q.cd[u] = Math.max(8, Math.round(A.cd*cdM)); q.hit = 8;
+          q.cd[u] = Math.max(6, Math.round(A.cd*cdM)); q.hit = 8;
+          if (!viz && A.sk){ q.mp = (q.mp || 0) + 1; if (q.mp >= A.sk.mp){ q.mp = 0; cast(z, i, A, sx, sy, pm); } }
           const ox = sx + UOFF[q.n - 1][u][0], oy = sy + UOFF[q.n - 1][u][1];
           tg.forEach(e => { PR.push({x0: ox, y0: oy, e, x1: e.x, y1: e.y, t: 0, T: 8, g: A.g, k: q.k}); if (viz) return;
-            const cc = (A.cr || 0) + crB, cr = cc > 0 && R.f() < cc, dm = A.d*upMul(z, A.g)*(BUF ? BUF[z][i] : 1)*(cr ? 3 : 1)*relMul(z, A, e);
+            const cc = (A.cr || 0) + crB, cr = cc > 0 && R.f() < cc, dm = A.d*upMul(z, A.g)*(BUF ? BUF[z][i] : 1)*(cr ? 3 : 1)*relMul(z, A, e)*pm;
             hitE(e, dm, A); if (cr && fxN.t < 6){ fxN.t++; FX.push({tx: "치명타!", x: e.x, y: e.y - .35, t: 34, c: "#ff6b6b", cell: 1, sm: 1}); }
             if (A.sp){ for (const o of E){ if (o !== e && (o.x - e.x)**2 + (o.y - e.y)**2 < A.sp*A.sp) hitE(o, dm*.6, A); } } });
           if (A.sp && fxN.r < 14){ fxN.r++; const e = tg[0]; FX.push({ring: 1, x: e.x, y: e.y, t: 16, c: RD_G[A.g].c, r: A.sp, k: 1}); }
         } } }
+  }
+  /* 🌟 스킬: 공격할 때마다 기력이 차서, 꽉 차면 저절로 펑! */
+  let TB = [];   // 🦁 포효 · 🦄 무지개 축복 (잠깐 동안 옆 친구들 응원)
+  function tbAt(z, x, y){ const o = {a: 1, s: 1}; for (const b of TB){ if (b.z !== z || (b.x - x)**2 + (b.y - y)**2 > 2.3*2.3) continue; if (b.ty === "buffA") o.a = 1.5; else o.s = 2; } return o; }
+  function cast(z, i, A, sx, sy, pm){
+    const S = A.sk, p = Z[z], base = A.d*upMul(z, A.g)*(BUF ? BUF[z][i] : 1)*pm, R0 = A.r + .5*RL(z, "rng") + .4;
+    const near = e => (e.x - sx)**2 + (e.y - sy)**2 <= R0*R0, hit = (e, m) => { hitE(e, base*m*relMul(z, A, e), A); },
+      inR = E.filter(near), front = inR.reduce((b, e) => !b || e.tr > b.tr ? e : b, null);
+    let did = true;
+    switch (S.ty){
+      case "gold": { const v = 4 + Math.floor(wave*.6); p.gold += v; break; }
+      case "multi": if (front) for (let k = 0; k < S.v; k++) hit(front, 1); else did = false; break;
+      case "big": if (front) hit(front, S.v); else did = false; break;
+      case "all": inR.forEach(e => hit(e, S.v)); did = inR.length > 0; break;
+      case "slow": inR.forEach(e => { e.slT = 180; e.slF = Math.max(e.slF, S.v); }); did = inR.length > 0; break;
+      case "freeze": inR.forEach(e => { e.stT = Math.max(e.stT, e.kind === 2 ? 30 : S.v); hit(e, 1); }); did = inR.length > 0; break;
+      case "stun": inR.forEach(e => { e.stT = Math.max(e.stT, e.kind === 2 ? 20 : 60); hit(e, S.v); }); did = inR.length > 0; break;
+      case "pick": inR.sort((a, b) => b.tr - a.tr).slice(0, S.n2).forEach(e => hit(e, S.v)); did = inR.length > 0; break;
+      case "snipe": { const t = E.reduce((b, e) => !b || e.hp > b.hp ? e : b, null); if (t){ hit(t, S.v); PR.push({x0: sx, y0: sy, e: t, x1: t.x, y1: t.y, t: 0, T: 6, g: A.g, k: "owl"}); } else did = false; break; }
+      case "exec": { const t = inR.reduce((b, e) => !b || e.hp/e.mhp < b.hp/b.mhp ? e : b, null); if (!t){ did = false; break; } if (t.kind !== 2 && t.kind !== 1 && t.hp/t.mhp < .4) t.hp = 0; else hit(t, S.v); break; }
+      case "buffA": case "buffS": TB.push({z, x: sx, y: sy, ty: S.ty, t: 360}); break;
+      case "push": inR.forEach(e => { const b = e.kind === 2 ? .8 : 2.5; e.d = Math.max(0, e.d - b); e.tr = Math.max(0, e.tr - b); }); did = inR.length > 0; break;
+      case "storm": { const L = E.slice().sort(() => R.f() - .5).slice(0, 6); L.forEach(e => { hit(e, S.v); if (fxN.r < 14){ fxN.r++; FX.push({ring: 1, x: e.x, y: e.y, t: 16, c: "#a5d8ff", r: .7, k: 1}); } }); did = L.length > 0; break; }
+      case "quake": E.forEach(e => { if (N > 1 && e.l !== z) return; e.stT = Math.max(e.stT, e.kind === 2 ? 25 : 70); hit(e, S.v); }); break;
+    }
+    if (!did) return;
+    popAt(z, i, `${S.e} ${S.n}!`, RD_ROLE[A.ro].c, 1);
+    if (fxN.r < 14){ fxN.r++; FX.push({ring: 1, x: sx, y: sy, t: 26, c: RD_ROLE[A.ro].c, r: S.ty === "buffA" || S.ty === "buffS" ? 2.3 : R0, k: 1}); if (party === "host") NQ.push(["r", +sx.toFixed(2), +sy.toFixed(2), RD_ROLE[A.ro].c]); }
+    if (A.g >= 3) sfx("merge", z);
   }
   function hitE(e, dm, A){ e.hp -= dm; if (A.sl){ e.slT = 90; e.slF = Math.max(e.slF, A.sl); } if (A.st && R.f() < A.st) e.stT = 40; }
   function sim(){
@@ -12886,18 +12941,20 @@ NG.defs.rd = () => {
     if (state !== "play") return;
     if (--waveT <= 0){ if (E.some(e => e.kind === 2)){ lose("👑 보스를 시간 안에 못 잡았어요"); return; } startWave(); }
     if (spawnLeft > 0 && --spawnT <= 0){ spawn(0); spawnLeft--; spawnT = 28; }
-    const slw = 1 - slowAll(); Z.forEach(p => { if (p.fev > 0) p.fev--; });
-    for (let i = E.length - 1; i >= 0; i--){ const e = E[i]; if (e.kind === 3 && e.tr > PL*1.5){ E.splice(i, 1); msFail("🟡 황금 슬라임이 도망갔어요!"); } }
-    for (const e of E){ if (e.stT > 0){ e.stT--; } else { const v = e.spd*(e.slT > 0 ? 1 - e.slF : 1)*slw; e.d += v; e.tr += v; } if (e.slT > 0 && --e.slT === 0) e.slF = 0; const pp = posAt(e.d); e.x = pp[0]; e.y = pp[1]; e.f++; }
+    const slw = 1 - slowAll(); Z.forEach(p => { if (p.fev > 0) p.fev--; }); if (TB.length) TB = TB.filter(b => --b.t > 0);
+    for (let i = E.length - 1; i >= 0; i--){ const e = E[i]; if (e.kind === 3 && e.tr > plOf(e.l)*1.5){ E.splice(i, 1); msFail("🟡 황금 슬라임이 도망갔어요!"); } }
+    for (const e of E){ if (e.stT > 0){ e.stT--; } else { const v = e.spd*(e.slT > 0 ? 1 - e.slF : 1)*slw; e.d += v; e.tr += v; } if (e.slT > 0 && --e.slT === 0) e.slF = 0; const pp = posAt(e.d, e.l); e.x = pp[0]; e.y = pp[1]; e.f++; }
     attack(false);
     for (let i = E.length - 1; i >= 0; i--){ const e = E[i]; if (e.hp > 0) continue; E.splice(i, 1); kills++; msTick("kill");
       const gd = e.kind === 2 ? 120 : e.kind === 1 ? 35 : e.kind === 3 ? 60 + wave*3 : e.kind === 4 ? 40 : 2 + Math.floor(wave/10); Z.forEach(p => p.gold += gd);
       if (e.kind === 3 || e.kind === 4){ boom(e.x, e.y, 1); if (MS && !MS.st && MS.k === (e.kind === 3 ? "gold" : "chest")) msWin(); else { Z.forEach((p, z) => giveItem(z, rndItem())); } continue; }
-      if (e.kind){ const gm = e.kind === 2 ? 2 : 1; Z.forEach(p => p.gems += gm); bossK += e.kind === 2 ? 1 : 0; sfx("kboss"); banner = {t: e.kind === 2 ? "🎉 보스 처치!" : "😈 중간 보스 처치!", s: `💎 보석 +${gm} · 💰 +${gd}`, k: 120, c: "#ffe066"};
+      if (e.kind){ const gm = e.kind === 2 ? 2 : 1, more = E.some(o => o.kind === e.kind); if (!more) Z.forEach(p => p.gems += gm); bossK += e.kind === 2 && !more ? 1 : 0; sfx("kboss"); banner = {t: e.kind === 2 ? "🎉 보스 처치!" : "😈 중간 보스 처치!", s: `💎 보석 +${gm} · 💰 +${gd}`, k: 120, c: "#ffe066"};
         if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); boom(e.x, e.y, 1);
-        if (e.kind === 2 && waveT > 180) waveT = 180;
-        Z.forEach((p, z) => { p.gems += RL(z, "gem")*(e.kind === 2 ? 2 : 1); if (e.kind === 2) offerRel(z); else giveItem(z, rndItem()); });
-        if (e.kind === 2){ banner.s = "🎁 유물 상자! 하나를 골라요"; if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); } }
+        const lastBoss = e.kind === 2 && !E.some(o => o.kind === 2);
+        if (lastBoss && waveT > 180) waveT = 180;
+        Z.forEach((p, z) => { if (e.kind === 1 && N > 1 && E.some(o => o.kind === 1)) return; p.gems += RL(z, "gem")*(e.kind === 2 ? 2 : 1); if (e.kind === 2){ if (lastBoss) offerRel(z); } else giveItem(z, rndItem()); });
+        if (more) banner = {t: e.kind === 2 ? "👑 보스 하나 처치!" : "😈 중간 보스 하나 처치!", s: "다른 길의 보스도 잡아요!", k: 80, c: "#ffe066"};
+        if (e.kind === 2 && !more){ banner.s = "🎁 유물 상자! 하나를 골라요"; if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); } }
       else if (FX.length < 200) boom(e.x, e.y, 0); }
     const n = E.length; if (n >= LIMIT){ lose("👾 몬스터가 동물 마을을 덮쳤어요!"); return; }
     if (n >= LIMIT*.8 && frame % 30 === 0) sfx("warn");
@@ -12918,30 +12975,30 @@ NG.defs.rd = () => {
   function snap(){ return {w: wave, wt: waveT, st: state, sc: score, kl: kills, bk: bossK, gv,
     P: Z.map(p => [Math.floor(p.gold), p.gems, p.up[0], p.up[1], p.up[2], p.sum, p.ack, Object.entries(p.rel).map(a => a.join(":")).join(","), p.it.join(","), p.pick ? p.pick.join(",") : "", p.clv, p.fev]),
     M: MS ? [MS.k, MS.n, MS.p, MS.st] : null,
-    E: E.map(e => [e.id, e.kind, Math.round(e.d*100), Math.max(1, Math.round(e.hp/e.mhp*100)), (e.slT > 0 ? 1 : 0) | (e.stT > 0 ? 2 : 0)])}; }
+    E: E.map(e => [e.id, e.kind, Math.round(e.d*100), Math.max(1, Math.round(e.hp/e.mhp*100)), (e.slT > 0 ? 1 : 0) | (e.stT > 0 ? 2 : 0), e.l || 0])}; }
   function apply(d){
     if (d.grid){ if (!Z) return; d.grid.z.forEach((arr, z) => arr.forEach((v, i) => { const q = Z[z].s[i]; if (v < 0){ q.k = null; q.n = 0; } else { const k = RD_K[v >> 2], n = v & 3; if (q.k !== k || q.n !== n) q.hit = 10; q.k = k; q.n = n; } })); gv = d.grid.gv; return; }
     if (d.ev){ d.ev.forEach(e => { const k = e[0];
       if (k === "s"){ if (e[2] < 0 || isMine(e[2])) playS(e[1]); }
       else if (k === "b") banner = {t: e[1], s: e[2], k: e[3], c: e[4] || undefined};
       else if (k === "t"){ if (isMine(e[1])) FX.push({tx: e[2], x: W/2, y: H - BOTH - 26, t: 90, c: "#fff", ui: 1}); }
-      else if (k === "p"){ const [x, y] = slotXY(e[1], e[2]); FX.push({tx: e[3], x, y: y - .4, t: 70, c: e[4], cell: 1}); }
+      else if (k === "p"){ const [x, y] = slotXY(e[1], e[2]); FX.push({tx: e[3], x, y: y - .4, t: e[5] ? 50 : 70, c: e[4], cell: 1, nb: e[5]}); }
       else if (k === "r") FX.push({ring: 1, x: e[1], y: e[2], t: 26, c: e[3], r: 1.4}); }); return; }
     const s = d.s; if (!s) return;
-    if (s.w !== wave){ const nt = Math.floor((s.w - 1)/10) !== Math.floor((Math.max(1, wave) - 1)/10); wave = s.w; if (nt){ layerKey = ""; setSky(); } }
+    if (s.w !== wave){ const nt = Math.floor((s.w - 1)/10) !== Math.floor((Math.max(1, wave) - 1)/10); wave = s.w; if (nt){ remap(); layerKey = ""; setSky(); } }
     waveT = s.wt; state = s.st; score = s.sc; kills = s.kl; bossK = s.bk;
     MS = s.M ? {k: s.M[0], n: s.M[1], p: s.M[2], st: s.M[3]} : null;
     s.P.forEach((a, z) => { const p = Z[z]; if (!p) return; p.gold = a[0]; p.gems = a[1]; p.up = [a[2], a[3], a[4]]; p.sum = a[5];
       if (a[7] != null){ p.rel = {}; String(a[7]).split(",").filter(Boolean).forEach(x => { const [k, v] = x.split(":"); p.rel[k] = +v; }); p.it = String(a[8] || "").split(",").filter(Boolean); p.pick = a[9] ? String(a[9]).split(",") : null; p.clv = a[10] || 0; p.fev = a[11] || 0; } if (z === myIdx){ const ack = a[6]; outbox = outbox.filter(o => o[0] > ack); } });
     const old = new Map(E.map(e => [e.id, e]));
     E = s.E.map(a => { const o = old.get(a[0]), d0 = a[2]/100, kind = a[1];
-      const e = o || {id: a[0], kind, d: d0, tr: d0, spd: KSPD(kind), f: a[0]*7, x: 0, y: 0};
+      const e = o || {id: a[0], kind, l: a[5] || 0, d: d0, tr: d0, spd: KSPD(kind), f: a[0]*7, x: 0, y: 0};
       if (o){ let dd = d0 - o.d; if (Math.abs(dd) > 2) o.d = d0; else o.d += dd*.5; } e.hpR = a[3]/100; e.sl = a[4] & 1; e.stn = a[4] & 2; return e; });
     if (s.gv !== gv) PARTY.needGrid();
   }
   function guestStep(){
     frame++;
-    for (const e of E){ if (!e.stn){ const v = e.spd*(e.sl ? .6 : 1); e.d += v; e.tr = (e.tr || 0) + v; } const pp = posAt(e.d); e.x = pp[0]; e.y = pp[1]; e.f++; }
+    for (const e of E){ if (!e.stn){ const v = e.spd*(e.sl ? .6 : 1); e.d += v; e.tr = (e.tr || 0) + v; } const pp = posAt(e.d, e.l); e.x = pp[0]; e.y = pp[1]; e.f++; }
     attack(true);
     if (outbox.length && frame % 6 === 0) PARTY.sendIn({sd: seed, a: outbox}, true);
   }
@@ -12975,12 +13032,12 @@ NG.defs.rd = () => {
     L.push({id: "smrg", x: px - w - 4, y: py - h - 40, w, h, off: !can}); L.push({id: "ssel", x: px + 4, y: py - h - 40, w, h});
     L.forEach(b => { b.x = Math.max(6, Math.min(W - b.w - 6, b.x)); b.y = Math.max(TOPH + 4, b.y); }); return L; }
   const inR = (b, x, y) => x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h + 6;
-  function slotAt(x, y){ const c = (x - BX)/C, r = (y - BY)/C; for (let z = 0; z < N; z++){ const [ox, oy] = ZO[z], i = Math.floor(c - ox), j = Math.floor(r - oy); if (i >= 0 && i < ZC && j >= 0 && j < ZR) return {z, i: j*ZC + i}; } return null; }
+  function slotAt(x, y){ const c = Math.floor((x - BX)/C), r = Math.floor((y - BY)/C), h = CELL.get(c + "," + r); return h ? {z: h.z, i: h.i} : null; }
   function press(b){
     if (b.id === "sum") act(b.z, ["sum"]);
     else if (b.id === "all") act(b.z, ["all"]);
     else if (b.id === "up" || b.id === "luck"){ if (b.i != null){ act(b.z, b.id === "up" ? ["up", b.i] : ["luck", b.i]); } else panel = panel && panel.id === b.id && panel.z === b.z ? null : {id: b.id, z: b.z}; }
-    else if (b.id === "spd"){ speed = speed === 1 ? 2 : 1; playS("warn"); }
+    else if (b.id === "spd"){ speed = speed === 1 ? 2 : speed === 2 ? 4 : 1; playS("warn"); }
     else if (b.id === "smrg"){ if (!b.off){ act(sel.z, ["mrg", sel.i]); sel = null; } }
     else if (b.id === "ssel"){ act(sel.z, ["sel", sel.i]); const q = Z[sel.z].s[sel.i]; if (!q.k || q.n <= 1) sel = null; }
   }
@@ -12994,8 +13051,14 @@ NG.defs.rd = () => {
     const fr = NG.frame, us = Math.round(C*.62);
     // 3마리 모인 칸: 반짝이는 🔀 표시 (동물 그림은 위 한 장에 들어 있어요)
     for (let z = 0; z < N; z++){ if (!isMine(z)) continue; Z[z].s.forEach((q, i) => { if (!q.k || q.n < 3 || RD_A[q.k].g >= 4) return; const [x, y] = slotXY(z, i); g.globalAlpha = .55 + Math.sin(fr*.15)*.4; G2.put(g, lbl(["🔀"], 20), cx(x - .5) + 1, cy(y - .5) - 2); g.globalAlpha = 1; }); }
+    // 🌟 스킬 기력 막대 (꽉 차면 스킬!)
+    for (let z = 0; z < N; z++){ if (!isMine(z)) continue; Z[z].s.forEach((q, i) => { if (!q.k || q.mp == null) return; const A = RD_A[q.k], r = Math.min(1, q.mp/A.sk.mp), [x, y] = slotXY(z, i), bw = C*.62, bx = cx(x) - bw/2, by = cy(y) + C*.4;
+      g.fillStyle = "rgba(0,0,0,.5)"; g.fillRect(bx, by, bw, 5); g.fillStyle = r > .85 ? (fr % 12 < 6 ? "#fff3bf" : "#fcc419") : "#4dabf7"; g.fillRect(bx, by, bw*r, 5); }); }
+    // 끌어서 옮길 때: 이 동물에게 좋은 자리 반짝
+    if (drag && drag.on){ const q0 = Z[drag.z].s[drag.i]; if (q0.k){ const ro = RD_A[q0.k].ro; LN[drag.z].slots.forEach(([x, y], s) => { const good = ro === "m" ? isFront(drag.z, s) : ro === "r" ? !isFront(drag.z, s) : true;
+      if (!good) return; g.globalAlpha = .4 + Math.sin(fr*.2)*.15; g.fillStyle = RD_ROLE[ro].c; rrect(g, cx(x - .45), cy(y - .45), C*.9, C*.9, C*.2); g.fill(); g.globalAlpha = 1; }); } }
     if (sel){ const [x, y] = slotXY(sel.z, sel.i), q = Z[sel.z].s[sel.i]; g.strokeStyle = "#fff"; g.lineWidth = 4; rrect(g, cx(x - .47), cy(y - .47), C*.94, C*.94, C*.18); g.stroke();
-      if (q.k){ g.globalAlpha = .14; g.fillStyle = "#fff"; g.beginPath(); g.arc(cx(x), cy(y), RD_A[q.k].r*C, 0, 7); g.fill(); g.globalAlpha = .6; g.strokeStyle = "#fff"; g.lineWidth = 2; g.stroke(); g.globalAlpha = 1; } }
+      if (q.k){ g.globalAlpha = .14; g.fillStyle = "#fff"; g.beginPath(); g.arc(cx(x), cy(y), (RD_A[q.k].r + .5*RL(sel.z, "rng"))*C, 0, 7); g.fill(); g.globalAlpha = .6; g.strokeStyle = "#fff"; g.lineWidth = 2; g.stroke(); g.globalAlpha = 1; } }
     // 몬스터
     const slS = [0, 1, 2, 3, 4].map(kd => [slimeSpr(kd, 0), slimeSpr(kd, 1)]);
     for (const e of E){ const s = slS[e.kind][(e.f >> 4) & 1], sz = s.w, x = cx(e.x), y = cy(e.y);
@@ -13013,7 +13076,7 @@ NG.defs.rd = () => {
     // 효과
     for (let i = FX.length - 1; i >= 0; i--){ const f = FX[i]; f.t--; if (f.t <= 0){ FX.splice(i, 1); continue; }
       if (f.ring){ const T = 26, a = 1 - f.t/T, rr = (f.r || 1)*C*(.3 + a*.7); g.globalAlpha = Math.min(1, f.t/10)*.8; g.drawImage(ringSpr(f.c), cx(f.x) - rr, cy(f.y) - rr, rr*2, rr*2); g.globalAlpha = 1; continue; }
-      if (f.tx && f.cell && !f.sm && f.t > 40 && !/^\+/.test(f.tx)){   // ✨ 뽑기·합치기: 칸 위로 빛기둥
+      if (f.tx && f.cell && !f.sm && !f.nb && f.t > 40 && !/^\+/.test(f.tx)){   // ✨ 뽑기·합치기: 칸 위로 빛기둥
         const a = (f.t - 40)/30, bx = cx(f.x), by0 = cy(f.y + .4), bw = C*.62*(.6 + a*.4);
         g.globalAlpha = a*.8; g.fillStyle = BSA.lg(g, 0, by0 - C*1.6, 0, by0, [[0, "rgba(255,255,255,0)"], [.7, f.c], [1, "#ffffff"]]); g.fillRect(bx - bw/2, by0 - C*1.6, bw, C*1.6);
         if (f.c === RD_G[3].c || f.c === RD_G[4].c){ g.globalAlpha = a*.35; g.fillStyle = f.c === RD_G[4].c ? "#ffd6f5" : "#fff3bf"; g.fillRect(0, 0, W, H); }
@@ -13022,7 +13085,7 @@ NG.defs.rd = () => {
     // 친구 이름표
     if (N > 1) for (let z = 0; z < N; z++){ const [ox, oy] = ZO[z]; faceAt(g, SIDS[z], cx(ox) + 14, cy(oy) + 14, 13, RD_PC[z]); }
     // 🔥 응원 깃발: 내 칸 테두리가 활활
-    local.forEach(z => { if (Z[z].fev > 0){ const [ox, oy] = ZO[z]; g.globalAlpha = .55 + Math.sin(fr*.3)*.3; g.strokeStyle = "#ff922b"; g.lineWidth = 6; rrect(g, cx(ox) + 2, cy(oy) + 2, ZC*C - 4, ZR*C - 4, C*.22); g.stroke(); g.globalAlpha = 1; } });
+    local.forEach(z => { if (Z[z].fev > 0 && LN[z]){ const L = LN[z]; g.globalAlpha = .55 + Math.sin(fr*.3)*.3; g.strokeStyle = "#ff922b"; g.lineWidth = 6; rrect(g, cx(L.ox) + 3, cy(L.oy) + 3, L.w*C - 6, L.h*C - 6, C*.4); g.stroke(); g.globalAlpha = 1; } });
     // 🚨 마을이 위험하면 화면 가장자리가 빨갛게
     { const r = E.length/LIMIT; if (r > .55){ const a = Math.min(1, (r - .55)/.35)*(.55 + Math.sin(fr*.18)*.25); g.globalAlpha = a; G2.put(g, sp(`vig${W}x${H}`, W, H, t => { const gr = t.createRadialGradient(W/2, H/2, Math.min(W, H)*.35, W/2, H/2, Math.max(W, H)*.65); gr.addColorStop(0, "rgba(255,0,40,0)"); gr.addColorStop(1, "rgba(255,0,40,.75)"); t.fillStyle = gr; t.fillRect(0, 0, W, H); }), 0, 0); g.globalAlpha = 1; } }
     drawTop(g, fr); drawBottom(g); bagDraw(g); drawMission(g, fr);
@@ -13038,7 +13101,10 @@ NG.defs.rd = () => {
     for (let z = 0; z < N; z++) Z[z].s.forEach((q, i) => { if (!q.k) return; const [x, y] = slotXY(z, i), n = q.n, s = Math.round(C*(n === 1 ? .94 : n === 2 ? .7 : .62)), spr = unitSpr(q.k, s);
       if (n >= 3 && RD_A[q.k].g < 4 && isMine(z)){ t.globalAlpha = .5; t.fillStyle = RD_G[RD_A[q.k].g + 1].c; rrect(t, (x - .46)*C, (y - .46)*C, C*.92, C*.92, C*.18); t.fill(); t.globalAlpha = 1; }
       for (let u = 0; u < n; u++){ const o = UOFF[n - 1][u]; t.drawImage(spr, Math.round((x + o[0])*C - s/2), Math.round((y + o[1])*C - s/2), s, s); }
-      if (n >= 2){ const l = lbl([`×${n}`], 13, n >= 3 ? "#ffe066" : "#fff"); t.drawImage(l, (x + .48)*C - 30, (y + .5)*C - 22, l.w, l.h); } });
+      if (n >= 2){ const l = lbl([`×${n}`], 13, n >= 3 ? "#ffe066" : "#fff"); t.drawImage(l, (x + .48)*C - 30, (y + .5)*C - 22, l.w, l.h); }
+      const A = RD_A[q.k], RO = RD_ROLE[A.ro || "r"], bs = Math.round(C*.26);   // ⚔️🏹✨ 역할 표시
+      t.drawImage(sp(`rb${A.ro}${bs}`, bs, bs, b => { b.fillStyle = RO.c; b.beginPath(); b.arc(bs/2, bs/2, bs/2 - 1, 0, 7); b.fill(); b.strokeStyle = "#fff"; b.lineWidth = 2; b.stroke(); G2.emo(b, RO.e, bs/2, bs/2 + 1, bs*.62); }), (x - .47)*C, (y - .47)*C, bs, bs);
+      if (A.ro === "m" && !isFront(z, i)){ const l = lbl(["⚠️", "길에서 멀어요"], 11, "#ffe066"); t.drawImage(l, x*C - l.w/2, (y + .2)*C, l.w, l.h); } });
   }
   /* 🎯 미션 · 내 유물 · 다음 보스 (위 막대 아래 한 줄) */
   function drawMission(g, fr){
@@ -13061,7 +13127,7 @@ NG.defs.rd = () => {
     const boss = E.find(e => e.kind === 2), sec = Math.ceil(Math.max(0, waveT)/60);
     const tl = lbl([boss ? "⏰" : "⏱️", `${sec}초`], 20, boss && sec < 15 ? "#ff6b6b" : "#fff"); G2.put(g, tl, W - (party !== "guest" ? 100 : 16) - tl.w, 14);
     if (land) G2.put(g, lbl([th().n.split(" ")[0], th().n.split(" ").slice(1).join(" ")], 16, "#d0bfff"), 140, 16);
-    if (party !== "guest"){ const b = BARS.find(q => q.id === "spd"); if (b) G2.put(g, btnSpr(b.w, b.h, speed > 1 ? "#ff922b" : "#748ffc", speed > 1 ? "#e8590c" : "#4c6ef5", ["⏩", `×${speed}`], 17), b.x, b.y); }
+    if (party !== "guest"){ const b = BARS.find(q => q.id === "spd"); if (b) G2.put(g, btnSpr(b.w, b.h, speed === 4 ? "#ff6b6b" : speed > 1 ? "#ff922b" : "#748ffc", speed === 4 ? "#c92a2a" : speed > 1 ? "#e8590c" : "#4c6ef5", ["⏩", `×${speed}`], 17), b.x, b.y); }
   }
   let bL = null, bV = "";
   function drawBottom(g){
@@ -13119,8 +13185,13 @@ NG.defs.rd = () => {
     selBtns().forEach(b => { const q = Z[sel.z].s[sel.i]; if (!q.k) return;
       if (b.id === "smrg") G2.put(g, btnSpr(b.w, b.h, "#69db7c", "#2b8a3e", ["🔀", "합치기"], 17, b.off), b.x, b.y);
       else G2.put(g, btnSpr(b.w, b.h, "#ff8787", "#c92a2a", ["💰", `팔기 +${RD_G[RD_A[q.k].g].sell}`], 16), b.x, b.y); });
-    if (sel){ const q = Z[sel.z].s[sel.i]; if (q.k){ const A = RD_A[q.k], [x, y] = slotXY(sel.z, sel.i), l = lbl([A.e, `${A.n}`, `(${RD_G[A.g].n})`, `공격 ${Math.round(A.d*upMul(sel.z, A.g)*relMul(sel.z, A, null))}`, "·", A.t], 15, RD_G[A.g].c2);
-      const px = Math.max(6, Math.min(W - l.w - 6, cx(x) - l.w/2)), py = Math.max(TOPH + 56, cy(y) - C*.62 - 34); g.fillStyle = "rgba(15,10,40,.85)"; rrect(g, px - 6, py - 4, l.w + 12, l.h + 8, 10); g.fill(); G2.put(g, l, px, py); } }
+    if (sel){ const q = Z[sel.z].s[sel.i]; if (q.k){ const A = RD_A[q.k], RO = RD_ROLE[A.ro], fr0 = isFront(sel.z, sel.i), [x, y] = slotXY(sel.z, sel.i);
+      const tip = A.ro === "m" ? (fr0 ? "길 바로 옆이라 딱 좋아요!" : "길에서 멀어서 못 닿아요! 길 옆(⚔️ 칸)으로 옮겨요") : A.ro === "r" ? (fr0 ? "뒷줄(🏹 칸)에 두면 공격 +25%" : "뒷줄 명사수! 공격 +25%") : "옆 친구들을 도와요";
+      const l = lbl([A.e, `${A.n}`, `(${RD_G[A.g].n})`, RO.e, RO.n, `공격 ${Math.round(A.d*upMul(sel.z, A.g)*relMul(sel.z, A, null)*(A.ro === "r" && !fr0 ? 1.25 : 1))}`, "·", A.t], 15, RD_G[A.g].c2);
+      const l2 = lbl(["🌟", `스킬 ${A.sk.e} ${A.sk.n}: ${A.sk.d}`], 14, "#ffe066"), l3 = lbl([A.ro === "m" && !fr0 ? "⚠️" : "💡", tip], 14, A.ro === "m" && !fr0 ? "#ffa8a8" : "#c5f6fa");
+      const w0 = Math.max(l.w, l2.w, l3.w), px = Math.max(6, Math.min(W - w0 - 6, cx(x) - w0/2)), py0 = cy(y) - C*.62 - 76, py = py0 < TOPH + 40 ? cy(y) + C*.62 : py0;
+      g.fillStyle = "rgba(15,10,40,.88)"; rrect(g, px - 8, py - 6, w0 + 16, l.h*3 + 10, 12); g.fill(); g.strokeStyle = RO.c; g.lineWidth = 2; g.stroke();
+      G2.put(g, l, px, py); G2.put(g, l2, px, py + l.h); G2.put(g, l3, px, py + l.h*2); } }
     if (drag && drag.on){ const q = Z[drag.z].s[drag.i]; if (q.k){ const s = Math.round(C*.94); g.globalAlpha = .85; g.drawImage(unitSpr(q.k, s), drag.x - s/2, drag.y - s/2, s, s); g.globalAlpha = 1; } }
   }
 
@@ -13148,7 +13219,7 @@ NG.defs.rd = () => {
     cheat(o){ if (o.rel){ Z.forEach(p => Object.assign(p.rel, o.rel)); gv++; } if (o.it) Z.forEach(p => { p.it = o.it.slice(); }); if (o.pick) Z.forEach((p, z) => offerRel(z)); if (o.gold != null) Z.forEach(p => p.gold = o.gold); if (o.gems != null) Z.forEach(p => p.gems = o.gems); if (o.wave != null){ wave = o.wave - 1; startWave(); } if (o.put){ placeK(o.z || 0, o.put); } if (o.clear) E = []; },
     init(){
       seed = O.seed || (Math.floor(Math.random()*1e9) + 1); R.seed(seed);
-      Z = SIDS.map(() => mkZone()); E = []; PR = []; FX = []; MS = null; wave = 0; waveT = 0; spawnLeft = 0; spawnT = 0; state = "play"; overT = 0; score = 0; kills = 0; bossK = 0; eid = 0; gv = 1; speed = 1; banner = null; sel = null; drag = null; ptr = new Map(); panel = null; NQ = []; outbox = []; aseq = 0; lastAct = SIDS.map(() => 0); ended = false; frame = 0;
+      Z = SIDS.map(() => mkZone()); E = []; PR = []; FX = []; TB = []; MS = null; wave = 0; waveT = 0; spawnLeft = 0; spawnT = 0; state = "play"; overT = 0; score = 0; kills = 0; bossK = 0; eid = 0; gv = 1; speed = 1; banner = null; sel = null; drag = null; ptr = new Map(); panel = null; NQ = []; outbox = []; aseq = 0; lastAct = SIDS.map(() => 0); ended = false; frame = 0;
       setSky();
       if (party !== "guest"){ startWave(); [0, 1].forEach(() => Z.forEach((p, z) => { const k = pick(0); placeK(z, k); })); }
       else { wave = 1; }
@@ -13181,7 +13252,7 @@ NG.defs.rd = () => {
       if (!two){ M.Enter = [z1, "sum"]; M.KeyM = [z1, "all"]; M.KeyL = [z1, "luck0"]; }
       const m = M[code]; if (!m) return false;
       const [z, a] = m;
-      if (a === "spd"){ if (party !== "guest"){ speed = speed === 1 ? 2 : 1; playS("warn"); } }
+      if (a === "spd"){ if (party !== "guest"){ speed = speed === 1 ? 2 : speed === 2 ? 4 : 1; playS("warn"); } }
       else if (a === "sum") act(z, ["sum"]); else if (a === "all") act(z, ["all"]); else if (a === "luck0") act(z, ["luck", 0]); else act(z, ["up", +a[2]]);
       return true;
     },
@@ -13198,6 +13269,7 @@ const RDM = {
     const me = ARC.me, box = partyModal("rd"), body = $("#wbBody");
     body.innerHTML = `<div class="rd-intro"><div class="rd-gs">${RD_G.map((g, i) => `<span style="--c:${g.c}"><b>${g.n}</b><em>${RD_BY[i].map(k => RD_A[k].e).join("")}</em></span>`).join("")}</div>
       <p class="arc-small">🎲 <b>뽑기</b>로 동물 친구를 데려오고, 같은 동물 <b>3마리</b>가 모이면 <b>🔀 합치기</b>로 더 센 등급이 돼요! 빙글빙글 도는 몬스터가 <b>동물 마을</b>을 덮치지 않게 막아요(👾 100마리가 되면 끝).</p>
+      <p class="arc-small">🗺️ 10단계마다 <b>맵 모양이 바뀌어요</b>. 동물을 <b>끌어서 자리를 옮겨요</b>: ⚔️ <b>근거리</b>는 길 바로 옆 칸에서 세게, 🏹 <b>원거리</b>는 뒷줄 칸에서 +25%, ✨ <b>지원</b>은 친구 옆에. 동물마다 🌟 <b>스킬</b>이 있어서 기력 막대가 차면 저절로 펑! ⏩ 4배속까지.</p>
       <p class="arc-small">🎯 단계마다 <b>미션</b>(🟡 황금 슬라임·🎁 보물상자 몬스터·합치기·뽑기…)을 해내면 🎒 <b>아이템</b>(💣 폭탄 · ❄️ 얼음꽃 · 🔥 응원 깃발 · 🍀 · ⏳ · 💰)! 👑 보스를 잡으면 🎁 <b>유물</b>을 골라 판마다 다르게 강해져요. 100단계까지 도전!</p></div>
       <div class="wb-sec"><h3>🧒 혼자 지키기 <small>최고 단계로 랭킹!</small></h3><button class="arc-btn p" id="rdSolo">▶ 시작!</button></div>
       <div class="wb-sec"><h3>👫 이 기기에서 둘이 <small>한 화면에서 각자 칸을 지켜요 · 같은 점수로 기록</small></h3><button class="arc-btn p" id="rdDuo">👫 친구 들어오기</button></div>
@@ -13524,6 +13596,79 @@ const RD_TOP = [
   {top: ["#4a4f8f", "#2a2d63"], side: ["#1d1f45", "#0b0c22"], slot: ["#7a80c7", "#4d528f", "#1a1c45"], tuft: "rgba(140,233,154,.25)", dot: ["#fff", "#ffe066", "#b197fc"]},
   {top: ["#5a5563", "#36323d"], side: ["#2b2730", "#141217"], slot: ["#8b8494", "#5e5866", "#25212a"], tuft: "rgba(224,49,49,.25)", dot: ["#ffd43b", "#e03131"]}
 ];
+
+/* =====================================================================
+   🗺️ 맵 모양 (2026.11.16) — 한 바퀴 네모 길이 아니라 맵마다 다른 길
+   P = 몬스터 길(한 바퀴 이어짐) · S = 동물 자리(18칸) · H = 동물 마을 · . = 꾸미기
+   ⚔️ 앞줄 = 길 바로 옆 자리(근거리 동물이 닿아요) · 🎯 뒷줄 = 길에서 먼 자리(원거리 동물 +25%)
+   ===================================================================== */
+const RD_MAPS = [
+  {id: "ring",  n: "성 마당",   m: ["...S...S...", ".PPPPPPPPP.", ".P.SSSSS.P.", ".PSS.H.SSP.", ".P.SSSSS.P.", ".PPPPPPPPP.", "...S...S..."]},
+  {id: "bend",  n: "구불 언덕", m: ["...........", ".PPPPPPPPP.", ".PSSS.SSSP.", "SPSSPPPSSPS", ".PSSPSPSSP.", ".PPPPSPPPP.", ".....H....."]},
+  {id: "isle",  n: "쌍둥이 섬", m: [".....H.....", ".PPPP.PPPP.", ".PSSPSPSSP.", ".PSSPSPSSP.", ".PSSPPPSSP.", ".PSS...SSP.", ".PPPPPPPPP."]},
+  {id: "cross", n: "십자 광장", m: ["...PPPPP...", ".PPPS.SPPP.", ".PSSS.SSSP.", ".PS.SHS.SP.", ".PSSS.SSSP.", ".PPP...PPP.", "...PPPPP..."]},
+  {id: "wave",  n: "파도 계곡", m: ["...........", "PPPPP.PPPPP", "PSSSPSPSSSP", "P.S.PSP.S.P", "PSSSPPPSSSP", "P.S.H...S.P", "PPPPPPPPPPP"]}
+];
+const RD_RING8 = {id: "ring8", n: "네모 마당", m: ["PPPPPPPP", "PSSSSSSP", "PSSSSSSP", "PSSSSSSP", "PPPPPPPP"]};
+function rdParse(M, tr){
+  let m = M.m; if (tr) m = Array.from({length: m[0].length}, (_, x) => m.map(r => r[x]).join(""));
+  const h = m.length, w = m[0].length, at = (x, y) => (m[y] || "")[x] || " ", P = new Set(), S = [], D = [];
+  let house = null;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){ const c = at(x, y); if (c === "P") P.add(x + "," + y); else if (c === "S") S.push([x, y]); else if (c === "H") house = [x, y]; else D.push([x, y]); }
+  const key = (x, y) => x + "," + y, start = [...P].map(k => k.split(",").map(Number)).sort((a, b) => a[1] - b[1] || a[0] - b[0])[0];
+  const path = [start]; let prev = null, cur = start;
+  for (let guard = 0; guard < 500; guard++){ const nb = [[1, 0], [0, 1], [-1, 0], [0, -1]].map(([dx, dy]) => [cur[0] + dx, cur[1] + dy]).filter(c => P.has(key(c[0], c[1])) && !(prev && c[0] === prev[0] && c[1] === prev[1]));
+    const nx = nb[0]; if (!nx || (nx[0] === start[0] && nx[1] === start[1])) break; prev = cur; cur = nx; path.push(cur); }
+  const front = S.map(([x, y]) => { for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) if (P.has(key(x + dx, y + dy))) return true; return false; });
+  return {id: M.id, n: M.n, w, h, path, slots: S, front, deco: D, house, P};
+}
+
+/* =====================================================================
+   ⚔️ 근거리 · 🏹 원거리 · ✨ 지원 + 🌟 스킬 (공격할 때마다 기력이 차서 저절로 써요)
+   ===================================================================== */
+const RD_ROLE = {m: {e: "⚔️", n: "근거리", c: "#ff8787"}, r: {e: "🏹", n: "원거리", c: "#74c0fc"}, s: {e: "✨", n: "지원", c: "#b197fc"}};
+const RD_SK = {
+  mouse:   {ro: "m", sk: {e: "🧀", n: "치즈 줍기",   d: "금을 주워 와요",                 mp: 10, ty: "gold"}},
+  rabbit:  {ro: "m", sk: {e: "🥕", n: "연속 찌르기", d: "한 몬스터를 3번 콕콕",            mp: 8,  ty: "multi", v: 3}},
+  chick:   {ro: "r", sk: {e: "🪶", n: "깃털비",      d: "거리 안 몬스터 모두",            mp: 8,  ty: "all", v: 1}},
+  frog:    {ro: "s", sk: {e: "🌧️", n: "끈적 장판",   d: "거리 안 몬스터 아주 느리게",      mp: 7,  ty: "slow", v: .65}},
+  dog:     {ro: "m", sk: {e: "🦴", n: "와르르 물기", d: "한 몬스터를 4번 앙앙",            mp: 7,  ty: "multi", v: 4}},
+  cat:     {ro: "m", sk: {e: "😼", n: "필살 냥펀치", d: "한 몬스터에 6배",                 mp: 8,  ty: "big", v: 6}},
+  penguin: {ro: "r", sk: {e: "❄️", n: "얼음 폭풍",   d: "거리 안 몬스터 꽁꽁",             mp: 9,  ty: "freeze", v: 90}},
+  hedgehog:{ro: "m", sk: {e: "💥", n: "가시 폭발",   d: "주변에 3배 펑!",                  mp: 8,  ty: "all", v: 3}},
+  fox:     {ro: "r", sk: {e: "🔥", n: "여우불",      d: "몬스터 5마리에 2배",              mp: 8,  ty: "pick", v: 2, n2: 5}},
+  panda:   {ro: "m", sk: {e: "🐾", n: "지진 쿵",     d: "주변 기절 + 2배",                 mp: 9,  ty: "stun", v: 2}},
+  owl:     {ro: "r", sk: {e: "🎯", n: "저격",        d: "멀리 있는 가장 센 몬스터에 8배",  mp: 8,  ty: "snipe", v: 8}},
+  croc:    {ro: "m", sk: {e: "🐊", n: "한입에 꿀꺽", d: "약해진 몬스터를 한 번에!",        mp: 8,  ty: "exec", v: 4}},
+  lion:    {ro: "m", sk: {e: "🦁", n: "우렁찬 포효", d: "옆 친구들 공격 +50% (6초)",       mp: 10, ty: "buffA"}},
+  tiger:   {ro: "m", sk: {e: "⚡", n: "번개 할퀴기", d: "주변 몬스터 모두 3배",             mp: 8,  ty: "all", v: 3}},
+  whale:   {ro: "r", sk: {e: "🌊", n: "해일",        d: "거리 안 몬스터를 뒤로 밀어요",    mp: 10, ty: "push"}},
+  eagle:   {ro: "r", sk: {e: "🌪️", n: "회오리",      d: "어디든 몬스터 6마리에 3배",       mp: 9,  ty: "storm", v: 3}},
+  dragon:  {ro: "r", sk: {e: "🐉", n: "용의 숨결",   d: "거리 안 몬스터 모두 6배",         mp: 10, ty: "all", v: 6}},
+  unicorn: {ro: "s", sk: {e: "🌈", n: "무지개 축복", d: "옆 친구들 공격 속도 2배 (6초)",   mp: 10, ty: "buffS"}},
+  trex:    {ro: "m", sk: {e: "🦖", n: "대지 진동",   d: "길 위 몬스터 모두 기절 + 4배",    mp: 12, ty: "quake", v: 4}}
+};
+/* 근거리는 길 바로 옆에서만 닿는 대신 더 세게 · 원거리는 멀리서 */
+Object.entries(RD_SK).forEach(([k, v]) => { const A = RD_A[k]; if (!A) return; A.ro = v.ro; A.sk = v.sk;
+  if (v.ro === "m"){ A.r = k === "trex" ? 1.7 : 1.5; A.d = Math.round(A.d*1.5); }
+  else if (v.ro === "r") A.r = Math.max(2.6, A.r + .4);
+  else A.r = Math.max(2.3, A.r); });
+
+/* 🏡 동물 마을 (지켜야 하는 곳) */
+RDA.house = function(t, x, y, s, ti){
+  const roof = ["#ff6b6b", "#e8590c", "#4dabf7", "#d9480f", "#495057", "#74c0fc", "#5f3dc4", "#f783ac", "#7048e8", "#862e9c"][ti % 10], lw = Math.max(1.5, s*.03);
+  this.ell(t, x, y + s*.38, s*.42, s*.1); t.fillStyle = "rgba(0,0,0,.25)"; t.fill();
+  t.fillStyle = "#fff4e6"; rrect(t, x - s*.3, y - s*.08, s*.6, s*.44, s*.04); t.fill(); this.ol(t, lw);
+  t.beginPath(); t.moveTo(x - s*.4, y - s*.04); t.lineTo(x, y - s*.4); t.lineTo(x + s*.4, y - s*.04); t.closePath(); t.fillStyle = roof; t.fill(); this.ol(t, lw);
+  t.fillStyle = "#a0663a"; rrect(t, x - s*.08, y + s*.1, s*.16, s*.26, s*.06); t.fill(); this.ol(t, lw*.8);
+  t.fillStyle = "#a5d8ff"; [-1, 1].forEach(d => { rrect(t, x + d*s*.19 - s*.06, y + s*.02, s*.12, s*.1, s*.02); t.fill(); this.ol(t, lw*.6); });
+  t.strokeStyle = "#5c3a1e"; t.lineWidth = lw; t.beginPath(); t.moveTo(x + s*.22, y - s*.22); t.lineTo(x + s*.22, y - s*.52); t.stroke();
+  t.fillStyle = "#ffd43b"; t.beginPath(); t.moveTo(x + s*.22, y - s*.52); t.lineTo(x + s*.4, y - s*.46); t.lineTo(x + s*.22, y - s*.4); t.closePath(); t.fill(); this.ol(t, lw*.6);
+  t.fillStyle = "#ff8fab"; this.ell(t, x - s*.3, y + s*.33, s*.06, s*.05); t.fill(); this.ell(t, x + s*.32, y + s*.34, s*.05, s*.04); t.fill();
+};
+/* 👾 몬스터 문 (길이 시작되는 곳) */
+RDA.portal = function(t, x, y, s){ for (let i = 0; i < 4; i++){ this.ell(t, x, y, s*(.42 - i*.09), s*(.42 - i*.09)); t.fillStyle = ["#2b1d3a", "#5f3dc4", "#9775fa", "#e5dbff"][i]; t.fill(); }
+  t.strokeStyle = "#e5dbff"; t.lineWidth = Math.max(1.5, s*.03); for (let i = 0; i < 3; i++){ t.beginPath(); t.arc(x, y, s*(.15 + i*.08), i*2, i*2 + 2.4); t.stroke(); } };
 
 /* =====================================================================
    ⌨️ 화면 키보드 — 게임 아래에 버튼판이 나와서, 키보드를 누른 것처럼 조작해요 (모든 게임)

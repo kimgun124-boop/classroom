@@ -270,3 +270,76 @@ const RD_TOP = [
   {top: ["#4a4f8f", "#2a2d63"], side: ["#1d1f45", "#0b0c22"], slot: ["#7a80c7", "#4d528f", "#1a1c45"], tuft: "rgba(140,233,154,.25)", dot: ["#fff", "#ffe066", "#b197fc"]},
   {top: ["#5a5563", "#36323d"], side: ["#2b2730", "#141217"], slot: ["#8b8494", "#5e5866", "#25212a"], tuft: "rgba(224,49,49,.25)", dot: ["#ffd43b", "#e03131"]}
 ];
+
+/* =====================================================================
+   🗺️ 맵 모양 (2026.11.16) — 한 바퀴 네모 길이 아니라 맵마다 다른 길
+   P = 몬스터 길(한 바퀴 이어짐) · S = 동물 자리(18칸) · H = 동물 마을 · . = 꾸미기
+   ⚔️ 앞줄 = 길 바로 옆 자리(근거리 동물이 닿아요) · 🎯 뒷줄 = 길에서 먼 자리(원거리 동물 +25%)
+   ===================================================================== */
+const RD_MAPS = [
+  {id: "ring",  n: "성 마당",   m: ["...S...S...", ".PPPPPPPPP.", ".P.SSSSS.P.", ".PSS.H.SSP.", ".P.SSSSS.P.", ".PPPPPPPPP.", "...S...S..."]},
+  {id: "bend",  n: "구불 언덕", m: ["...........", ".PPPPPPPPP.", ".PSSS.SSSP.", "SPSSPPPSSPS", ".PSSPSPSSP.", ".PPPPSPPPP.", ".....H....."]},
+  {id: "isle",  n: "쌍둥이 섬", m: [".....H.....", ".PPPP.PPPP.", ".PSSPSPSSP.", ".PSSPSPSSP.", ".PSSPPPSSP.", ".PSS...SSP.", ".PPPPPPPPP."]},
+  {id: "cross", n: "십자 광장", m: ["...PPPPP...", ".PPPS.SPPP.", ".PSSS.SSSP.", ".PS.SHS.SP.", ".PSSS.SSSP.", ".PPP...PPP.", "...PPPPP..."]},
+  {id: "wave",  n: "파도 계곡", m: ["...........", "PPPPP.PPPPP", "PSSSPSPSSSP", "P.S.PSP.S.P", "PSSSPPPSSSP", "P.S.H...S.P", "PPPPPPPPPPP"]}
+];
+const RD_RING8 = {id: "ring8", n: "네모 마당", m: ["PPPPPPPP", "PSSSSSSP", "PSSSSSSP", "PSSSSSSP", "PPPPPPPP"]};
+function rdParse(M, tr){
+  let m = M.m; if (tr) m = Array.from({length: m[0].length}, (_, x) => m.map(r => r[x]).join(""));
+  const h = m.length, w = m[0].length, at = (x, y) => (m[y] || "")[x] || " ", P = new Set(), S = [], D = [];
+  let house = null;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){ const c = at(x, y); if (c === "P") P.add(x + "," + y); else if (c === "S") S.push([x, y]); else if (c === "H") house = [x, y]; else D.push([x, y]); }
+  const key = (x, y) => x + "," + y, start = [...P].map(k => k.split(",").map(Number)).sort((a, b) => a[1] - b[1] || a[0] - b[0])[0];
+  const path = [start]; let prev = null, cur = start;
+  for (let guard = 0; guard < 500; guard++){ const nb = [[1, 0], [0, 1], [-1, 0], [0, -1]].map(([dx, dy]) => [cur[0] + dx, cur[1] + dy]).filter(c => P.has(key(c[0], c[1])) && !(prev && c[0] === prev[0] && c[1] === prev[1]));
+    const nx = nb[0]; if (!nx || (nx[0] === start[0] && nx[1] === start[1])) break; prev = cur; cur = nx; path.push(cur); }
+  const front = S.map(([x, y]) => { for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) if (P.has(key(x + dx, y + dy))) return true; return false; });
+  return {id: M.id, n: M.n, w, h, path, slots: S, front, deco: D, house, P};
+}
+
+/* =====================================================================
+   ⚔️ 근거리 · 🏹 원거리 · ✨ 지원 + 🌟 스킬 (공격할 때마다 기력이 차서 저절로 써요)
+   ===================================================================== */
+const RD_ROLE = {m: {e: "⚔️", n: "근거리", c: "#ff8787"}, r: {e: "🏹", n: "원거리", c: "#74c0fc"}, s: {e: "✨", n: "지원", c: "#b197fc"}};
+const RD_SK = {
+  mouse:   {ro: "m", sk: {e: "🧀", n: "치즈 줍기",   d: "금을 주워 와요",                 mp: 10, ty: "gold"}},
+  rabbit:  {ro: "m", sk: {e: "🥕", n: "연속 찌르기", d: "한 몬스터를 3번 콕콕",            mp: 8,  ty: "multi", v: 3}},
+  chick:   {ro: "r", sk: {e: "🪶", n: "깃털비",      d: "거리 안 몬스터 모두",            mp: 8,  ty: "all", v: 1}},
+  frog:    {ro: "s", sk: {e: "🌧️", n: "끈적 장판",   d: "거리 안 몬스터 아주 느리게",      mp: 7,  ty: "slow", v: .65}},
+  dog:     {ro: "m", sk: {e: "🦴", n: "와르르 물기", d: "한 몬스터를 4번 앙앙",            mp: 7,  ty: "multi", v: 4}},
+  cat:     {ro: "m", sk: {e: "😼", n: "필살 냥펀치", d: "한 몬스터에 6배",                 mp: 8,  ty: "big", v: 6}},
+  penguin: {ro: "r", sk: {e: "❄️", n: "얼음 폭풍",   d: "거리 안 몬스터 꽁꽁",             mp: 9,  ty: "freeze", v: 90}},
+  hedgehog:{ro: "m", sk: {e: "💥", n: "가시 폭발",   d: "주변에 3배 펑!",                  mp: 8,  ty: "all", v: 3}},
+  fox:     {ro: "r", sk: {e: "🔥", n: "여우불",      d: "몬스터 5마리에 2배",              mp: 8,  ty: "pick", v: 2, n2: 5}},
+  panda:   {ro: "m", sk: {e: "🐾", n: "지진 쿵",     d: "주변 기절 + 2배",                 mp: 9,  ty: "stun", v: 2}},
+  owl:     {ro: "r", sk: {e: "🎯", n: "저격",        d: "멀리 있는 가장 센 몬스터에 8배",  mp: 8,  ty: "snipe", v: 8}},
+  croc:    {ro: "m", sk: {e: "🐊", n: "한입에 꿀꺽", d: "약해진 몬스터를 한 번에!",        mp: 8,  ty: "exec", v: 4}},
+  lion:    {ro: "m", sk: {e: "🦁", n: "우렁찬 포효", d: "옆 친구들 공격 +50% (6초)",       mp: 10, ty: "buffA"}},
+  tiger:   {ro: "m", sk: {e: "⚡", n: "번개 할퀴기", d: "주변 몬스터 모두 3배",             mp: 8,  ty: "all", v: 3}},
+  whale:   {ro: "r", sk: {e: "🌊", n: "해일",        d: "거리 안 몬스터를 뒤로 밀어요",    mp: 10, ty: "push"}},
+  eagle:   {ro: "r", sk: {e: "🌪️", n: "회오리",      d: "어디든 몬스터 6마리에 3배",       mp: 9,  ty: "storm", v: 3}},
+  dragon:  {ro: "r", sk: {e: "🐉", n: "용의 숨결",   d: "거리 안 몬스터 모두 6배",         mp: 10, ty: "all", v: 6}},
+  unicorn: {ro: "s", sk: {e: "🌈", n: "무지개 축복", d: "옆 친구들 공격 속도 2배 (6초)",   mp: 10, ty: "buffS"}},
+  trex:    {ro: "m", sk: {e: "🦖", n: "대지 진동",   d: "길 위 몬스터 모두 기절 + 4배",    mp: 12, ty: "quake", v: 4}}
+};
+/* 근거리는 길 바로 옆에서만 닿는 대신 더 세게 · 원거리는 멀리서 */
+Object.entries(RD_SK).forEach(([k, v]) => { const A = RD_A[k]; if (!A) return; A.ro = v.ro; A.sk = v.sk;
+  if (v.ro === "m"){ A.r = k === "trex" ? 1.7 : 1.5; A.d = Math.round(A.d*1.5); }
+  else if (v.ro === "r") A.r = Math.max(2.6, A.r + .4);
+  else A.r = Math.max(2.3, A.r); });
+
+/* 🏡 동물 마을 (지켜야 하는 곳) */
+RDA.house = function(t, x, y, s, ti){
+  const roof = ["#ff6b6b", "#e8590c", "#4dabf7", "#d9480f", "#495057", "#74c0fc", "#5f3dc4", "#f783ac", "#7048e8", "#862e9c"][ti % 10], lw = Math.max(1.5, s*.03);
+  this.ell(t, x, y + s*.38, s*.42, s*.1); t.fillStyle = "rgba(0,0,0,.25)"; t.fill();
+  t.fillStyle = "#fff4e6"; rrect(t, x - s*.3, y - s*.08, s*.6, s*.44, s*.04); t.fill(); this.ol(t, lw);
+  t.beginPath(); t.moveTo(x - s*.4, y - s*.04); t.lineTo(x, y - s*.4); t.lineTo(x + s*.4, y - s*.04); t.closePath(); t.fillStyle = roof; t.fill(); this.ol(t, lw);
+  t.fillStyle = "#a0663a"; rrect(t, x - s*.08, y + s*.1, s*.16, s*.26, s*.06); t.fill(); this.ol(t, lw*.8);
+  t.fillStyle = "#a5d8ff"; [-1, 1].forEach(d => { rrect(t, x + d*s*.19 - s*.06, y + s*.02, s*.12, s*.1, s*.02); t.fill(); this.ol(t, lw*.6); });
+  t.strokeStyle = "#5c3a1e"; t.lineWidth = lw; t.beginPath(); t.moveTo(x + s*.22, y - s*.22); t.lineTo(x + s*.22, y - s*.52); t.stroke();
+  t.fillStyle = "#ffd43b"; t.beginPath(); t.moveTo(x + s*.22, y - s*.52); t.lineTo(x + s*.4, y - s*.46); t.lineTo(x + s*.22, y - s*.4); t.closePath(); t.fill(); this.ol(t, lw*.6);
+  t.fillStyle = "#ff8fab"; this.ell(t, x - s*.3, y + s*.33, s*.06, s*.05); t.fill(); this.ell(t, x + s*.32, y + s*.34, s*.05, s*.04); t.fill();
+};
+/* 👾 몬스터 문 (길이 시작되는 곳) */
+RDA.portal = function(t, x, y, s){ for (let i = 0; i < 4; i++){ this.ell(t, x, y, s*(.42 - i*.09), s*(.42 - i*.09)); t.fillStyle = ["#2b1d3a", "#5f3dc4", "#9775fa", "#e5dbff"][i]; t.fill(); }
+  t.strokeStyle = "#e5dbff"; t.lineWidth = Math.max(1.5, s*.03); for (let i = 0; i < 3; i++){ t.beginPath(); t.arc(x, y, s*(.15 + i*.08), i*2, i*2 + 2.4); t.stroke(); } };
