@@ -164,14 +164,14 @@ $("#ngClose").onclick = () => NG.close();
 window.addEventListener("resize", () => NG.cur && NG.fit());
 (function(){
   const cv = $("#ngCanvas"), stg = $("#ngStage");
-  stg.addEventListener("pointerdown", e => { const c = NG.cur; if (!c || NG.ended || e.target.closest(".ng-over")) return; getAC(); if (!c.dom) e.preventDefault(); const p = c.dom ? {x: e.clientX, y: e.clientY} : NG.pt(e); c.down && c.down(p.x, p.y, e.pointerId); try { stg.setPointerCapture(e.pointerId); } catch(er) {} });
+  stg.addEventListener("pointerdown", e => { const c = NG.cur; if (!c || NG.ended || e.target.closest(".ng-over")) return; getAC(); if (!c.dom) e.preventDefault(); const p = c.dom ? {x: e.clientX, y: e.clientY} : NG.pt(e); c.down && c.down(p.x, p.y, e.pointerId, e); try { stg.setPointerCapture(e.pointerId); } catch(er) {} });
   // 📱 빠르게 연타해도 터치가 씹히지 않게: 두 번 톡(확대)·길게 누름(메뉴)·글자 선택 같은 브라우저 동작을 게임판에서 막아요
   stg.addEventListener("touchstart", e => { const c = NG.cur; if (c && !c.dom && !NG.ended && !e.target.closest(".ng-over")) e.preventDefault(); }, {passive: false});
   stg.addEventListener("touchend", e => { const c = NG.cur; if (c && !c.dom && !NG.ended && !e.target.closest(".ng-over")) e.preventDefault(); }, {passive: false});
   stg.addEventListener("dblclick", e => e.preventDefault());
   stg.addEventListener("contextmenu", e => e.preventDefault());
-  stg.addEventListener("pointermove", e => { const c = NG.cur; if (!c || NG.ended) return; const p = c.dom ? {x: e.clientX, y: e.clientY} : NG.pt(e); c.move && c.move(p.x, p.y, e.pointerId); });
-  const up = e => { const c = NG.cur; if (!c) return; const p = c.dom ? {x: e.clientX, y: e.clientY} : NG.pt(e); c.up && c.up(p.x, p.y, e.pointerId); };
+  stg.addEventListener("pointermove", e => { const c = NG.cur; if (!c || NG.ended) return; const p = c.dom ? {x: e.clientX, y: e.clientY} : NG.pt(e); c.move && c.move(p.x, p.y, e.pointerId, e); });
+  const up = e => { const c = NG.cur; if (!c) return; const p = c.dom ? {x: e.clientX, y: e.clientY} : NG.pt(e); c.up && c.up(p.x, p.y, e.pointerId, e); };
   stg.addEventListener("pointerup", up); stg.addEventListener("pointercancel", up);
   window.addEventListener("keydown", e => { const c = NG.cur; if (!c || $("#ng").hidden) return;
     if (e.key === "Escape"){ e.preventDefault(); NG.close(); return; }
