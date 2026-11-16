@@ -69,7 +69,7 @@
   <header class="arc-top">
     <div class="arc-me" id="hmMe"></div>
     <div class="arc-brand"><h1 class="arc-logo sm"><span class="e">🕹️</span> <span class="g"><span id="hmClass">우리반</span> 오락실</span></h1><div class="arc-online" id="hmOnline"></div></div>
-    <div class="arc-topb"><button class="arc-btn app-inst" hidden title="홈 화면에 오락실 아이콘 만들기">📲 앱 설치</button><button class="arc-btn" id="hmAdmin" hidden>🛠️ 관리자</button><button class="arc-btn p" id="hmFace">👕 꾸미기·상점</button><button class="arc-btn" id="hmOut">🚪 로그아웃</button></div>
+    <div class="arc-topb"><button class="arc-btn app-inst" hidden title="홈 화면에 오락실 아이콘 만들기"><span class="ic">📲</span><span class="lb"> 앱 설치</span></button><button class="arc-btn" id="hmAdmin" hidden title="관리자"><span class="ic">🛠️</span><span class="lb"> 관리자</span></button><button class="arc-btn p" id="hmFace" title="꾸미기·상점"><span class="ic">👕</span><span class="lb"> 꾸미기·상점</span></button><button class="arc-btn" id="hmOut" title="로그아웃"><span class="ic">🚪</span><span class="lb"> 로그아웃</span></button></div>
   </header>
   <div class="arc-notice" id="hmNotice" hidden></div>
   <div class="arc-lobby">
@@ -99,6 +99,14 @@
       </div>
     </aside>
   </div>
+  <!-- 📱 휴대폰 아래 탭 (넓은 화면에서는 안 보여요) -->
+  <nav class="m-nav" id="hmNav">
+    <button data-m="games" class="on"><span class="ni">🎮</span><span class="nl">게임</span></button>
+    <button data-m="rank"><span class="ni">🏆</span><span class="nl">랭킹</span></button>
+    <button data-m="coop"><span class="ni">🤝</span><span class="nl">협동방</span><i id="nCoop"></i></button>
+    <button data-m="room"><span class="ni">⚔️</span><span class="nl">대결방</span><i id="nRoom"></i></button>
+    <button data-m="chat"><span class="ni">💬</span><span class="nl">채팅</span><i id="nChat"></i></button>
+  </nav>
   <div class="arc-closed" id="hmClosed" hidden></div>
   <button hidden id="hmRank"></button>
   <div class="arc-sync" id="hmSync"></div>

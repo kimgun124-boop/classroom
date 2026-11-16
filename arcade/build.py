@@ -246,7 +246,7 @@ avp('return `<svg class="avs" viewBox=', 'return `<svg class="avs" xmlns="http:/
 out = rd("shell.html")
 for k, v in {
     "/*{{CSS_APP}}*/": css_app,
-    "/*{{CSS_ARC}}*/": rd("arcade.css") + "\n" + rd("lobby.css") + "\n" + rd("gift.css") + "\n" + rd("rhythm.css") + "\n" + rd("social.css"),
+    "/*{{CSS_ARC}}*/": rd("arcade.css") + "\n" + rd("lobby.css") + "\n" + rd("gift.css") + "\n" + rd("rhythm.css") + "\n" + rd("social.css") + "\n" + rd("mobile.css"),
     "<!--{{GAME_HTML}}-->": game_html,
     "/*{{CORE_JS}}*/": rd("core.js"),
     "/*{{AV_JS}}*/": av_js + "\n" + rd("avatar.js"),

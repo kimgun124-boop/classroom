@@ -398,7 +398,7 @@ const PROF = {
   };
   // 방을 고른 채로 '반 전체'의 '읽음'이 바뀌지 않게
   const st = LOBBY.setTab;
-  LOBBY.setTab = function(t){ CRUI.sig = ""; st.call(this, t); };
+  LOBBY.setTab = function(){ CRUI.sig = ""; st.apply(this, arguments); };
   // 로그인/로그아웃
   const hm = ARC.home;
   ARC.home = function(){ hm.apply(this, arguments); CROOM.start(); };

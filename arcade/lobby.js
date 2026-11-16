@@ -266,6 +266,10 @@ const LOBBY = {
   bindHome(){
     $("#hmFilter").onclick = e => { const b = e.target.closest("[data-f]"); if (!b) return; this.filter = b.dataset.f; $$("#hmFilter button").forEach(x => x.classList.toggle("on", x === b)); this.renderGames(); };
     $("#hmTabs").onclick = e => { const b = e.target.closest("[data-t]"); if (b) this.setTab(b.dataset.t); };
+    /* 📱 휴대폰 아래 탭: 🎮 게임 화면 ↔ 랭킹·협동방·대결방·채팅 화면 */
+    $("#hmNav").onclick = e => { const b = e.target.closest("[data-m]"); if (!b) return; const m = b.dataset.m;
+      if (m === "games"){ if (this.mv === "games") window.scrollTo({top: 0, behavior: "smooth"}); this.mv = "games"; this.paintNav(); }
+      else this.setTab(m); };
     $("#hmGames").onclick = e => { const b = e.target.closest("[data-g]"); if (b) ARC.play(b.dataset.g); };
     $("#paneRank").onclick = e => {
       const g = e.target.closest("[data-rg]"), d = e.target.closest("[data-day]"), big = e.target.closest("#rkBig");
@@ -286,7 +290,7 @@ const LOBBY = {
       if (b && isT(ARC.me)) ADMIN.ban(+b.dataset.ban, true); };
     $("#chEmoBtn").onclick = () => { const p = $("#chEmo"); p.hidden = !p.hidden; if (!p.hidden) this.emo(); };
     $("#chRuleOk").onclick = () => { try { localStorage.setItem(this.ruleKey(), 1); } catch(e) {} $("#chRule").hidden = true; this.chatSig = ""; this.renderSide(true); };
-    this.setTab(this.tab);
+    this.setTab(this.tab, true);
   },
   ruleKey(){ return `${KEY}.chatOk.${(Store.cls || {}).cid}.${ARC.me}`; },
   ruleOk(){ try { return isT(ARC.me) || !!localStorage.getItem(this.ruleKey()); } catch(e){ return true; } },
@@ -307,12 +311,23 @@ const LOBBY = {
     if (!msg){ if (ok) ok(); this.seen = Date.now(); }
     else if (/고운 말/.test(msg)){ $("#chText").classList.remove("arc-shk"); }
   },
-  setTab(t){
+  mv: "games",
+  paintNav(){
+    const side = this.mv !== "games", was = document.body.dataset.mv;
+    if (was !== this.mv){ if (was === "games" || !was) this.gy = window.scrollY; }
+    document.body.dataset.mv = side ? "side" : "games";
+    $$("#hmNav button").forEach(b => b.classList.toggle("on", side ? b.dataset.m === this.tab : b.dataset.m === "games"));
+    const T = {rank: "🏆 랭킹", coop: "🤝 협동방", room: "⚔️ 대결방", chat: "💬 채팅"}; $(".arc-side").dataset.title = T[this.tab] || "";
+    if (!side && was === "side") window.scrollTo(0, this.gy || 0);
+  },
+  setTab(t, keep){
+    if (!keep) this.mv = "side";
     this.tab = t; $$("#hmTabs button").forEach(b => b.classList.toggle("on", b.dataset.t === t));
     $("#paneRank").hidden = t !== "rank"; $("#paneRoom").hidden = t !== "room"; $("#paneCoop").hidden = t !== "coop"; $("#paneChat").hidden = t !== "chat";
     if (t === "chat"){ this.seen = Date.now(); this.chatSig = ""; }
     this.renderSide(true);
     if (t === "chat"){ const l = $("#chList"); l.scrollTop = l.scrollHeight; }
+    this.paintNav();
   },
   renderHome(){
     if (!Store.cls || ARC.me === null) return;
@@ -344,9 +359,11 @@ const LOBBY = {
     if (force){ delete this.sig.paneRank; delete this.sig.paneRoom; delete this.sig.paneCoop; }
     const CO = window.COOP; if (CO){ CO.sync(); const nc = CO.list().filter(r => !CO.full(r)).length; $("#bCoop").textContent = nc || ""; }
     const unread = LIVE.chat.filter(m => (m.at || 0) > this.seen && m.no !== ARC.me && !m.sys).length;
-    if (this.tab === "chat"){ this.seen = Math.max(this.seen, ...LIVE.chat.map(m => m.at || 0), 0); }
-    $("#bChat").textContent = this.tab === "chat" || !unread ? "" : unread > 9 ? "9+" : unread;
+    const chatOn = this.tab === "chat" && !(this.mv === "games" && matchMedia("(max-width:700px)").matches);   // 📱 휴대폰에서 게임 화면을 보고 있으면 채팅은 안 읽은 걸로
+    if (chatOn){ this.seen = Math.max(this.seen, ...LIVE.chat.map(m => m.at || 0), 0); }
+    $("#bChat").textContent = chatOn || !unread ? "" : unread > 9 ? "9+" : unread;
     const nr = ROOMS.ok() ? ROOMS.list().filter(r => r.host !== ARC.me).length : 0; $("#bRoom").textContent = nr || "";
+    $("#nCoop").textContent = $("#bCoop").textContent; $("#nRoom").textContent = $("#bRoom").textContent; $("#nChat").textContent = $("#bChat").textContent;
     if (this.tab === "rank") this.renderRank(); else if (this.tab === "room") this.renderRoom(); else if (this.tab === "coop"){ if (window.COOP) COOP.render(); } else this.renderChat();
   },
 
