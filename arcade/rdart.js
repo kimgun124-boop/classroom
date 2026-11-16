@@ -189,3 +189,84 @@ const RDA = {
       else { this.star(t, m, m, r*1.15); t.fillStyle = "#fff"; t.fill(); this.star(t, m, m, r*.8); t.fillStyle = c; t.fill(); }
     }); }
 };
+
+/* =====================================================================
+   🎁 유물 · 🎒 아이템 · 🎯 단계 미션 (2026.11.16)
+   - 👑 보스를 잡으면 유물 3장 중 1장을 골라요 → 판마다 다르게 강해져요 (겹쳐 쌓여요)
+   - 😈 중간 보스·미션 성공·🎁 보물상자 몬스터에서 아이템이 나와요 (가방 3칸, 🎒 큰 가방이면 더)
+   - 보스가 아닌 단계마다 미션 하나: 성공하면 아이템! 실패해도 괜찮아요
+   ===================================================================== */
+const RD_REL = {
+  atk:   {e: "⚔️", n: "용감한 깃발",   d: "모든 동물 공격 +30%"},
+  low:   {e: "🐣", n: "아기 사랑",     d: "⚪일반·🔵희귀 공격 +60%"},
+  top:   {e: "🌟", n: "별빛 왕관",     d: "🟡전설·🌈신화 공격 +40%"},
+  crit:  {e: "🎯", n: "매의 눈",       d: "모든 동물 치명타 +10%", max: 4},
+  spd:   {e: "⚡", n: "번개 발톱",     d: "공격 속도 +15%", max: 4},
+  rng:   {e: "🏹", n: "긴 활",         d: "공격 거리 +0.5칸", max: 3},
+  boss:  {e: "👑", n: "보스 사냥꾼",   d: "보스·중간 보스에게 피해 +60%"},
+  bank:  {e: "🪙", n: "황금 저금통",   d: "단계마다 💰+30, 가진 금 5% 이자"},
+  dice:  {e: "🎲", n: "행운 주사위",   d: "뽑기에서 희귀·영웅이 더 잘 나와요", max: 3},
+  merge: {e: "🔀", n: "합치기 달인",   d: "합칠 때 15% 확률로 두 등급 껑충!", max: 3},
+  slow:  {e: "🐢", n: "끈적끈적 길",   d: "몬스터가 10% 느려져요", max: 3},
+  gem:   {e: "💎", n: "보석 광산",     d: "보스 💎+2 · 중간 보스 💎+1"},
+  bag:   {e: "🎒", n: "큰 가방",       d: "아이템 칸 +2 · 아이템 2개 바로!", max: 2},
+  cheap: {e: "🛠️", n: "대장장이",      d: "강화 비용 -25%", max: 2}
+};
+const RD_IT = {
+  bomb:   {e: "💣", n: "폭탄",       d: "모든 몬스터 체력 -30% (보스 -6%)"},
+  ice:    {e: "❄️", n: "얼음꽃",     d: "모든 몬스터 5초 꽁꽁 (보스 2초)"},
+  clover: {e: "🍀", n: "네잎클로버", d: "다음 뽑기 3번 희귀 이상!"},
+  gold:   {e: "💰", n: "금주머니",   d: "금 +(40 + 단계×5)"},
+  time:   {e: "⏳", n: "모래시계",   d: "이번 단계 시간 +15초"},
+  fever:  {e: "🔥", n: "응원 깃발",  d: "15초 동안 모든 동물 공격 ×2"}
+};
+const RD_RK = Object.keys(RD_REL), RD_IK = Object.keys(RD_IT);
+const RD_MS = {
+  keep:  {e: "🧹", t: n => `단계가 끝날 때 몬스터 ${n}마리 이하`},
+  gold:  {e: "🟡", t: () => "황금 슬라임이 도망가기 전에 잡기"},
+  chest: {e: "🎁", t: () => "보물상자 몬스터 잡기"},
+  merge: {e: "🔀", t: n => `이번 단계에 합치기 ${n}번`},
+  sum:   {e: "🎲", t: n => `이번 단계에 뽑기 ${n}번`},
+  kill:  {e: "⚔️", t: n => `이번 단계에 몬스터 ${n}마리 잡기`}
+};
+
+/* 🎨 맵마다 다른 입체 소품 (네 귀퉁이) */
+RDA.prop = function(t, ti, x, y, s, v){
+  const ol = (w) => this.ol(t, w || Math.max(1.5, s*.035)), sh = () => { this.ell(t, x, y + s*.38, s*.36, s*.1); t.fillStyle = "rgba(0,0,0,.25)"; t.fill(); };
+  sh();
+  const tree = (c1, c2, flw) => { t.fillStyle = "#8d5a3b"; t.fillRect(x - s*.06, y, s*.12, s*.38); ol(); [[0, -.18, .3], [-.18, .02, .22], [.18, .02, .22]].forEach(([a, b, r]) => { this.ell(t, x + a*s, y + b*s, r*s, r*s*.92); t.fillStyle = BSA.rg(t, x + a*s - r*s*.3, y + b*s - r*s*.4, 1, r*s*1.2, [[0, c1], [1, c2]]); t.fill(); ol(); });
+    if (flw) for (let i = 0; i < 7; i++){ const a = i*2.3 + v, rr = s*.22*((i % 3) + 1)/3; this.ell(t, x + Math.cos(a)*rr, y - s*.08 + Math.sin(a)*rr*.8, s*.035, s*.035); t.fillStyle = flw; t.fill(); } };
+  if (ti === 0) tree("#d3f9d8", "#51cf66", v % 2 ? "#ffafcc" : "#fff3bf");
+  else if (ti === 1){ t.fillStyle = "#fff4e6"; t.fillRect(x - s*.08, y - s*.05, s*.16, s*.42); ol(); t.beginPath(); t.ellipse(x, y - s*.05, s*.36, s*.28, 0, Math.PI, 0); t.closePath(); t.fillStyle = v % 2 ? "#ff6b6b" : "#ffa94d"; t.fill(); ol(); t.fillStyle = "#fff"; [[-.15, -.15], [.1, -.22], [.2, -.08]].forEach(([a, b]) => { this.ell(t, x + a*s, y + b*s, s*.05, s*.04); t.fill(); }); }
+  else if (ti === 2){ t.strokeStyle = "#8d5a3b"; t.lineWidth = s*.09; t.beginPath(); t.moveTo(x, y + s*.36); t.quadraticCurveTo(x + s*.1, y, x - s*.02, y - s*.25); t.stroke(); [0, 1, 2, 3, 4].forEach(i => { const a = -Math.PI*.95 + i*Math.PI*.47; t.save(); t.translate(x - s*.02, y - s*.25); t.rotate(a); this.ell(t, s*.2, 0, s*.22, s*.06); t.fillStyle = "#51cf66"; t.fill(); ol(1.5); t.restore(); }); }
+  else if (ti === 3){ const g = BSA.lg(t, x - s*.1, 0, x + s*.1, 0, [[0, "#69db7c"], [1, "#2b8a3e"]]); t.fillStyle = g; rrect(t, x - s*.1, y - s*.3, s*.2, s*.66, s*.1); t.fill(); ol(); [[-1, -.05], [1, .05]].forEach(([d, o]) => { rrect(t, x + d*s*.1 + (d < 0 ? -s*.14 : 0), y + o*s, s*.14, s*.08, s*.04); t.fill(); rrect(t, x + d*s*.2 + (d < 0 ? -s*.05 : -s*.03), y + o*s - s*.14, s*.08, s*.2, s*.04); t.fill(); ol(1.5); }); this.ell(t, x, y - s*.32, s*.05, s*.05); t.fillStyle = "#ff8fab"; t.fill(); }
+  else if (ti === 4){ t.beginPath(); t.moveTo(x - s*.36, y + s*.36); t.lineTo(x - s*.12, y - s*.22); t.lineTo(x + s*.12, y - s*.22); t.lineTo(x + s*.36, y + s*.36); t.closePath(); t.fillStyle = BSA.lg(t, 0, y - s*.2, 0, y + s*.36, [[0, "#5c3a3a"], [1, "#2b1d1d"]]); t.fill(); ol(); t.fillStyle = "#ff922b"; t.beginPath(); t.moveTo(x - s*.12, y - s*.22); t.lineTo(x - s*.04, y - s*.02); t.lineTo(x + s*.04, y - s*.12); t.lineTo(x + s*.12, y - s*.22); t.closePath(); t.fill(); this.ell(t, x, y - s*.3, s*.12, s*.08); t.fillStyle = "rgba(255,146,43,.6)"; t.fill(); }
+  else if (ti === 5){ [[-.13, .05, .6], [.12, 0, .75], [0, -.05, 1]].forEach(([a, b, k]) => { t.beginPath(); t.moveTo(x + a*s - s*.1*k, y + s*.36); t.lineTo(x + a*s, y + s*.36 - s*.7*k); t.lineTo(x + a*s + s*.1*k, y + s*.36); t.closePath(); t.fillStyle = BSA.lg(t, x + a*s - s*.1, 0, x + a*s + s*.1, 0, [[0, "#e3fafc"], [1, "#66d9e8"]]); t.fill(); ol(1.5); }); }
+  else if (ti === 6){ t.fillStyle = "#495057"; t.fillRect(x - s*.03, y - s*.28, s*.06, s*.64); ol(1.5); rrect(t, x - s*.1, y - s*.42, s*.2, s*.18, s*.04); t.fillStyle = "#ffe066"; t.fill(); ol(1.5); t.fillStyle = "rgba(255,224,102,.35)"; this.ell(t, x, y - s*.33, s*.3, s*.25); t.fill(); }
+  else if (ti === 7){ t.strokeStyle = "#fff"; t.lineWidth = s*.08; t.beginPath(); t.moveTo(x, y + s*.36); t.lineTo(x, y - s*.05); t.stroke(); this.ell(t, x, y - s*.18, s*.2, s*.2); t.fillStyle = v % 2 ? "#ff8fab" : "#b197fc"; t.fill(); ol(); t.strokeStyle = "#fff"; t.lineWidth = s*.04; t.beginPath(); t.arc(x, y - s*.18, s*.1, 0, 4.6); t.stroke(); }
+  else if (ti === 8){ this.ell(t, x, y - s*.05, s*.22, s*.22); t.fillStyle = BSA.rg(t, x - s*.08, y - s*.12, 1, s*.26, [[0, "#ffe8cc"], [1, v % 2 ? "#e8590c" : "#7048e8"]]); t.fill(); ol(); t.strokeStyle = "#ffd8a8"; t.lineWidth = s*.04; this.ell(t, x, y - s*.05, s*.38, s*.08, -.3); t.stroke(); }
+  else { t.fillStyle = "#6b5b73"; rrect(t, x - s*.16, y - s*.2, s*.32, s*.56, s*.03); t.fill(); ol(); t.fillStyle = "#6b5b73"; [-.12, 0, .12].forEach(a => { t.fillRect(x + a*s - s*.04, y - s*.3, s*.08, s*.12); }); t.fillStyle = "#ffd43b"; rrect(t, x - s*.05, y - s*.05, s*.1, s*.14, s*.05); t.fill(); }
+};
+/* 🟡 황금 슬라임 · 🎁 보물상자 몬스터 */
+RDA.gold = function(t, s, f){ this.slime(t, s, 0, f, {sl: ["#ffe066", "#e67700"]}, 2); t.fillStyle = "#fff"; [[.25, .3], [.75, .38], [.62, .2]].forEach(([a, b]) => { this.star(t, s*a, s*b, s*.06); t.fill(); }); };
+RDA.chest = function(t, s, f){ const m = s/2, y0 = s*.42, w = s*.72, h = s*.42, lw = Math.max(2, s*.04), op = f ? s*.05 : 0;
+  this.ell(t, m, s*.93, s*.34, s*.07); t.fillStyle = "rgba(0,0,0,.22)"; t.fill();
+  t.fillStyle = BSA.lg(t, 0, y0, 0, y0 + h, [[0, "#c47a3a"], [1, "#7a4419"]]); rrect(t, m - w/2, y0, w, h, s*.06); t.fill(); this.ol(t, lw);
+  t.beginPath(); t.moveTo(m - w/2, y0 - op); t.quadraticCurveTo(m, y0 - s*.32 - op, m + w/2, y0 - op); t.closePath(); t.fillStyle = "#d9893f"; t.fill(); this.ol(t, lw);
+  t.fillStyle = "#ffd43b"; t.fillRect(m - w/2, y0 - op - s*.02, w, s*.05); t.fillRect(m - s*.06, y0 + s*.02, s*.12, s*.14);
+  t.fillStyle = "#2b1d3a"; rrect(t, m - w*.38, y0 + s*.04, w*.76, s*.06 + op, s*.03); t.fill(); t.fillStyle = "#fff"; [-.28, -.14, 0, .14, .28].forEach(a => { t.beginPath(); t.moveTo(m + a*w - s*.03, y0 + s*.04); t.lineTo(m + a*w + s*.03, y0 + s*.04); t.lineTo(m + a*w, y0 + s*.09); t.closePath(); t.fill(); });
+  [-1, 1].forEach(d => { this.ell(t, m + d*w*.22, y0 - s*.1 - op, s*.07, s*.08); t.fillStyle = "#fff"; t.fill(); this.ol(t, lw*.5); this.ell(t, m + d*w*.22, y0 - s*.09 - op, s*.04, s*.05); t.fillStyle = "#2b1d3a"; t.fill(); });
+  t.fillStyle = "#fff"; this.star(t, m + w*.4, y0 - s*.22, s*.06); t.fill(); };
+/* 🏔️ 동물 마을 섬 색 (맵 10곳) — 윗면 · 옆면(흙/돌) · 칸 받침돌 · 풀잎 · 점 무늬 */
+const RD_TOP = [
+  {top: ["#a9f0b4", "#69db7c"], side: ["#c08a55", "#7a4f2a"], slot: ["#f8fff2", "#d8f5c8", "#7fb36b"], tuft: "rgba(43,138,62,.35)", dot: ["#fff", "#ffd6e7", "#fff3bf"]},
+  {top: ["#a3d977", "#5c940d"], side: ["#8d5a3b", "#4e2f1d"], slot: ["#f4fce3", "#d8f5a2", "#6b8f2a"], tuft: "rgba(43,90,20,.4)", dot: ["#ff8787", "#fff"]},
+  {top: ["#fff3bf", "#ffe066"], side: ["#e8b86a", "#b5803a"], slot: ["#fffdf3", "#fff0c2", "#d6b56a"], tuft: "rgba(180,140,60,.3)", dot: ["#ffc9c9", "#a5d8ff", "#fff"]},
+  {top: ["#ffe1b3", "#ffc078"], side: ["#d9824a", "#9c5326"], slot: ["#fff8ef", "#ffe0bd", "#c98a4b"], tuft: "rgba(150,90,30,.3)", dot: ["#d9480f", "#fff"]},
+  {top: ["#7a5555", "#4a3030"], side: ["#3d2020", "#1f0f0f"], slot: ["#9c7b7b", "#6b4b4b", "#2b1515"], tuft: "rgba(255,120,40,.35)", dot: ["#ff922b", "#ffd43b"]},
+  {top: ["#f1f8ff", "#cfe8ff"], side: ["#8fb8e0", "#4f7fae"], slot: ["#ffffff", "#e7f5ff", "#8fb0d0"], tuft: "rgba(100,150,200,.35)", dot: ["#fff", "#99e9f2"]},
+  {top: ["#5c6fd6", "#34428f"], side: ["#2b2f6b", "#151838"], slot: ["#8a96e6", "#5c6bc8", "#232860"], tuft: "rgba(255,255,255,.18)", dot: ["#ffe066", "#fff"]},
+  {top: ["#ffe3ef", "#fcc2d7"], side: ["#c97a4b", "#8a4b26"], slot: ["#fffafc", "#ffe0ec", "#d99ab3"], tuft: "rgba(214,51,108,.25)", dot: ["#74c0fc", "#ffd43b", "#b197fc"]},
+  {top: ["#4a4f8f", "#2a2d63"], side: ["#1d1f45", "#0b0c22"], slot: ["#7a80c7", "#4d528f", "#1a1c45"], tuft: "rgba(140,233,154,.25)", dot: ["#fff", "#ffe066", "#b197fc"]},
+  {top: ["#5a5563", "#36323d"], side: ["#2b2730", "#141217"], slot: ["#8b8494", "#5e5866", "#25212a"], tuft: "rgba(224,49,49,.25)", dot: ["#ffd43b", "#e03131"]}
+];

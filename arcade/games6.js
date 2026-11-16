@@ -62,10 +62,23 @@ NG.defs.rd = () => {
   const remote = i => party === "host" && O.remote && O.remote[i] != null;
   const ZC = 6, ZR = 3, ZS = ZC*ZR, LIMIT = 100 + 40*(N - 1);
   let W = 1280, H = 720, land = true, C = 90, BX = 0, BY = 0, COLS = 8, ROWS = 5, GC = 1, TOPH = 70, BOTH = 120, ZO = [], PATH = [], PL = 0, layer = null, layerKey = "";
-  let Z, PS, E, PR, FX, wave, waveT, spawnLeft, spawnT, state, overT, score, kills, bossK, eid, gv, speed, banner, sel, drag, ptr, panel, NQ, outbox, aseq, lastAct, sndT, ended, seed, bossTimer, frame;
+  let Z, PS, E, PR, FX, MS, wave, waveT, spawnLeft, spawnT, state, overT, score, kills, bossK, eid, gv, speed, banner, sel, drag, ptr, panel, NQ, outbox, aseq, lastAct, sndT, ended, seed, bossTimer, frame;
   const R = (() => { let s = 1; return {seed(v){ s = (v >>> 0) || 1; }, f(){ s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s/4294967296; }}; })();
   const th = () => RD_TH[Math.min(9, Math.floor((Math.max(1, wave) - 1)/10))];
-  const hpAt = w => 15*Math.pow(1.19, w - 1)*(1 + Math.max(0, w - 30)*.03);
+  /* 30단계부터는 조금 덜 가파르게 (예전엔 40단계에서 다 막혔어요) — 대신 🎁 유물·🎒 아이템으로 강해져요 */
+  const hpAt = w => 15*Math.pow(1.19, Math.min(w, 30) - 1)*Math.pow(1.16, Math.max(0, w - 30));
+  /* 🎁 유물 · 🎒 아이템 */
+  const RL = (z, k) => (Z[z] && Z[z].rel && Z[z].rel[k]) || 0;
+  const bagN = z => 3 + 2*RL(z, "bag");
+  const slowAll = () => Math.min(.3, Z.reduce((a, p) => a + ((p.rel && p.rel.slow) || 0), 0)*.1);
+  const relMul = (z, A, e) => (1 + .3*RL(z, "atk"))*(A.g < 2 ? 1 + .6*RL(z, "low") : 1)*(A.g >= 3 ? 1 + .4*RL(z, "top") : 1)*(Z[z].fev > 0 ? 2 : 1)*(e && (e.kind === 1 || e.kind === 2) ? 1 + .6*RL(z, "boss") : 1);
+  const rndItem = () => RD_IK[Math.floor(R.f()*RD_IK.length)];
+  function giveItem(z, k){ const p = Z[z]; if (!p) return false; if (p.it.length >= bagN(z)){ toastZ(z, `🎒 가방이 꽉 차서 ${RD_IT[k].e}${RD_IT[k].n}을(를) 못 담았어요`); return false; } p.it.push(k); gv++; return true; }
+  function relPick(){ const L = RD_RK.slice(), out = []; while (out.length < 3 && L.length){ out.push(L.splice(Math.floor(R.f()*L.length), 1)[0]); } return out; }
+  function offerRel(z){ const p = Z[z]; if (p.pick) takeRel(z, 0, true); const L = relPick().filter(k => !RD_REL[k].max || RL(z, k) < RD_REL[k].max); while (L.length < 3){ const k = RD_RK[Math.floor(R.f()*RD_RK.length)]; if (!RD_REL[k].max) L.push(k); } p.pick = L.slice(0, 3); gv++; }
+  function takeRel(z, j, quiet){ const p = Z[z]; if (!p.pick) return; const k = p.pick[j] || p.pick[0]; p.pick = null; p.rel[k] = (p.rel[k] || 0) + 1;
+    if (k === "bag"){ giveItem(z, rndItem()); giveItem(z, rndItem()); }
+    if (!quiet){ sfx("big", z); toastZ(z, `${RD_REL[k].e} ${RD_REL[k].n} Lv.${p.rel[k]}! ${RD_REL[k].d}`); } gv++; }
   const isMine = z => local.includes(z);
   const sp = (k, w, h, fn) => G2.spr("rd" + k, w, h, fn);
 
@@ -125,26 +138,38 @@ NG.defs.rd = () => {
     t.fillStyle = "rgba(255,255,255,.18)";
     for (let i = 0; i < 2*(COLS + ROWS)*3; i++){ const [px, py] = posAt(rr()*PL); t.beginPath(); t.ellipse(px*C + (rr() - .5)*C*.7, py*C + (rr() - .5)*C*.7, C*.08 + rr()*C*.06, C*.05 + rr()*C*.04, 0, 0, 7); t.fill(); }
     t.strokeStyle = "rgba(0,0,0,.18)"; t.lineWidth = 3; t.strokeRect(C, C, w - 2*C, h - 2*C - 4);
-    // 🌿 풀밭 무늬 (풀잎 · 작은 꽃)
-    { const gx0 = C, gy0 = C, gw = w - 2*C, gh = h - 2*C - 4, fl = ["#ffffff", "#ffd6e7", "#fff3bf"];
-      for (let i = 0; i < Math.round(gw*gh/(C*C)*9); i++){ const x = gx0 + rr()*gw, y = gy0 + rr()*gh, s = C*(.05 + rr()*.05);
-        if (rr() < .12){ t.fillStyle = fl[Math.floor(rr()*3)]; t.globalAlpha = .7; t.beginPath(); t.arc(x, y, s*.45, 0, 7); t.fill(); t.globalAlpha = 1; continue; }
-        t.strokeStyle = "rgba(0,0,0,.12)"; t.lineWidth = 2; t.lineCap = "round"; t.beginPath(); t.moveTo(x - s*.6, y - s*.9); t.lineTo(x, y); t.lineTo(x + s*.6, y - s*.9); t.moveTo(x, y); t.lineTo(x, y - s*1.1); t.stroke(); } }
     // 길 화살표
     t.fillStyle = "rgba(255,255,255,.35)"; for (let d = 1; d < PL; d += 3){ const [x0, y0] = posAt(d), [x1, y1] = posAt(d + .3), a = Math.atan2(y1 - y0, x1 - x0); t.save(); t.translate(x0*C, y0*C); t.rotate(a); t.beginPath(); t.moveTo(C*.16, 0); t.lineTo(-C*.08, -C*.12); t.lineTo(-C*.08, C*.12); t.closePath(); t.fill(); t.restore(); }
     t.restore();
-    // 칸
-    ZO.forEach((o, z) => { const own = z < N, col = own ? RD_PC[z] : "#868e96";
-      t.fillStyle = own ? "rgba(255,255,255,.14)" : "rgba(0,0,0,.12)"; rrect(t, o[0]*C + 3, o[1]*C + 3, ZC*C - 6, ZR*C - 6, C*.22); t.fill();
-      t.strokeStyle = col; t.lineWidth = 3; t.globalAlpha = own ? .85 : .35; t.stroke(); t.globalAlpha = 1;
-      if (!own){ G2.emo(t, T.deco[0] === "🌼" ? "🌳" : [...T.deco][1], o[0]*C + ZC*C/2, o[1]*C + ZR*C/2, C*.9); return; }
-      for (let s = 0; s < ZS; s++){ const x = (o[0] + (s % ZC))*C, y = (o[1] + Math.floor(s/ZC))*C; t.fillStyle = "rgba(0,0,0,.12)"; rrect(t, x + C*.08, y + C*.1, C*.84, C*.84, C*.18); t.fill(); t.fillStyle = "rgba(255,255,255,.22)"; rrect(t, x + C*.08, y + C*.06, C*.84, C*.84, C*.18); t.fill(); } });
-    // 꾸미기 (네 귀퉁이)
-    const dz = [...th().deco]; [[.5, .5], [COLS - .5, .5], [COLS - .5, ROWS - .5], [.5, ROWS - .5]].forEach(([x, y], i) => { G2.emo(t, dz[i % dz.length], x*C, y*C, C*.62); });
+    // 🏔️ 동물 마을 섬 (입체: 옆면 → 윗면 → 칸 받침돌)
+    const ti = Math.min(9, Math.floor((Math.max(1, wave) - 1)/10)), TP = RD_TOP[ti];
+    ZO.forEach((o, z) => { const own = z < N, col = own ? RD_PC[z] : "#868e96", x0 = o[0]*C + 4, y0 = o[1]*C + 2, ww = ZC*C - 8, hh = ZR*C - 10, dep = C*.2;
+      t.fillStyle = "rgba(0,0,0,.28)"; rrect(t, x0 + 4, y0 + dep + 6, ww, hh, C*.24); t.fill();
+      t.fillStyle = BSA.lg(t, 0, y0 + hh, 0, y0 + hh + dep, [[0, TP.side[0]], [1, TP.side[1]]]); rrect(t, x0, y0 + dep, ww, hh, C*.24); t.fill();
+      // 옆면 흙 줄무늬
+      t.save(); rrect(t, x0, y0 + dep, ww, hh, C*.24); t.clip(); t.fillStyle = "rgba(0,0,0,.12)"; for (let k = 0; k < ww; k += C*.35) t.fillRect(x0 + k, y0 + hh - 2, C*.12, dep + 4); t.restore();
+      t.fillStyle = BSA.lg(t, 0, y0, 0, y0 + hh, [[0, TP.top[0]], [1, TP.top[1]]]); rrect(t, x0, y0, ww, hh, C*.24); t.fill();
+      t.strokeStyle = "rgba(255,255,255,.45)"; t.lineWidth = 3; t.beginPath(); t.moveTo(x0 + C*.24, y0 + 2); t.lineTo(x0 + ww - C*.24, y0 + 2); t.stroke();
+      t.strokeStyle = col; t.lineWidth = 3; t.globalAlpha = own ? .9 : .35; rrect(t, x0, y0, ww, hh, C*.24); t.stroke(); t.globalAlpha = 1;
+      // 윗면 무늬 (맵마다)
+      t.save(); rrect(t, x0, y0, ww, hh, C*.24); t.clip();
+      for (let i = 0; i < Math.round(ww*hh/(C*C)*7); i++){ const x = x0 + rr()*ww, y = y0 + rr()*hh, s = C*(.05 + rr()*.05);
+        if (rr() < .14){ t.fillStyle = TP.dot[Math.floor(rr()*TP.dot.length)]; t.globalAlpha = .75; t.beginPath(); t.arc(x, y, s*.45, 0, 7); t.fill(); t.globalAlpha = 1; continue; }
+        t.strokeStyle = TP.tuft; t.lineWidth = 2; t.lineCap = "round"; t.beginPath(); t.moveTo(x - s*.6, y - s*.9); t.lineTo(x, y); t.lineTo(x + s*.6, y - s*.9); t.moveTo(x, y); t.lineTo(x, y - s*1.1); t.stroke(); }
+      t.restore();
+      if (!own){ RDA.prop(t, ti, o[0]*C + ZC*C/2, o[1]*C + ZR*C/2, C*1.4, z); return; }
+      // 칸 받침돌: 옆면(어둡게) + 윗면(밝게) + 반짝 테두리
+      for (let s = 0; s < ZS; s++){ const x = (o[0] + (s % ZC))*C, y = (o[1] + Math.floor(s/ZC))*C;
+        t.fillStyle = TP.slot[2]; rrect(t, x + C*.08, y + C*.16, C*.84, C*.8, C*.2); t.fill();
+        t.fillStyle = BSA.lg(t, 0, y + C*.04, 0, y + C*.84, [[0, TP.slot[0]], [1, TP.slot[1]]]); rrect(t, x + C*.08, y + C*.04, C*.84, C*.8, C*.2); t.fill();
+        t.strokeStyle = "rgba(255,255,255,.55)"; t.lineWidth = 2; t.beginPath(); t.moveTo(x + C*.22, y + C*.07); t.lineTo(x + C*.78, y + C*.07); t.stroke();
+        t.fillStyle = "rgba(0,0,0,.07)"; t.beginPath(); t.ellipse(x + C*.5, y + C*.78, C*.3, C*.07, 0, 0, 7); t.fill(); } });
+    // 🌳 네 귀퉁이 입체 소품 (맵마다 달라요)
+    [[.5, .5], [COLS - .5, .5], [COLS - .5, ROWS - .5], [.5, ROWS - .5]].forEach(([x, y], i) => RDA.prop(t, ti, x*C, y*C, C*.92, i));
   }
   const unitSpr = (k, s) => RDA.unitSpr(k, s);   // 🎨 직접 그린 동물 (rdart.js)
-  function slimeSpr(kind, f){ const T = th(), ti = Math.min(9, Math.floor((Math.max(1, wave) - 1)/10)), s = Math.round(kind === 2 ? C*1.3 : kind === 1 ? C*.88 : C*.62);   // 그릴 크기 그대로 (늘이기 없이)
-    return sp(`sl2${ti}${kind}${f}${s}`, s, s, t => RDA.slime(t, s, kind, f, T, ti)); }
+  function slimeSpr(kind, f){ const T = th(), ti = Math.min(9, Math.floor((Math.max(1, wave) - 1)/10)), s = Math.round(kind === 2 ? C*1.3 : kind === 1 ? C*.88 : kind === 4 ? C*.86 : kind === 3 ? C*.66 : C*.62);   // 그릴 크기 그대로 (늘이기 없이)
+    return sp(`sl2${ti}${kind}${f}${s}`, s, s, t => kind === 3 ? RDA.gold(t, s, f) : kind === 4 ? RDA.chest(t, s, f) : RDA.slime(t, s, kind, f, T, ti)); }
   const orbSpr = g => { const s = 2*(10 + g*3); return sp("orb" + g + s, s, s, t => { const c = RD_G[g].c, m = s/2; t.fillStyle = BSA.rg(t, m, m, 1, m, [[0, "#fff"], [.4, c], [1, "rgba(255,255,255,0)"]]); t.fillRect(0, 0, s, s); }); };
   const ringSpr = c => sp("ring" + c, 96, 96, t => { t.strokeStyle = c; t.lineWidth = 5; t.beginPath(); t.arc(48, 48, 44, 0, 7); t.stroke(); t.globalAlpha = .25; t.fillStyle = c; t.fill(); });
   /* 그림 글자 + 숫자를 한 장으로 (테두리 글씨에 그림 글자가 섞이면 숫자가 깨지는 기기가 있어요) */
@@ -157,18 +182,37 @@ NG.defs.rd = () => {
     const l = lbl(parts, fs); t.globalAlpha = off ? .6 : 1; t.drawImage(l, w/2 - l.w/2, h/2 - l.h/2, l.w, l.h); }); }
 
   /* ---------- 시작 · 단계 ---------- */
-  function mkZone(){ return {s: Array.from({length: ZS}, () => ({k: null, n: 0, cd: [0, 0, 0], hit: 0})), gold: 140, gems: 0, up: [0, 0, 0], sum: 0, ack: 0}; }
+  function mkZone(){ return {s: Array.from({length: ZS}, () => ({k: null, n: 0, cd: [0, 0, 0], hit: 0})), gold: 140, gems: 0, up: [0, 0, 0], sum: 0, ack: 0, rel: {}, it: ["bomb"], pick: null, clv: 0, fev: 0}; }
+  /* 🎯 단계 미션: 보스가 아닌 단계마다 하나 */
+  function newMission(){
+    if (wave % 10 === 0){ MS = null; return; }
+    const pool = ["keep", "gold", "chest", "merge", "sum", "kill"].filter(k => !(k === "merge" && wave < 3));
+    const k = pool[Math.floor(R.f()*pool.length)];
+    const n = k === "keep" ? Math.max(12, Math.round(LIMIT*.25)) : k === "merge" ? 1 + (wave > 25 ? 1 : 0) : k === "sum" ? 4 + Math.floor(R.f()*3) : k === "kill" ? Math.round(25*(1 + .6*(N - 1))) : 1;
+    MS = {k, n, p: 0, st: 0};   // st: 0 진행 · 1 성공 · 2 실패
+    if (k === "gold") spawn(3); if (k === "chest") spawn(4);
+  }
+  function msWin(quiet){ if (!MS || MS.st) return; MS.st = 1; const its = Z.map((p, z) => { const it = rndItem(); giveItem(z, it); return it; }); if (quiet){ sfx("big"); return; }
+    banner = {t: "🎯 미션 성공!", s: `🎒 ${local.map(z => RD_IT[its[z]].e + RD_IT[its[z]].n).join(" · ")} 받았어요`, k: 110, c: "#69db7c"}; sfx("big");
+    if (party === "host") NQ.push(["b", banner.t, "🎒 아이템을 받았어요!", banner.k, banner.c]); }
+  function msFail(why){ if (!MS || MS.st) return; MS.st = 2; if (why){ banner = {t: why, s: "괜찮아요, 다음 미션!", k: 90, c: "#ffa94d"}; if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); } }
+  const msTick = k => { if (MS && !MS.st && MS.k === k){ MS.p++; if (MS.p >= MS.n) msWin(); } };
   function startWave(){
+    let msOk = false; if (MS && !MS.st){ if (MS.k === "keep" && E.length <= MS.n){ msWin(true); msOk = true; } else msFail(); }
     wave++; const boss = wave % 10 === 0, mini = !boss && wave % 5 === 0;
     waveT = boss ? 60*60 : 20*60; spawnLeft = boss ? 0 : Math.round((30 + Math.min(14, wave*.3))*(1 + .6*(N - 1))); spawnT = 0;
-    if (wave > 1) Z.forEach(p => p.gold += 10 + Math.floor(wave*1.5));
+    if (wave > 1) Z.forEach((p, z) => { p.gold += 10 + Math.floor(wave*1.5); const b = RL(z, "bank"); if (b) p.gold += 30*b + Math.min(60*b, Math.floor(p.gold*.05*b)); });
     if (boss){ spawn(2); bossTimer = waveT; banner = {t: `👑 ${wave}단계 보스!`, s: "60초 안에 꼭 잡아요!", k: 150, c: "#ff6b6b"}; sfx("boss"); }
     else { if (mini) spawn(1); banner = {t: `🏁 ${wave}단계`, s: wave % 10 === 1 ? th().n + "에 왔어요!" : mini ? "😈 중간 보스가 섞여 있어요" : "", k: 110}; sfx("wave"); }
     if (wave % 10 === 1){ layerKey = ""; setSky(); }
+    newMission(); if (MS && !banner.s) banner.s = `${RD_MS[MS.k].e} 미션: ${RD_MS[MS.k].t(MS.n)}`;
+    if (msOk) banner.s = "🎯 지난 미션 성공! 🎒 아이템을 받았어요";
     if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c || ""]);
   }
-  function spawn(kind){ const h = hpAt(wave)*(kind === 2 ? 28*(1 + .5*(N - 1)) : kind === 1 ? 10*(1 + .3*(N - 1)) : 1);
-    E.push({id: ++eid, kind, d: 0, tr: 0, hp: h, mhp: h, spd: (kind === 2 ? 1.15 : kind === 1 ? 1.55 : 2.05 + Math.min(.6, wave*.012))/60, slT: 0, slF: 0, stT: 0, x: .5, y: .5, f: R.f()*60|0}); }
+  /* 몬스터: 0 슬라임 · 1 😈 중간 보스 · 2 👑 보스 · 3 🟡 황금 슬라임(빨라요, 놓치면 도망) · 4 🎁 보물상자(느리고 단단) */
+  const KSPD = kind => (kind === 2 ? 1.15 : kind === 1 ? 1.55 : kind === 3 ? 3.4 : kind === 4 ? .9 : 2.05 + Math.min(.6, wave*.012))/60;
+  function spawn(kind){ const h = hpAt(wave)*(kind === 2 ? 20*(1 + .5*(N - 1)) : kind === 1 ? 10*(1 + .3*(N - 1)) : kind === 3 ? 5*(1 + .4*(N - 1)) : kind === 4 ? 16*(1 + .4*(N - 1)) : 1);
+    E.push({id: ++eid, kind, d: 0, tr: 0, hp: h, mhp: h, spd: KSPD(kind), slT: 0, slF: 0, stT: 0, x: .5, y: .5, f: R.f()*60|0}); }
   function setSky(){ const cv = $("#ngCanvas"); cv.style.backgroundImage = (bgURL ? `url(${bgURL}),` : "") + th().sky; cv.style.backgroundColor = "#1c1d52";
     if (bgURL){ cv.style.backgroundSize = `${COLS*C/W*100}% ${ROWS*C/H*100}%, 100% 100%`; cv.style.backgroundPosition = `${W > COLS*C ? BX/(W - COLS*C)*100 : 0}% ${H > ROWS*C ? BY/(H - ROWS*C)*100 : 0}%, 0 0`; cv.style.backgroundRepeat = "no-repeat"; } else { cv.style.backgroundSize = ""; cv.style.backgroundPosition = ""; } }
   /* ⚡ 판 그림은 CSS 배경으로 (매 장면 붙이지 않아요) — 준비되기 전에는 캔버스에 붙여요 */
@@ -179,30 +223,45 @@ NG.defs.rd = () => {
   /* ---------- 동물 뽑기 · 합치기 · 팔기 · 옮기기 · 강화 · 행운 ---------- */
   function placeK(z, k, pref){ const S = Z[z].s; let i = S.findIndex(q => q.k === k && q.n < 3); if (i < 0 && pref != null && !S[pref].k) i = pref; if (i < 0) i = S.findIndex(q => !q.k); if (i < 0) return -1;
     const q = S[i]; if (!q.k){ q.k = k; q.n = 0; } q.cd[q.n] = 10 + q.n*7; q.n++; q.hit = 12; gv++; return i; }
-  const sumCost = z => 20 + Z[z].sum;
-  function rollG(){ const r = R.f(); return r < .015 ? 2 : r < .15 ? 1 : 0; }
+  const sumCost = z => 20 + Math.min(50, Math.floor(Z[z].sum/2));   // 뽑을수록 조금씩 비싸지다가 70에서 멈춰요 (뒤 단계에서 금이 바닥나지 않게)
+  function rollG(z){ const r = R.f(), d = z == null ? 0 : RL(z, "dice"); let g = r < .015*(1 + d) ? 2 : r < .15*(1 + .5*d) ? 1 : 0;
+    if (z != null && Z[z].clv > 0){ Z[z].clv--; g = Math.max(1, g); } return g; }
   function pick(g){ const L = RD_BY[g]; return L[Math.floor(R.f()*L.length)]; }
   function doAct(z, a){
     const p = Z[z]; if (!p || state !== "play") return;
     const S = p.s, ty = a[0];
     if (ty === "sum"){ const c = sumCost(z); if (p.gold < c){ toastZ(z, "💰 금이 모자라요"); return; }
-      const g = rollG(), k = pick(g), i = placeK(z, k); if (i < 0){ toastZ(z, "🈵 자리가 꽉 찼어요! 합치거나 팔아요"); return; }
-      p.gold -= c; p.sum++; sfx(g >= 2 ? "big" : "sum", z); popAt(z, i, `${RD_A[k].e} ${RD_A[k].n}${g ? "!" : ""}`, RD_G[g].c); }
+      if (!S.some(q => !q.k) && !S.some(q => q.k && q.n < 3)){ toastZ(z, "🈵 자리가 꽉 찼어요! 합치거나 팔아요"); return; }
+      const g = rollG(z), k = pick(g), i = placeK(z, k); if (i < 0){ toastZ(z, "🈵 자리가 꽉 찼어요! 합치거나 팔아요"); return; }
+      p.gold -= c; p.sum++; msTick("sum"); sfx(g >= 2 ? "big" : "sum", z); popAt(z, i, `${RD_A[k].e} ${RD_A[k].n}${g ? "!" : ""}`, RD_G[g].c); }
     else if (ty === "mrg"){ const i = a[1], q = S[i]; if (!q || q.n < 3 || RD_A[q.k].g >= 4) return; mergeAt(z, i); }
     else if (ty === "all"){ let n = 0; for (let loop = 0; loop < 40; loop++){ const i = S.findIndex(q => q.k && q.n >= 3 && RD_A[q.k].g < 4); if (i < 0) break; mergeAt(z, i, true); n++; }
       if (!n) toastZ(z, "🔀 3마리 모인 동물이 없어요"); else sfx("merge", z); }
     else if (ty === "sel"){ const i = a[1], q = S[i]; if (!q || !q.k) return; const v = RD_G[RD_A[q.k].g].sell; q.n--; if (!q.n) q.k = null; p.gold += v; gv++; sfx("sell", z); popAt(z, i, `+${v}💰`, "#ffe066"); }
     else if (ty === "mov"){ const i = a[1], j = a[2]; if (i === j || !S[i] || !S[j]) return; const t = S[i]; S[i] = S[j]; S[j] = t; gv++; }
     else if (ty === "up"){ const g = a[1], c = upCost(z, g); if (p.up[g] >= 25) return; if (p.gold < c){ toastZ(z, "💰 금이 모자라요"); return; } p.gold -= c; p.up[g]++; sfx("up", z); toastZ(z, `⬆️ ${["일반·희귀", "영웅·전설", "신화"][g]} 공격력 Lv.${p.up[g]}!`); gv++; }
+    else if (ty === "rel"){ if (p.pick) takeRel(z, a[1] | 0); }
+    else if (ty === "it"){ const i = a[1] | 0, k = p.it[i]; if (!k) return; p.it.splice(i, 1); gv++; useItem(z, k); }
     else if (ty === "luck"){ const big = a[1] === 1, c = big ? 4 : 1; if (p.gems < c){ toastZ(z, "💎 보석이 모자라요 (보스를 잡으면 생겨요)"); return; }
       const r = R.f(), g = big ? (r < .35 ? 4 : 3) : (r < .15 ? 3 : r < .7 ? 2 : -1);
       if (g < 0){ p.gems -= c; sfx("fail", z); toastZ(z, "😅 꽝! 다음엔 꼭!"); return; }
       const k = pick(g), i = placeK(z, k); if (i < 0){ toastZ(z, "🈵 자리가 꽉 찼어요"); return; } p.gems -= c; sfx("big", z); popAt(z, i, `✨ ${RD_A[k].e} ${RD_A[k].n}!`, RD_G[g].c); }
   }
-  function mergeAt(z, i, quiet){ const S = Z[z].s, q = S[i], g = RD_A[q.k].g; q.k = null; q.n = 0; gv++;
+  function useItem(z, k){
+    const T = RD_IT[k]; sfx("big", z);
+    if (k === "bomb"){ E.forEach(e => { e.hp -= e.mhp*(e.kind === 2 ? .06 : e.kind === 1 ? .15 : .3); }); E.slice(0, 40).forEach(e => boom(e.x, e.y, 0)); }
+    else if (k === "ice") E.forEach(e => { e.stT = Math.max(e.stT, e.kind === 2 ? 120 : 300); });
+    else if (k === "clover") Z[z].clv += 3;
+    else if (k === "gold") Z[z].gold += 40 + wave*5;
+    else if (k === "time") waveT += 15*60;
+    else if (k === "fever") Z[z].fev = 15*60;
+    banner = {t: `${T.e} ${T.n}!`, s: T.d, k: 80, c: "#ffe066"}; if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]);
+  }
+  function mergeAt(z, i, quiet){ const S = Z[z].s, q = S[i]; let g = RD_A[q.k].g; q.k = null; q.n = 0; gv++; msTick("merge");
+    if (g + 2 <= 4 && RL(z, "merge") && R.f() < .15*RL(z, "merge")){ g++; toastZ(z, "🔀 합치기 달인! 두 등급 껑충!"); }
     const k = pick(g + 1), j = placeK(z, k, i); if (!quiet) sfx(g + 1 >= 3 ? "big" : "merge", z); else if (g + 1 >= 3) sfx("big", z);
     popAt(z, j, `${RD_A[k].e} ${RD_A[k].n}${g + 1 >= 3 ? "!!" : "!"}`, RD_G[g + 1].c); fxRing(z, j, RD_G[g + 1].c); }
-  const upCost = (z, g) => [30, 90, 250][g]*(Z[z].up[g] + 1);
+  const upCost = (z, g) => Math.round([30, 90, 250][g]*(Z[z].up[g] + 1)*(1 - .25*RL(z, "cheap")));
   const upMul = (z, g) => 1 + .3*Z[z].up[g < 2 ? 0 : g < 4 ? 1 : 2];
   function toastZ(z, s){ if (isMine(z)){ for (let i = FX.length - 1; i >= 0; i--) if (FX[i].ui && FX[i].z === z) FX.splice(i, 1); } if (isMine(z)) FX.push({tx: s, x: W/2, y: H - BOTH - 26, t: 90, c: "#fff", ui: 1, z}); else if (party === "host" && remote(z)) NQ.push(["t", z, s]); }
   function popAt(z, i, s, c){ if (i < 0) return; const [x, y] = slotXY(z, i); FX.push({tx: s, x, y: y - .4, t: 70, c, cell: 1}); if (party === "host") NQ.push(["p", z, i, s, c]); }
@@ -219,17 +278,18 @@ NG.defs.rd = () => {
     fxN.t = FX.reduce((a, f) => a + (f.sm ? 1 : 0), 0); fxN.r = FX.reduce((a, f) => a + (f.k ? 1 : 0), 0);
     if (!viz && bufV !== gv){ BUF = buffMap(); bufV = gv; }
     for (let z = 0; z < Z.length; z++){ const p = Z[z];
-      for (let i = 0; i < ZS; i++){ const q = p.s[i]; if (!q.k) continue; const A = RD_A[q.k], [sx, sy] = slotXY(z, i), r2 = A.r*A.r;
+      const rB = .5*RL(z, "rng"), crB = .1*RL(z, "crit"), cdM = 1/(1 + .15*RL(z, "spd"));
+      for (let i = 0; i < ZS; i++){ const q = p.s[i]; if (!q.k) continue; const A = RD_A[q.k], [sx, sy] = slotXY(z, i), r2 = (A.r + rB)*(A.r + rB);
         for (let u = 0; u < q.n; u++){ if (--q.cd[u] > 0) continue;
           // 가장 앞서가는 몬스터부터
           let tg = [], best = -1; const mt = A.mt || 1;
           for (const e of E){ const dx = e.x - sx, dy = e.y - sy; if (dx*dx + dy*dy > r2) continue; if (mt === 1){ if (e.tr > best){ best = e.tr; tg[0] = e; } } else tg.push(e); }
           if (!tg.length){ q.cd[u] = 6; continue; }
           if (mt > 1) tg = tg.sort((a, b) => b.tr - a.tr).slice(0, mt);
-          q.cd[u] = A.cd; q.hit = 8;
+          q.cd[u] = Math.max(8, Math.round(A.cd*cdM)); q.hit = 8;
           const ox = sx + UOFF[q.n - 1][u][0], oy = sy + UOFF[q.n - 1][u][1];
           tg.forEach(e => { PR.push({x0: ox, y0: oy, e, x1: e.x, y1: e.y, t: 0, T: 8, g: A.g, k: q.k}); if (viz) return;
-            const cr = A.cr && R.f() < A.cr, dm = A.d*upMul(z, A.g)*(BUF ? BUF[z][i] : 1)*(cr ? 3 : 1);
+            const cc = (A.cr || 0) + crB, cr = cc > 0 && R.f() < cc, dm = A.d*upMul(z, A.g)*(BUF ? BUF[z][i] : 1)*(cr ? 3 : 1)*relMul(z, A, e);
             hitE(e, dm, A); if (cr && fxN.t < 6){ fxN.t++; FX.push({tx: "치명타!", x: e.x, y: e.y - .35, t: 34, c: "#ff6b6b", cell: 1, sm: 1}); }
             if (A.sp){ for (const o of E){ if (o !== e && (o.x - e.x)**2 + (o.y - e.y)**2 < A.sp*A.sp) hitE(o, dm*.6, A); } } });
           if (A.sp && fxN.r < 14){ fxN.r++; const e = tg[0]; FX.push({ring: 1, x: e.x, y: e.y, t: 16, c: RD_G[A.g].c, r: A.sp, k: 1}); }
@@ -241,15 +301,20 @@ NG.defs.rd = () => {
     if (state !== "play") return;
     if (--waveT <= 0){ if (E.some(e => e.kind === 2)){ lose("👑 보스를 시간 안에 못 잡았어요"); return; } startWave(); }
     if (spawnLeft > 0 && --spawnT <= 0){ spawn(0); spawnLeft--; spawnT = 28; }
-    for (const e of E){ if (e.stT > 0){ e.stT--; } else { const v = e.spd*(e.slT > 0 ? 1 - e.slF : 1); e.d += v; e.tr += v; } if (e.slT > 0 && --e.slT === 0) e.slF = 0; const pp = posAt(e.d); e.x = pp[0]; e.y = pp[1]; e.f++; }
+    const slw = 1 - slowAll(); Z.forEach(p => { if (p.fev > 0) p.fev--; });
+    for (let i = E.length - 1; i >= 0; i--){ const e = E[i]; if (e.kind === 3 && e.tr > PL*1.5){ E.splice(i, 1); msFail("🟡 황금 슬라임이 도망갔어요!"); } }
+    for (const e of E){ if (e.stT > 0){ e.stT--; } else { const v = e.spd*(e.slT > 0 ? 1 - e.slF : 1)*slw; e.d += v; e.tr += v; } if (e.slT > 0 && --e.slT === 0) e.slF = 0; const pp = posAt(e.d); e.x = pp[0]; e.y = pp[1]; e.f++; }
     attack(false);
-    for (let i = E.length - 1; i >= 0; i--){ const e = E[i]; if (e.hp > 0) continue; E.splice(i, 1); kills++;
-      const gd = e.kind === 2 ? 120 : e.kind === 1 ? 35 : 2; Z.forEach(p => p.gold += gd);
+    for (let i = E.length - 1; i >= 0; i--){ const e = E[i]; if (e.hp > 0) continue; E.splice(i, 1); kills++; msTick("kill");
+      const gd = e.kind === 2 ? 120 : e.kind === 1 ? 35 : e.kind === 3 ? 60 + wave*3 : e.kind === 4 ? 40 : 2 + Math.floor(wave/10); Z.forEach(p => p.gold += gd);
+      if (e.kind === 3 || e.kind === 4){ boom(e.x, e.y, 1); if (MS && !MS.st && MS.k === (e.kind === 3 ? "gold" : "chest")) msWin(); else { Z.forEach((p, z) => giveItem(z, rndItem())); } continue; }
       if (e.kind){ const gm = e.kind === 2 ? 2 : 1; Z.forEach(p => p.gems += gm); bossK += e.kind === 2 ? 1 : 0; sfx("kboss"); banner = {t: e.kind === 2 ? "🎉 보스 처치!" : "😈 중간 보스 처치!", s: `💎 보석 +${gm} · 💰 +${gd}`, k: 120, c: "#ffe066"};
         if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); boom(e.x, e.y, 1);
-        if (e.kind === 2 && waveT > 180) waveT = 180; }
+        if (e.kind === 2 && waveT > 180) waveT = 180;
+        Z.forEach((p, z) => { p.gems += RL(z, "gem")*(e.kind === 2 ? 2 : 1); if (e.kind === 2) offerRel(z); else giveItem(z, rndItem()); });
+        if (e.kind === 2){ banner.s = "🎁 유물 상자! 하나를 골라요"; if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); } }
       else if (FX.length < 200) boom(e.x, e.y, 0); }
-    const n = E.length; if (n >= LIMIT){ lose("👾 몬스터가 너무 많이 쌓였어요"); return; }
+    const n = E.length; if (n >= LIMIT){ lose("👾 몬스터가 동물 마을을 덮쳤어요!"); return; }
     if (n >= LIMIT*.8 && frame % 30 === 0) sfx("warn");
     score = Math.max(score, (wave - 1)*1000 + kills*5 + bossK*800);
   }
@@ -266,7 +331,8 @@ NG.defs.rd = () => {
   /* ---------- 🌐 친구 기기 ---------- */
   function gridMsg(){ return {t: "grid", gv, z: Z.map(p => p.s.map(q => q.k ? RD_K.indexOf(q.k)*4 + q.n : -1))}; }
   function snap(){ return {w: wave, wt: waveT, st: state, sc: score, kl: kills, bk: bossK, gv,
-    P: Z.map(p => [Math.floor(p.gold), p.gems, p.up[0], p.up[1], p.up[2], p.sum, p.ack]),
+    P: Z.map(p => [Math.floor(p.gold), p.gems, p.up[0], p.up[1], p.up[2], p.sum, p.ack, Object.entries(p.rel).map(a => a.join(":")).join(","), p.it.join(","), p.pick ? p.pick.join(",") : "", p.clv, p.fev]),
+    M: MS ? [MS.k, MS.n, MS.p, MS.st] : null,
     E: E.map(e => [e.id, e.kind, Math.round(e.d*100), Math.max(1, Math.round(e.hp/e.mhp*100)), (e.slT > 0 ? 1 : 0) | (e.stT > 0 ? 2 : 0)])}; }
   function apply(d){
     if (d.grid){ if (!Z) return; d.grid.z.forEach((arr, z) => arr.forEach((v, i) => { const q = Z[z].s[i]; if (v < 0){ q.k = null; q.n = 0; } else { const k = RD_K[v >> 2], n = v & 3; if (q.k !== k || q.n !== n) q.hit = 10; q.k = k; q.n = n; } })); gv = d.grid.gv; return; }
@@ -279,10 +345,12 @@ NG.defs.rd = () => {
     const s = d.s; if (!s) return;
     if (s.w !== wave){ const nt = Math.floor((s.w - 1)/10) !== Math.floor((Math.max(1, wave) - 1)/10); wave = s.w; if (nt){ layerKey = ""; setSky(); } }
     waveT = s.wt; state = s.st; score = s.sc; kills = s.kl; bossK = s.bk;
-    s.P.forEach((a, z) => { const p = Z[z]; if (!p) return; p.gold = a[0]; p.gems = a[1]; p.up = [a[2], a[3], a[4]]; p.sum = a[5]; if (z === myIdx){ const ack = a[6]; outbox = outbox.filter(o => o[0] > ack); } });
+    MS = s.M ? {k: s.M[0], n: s.M[1], p: s.M[2], st: s.M[3]} : null;
+    s.P.forEach((a, z) => { const p = Z[z]; if (!p) return; p.gold = a[0]; p.gems = a[1]; p.up = [a[2], a[3], a[4]]; p.sum = a[5];
+      if (a[7] != null){ p.rel = {}; String(a[7]).split(",").filter(Boolean).forEach(x => { const [k, v] = x.split(":"); p.rel[k] = +v; }); p.it = String(a[8] || "").split(",").filter(Boolean); p.pick = a[9] ? String(a[9]).split(",") : null; p.clv = a[10] || 0; p.fev = a[11] || 0; } if (z === myIdx){ const ack = a[6]; outbox = outbox.filter(o => o[0] > ack); } });
     const old = new Map(E.map(e => [e.id, e]));
     E = s.E.map(a => { const o = old.get(a[0]), d0 = a[2]/100, kind = a[1];
-      const e = o || {id: a[0], kind, d: d0, tr: d0, spd: (kind === 2 ? 1.15 : kind === 1 ? 1.55 : 2.05 + Math.min(.6, wave*.012))/60, f: a[0]*7, x: 0, y: 0};
+      const e = o || {id: a[0], kind, d: d0, tr: d0, spd: KSPD(kind), f: a[0]*7, x: 0, y: 0};
       if (o){ let dd = d0 - o.d; if (Math.abs(dd) > 2) o.d = d0; else o.d += dd*.5; } e.hpR = a[3]/100; e.sl = a[4] & 1; e.stn = a[4] & 2; return e; });
     if (s.gv !== gv) PARTY.needGrid();
   }
@@ -302,12 +370,12 @@ NG.defs.rd = () => {
     local.forEach((z, si) => {
       const x0 = two ? (land ? si*W/2 : 0) : 0, w = two && land ? W/2 : W, y0 = two && !land ? H - BOTH + si*BOTH/2 : H - BOTH, h = two && !land ? BOTH/2 : BOTH;
       const pad = 10, rows = !land && !two ? 2 : 1;
-      if (rows === 1){ const bw = (w - pad*2 - 8*5)/6.2, bh = h - 30;
+      if (rows === 1){ const bw = (w - pad*2 - 8*6)/7, bh = h - 30;
         let x = x0 + pad; const yy = y0 + 22;
         const add = (id, ww, extra) => { L.push(Object.assign({id, z, x, y: yy, w: ww, h: bh}, extra || {})); x += ww + 8; };
-        add("sum", bw*1.8); add("all", bw); add("up", bw); add("luck", bw); add("info", bw*1.4, {info: 1}); }
+        add("sum", bw*1.6); add("all", bw*.95); add("up", bw*.95); add("luck", bw*.95); add("bag", bw*1.45, {info: 1, bag: 1}); add("info", bw*1.1, {info: 1}); }
       else { const bh = (h - 44)/2, bw = (w - pad*2 - 16)/3;
-        L.push({id: "sum", z, x: x0 + pad, y: y0 + 30, w: bw*1.6, h: bh}); L.push({id: "all", z, x: x0 + pad + bw*1.6 + 8, y: y0 + 30, w: bw*1.4 - 8 + 8, h: bh});
+        L.push({id: "sum", z, x: x0 + pad, y: y0 + 30, w: bw*1.25, h: bh}); L.push({id: "all", z, x: x0 + pad + bw*1.25 + 8, y: y0 + 30, w: bw*.85, h: bh}); L.push({id: "bag", z, x: x0 + pad + bw*2.1 + 16, y: y0 + 30, w: bw*.9, h: bh, info: 1, bag: 1});
         L.push({id: "up", z, x: x0 + pad, y: y0 + 38 + bh, w: bw, h: bh}); L.push({id: "luck", z, x: x0 + pad + bw + 8, y: y0 + 38 + bh, w: bw, h: bh}); L.push({id: "info", z, x: x0 + pad + 2*bw + 16, y: y0 + 38 + bh, w: bw, h: bh, info: 1}); }
     });
     if (party !== "guest") L.push({id: "spd", z: -1, x: W - 92, y: 8, w: 84, h: TOPH - 18});
@@ -344,7 +412,7 @@ NG.defs.rd = () => {
     if (sel){ const [x, y] = slotXY(sel.z, sel.i), q = Z[sel.z].s[sel.i]; g.strokeStyle = "#fff"; g.lineWidth = 4; rrect(g, cx(x - .47), cy(y - .47), C*.94, C*.94, C*.18); g.stroke();
       if (q.k){ g.globalAlpha = .14; g.fillStyle = "#fff"; g.beginPath(); g.arc(cx(x), cy(y), RD_A[q.k].r*C, 0, 7); g.fill(); g.globalAlpha = .6; g.strokeStyle = "#fff"; g.lineWidth = 2; g.stroke(); g.globalAlpha = 1; } }
     // 몬스터
-    const slS = [0, 1, 2].map(kd => [slimeSpr(kd, 0), slimeSpr(kd, 1)]);
+    const slS = [0, 1, 2, 3, 4].map(kd => [slimeSpr(kd, 0), slimeSpr(kd, 1)]);
     for (const e of E){ const s = slS[e.kind][(e.f >> 4) & 1], sz = s.w, x = cx(e.x), y = cy(e.y);
       G2.put(g, s, x - sz/2, y - sz*.7);
       const hr = e.hpR != null ? e.hpR : e.hp/e.mhp; if (hr < .999){ const bw = sz*.7; g.fillStyle = "rgba(0,0,0,.55)"; g.fillRect(x - bw/2, y - sz*.72, bw, 5); g.fillStyle = hr > .5 ? "#51cf66" : hr > .25 ? "#fcc419" : "#ff6b6b"; g.fillRect(x - bw/2, y - sz*.72, bw*hr, 5); }
@@ -368,8 +436,13 @@ NG.defs.rd = () => {
       if (f.tx){ g.globalAlpha = Math.min(1, f.t/18); const x = f.cell ? cx(f.x) : f.x, y = (f.cell ? cy(f.y) : f.y) - (f.ui ? 0 : (70 - f.t)*.5); G2.put(g, lbl(splitE(f.tx), f.sm ? 14 : f.ui ? 22 : 18, f.c), x - lbl(splitE(f.tx), f.sm ? 14 : f.ui ? 22 : 18, f.c).w/2, y - 14); g.globalAlpha = 1; } }
     // 친구 이름표
     if (N > 1) for (let z = 0; z < N; z++){ const [ox, oy] = ZO[z]; faceAt(g, SIDS[z], cx(ox) + 14, cy(oy) + 14, 13, RD_PC[z]); }
-    drawTop(g, fr); drawBottom(g);
+    // 🔥 응원 깃발: 내 칸 테두리가 활활
+    local.forEach(z => { if (Z[z].fev > 0){ const [ox, oy] = ZO[z]; g.globalAlpha = .55 + Math.sin(fr*.3)*.3; g.strokeStyle = "#ff922b"; g.lineWidth = 6; rrect(g, cx(ox) + 2, cy(oy) + 2, ZC*C - 4, ZR*C - 4, C*.22); g.stroke(); g.globalAlpha = 1; } });
+    // 🚨 마을이 위험하면 화면 가장자리가 빨갛게
+    { const r = E.length/LIMIT; if (r > .55){ const a = Math.min(1, (r - .55)/.35)*(.55 + Math.sin(fr*.18)*.25); g.globalAlpha = a; G2.put(g, sp(`vig${W}x${H}`, W, H, t => { const gr = t.createRadialGradient(W/2, H/2, Math.min(W, H)*.35, W/2, H/2, Math.max(W, H)*.65); gr.addColorStop(0, "rgba(255,0,40,0)"); gr.addColorStop(1, "rgba(255,0,40,.75)"); t.fillStyle = gr; t.fillRect(0, 0, W, H); }), 0, 0); g.globalAlpha = 1; } }
+    drawTop(g, fr); drawBottom(g); bagDraw(g); drawMission(g, fr);
     if (banner && banner.k > 0){ g.globalAlpha = Math.min(1, banner.k/18); outlined(g, banner.t, W/2, BY + ROWS*C*.42, land ? 60 : 50, banner.c || "#fff"); if (banner.s) outlined(g, banner.s, W/2, BY + ROWS*C*.42 + 52, 26, "#ffe066"); g.globalAlpha = 1; }
+    pickDraw(g);
   }
   let uL = null, uV = "";
   function unitsLayer(k){
@@ -381,6 +454,17 @@ NG.defs.rd = () => {
       if (n >= 3 && RD_A[q.k].g < 4 && isMine(z)){ t.globalAlpha = .5; t.fillStyle = RD_G[RD_A[q.k].g + 1].c; rrect(t, (x - .46)*C, (y - .46)*C, C*.92, C*.92, C*.18); t.fill(); t.globalAlpha = 1; }
       for (let u = 0; u < n; u++){ const o = UOFF[n - 1][u]; t.drawImage(spr, Math.round((x + o[0])*C - s/2), Math.round((y + o[1])*C - s/2), s, s); }
       if (n >= 2){ const l = lbl([`×${n}`], 13, n >= 3 ? "#ffe066" : "#fff"); t.drawImage(l, (x + .48)*C - 30, (y + .5)*C - 22, l.w, l.h); } });
+  }
+  /* 🎯 미션 · 내 유물 · 다음 보스 (위 막대 아래 한 줄) */
+  function drawMission(g, fr){
+    const y = TOPH + 2, parts = [];
+    if (MS){ const D = RD_MS[MS.k], done = MS.st === 1, fail = MS.st === 2, prog = ["merge", "sum", "kill"].includes(MS.k) ? ` ${Math.min(MS.p, MS.n)}/${MS.n}` : MS.k === "keep" ? ` (지금 ${E.length})` : "";
+      parts.push({l: lbl([done ? "✅" : fail ? "❌" : D.e, `미션: ${D.t(MS.n)}${prog}`, ...(done ? [] : ["→", "🎒"])], 15, done ? "#8ce99a" : fail ? "#ffa8a8" : "#fff"), c: done ? "rgba(43,138,62,.75)" : fail ? "rgba(120,30,30,.7)" : "rgba(15,10,40,.72)"}); }
+    else if (wave % 10 === 0) parts.push({l: lbl(["👑", "보스를 잡으면 🎁 유물 상자!"], 15, "#ffe066"), c: "rgba(90,20,40,.78)"});
+    if (wave % 10) parts.push({l: lbl(["👑", `보스까지 ${10 - wave % 10}단계`], 14, "#ffd8a8"), c: "rgba(15,10,40,.6)"});
+    const rel = Object.entries(Z[local[0]].rel || {}); if (rel.length) parts.push({l: lbl(rel.flatMap(([k, v]) => [RD_REL[k].e, v > 1 ? `${v}` : ""]).filter(Boolean), 14, "#ffe066"), c: "rgba(15,10,40,.6)"});
+    let tw = parts.reduce((a, q) => a + q.l.w + 22, -8), x = W/2 - tw/2;
+    parts.forEach(q => { g.fillStyle = q.c; rrect(g, x, y, q.l.w + 14, q.l.h + 2, 12); g.fill(); G2.put(g, q.l, x + 7, y + 1); x += q.l.w + 22; });
   }
   const splitE = s => s.split(/(\p{Extended_Pictographic}️?)/u).filter(Boolean).map(x => x.trim()).filter(Boolean);
   function drawTop(g, fr){
@@ -396,7 +480,7 @@ NG.defs.rd = () => {
   }
   let bL = null, bV = "";
   function drawBottom(g){
-    const k = NG.k || 1, sig = [k, W, H, BOTH, BARS.length, local.map(z => { const p = Z[z]; return [Math.floor(p.gold), p.gems, sumCost(z), p.up.join(""), p.s.some(q => q.k && q.n >= 3 && RD_A[q.k].g < 4) ? 1 : 0].join(","); }).join("|")].join("/");
+    const k = NG.k || 1, sig = [k, W, H, BOTH, BARS.length, local.map(z => { const p = Z[z]; return [Math.floor(p.gold), p.gems, sumCost(z), p.up.join(""), p.s.some(q => q.k && q.n >= 3 && RD_A[q.k].g < 4) ? 1 : 0, p.it.length, bagN(z)].join(","); }).join("|")].join("/");
     if (sig !== bV || !bL){ bV = sig; bL = bL || document.createElement("canvas"); const w = Math.ceil(W*k), h = Math.ceil(BOTH*k) + 2; if (bL.width !== w || bL.height !== h){ bL.width = w; bL.height = h; }
       const t = bL.getContext("2d"); t.setTransform(1, 0, 0, 1, 0, 0); t.clearRect(0, 0, bL.width, bL.height); t.setTransform(k, 0, 0, k, 0, -(H - BOTH)*k); barsDraw(t); }
     g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(bL, 0, Math.round((H - BOTH)*k)); g.setTransform(k, 0, 0, k, 0, 0);
@@ -405,14 +489,42 @@ NG.defs.rd = () => {
   function barsDraw(g){
     g.fillStyle = "rgba(15,10,40,.78)"; g.fillRect(0, H - BOTH, W, BOTH); g.fillStyle = "rgba(255,255,255,.12)"; g.fillRect(0, H - BOTH, W, 2);
     BARS.forEach(b => { if (b.id === "spd") return; if (b.z < 0) return; const p = Z[b.z]; if (!p) return; const col = RD_PC[b.z];
-      if (b.id === "sum"){ const c = sumCost(b.z), off = p.gold < c; G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), "#ffd43b", "#f08c00", ["🎲", "뽑기", "💰", String(c)], land ? 27 : 28, off), b.x, b.y); }
-      else if (b.id === "all"){ const can = p.s.some(q => q.k && q.n >= 3 && RD_A[q.k].g < 4); G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), "#69db7c", "#2b8a3e", ["🔀", "합치기"], 24, !can), b.x, b.y); }
-      else if (b.id === "up") G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), "#74c0fc", "#1971c2", ["⬆️", "강화"], 24, false), b.x, b.y);
-      else if (b.id === "luck") G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), "#e599f7", "#9c36b5", ["💎", "행운"], 24, p.gems < 1), b.x, b.y);
+      if (b.id === "sum"){ const c = sumCost(b.z), off = p.gold < c; G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), "#ffd43b", "#f08c00", ["🎲", "뽑기", "💰", String(c)], Math.min(land ? 27 : 28, Math.floor(b.w*.15)), off), b.x, b.y); }
+      else if (b.id === "all"){ const can = p.s.some(q => q.k && q.n >= 3 && RD_A[q.k].g < 4); G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), "#69db7c", "#2b8a3e", ["🔀", "합치기"], Math.min(24, Math.floor(b.w*.19)), !can), b.x, b.y); }
+      else if (b.id === "up") G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), "#74c0fc", "#1971c2", ["⬆️", "강화"], Math.min(24, Math.floor(b.w*.22)), false), b.x, b.y);
+      else if (b.id === "luck") G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), "#e599f7", "#9c36b5", ["💎", "행운"], Math.min(24, Math.floor(b.w*.22)), p.gems < 1), b.x, b.y);
+      else if (b.id === "bag"){ g.fillStyle = "rgba(255,255,255,.06)"; rrect(g, b.x, b.y, b.w, b.h, 14); g.fill(); g.strokeStyle = "rgba(255,212,59,.6)"; g.lineWidth = 2; g.setLineDash([6, 5]); g.stroke(); g.setLineDash([]);
+        G2.put(g, lbl(["🎒", `가방 ${p.it.length}/${bagN(b.z)}`], 13, "#ffe066"), b.x + 6, b.y - 18); }
       else if (b.id === "info"){ g.fillStyle = "rgba(255,255,255,.08)"; rrect(g, b.x, b.y, b.w, b.h, 14); g.fill(); g.strokeStyle = col; g.lineWidth = 3; g.stroke();
         if (b.wide){ const l1 = lbl(["💰", String(Math.floor(p.gold)), "💎", String(p.gems), "🎲", `뽑기 ${sumCost(b.z)}`, "⬆️", `Lv ${p.up.join("·")}`], 22, "#ffe066"); G2.put(g, l1, b.x + 12, b.y + b.h/2 - l1.h/2); }
-        else { G2.put(g, lbl(["💰", String(Math.floor(p.gold))], 26, "#ffe066"), b.x + 10, b.y + b.h*.5 - 36); G2.put(g, lbl(["💎", String(p.gems)], 22, "#e5dbff"), b.x + 10, b.y + b.h*.5 + 2); }
-        if (local.length >= 2 || N > 1) faceAt(g, SIDS[b.z], b.x + b.w - 26, b.y + 26, 18, col); } });
+        else { const f1 = Math.min(26, Math.floor(b.w*.2)); G2.put(g, lbl(["💰", String(Math.floor(p.gold))], f1, "#ffe066"), b.x + 8, b.y + b.h*.5 - f1 - 10); G2.put(g, lbl(["💎", String(p.gems)], Math.min(22, f1), "#e5dbff"), b.x + 8, b.y + b.h*.5 + 2); }
+        if (local.length >= 2 || N > 1) faceAt(g, SIDS[b.z], b.x + b.w - 4, b.y + 4, 14, col); } });
+  }
+  /* 🎒 가방 아이템 단추 (누르면 바로 써요) */
+  function bagIcons(){ const L = []; BARS.forEach(b => { if (!b.bag) return; const p = Z[b.z], n = Math.max(1, p.it.length), s = Math.min(b.h - 12, (b.w - 10)/Math.min(n, 5) - 6);
+    p.it.slice(0, 5).forEach((k, i) => L.push({id: "it", z: b.z, i, k, x: b.x + 6 + i*(s + 6), y: b.y + (b.h - s)/2, w: s, h: s})); }); return L; }
+  function bagDraw(g){
+    BARS.forEach(b => { if (b.bag && !Z[b.z].it.length) G2.put(g, lbl(["보스·미션에서 받아요"], 13, "#bfb3e8"), b.x + 8, b.y + b.h/2 - 12); });
+    bagIcons().forEach(b => { const s = Math.round(b.w); G2.put(g, sp(`it${b.k}${s}`, s, s + 4, t => { t.fillStyle = "rgba(0,0,0,.3)"; rrect(t, 0, 4, s, s, s*.25); t.fill();
+      t.fillStyle = BSA.lg(t, 0, 0, 0, s, [[0, "#fff6d6"], [1, "#ffc94d"]]); rrect(t, 0, 0, s, s, s*.25); t.fill(); t.strokeStyle = "#fff"; t.lineWidth = 2; t.stroke(); G2.emo(t, RD_IT[b.k].e, s/2, s/2, s*.6); }), b.x, b.y); });
+    local.forEach(z => { const p = Z[z]; if (p.fev > 0 || p.clv > 0){ const b = BARS.find(q => q.bag && q.z === z); if (b) G2.put(g, lbl([...(p.fev > 0 ? ["🔥", `${Math.ceil(p.fev/60)}초`] : []), ...(p.clv > 0 ? ["🍀", `×${p.clv}`] : [])], 13, "#ffd8a8"), b.x + b.w - 92, b.y - 18); } });
+  }
+  /* 🎁 유물 고르기 카드 (보스를 잡으면) */
+  function pickCards(){ const L = []; local.forEach((z, si) => { const p = Z[z]; if (!p.pick) return; const two = local.length >= 2;
+    const ax = two && land ? si*W/2 : 0, aw = two && land ? W/2 : W, ay = two && !land ? TOPH + si*(H - TOPH - BOTH)/2 : TOPH, ah = two && !land ? (H - TOPH - BOTH)/2 : H - TOPH - BOTH;
+    const cw = Math.min(230, (aw - 60)/3), ch = Math.min(ah - 110, cw*1.25), y = ay + (ah - ch)/2 + 22;
+    p.pick.forEach((k, j) => L.push({id: "rel", z, i: j, k, x: ax + aw/2 + (j - 1)*(cw + 14) - cw/2, y, w: cw, h: ch, ax, aw, ay, ah})); }); return L; }
+  function pickDraw(g){ const L = pickCards(); if (!L.length) return; const done = new Set();
+    L.forEach(b => { if (!done.has(b.z)){ done.add(b.z); g.fillStyle = "rgba(10,5,30,.72)"; g.fillRect(b.ax, b.ay, b.aw, b.ah); outlined(g, "🎁 유물을 하나 골라요!", b.ax + b.aw/2, b.y - 30, land ? 34 : 30, "#ffe066"); }
+      const R0 = RD_REL[b.k], lv = RL(b.z, b.k), s = Math.round(b.w), hh = Math.round(b.h);
+      G2.put(g, sp(`rc${b.k}${s}x${hh}`, s, hh + 6, t => { t.fillStyle = "rgba(0,0,0,.35)"; rrect(t, 0, 6, s, hh, 18); t.fill();
+        t.fillStyle = BSA.lg(t, 0, 0, 0, hh, [[0, "#5f3dc4"], [1, "#2b1d6b"]]); rrect(t, 0, 0, s, hh, 18); t.fill(); t.strokeStyle = "#ffd43b"; t.lineWidth = 4; t.stroke();
+        t.fillStyle = BSA.rg(t, s/2, hh*.3, 2, s*.4, [[0, "rgba(255,230,140,.6)"], [1, "rgba(255,230,140,0)"]]); t.fillRect(0, 0, s, hh*.6);
+        G2.emo(t, R0.e, s/2, hh*.3, Math.min(s, hh)*.32); outlinedRaw(t, R0.n, s/2, hh*.56, Math.min(24, s*.11), "#fff");
+        t.fillStyle = "#e5dbff"; t.font = `${Math.min(16, s*.075)}px "Jua",sans-serif`; t.textAlign = "center"; t.textBaseline = "middle";
+        const words = R0.d.split(" "), lines = []; let cur = ""; words.forEach(w0 => { const tt = cur ? cur + " " + w0 : w0; if (t.measureText(tt).width > s - 20){ lines.push(cur); cur = w0; } else cur = tt; }); if (cur) lines.push(cur);
+        lines.slice(0, 3).forEach((l, i) => t.fillText(l, s/2, hh*.7 + i*Math.min(20, s*.09))); }), b.x, b.y);
+      G2.put(g, lbl([lv ? `지금 Lv.${lv} → ${lv + 1}` : "새 유물!", local.length < 2 ? `[${b.i + 1}]` : ""].filter(Boolean), 14, "#ffe066"), b.x + 10, b.y + b.h - 26); });
   }
   function popsDraw(g){
     panelBtns().forEach(b => { const p = Z[b.z];
@@ -422,7 +534,7 @@ NG.defs.rd = () => {
     selBtns().forEach(b => { const q = Z[sel.z].s[sel.i]; if (!q.k) return;
       if (b.id === "smrg") G2.put(g, btnSpr(b.w, b.h, "#69db7c", "#2b8a3e", ["🔀", "합치기"], 17, b.off), b.x, b.y);
       else G2.put(g, btnSpr(b.w, b.h, "#ff8787", "#c92a2a", ["💰", `팔기 +${RD_G[RD_A[q.k].g].sell}`], 16), b.x, b.y); });
-    if (sel){ const q = Z[sel.z].s[sel.i]; if (q.k){ const A = RD_A[q.k], [x, y] = slotXY(sel.z, sel.i), l = lbl([A.e, `${A.n}`, `(${RD_G[A.g].n})`, `공격 ${Math.round(A.d*upMul(sel.z, A.g))}`, "·", A.t], 15, RD_G[A.g].c2);
+    if (sel){ const q = Z[sel.z].s[sel.i]; if (q.k){ const A = RD_A[q.k], [x, y] = slotXY(sel.z, sel.i), l = lbl([A.e, `${A.n}`, `(${RD_G[A.g].n})`, `공격 ${Math.round(A.d*upMul(sel.z, A.g)*relMul(sel.z, A, null))}`, "·", A.t], 15, RD_G[A.g].c2);
       const px = Math.max(6, Math.min(W - l.w - 6, cx(x) - l.w/2)), py = Math.max(TOPH + 56, cy(y) - C*.62 - 34); g.fillStyle = "rgba(15,10,40,.85)"; rrect(g, px - 6, py - 4, l.w + 12, l.h + 8, 10); g.fill(); G2.put(g, l, px, py); } }
     if (drag && drag.on){ const q = Z[drag.z].s[drag.i]; if (q.k){ const s = Math.round(C*.94); g.globalAlpha = .85; g.drawImage(unitSpr(q.k, s), drag.x - s/2, drag.y - s/2, s, s); g.globalAlpha = 1; } }
   }
@@ -430,6 +542,8 @@ NG.defs.rd = () => {
   /* ---------- 손가락 ---------- */
   function down(x, y, id){
     getAC && getAC();
+    const pc = pickCards(); if (pc.length){ for (const b of pc){ if (inR(b, x, y)){ act(b.z, ["rel", b.i]); playS("up"); return; } } if (pc.some(b => x >= b.ax && x <= b.ax + b.aw && y >= b.ay && y <= b.ay + b.ah)) return; }
+    for (const b of bagIcons()){ if (inR(b, x, y)){ act(b.z, ["it", b.i]); return; } }
     for (const b of selBtns()){ if (inR(b, x, y)){ press(b); return; } }
     for (const b of panelBtns()){ if (inR(b, x, y)){ press(b); return; } }
     for (const b of BARS){ if (!b.info && inR(b, x, y)){ press(b); if (b.id !== "up" && b.id !== "luck") panel = null; return; } }
@@ -446,10 +560,10 @@ NG.defs.rd = () => {
   const self = {
     get W(){ return W; }, get H(){ return H; }, maxPx: 1.5e6, layout,
     get dbg(){ return {Z, E, wave, waveT, state, score, kills, BARS, N, LIMIT, gv, PR, FX}; },
-    cheat(o){ if (o.gold != null) Z.forEach(p => p.gold = o.gold); if (o.gems != null) Z.forEach(p => p.gems = o.gems); if (o.wave != null){ wave = o.wave - 1; startWave(); } if (o.put){ placeK(o.z || 0, o.put); } if (o.clear) E = []; },
+    cheat(o){ if (o.rel){ Z.forEach(p => Object.assign(p.rel, o.rel)); gv++; } if (o.it) Z.forEach(p => { p.it = o.it.slice(); }); if (o.pick) Z.forEach((p, z) => offerRel(z)); if (o.gold != null) Z.forEach(p => p.gold = o.gold); if (o.gems != null) Z.forEach(p => p.gems = o.gems); if (o.wave != null){ wave = o.wave - 1; startWave(); } if (o.put){ placeK(o.z || 0, o.put); } if (o.clear) E = []; },
     init(){
       seed = O.seed || (Math.floor(Math.random()*1e9) + 1); R.seed(seed);
-      Z = SIDS.map(() => mkZone()); E = []; PR = []; FX = []; wave = 0; waveT = 0; spawnLeft = 0; spawnT = 0; state = "play"; overT = 0; score = 0; kills = 0; bossK = 0; eid = 0; gv = 1; speed = 1; banner = null; sel = null; drag = null; ptr = new Map(); panel = null; NQ = []; outbox = []; aseq = 0; lastAct = SIDS.map(() => 0); ended = false; frame = 0;
+      Z = SIDS.map(() => mkZone()); E = []; PR = []; FX = []; MS = null; wave = 0; waveT = 0; spawnLeft = 0; spawnT = 0; state = "play"; overT = 0; score = 0; kills = 0; bossK = 0; eid = 0; gv = 1; speed = 1; banner = null; sel = null; drag = null; ptr = new Map(); panel = null; NQ = []; outbox = []; aseq = 0; lastAct = SIDS.map(() => 0); ended = false; frame = 0;
       setSky();
       if (party !== "guest"){ startWave(); [0, 1].forEach(() => Z.forEach((p, z) => { const k = pick(0); placeK(z, k); })); }
       else { wave = 1; }
@@ -473,8 +587,10 @@ NG.defs.rd = () => {
     },
     draw, down, move, up,
     key(code, d, e){
-      if (!d || (e && e.repeat)) return ["Space", "Enter", "KeyM", "KeyQ", "Digit1", "Digit2", "Digit3", "KeyL", "KeyF", "KeyE"].includes(code);
+      if (!d || (e && e.repeat)) return ["Space", "Enter", "KeyM", "KeyQ", "Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "KeyL", "KeyF", "KeyE"].includes(code);
       const two = local.length >= 2, z1 = local[0], z2 = two ? local[1] : local[0];
+      if (Z[z1].pick && /^Digit[123]$/.test(code)){ act(z1, ["rel", +code[5] - 1]); playS("up"); return true; }
+      if (/^Digit[45678]$/.test(code)){ const i = +code[5] - 4; if (Z[z1].it[i]) act(z1, ["it", i]); return true; }
       const M = {Space: [z1, "sum"], KeyQ: [z1, "all"], KeyE: [z1, "luck0"], Digit1: [z1, "up0"], Digit2: [z1, "up1"], Digit3: [z1, "up2"],
                  Enter: [z2, "sum"], KeyM: [z2, "all"], KeyL: [z2, "luck0"], KeyF: [-1, "spd"]};
       if (!two){ M.Enter = [z1, "sum"]; M.KeyM = [z1, "all"]; M.KeyL = [z1, "luck0"]; }
@@ -496,7 +612,8 @@ const RDM = {
   menu(){
     const me = ARC.me, box = partyModal("rd"), body = $("#wbBody");
     body.innerHTML = `<div class="rd-intro"><div class="rd-gs">${RD_G.map((g, i) => `<span style="--c:${g.c}"><b>${g.n}</b><em>${RD_BY[i].map(k => RD_A[k].e).join("")}</em></span>`).join("")}</div>
-      <p class="arc-small">🎲 <b>뽑기</b>로 동물 친구를 데려오고, 같은 동물 <b>3마리</b>가 모이면 <b>🔀 합치기</b>로 더 센 등급이 돼요! 빙글빙글 도는 몬스터가 <b>너무 많이 쌓이지 않게</b> 막아요. 10단계마다 👑 보스, 100단계까지 도전!</p></div>
+      <p class="arc-small">🎲 <b>뽑기</b>로 동물 친구를 데려오고, 같은 동물 <b>3마리</b>가 모이면 <b>🔀 합치기</b>로 더 센 등급이 돼요! 빙글빙글 도는 몬스터가 <b>동물 마을</b>을 덮치지 않게 막아요(👾 100마리가 되면 끝).</p>
+      <p class="arc-small">🎯 단계마다 <b>미션</b>(🟡 황금 슬라임·🎁 보물상자 몬스터·합치기·뽑기…)을 해내면 🎒 <b>아이템</b>(💣 폭탄 · ❄️ 얼음꽃 · 🔥 응원 깃발 · 🍀 · ⏳ · 💰)! 👑 보스를 잡으면 🎁 <b>유물</b>을 골라 판마다 다르게 강해져요. 100단계까지 도전!</p></div>
       <div class="wb-sec"><h3>🧒 혼자 지키기 <small>최고 단계로 랭킹!</small></h3><button class="arc-btn p" id="rdSolo">▶ 시작!</button></div>
       <div class="wb-sec"><h3>👫 이 기기에서 둘이 <small>한 화면에서 각자 칸을 지켜요 · 같은 점수로 기록</small></h3><button class="arc-btn p" id="rdDuo">👫 친구 들어오기</button></div>
       <div class="wb-sec"><h3>🌐 온라인 함께 지키기 <small>각자 기기로 최대 4명 · ☁️ Firebase 반에서만</small></h3><div id="wbRooms"></div></div>`;
