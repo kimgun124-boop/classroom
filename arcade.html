@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="1cba385030">
+<meta name="arc-build" content="e440116731">
 <script>
 /* 🔄 늘 최신 오락실: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "1cba385030", K = "arcade.reloaded";
+  var B = "e440116731", K = "arcade.reloaded";
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
     if (!idle()) return;
@@ -13338,14 +13338,16 @@ NG.defs.rd = () => {
     if (b.id === "sum") act(b.z, ["sum"]);
     else if (b.id === "all") act(b.z, ["all"]);
     else if (b.id === "up" || b.id === "luck"){ if (b.i != null){ act(b.z, b.id === "up" ? ["up", b.i] : ["luck", b.i]); } else panel = panel && panel.id === b.id && panel.z === b.z ? null : {id: b.id, z: b.z}; }
-    else if (b.id === "book"){ const q = sel && Z[sel.z].s[sel.i]; RDB.open(q && q.k); playS("warn"); }
+    else if (b.id === "book"){ if (RDB.isOpen) RDB.close(); else { const q = sel && Z[sel.z].s[sel.i]; RDB.open(q && q.k); } playS("warn"); }
     else if (b.id === "spd"){ speed = speed === 1 ? 2 : speed === 2 ? 4 : 1; playS("warn"); }
     else if (b.id === "smrg"){ if (!b.off){ act(sel.z, ["mrg", sel.i]); sel = null; } }
     else if (b.id === "ssel"){ act(sel.z, ["sel", sel.i]); const q = Z[sel.z].s[sel.i]; if (!q.k || q.n <= 1) sel = null; }
   }
 
   /* ---------- 그리기 ---------- */
+  let bookDrawn = false;   // 📖 도감 보는 동안(혼자·둘이)은 멈춘 화면을 한 번만 그리고 쉬어요
   function draw(g){
+    if (RDB.isOpen && !party){ if (bookDrawn) return; bookDrawn = true; } else bookDrawn = false;
     g.clearRect(0, 0, W, H);
     const k = NG.k || 1; buildLayer(); boardBG();
     g.setTransform(1, 0, 0, 1, 0, 0); if (!bgURL) g.drawImage(layer, Math.round(BX*k), Math.round(BY*k));
@@ -13643,7 +13645,15 @@ const RDB = {
   isOpen: false, tab: "a", f: "all", cur: null,
   seen(){ try { return JSON.parse(localStorage.getItem("rd.seen") || "{}"); } catch(e){ return {}; } },
   see(k){ const s = this.seen(); if (s[k]) return; s[k] = 1; try { localStorage.setItem("rd.seen", JSON.stringify(s)); } catch(e) {} },
-  img(k){ this._im = this._im || {}; if (!this._im[k]){ try { this._im[k] = RDA.unitSpr(k, 128).toDataURL(); } catch(e){ this._im[k] = ""; } } return this._im[k]; },
+  /* ⚡ 동물 그림은 한 번에 한 마리씩, 쉬는 틈에 그려서 기억해 둬요 (열자마자 19마리를 한꺼번에 그리면 멈춰요) */
+  _im: {}, _q: null,
+  img(k){ const u = this._im[k]; if (!u) this.queue(k); return u ? `src="${u}"` : ""; },
+  queue(k){ if (this._im[k] !== undefined) return; this._im[k] = null; (this._q = this._q || []).push(k); if (this._q.length === 1) this.pump(); },
+  pump(){ const idle = window.requestIdleCallback || (f => setTimeout(f, 16));
+    idle(() => { const k = this._q.shift(); if (!k) return;
+      const done = u => { this._im[k] = u || ""; if (u) document.querySelectorAll(`#mdRdBook img[data-im="${k}"]`).forEach(el => { el.src = u; }); if (this._q.length) this.pump(); };
+      try { const S = 96, c = RDA.unitSpr(k, S); G2.cache.delete(`rdu2${k}${S}`);   // 게임 그림 기억 칸은 비워 둬요 (꽉 차면 게임 그림이 전부 지워져 버벅여요)
+        if (c.toBlob) c.toBlob(b => done(b ? URL.createObjectURL(b) : ""), "image/png"); else done(c.toDataURL()); } catch(e){ done(""); } }, {timeout: 200}); },
   tags(A){ const T = [];
     if (A.sp) T.push(["💥", "주변까지 펑 (범위 공격)"]); if (A.mt) T.push(["🔱", `${A.mt}마리 동시 공격`]); if (A.cr) T.push(["🎯", `치명타 ${Math.round(A.cr*100)}% (3배)`]);
     if (A.sl) T.push(["🐌", `맞으면 ${Math.round(A.sl*100)}% 느려져요`]); if (A.st) T.push(["💫", `${Math.round(A.st*100)}% 확률로 기절`]); if (A.bf) T.push(["💪", `옆 친구 공격 +${Math.round(A.bf*100)}%`]);
@@ -13655,7 +13665,8 @@ const RDB = {
     : A.ro === "r" ? "뒷줄(파란 테두리 🏹 칸)에 두면 공격 +25%! 거리가 길어서 길에서 조금 떨어져도 괜찮아요."
     : "근거리·원거리 친구들 가운데에 두면 여러 친구를 한꺼번에 도와줘요."; },
   css(){ if (this._css) return; this._css = 1; const s = document.createElement("style"); s.textContent = `
-#mdRdBook .arc-card{max-width:980px;padding:18px 20px 20px}
+#mdRdBook{z-index:600;backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(8,5,25,.9)}
+#mdRdBook .arc-card{max-width:980px;padding:18px 20px 20px;contain:layout paint}
 .rdb-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;padding-right:52px}
 .rdb-top h2{margin:0 auto 0 0}
 .rdb-tabs,.rdb-fl{display:flex;gap:6px;flex-wrap:wrap}
@@ -13667,7 +13678,7 @@ const RDB = {
 .rdb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;max-height:62vh;overflow:auto;padding:2px}
 .rdb-c{position:relative;border:0;border-radius:16px;padding:8px 4px 10px;background:#2d2566;color:#fff;font:inherit;cursor:pointer;box-shadow:inset 0 -4px 0 rgba(0,0,0,.25);border-top:4px solid var(--c)}
 .rdb-c.on{outline:3px solid #ffd43b;background:#3d3288}
-.rdb-c img{width:64px;height:64px;display:block;margin:0 auto 2px}
+.rdb-c img{width:64px;height:64px;display:block;margin:0 auto 2px;border-radius:50%;background:rgba(255,255,255,.06)}
 .rdb-c b{display:block;font-size:15px}.rdb-c small{font-size:12px;color:#bfb3e8}
 .rdb-c i{position:absolute;top:6px;left:6px;font-style:normal;font-size:13px;background:var(--rc);border-radius:999px;padding:1px 5px}
 .rdb-c.new{padding-bottom:24px}.rdb-c.new img{opacity:.75}.rdb-c.new::after{content:"아직 못 만났어요";position:absolute;bottom:6px;left:0;right:0;font-size:11px;color:#ffa8a8}
@@ -13695,8 +13706,11 @@ const RDB = {
     if (!m){ m = document.createElement("div"); m.className = "arc-modal"; m.id = "mdRdBook"; m.hidden = true; m.innerHTML = `<div class="arc-card"><div id="rdbBody"></div><button class="arc-x" data-close>×</button></div>`; document.body.appendChild(m);
       m.querySelector("[data-close]").onclick = () => this.close();
       m.addEventListener("pointerdown", e => { if (e.target === m) this.close(); });
-      m.addEventListener("click", e => { const b = e.target.closest("[data-t],[data-f],[data-k]"); if (!b) return; if (b.dataset.t) this.tab = b.dataset.t; if (b.dataset.f) this.f = b.dataset.f; if (b.dataset.k) this.cur = b.dataset.k; this.render(); }); }
+      m.addEventListener("click", e => { const b = e.target.closest("[data-t],[data-f],[data-k]"); if (!b) return; if (b.dataset.k && !b.dataset.t && !b.dataset.f){ this.pickK(b.dataset.k); return; } if (b.dataset.t) this.tab = b.dataset.t; if (b.dataset.f) this.f = b.dataset.f; this.render(); }); }
     if (k){ this.tab = "a"; this.cur = k; } this.isOpen = true; m.hidden = false; this.render(); },
+  pickK(k){ if (!RD_A[k] || k === this.cur) return; this.cur = k; const m = $("#mdRdBook");
+    m.querySelectorAll(".rdb-c.on").forEach(el => el.classList.remove("on")); const c = m.querySelector(`.rdb-c[data-k="${k}"]`); if (c) c.classList.add("on");
+    const d = m.querySelector(".rdb-d"); if (d) d.outerHTML = this.detail(k); },
   close(){ const m = $("#mdRdBook"); if (m) m.hidden = true; this.isOpen = false; },
   render(){
     const seen = this.seen(), nSeen = RD_K.filter(k => seen[k]).length, T = this.tab;
@@ -13708,7 +13722,7 @@ const RDB = {
       if (!this.cur || !RD_A[this.cur]) this.cur = list[0] || RD_K[0];
       html += `<div class="rdb-fl">${F.map(([id, n]) => `<button data-f="${id}" class="${this.f === id ? "on" : ""}">${n}</button>`).join("")}</div>
         <div class="rdb-wrap"><div class="rdb-grid">${list.map(k => { const A = RD_A[k], RO = RD_ROLE[A.ro];
-          return `<button class="rdb-c ${this.cur === k ? "on" : ""} ${seen[k] ? "" : "new"}" data-k="${k}" style="--c:${RD_G[A.g].c};--rc:${RO.c}"><i>${RO.e}</i><img src="${this.img(k)}" alt=""><b>${A.n}</b><small>${RD_G[A.g].n}</small></button>`; }).join("")}</div>${this.detail(this.cur)}</div>`;
+          return `<button class="rdb-c ${this.cur === k ? "on" : ""} ${seen[k] ? "" : "new"}" data-k="${k}" style="--c:${RD_G[A.g].c};--rc:${RO.c}"><i>${RO.e}</i><img data-im="${k}" ${this.img(k)} alt=""><b>${A.n}</b><small>${RD_G[A.g].n}</small></button>`; }).join("")}</div>${this.detail(this.cur)}</div>`;
     } else if (T === "r"){
       html += `<p class="arc-small">👑 10단계마다 보스를 잡으면 3장 중 1장을 골라요. 같은 유물을 또 고르면 효과가 쌓여요!</p><div class="rdb-list">${RD_RK.map(k => { const R0 = RD_REL[k]; return `<div class="rdb-it"><span>${R0.e}</span><div><b>${R0.n}</b>${R0.d}</div></div>`; }).join("")}</div>`;
     } else if (T === "i"){
@@ -13728,7 +13742,7 @@ const RDB = {
     const mx = Math.log10(RD_A.trex.d*60/RD_A.trex.cd), mn = Math.log10(RD_A.frog.d*60/RD_A.frog.cd), pw = Math.max(.06, (Math.log10(dps) - mn)/(mx - mn));
     const bar = (n, v, t, c) => `<div class="rdb-bar"><b>${n}</b><span><em style="width:${Math.round(Math.min(1, v)*100)}%;--bc:${c}"></em></span><small>${t}</small></div>`;
     const nx = A.g < 4 ? `${RD_G[A.g + 1].n} ${RD_BY[A.g + 1].map(q => RD_A[q].e).join("")}` : "가장 높은 등급!";
-    return `<div class="rdb-d" style="--c:${G.c}"><div class="rdb-hd"><img src="${this.img(k)}" alt=""><div><h3>${A.e} ${A.n}</h3><span class="rdb-chip" style="--c:${G.c}">${G.n}</span><span class="rdb-chip" style="--c:${RO.c}">${RO.e} ${RO.n}</span></div></div>
+    return `<div class="rdb-d" style="--c:${G.c}"><div class="rdb-hd"><img data-im="${k}" ${this.img(k)} alt=""><div><h3>${A.e} ${A.n}</h3><span class="rdb-chip" style="--c:${G.c}">${G.n}</span><span class="rdb-chip" style="--c:${RO.c}">${RO.e} ${RO.n}</span></div></div>
       ${bar("💪 힘", pw, `${A.d}`, "#ff8787")}${bar("⚡ 빠르기", 28/A.cd, `${(60/A.cd).toFixed(1)}번/초`, "#ffd43b")}${bar("📏 거리", A.r/5.6, `${A.r}칸`, "#74c0fc")}
       <div class="rdb-box"><h4>✨ 특기</h4>${this.tags(A).map(([e, t]) => `${e} ${t}`).join("<br>")}</div>
       <div class="rdb-box"><h4>🌟 스킬: ${S.e} ${S.n}</h4>${S.d}<br><small>공격 ${S.mp}번마다 저절로 · 이럴 때 좋아요: ${this.when(S)}</small></div>
