@@ -104,3 +104,32 @@ window.COOP = COOP;
 .co-tip{font:12px "Gowun Dodum",sans-serif;color:#a79fd0;margin:12px 2px 0;line-height:1.5}`;
   document.head.appendChild(css);
 })();
+
+/* =====================================================================
+   ▶ 이어하기 (2026.11.16) — 협동 게임(🛡️ 용사 대모험 · 🌥️ 하늘 무사단 · 🫧 버블 특공대)
+   - 모두 쓰러지면 결과 화면에 "▶ 이어하기 🪙500" 단추: 누른 사람 코인 500개를 쓰고
+     지금 스테이지·점수 그대로 모두 다시 일어나서 계속해요 (몇 번이든, 코인이 있으면)
+   - 온라인 방은 방장이 눌러요 → 친구 기기도 결과 화면이 닫히고 같이 이어서 해요
+   - 🐾 동물 랜덤 디펜스는 빼요 (선생님 요청)
+   ===================================================================== */
+const CONT = {
+  COST: 500, G: ["qd", "sk", "bs"],
+  attach(gid, o, revive){
+    if (!this.G.includes(gid)) return; o = o || {};
+    const box = $("#ngOver .ng-box"), row = box && box.querySelector(".arc-row"); if (!row || $("#ngCont")) return;
+    if (o.party === "guest"){ row.insertAdjacentHTML("beforebegin", `<div class="ng-cont-note">▶ 방장이 🪙 ${this.COST}코인으로 <b>이어하기</b>를 누르면 같이 계속해요!</div>`); return; }
+    const sid = sidOf(ARC.me), c = (walletOf(sid).coins || 0), ok = c >= this.COST;
+    row.insertAdjacentHTML("beforebegin", `<div class="ng-cont"><button class="arc-btn p" id="ngCont" ${ok ? "" : "disabled"}>▶ 이어하기 · 🪙 ${this.COST}</button>
+      <small>${ok ? `지금 스테이지·점수 그대로 모두 다시 일어나요 · 내 코인 ${c.toLocaleString()} → ${(c - this.COST).toLocaleString()}` : `코인이 모자라요 (내 코인 ${c.toLocaleString()} / ${this.COST})`}</small></div>`);
+    $("#ngCont").addEventListener("click", async e => { e.stopPropagation(); const b = e.currentTarget; if (b.disabled) return; b.disabled = true;
+      try { await Store.buy(sid, [], this.COST); } catch(err){ toast("🪙 코인이 모자라요"); b.disabled = false; return; }
+      toast(`▶ 🪙 ${this.COST}코인을 쓰고 이어서 해요!`);
+      this.resume(); try { revive && revive(); } catch(err){ console.error(err); }
+      if (o.party === "host") PARTY.sendAll({t: "cont"}); });
+    if (!this._css){ this._css = 1; const s = document.createElement("style"); s.textContent = `.ng-cont{display:flex;flex-direction:column;align-items:center;gap:4px;margin:10px 0 4px}
+.ng-cont .arc-btn{min-width:240px;font-size:20px;background:linear-gradient(180deg,#ffe066,#fab005);color:#3b2a00;box-shadow:0 5px 0 #e67700}
+.ng-cont .arc-btn[disabled]{filter:grayscale(.8);opacity:.6}.ng-cont small{color:#d0bfff;font-size:13px}
+.ng-cont-note{margin:10px 0 4px;color:#ffe066;font-size:14px;text-align:center}`; document.head.appendChild(s); }
+  },
+  resume(){ $("#ngOver").hidden = true; $("#ngOver").innerHTML = ""; $("#ngOver").onclick = null; NG.ended = false; NG.drawnEnd = false; }
+};

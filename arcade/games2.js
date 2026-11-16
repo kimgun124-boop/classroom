@@ -767,6 +767,7 @@ const PARTY = {
       getAC(); NG.play(gid, m.sids, {party: "guest", idx: m.idx, local: [m.idx], bots: m.bots || [], lv: m.lv, seed: m.seed});
     }
     else if (m.t === "end"){ this.game && this.game.end(m.w, m.wins, m); }
+    else if (m.t === "cont"){ if (typeof CONT !== "undefined") CONT.resume(); this.game && this.game.cont && this.game.cont(); toast("▶ 방장이 이어하기를 눌렀어요! 다시 출동!"); }
     else if (m.t === "full"){ this.hostGone("방이 꽉 찼거나 이미 시작했어요"); }
     else if (m.t === "bye"){ this.hostGone("방장이 방을 나갔어요"); }
   },
@@ -1824,6 +1825,7 @@ NG.defs.bs = () => {
     local.forEach(i => { if (i > 0 && P[i] && !P[i].gone){ const me0 = ARC.me; ARC.me = noOf_(SIDS[i]); try { saveRec("bs", SIDS[i], score); } finally { ARC.me = me0; } } });
     if (party === "host") PARTY.sendAll({t: "end", w: 0, wins: [], score, stage, kills});
     NG.over(score, `<div>🫧 STAGE ${stage}${loopN() ? ` (${loopN() + 1}회차)` : ""} · 🤖 로봇 ${kills}대를 거품에 가뒀어요</div>${N > 1 ? `<div>👥 함께한 친구: ${team.join(", ")} <small>(모두 같은 점수로 기록돼요)</small></div>` : ""}`);
+    CONT.attach("bs", {party}, () => NG.cur && NG.cur.revive && NG.cur.revive());   // ▶ 이어하기 🪙500
   }
 
   /* ---------- 🌐 친구 기기로 보내기 / 받기 ---------- */
@@ -1894,6 +1896,9 @@ NG.defs.bs = () => {
     },
     dropIdx(i){ const p = P[i]; if (!p) return; p.gone = true; p.dead = true; if (!alive().length && overT <= 0) overT = 60; },
     end(w, ws, m){ if (party !== "guest" || ended) return; ended = true; if (m){ score = m.score; stage = m.stage; kills = m.kills; } BS.guestOver(score, stage, kills); },
+    /* ▶ 이어하기: 모두 다시 일어나서 지금 스테이지 그대로 */
+    revive(){ if (!ended) return; ended = false; overT = 0; P.forEach(p => { if (p.gone) return; if (p.dead) revive(p, cam + 200 + p.i*60, GY - 300); p.hearts = 3; }); setMsg("▶ 이어하기!", "모두 다시 출동!", 100); },
+    cont(){ ended = false; },
     apply,
     step(){
       // 이 기기 사람들의 손가락·키보드
@@ -2090,5 +2095,6 @@ const BS = {
       <div class="arc-row"><button class="arc-btn" data-bs="wait">⏳ 방장이 다시 시작하길 기다려요</button><button class="arc-btn" data-bs="home">🏠 홈으로</button></div></div>`;
     $("#ngOver").hidden = false; NG.ended = true;
     $("#ngOver").onclick = e => { const b = e.target.closest("[data-bs]"); if (!b) return; e.stopPropagation(); if (b.dataset.bs === "home"){ PARTY.leave(); NG.close(); } };
+    CONT.attach("bs", {party: "guest"});
   }
 };

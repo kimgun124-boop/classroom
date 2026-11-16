@@ -538,6 +538,10 @@ NG.defs.sk = () => {
     apply,
     dropIdx(i){ BOT.add(i); const p = P[i]; if (p && !p.sel.ok){ p.sel.ok = true; } },
     end(w, ws){ if (ended) return; ended = true; const st = ws.length > N ? ws[N] : stage; SKY.result(ws.slice(0, N), SIDS, O, st); },
+    /* ▶ 이어하기: 목숨을 채우고 지금 스테이지 그대로 */
+    revive(){ if (!ended) return; ended = false; phase = "play"; EB.length = 0; P.forEach(p => { p.lives = 3; if (!p.alive) p.resp = 20; });
+      banner = {t: "▶ 이어하기!", s: "모두 다시 출동!", k: 120, c: "#69db7c"}; },
+    cont(){ ended = false; },
     draw(g){
       g.clearRect(0, 0, W, H);
       const fr = NG.frame, th = SKTH[(stage - 1) % 3];
@@ -674,6 +678,7 @@ const SKY = {
     $("#ngOver").onclick = e => { const b = e.target.closest("[data-sk]"); if (!b) return; e.stopPropagation();
       if (b.dataset.sk === "home"){ PARTY.leave(); NG.close(); }
       else if (b.dataset.sk === "again"){ if (o.party === "host") PARTY.again(); else NG.play("sk", sids, Object.assign({}, o)); } };
+    CONT.attach("sk", o, () => NG.cur && NG.cur.revive && NG.cur.revive());
   }
 };
 (function(){

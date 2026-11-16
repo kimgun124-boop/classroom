@@ -885,6 +885,11 @@ NG.defs.qd = () => {
     hud(){ return `🛡️ 용사 대모험 · ${phase === "sel" ? "용사 고르기" : QST[stage].n} · 팀 ${Math.round(team)}점${party ? " · 🌐 온라인" : ""}`; },
     apply, dropIdx(i){ if (!(O.bots = O.bots || []).includes(i)) O.bots.push(i); },
     end(w, res){ if (ended) return; ended = true; results = res; QDM.result(res, O); },
+    /* ▶ 이어하기: 모두 다시 일어나서 지금 스테이지 그대로 */
+    revive(){ if (!ended || (results && results.win)) return; ended = false; phase = "play"; results = null;
+      P.forEach(p => { p.lives = Math.max(p.lives, 2); if (!alive(p)) Object.assign(p, {st: "jump", z: 420, vz: 0, x: camX + W*.4 + p.i*40, y: YT + 60 + p.i*40, hp: QCL[p.cls].hp, inv: 180, t: 0, jx: 0}); else p.hp = QCL[p.cls].hp; });
+      say("▶ 이어하기!", "용사들이 다시 일어났어요!", 120); },
+    cont(){ ended = false; },
     /* 시험용 */
     dbg(){ return {P, E, PR, IT, PROPS, phase, stage, camX, team, lockX, segI, bossId}; },
     cheat(o){ if (o.stage != null){ P.forEach(p => p.ready = true); startStage(o.stage); } if (o.cam != null){ P.forEach((p, i) => p.x = o.cam + 300 + i*60); camX = o.cam; E = []; pend = []; lockX = null; segI = QST[stage].seg.filter(sg => sg[0] <= o.cam).length; } if (o.god) P.forEach(p => p.inv = 1e9); if (o.mp) P.forEach(p => p.mp = 100); if (o.kill) E.forEach(e => { if (e.st !== "die") hitEnemy(e, 99999, 1, true, 0); }); if (o.hurt) P.forEach(p => { p.hp = 1; p.inv = 0; }); }
@@ -951,6 +956,7 @@ const QDM = {
     $("#ngOver").onclick = e => { const b = e.target.closest("[data-qd]"); if (!b) return; e.stopPropagation();
       if (b.dataset.qd === "home"){ PARTY.leave(); NG.close(); }
       else if (b.dataset.qd === "again"){ if (o.party === "host") PARTY.again(); else NG.play("qd", NG.sids, Object.assign({}, o, {seed: 0, cls: null})); } };
+    if (!R.win) CONT.attach("qd", o, () => NG.cur && NG.cur.revive && NG.cur.revive());
   }
 };
 (function(){

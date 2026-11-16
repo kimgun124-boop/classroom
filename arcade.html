@@ -8801,6 +8801,7 @@ const PARTY = {
       getAC(); NG.play(gid, m.sids, {party: "guest", idx: m.idx, local: [m.idx], bots: m.bots || [], lv: m.lv, seed: m.seed});
     }
     else if (m.t === "end"){ this.game && this.game.end(m.w, m.wins, m); }
+    else if (m.t === "cont"){ if (typeof CONT !== "undefined") CONT.resume(); this.game && this.game.cont && this.game.cont(); toast("▶ 방장이 이어하기를 눌렀어요! 다시 출동!"); }
     else if (m.t === "full"){ this.hostGone("방이 꽉 찼거나 이미 시작했어요"); }
     else if (m.t === "bye"){ this.hostGone("방장이 방을 나갔어요"); }
   },
@@ -9858,6 +9859,7 @@ NG.defs.bs = () => {
     local.forEach(i => { if (i > 0 && P[i] && !P[i].gone){ const me0 = ARC.me; ARC.me = noOf_(SIDS[i]); try { saveRec("bs", SIDS[i], score); } finally { ARC.me = me0; } } });
     if (party === "host") PARTY.sendAll({t: "end", w: 0, wins: [], score, stage, kills});
     NG.over(score, `<div>🫧 STAGE ${stage}${loopN() ? ` (${loopN() + 1}회차)` : ""} · 🤖 로봇 ${kills}대를 거품에 가뒀어요</div>${N > 1 ? `<div>👥 함께한 친구: ${team.join(", ")} <small>(모두 같은 점수로 기록돼요)</small></div>` : ""}`);
+    CONT.attach("bs", {party}, () => NG.cur && NG.cur.revive && NG.cur.revive());   // ▶ 이어하기 🪙500
   }
 
   /* ---------- 🌐 친구 기기로 보내기 / 받기 ---------- */
@@ -9928,6 +9930,9 @@ NG.defs.bs = () => {
     },
     dropIdx(i){ const p = P[i]; if (!p) return; p.gone = true; p.dead = true; if (!alive().length && overT <= 0) overT = 60; },
     end(w, ws, m){ if (party !== "guest" || ended) return; ended = true; if (m){ score = m.score; stage = m.stage; kills = m.kills; } BS.guestOver(score, stage, kills); },
+    /* ▶ 이어하기: 모두 다시 일어나서 지금 스테이지 그대로 */
+    revive(){ if (!ended) return; ended = false; overT = 0; P.forEach(p => { if (p.gone) return; if (p.dead) revive(p, cam + 200 + p.i*60, GY - 300); p.hearts = 3; }); setMsg("▶ 이어하기!", "모두 다시 출동!", 100); },
+    cont(){ ended = false; },
     apply,
     step(){
       // 이 기기 사람들의 손가락·키보드
@@ -10124,6 +10129,7 @@ const BS = {
       <div class="arc-row"><button class="arc-btn" data-bs="wait">⏳ 방장이 다시 시작하길 기다려요</button><button class="arc-btn" data-bs="home">🏠 홈으로</button></div></div>`;
     $("#ngOver").hidden = false; NG.ended = true;
     $("#ngOver").onclick = e => { const b = e.target.closest("[data-bs]"); if (!b) return; e.stopPropagation(); if (b.dataset.bs === "home"){ PARTY.leave(); NG.close(); } };
+    CONT.attach("bs", {party: "guest"});
   }
 };
 
@@ -11316,6 +11322,10 @@ NG.defs.sk = () => {
     apply,
     dropIdx(i){ BOT.add(i); const p = P[i]; if (p && !p.sel.ok){ p.sel.ok = true; } },
     end(w, ws){ if (ended) return; ended = true; const st = ws.length > N ? ws[N] : stage; SKY.result(ws.slice(0, N), SIDS, O, st); },
+    /* ▶ 이어하기: 목숨을 채우고 지금 스테이지 그대로 */
+    revive(){ if (!ended) return; ended = false; phase = "play"; EB.length = 0; P.forEach(p => { p.lives = 3; if (!p.alive) p.resp = 20; });
+      banner = {t: "▶ 이어하기!", s: "모두 다시 출동!", k: 120, c: "#69db7c"}; },
+    cont(){ ended = false; },
     draw(g){
       g.clearRect(0, 0, W, H);
       const fr = NG.frame, th = SKTH[(stage - 1) % 3];
@@ -11452,6 +11462,7 @@ const SKY = {
     $("#ngOver").onclick = e => { const b = e.target.closest("[data-sk]"); if (!b) return; e.stopPropagation();
       if (b.dataset.sk === "home"){ PARTY.leave(); NG.close(); }
       else if (b.dataset.sk === "again"){ if (o.party === "host") PARTY.again(); else NG.play("sk", sids, Object.assign({}, o)); } };
+    CONT.attach("sk", o, () => NG.cur && NG.cur.revive && NG.cur.revive());
   }
 };
 (function(){
@@ -12377,6 +12388,11 @@ NG.defs.qd = () => {
     hud(){ return `🛡️ 용사 대모험 · ${phase === "sel" ? "용사 고르기" : QST[stage].n} · 팀 ${Math.round(team)}점${party ? " · 🌐 온라인" : ""}`; },
     apply, dropIdx(i){ if (!(O.bots = O.bots || []).includes(i)) O.bots.push(i); },
     end(w, res){ if (ended) return; ended = true; results = res; QDM.result(res, O); },
+    /* ▶ 이어하기: 모두 다시 일어나서 지금 스테이지 그대로 */
+    revive(){ if (!ended || (results && results.win)) return; ended = false; phase = "play"; results = null;
+      P.forEach(p => { p.lives = Math.max(p.lives, 2); if (!alive(p)) Object.assign(p, {st: "jump", z: 420, vz: 0, x: camX + W*.4 + p.i*40, y: YT + 60 + p.i*40, hp: QCL[p.cls].hp, inv: 180, t: 0, jx: 0}); else p.hp = QCL[p.cls].hp; });
+      say("▶ 이어하기!", "용사들이 다시 일어났어요!", 120); },
+    cont(){ ended = false; },
     /* 시험용 */
     dbg(){ return {P, E, PR, IT, PROPS, phase, stage, camX, team, lockX, segI, bossId}; },
     cheat(o){ if (o.stage != null){ P.forEach(p => p.ready = true); startStage(o.stage); } if (o.cam != null){ P.forEach((p, i) => p.x = o.cam + 300 + i*60); camX = o.cam; E = []; pend = []; lockX = null; segI = QST[stage].seg.filter(sg => sg[0] <= o.cam).length; } if (o.god) P.forEach(p => p.inv = 1e9); if (o.mp) P.forEach(p => p.mp = 100); if (o.kill) E.forEach(e => { if (e.st !== "die") hitEnemy(e, 99999, 1, true, 0); }); if (o.hurt) P.forEach(p => { p.hp = 1; p.inv = 0; }); }
@@ -12443,6 +12459,7 @@ const QDM = {
     $("#ngOver").onclick = e => { const b = e.target.closest("[data-qd]"); if (!b) return; e.stopPropagation();
       if (b.dataset.qd === "home"){ PARTY.leave(); NG.close(); }
       else if (b.dataset.qd === "again"){ if (o.party === "host") PARTY.again(); else NG.play("qd", NG.sids, Object.assign({}, o, {seed: 0, cls: null})); } };
+    if (!R.win) CONT.attach("qd", o, () => NG.cur && NG.cur.revive && NG.cur.revive());
   }
 };
 (function(){
@@ -12588,6 +12605,35 @@ window.COOP = COOP;
 .co-tip{font:12px "Gowun Dodum",sans-serif;color:#a79fd0;margin:12px 2px 0;line-height:1.5}`;
   document.head.appendChild(css);
 })();
+
+/* =====================================================================
+   ▶ 이어하기 (2026.11.16) — 협동 게임(🛡️ 용사 대모험 · 🌥️ 하늘 무사단 · 🫧 버블 특공대)
+   - 모두 쓰러지면 결과 화면에 "▶ 이어하기 🪙500" 단추: 누른 사람 코인 500개를 쓰고
+     지금 스테이지·점수 그대로 모두 다시 일어나서 계속해요 (몇 번이든, 코인이 있으면)
+   - 온라인 방은 방장이 눌러요 → 친구 기기도 결과 화면이 닫히고 같이 이어서 해요
+   - 🐾 동물 랜덤 디펜스는 빼요 (선생님 요청)
+   ===================================================================== */
+const CONT = {
+  COST: 500, G: ["qd", "sk", "bs"],
+  attach(gid, o, revive){
+    if (!this.G.includes(gid)) return; o = o || {};
+    const box = $("#ngOver .ng-box"), row = box && box.querySelector(".arc-row"); if (!row || $("#ngCont")) return;
+    if (o.party === "guest"){ row.insertAdjacentHTML("beforebegin", `<div class="ng-cont-note">▶ 방장이 🪙 ${this.COST}코인으로 <b>이어하기</b>를 누르면 같이 계속해요!</div>`); return; }
+    const sid = sidOf(ARC.me), c = (walletOf(sid).coins || 0), ok = c >= this.COST;
+    row.insertAdjacentHTML("beforebegin", `<div class="ng-cont"><button class="arc-btn p" id="ngCont" ${ok ? "" : "disabled"}>▶ 이어하기 · 🪙 ${this.COST}</button>
+      <small>${ok ? `지금 스테이지·점수 그대로 모두 다시 일어나요 · 내 코인 ${c.toLocaleString()} → ${(c - this.COST).toLocaleString()}` : `코인이 모자라요 (내 코인 ${c.toLocaleString()} / ${this.COST})`}</small></div>`);
+    $("#ngCont").addEventListener("click", async e => { e.stopPropagation(); const b = e.currentTarget; if (b.disabled) return; b.disabled = true;
+      try { await Store.buy(sid, [], this.COST); } catch(err){ toast("🪙 코인이 모자라요"); b.disabled = false; return; }
+      toast(`▶ 🪙 ${this.COST}코인을 쓰고 이어서 해요!`);
+      this.resume(); try { revive && revive(); } catch(err){ console.error(err); }
+      if (o.party === "host") PARTY.sendAll({t: "cont"}); });
+    if (!this._css){ this._css = 1; const s = document.createElement("style"); s.textContent = `.ng-cont{display:flex;flex-direction:column;align-items:center;gap:4px;margin:10px 0 4px}
+.ng-cont .arc-btn{min-width:240px;font-size:20px;background:linear-gradient(180deg,#ffe066,#fab005);color:#3b2a00;box-shadow:0 5px 0 #e67700}
+.ng-cont .arc-btn[disabled]{filter:grayscale(.8);opacity:.6}.ng-cont small{color:#d0bfff;font-size:13px}
+.ng-cont-note{margin:10px 0 4px;color:#ffe066;font-size:14px;text-align:center}`; document.head.appendChild(s); }
+  },
+  resume(){ $("#ngOver").hidden = true; $("#ngOver").innerHTML = ""; $("#ngOver").onclick = null; NG.ended = false; NG.drawnEnd = false; }
+};
 
 /* =====================================================================
    🐾 동물 랜덤 디펜스 — 동물 친구를 뽑고, 같은 친구 3마리를 합쳐 더 센 동물로!
