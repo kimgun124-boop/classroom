@@ -99,6 +99,7 @@ header.top::after{
 .t3 .dots{color:var(--t3-ink)}
 .t4 .dots{color:var(--t4-ink)}
 .more{font-family:"Jua";font-size:14px;opacity:.7;align-self:center}
+.tags{display:flex;flex-direction:column;gap:6px;margin-top:auto}
 .tag{position:relative;z-index:2;display:grid;grid-template-columns:26px 15px 1fr 20px;align-items:center;gap:3px;background:#fff;border-radius:12px;padding:6px 10px;font-size:15px;font-weight:700;box-shadow:0 1px 0 rgba(0,0,0,.05);text-align:left;width:100%}
 .tag .em{text-align:center;font-size:13px}
 .tag{padding:6px 6px !important;font-size:14px !important}
@@ -141,6 +142,7 @@ body.big .clock .hm{font-size:72px}
 .pend{display:flex;align-items:center;gap:10px;border:2px solid #ffc9d5;background:#fff6f8;border-radius:16px;padding:10px 12px}
 .pend .who{font-family:"Jua";font-size:18px}
 .pend .who i{font-style:normal;font-size:13px;color:var(--ink-soft);margin-right:4px}
+.pend .when{font-size:13px;color:var(--ink-soft)}
 .pend .btn{margin-left:auto;white-space:nowrap;padding:7px 12px;font-size:14px}
 table.ck{border-collapse:separate;border-spacing:0;width:100%;font-size:15px}
 table.ck th,table.ck td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -363,6 +365,7 @@ body.big .card .why{font-size:15px}
 .card.pr17{box-shadow:0 0 0 3px #ffd84d,0 0 0 6px var(--p1),0 0 26px 8px var(--pg)}
 .card.pr19{border-color:#ffd84d;box-shadow:0 0 0 3px #fff3b0,0 0 0 7px #f0a400,0 0 34px 12px var(--pg)}
 .card.pr .name,.card.pr .count{position:relative;z-index:3;pointer-events:none;text-shadow:0 0 2px #fff,0 0 4px #fff,0 0 7px #fff,0 0 10px rgba(255,255,255,.9)}
+.card.pr .tags,.card.dmg .tags{position:relative;z-index:3}
 .card.pr .head,.card.dmg .head{position:relative;z-index:3;pointer-events:none}
 @keyframes nameShine{to{background-position:-200% 0}}
 .card .deco{position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;overflow:hidden}
@@ -826,6 +829,7 @@ body.big .card .why{font-size:15px}
 .dots{gap:4px;margin-bottom:8px}
 .dot{width:12px;height:12px}
 .ok{font-size:13px;letter-spacing:-.4px;gap:4px}
+.card > .tags > .ok:first-child:last-child{white-space:nowrap}
 body.big .grid{grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:14px}
 body.big .name{font-size:25px}
 body.big .count{font-size:58px}
@@ -868,7 +872,7 @@ body.big .count{font-size:58px}
     box-shadow:inset 0 -2px 0 rgba(0,0,0,.18),0 2px 0 rgba(0,0,0,.12)}
 .card .dot.mark{outline:2px dashed color-mix(in srgb,var(--edge) 60%,transparent)}
 .card .tag{border:2px solid color-mix(in srgb,var(--edge) 35%,#fff);box-shadow:0 3px 0 color-mix(in srgb,var(--edge) 40%,#ccc)}
-.card .ok{background:rgba(255,255,255,.75);border-radius:12px;padding:3px 8px;border:2px solid rgba(255,255,255,.95);box-shadow:0 2px 0 color-mix(in srgb,var(--edge) 30%,transparent);white-space:normal;line-height:1.25}
+.card .ok,.card > .tags > .ok:first-child:last-child{background:rgba(255,255,255,.75);border-radius:12px;padding:3px 8px;border:2px solid rgba(255,255,255,.95);box-shadow:0 2px 0 color-mix(in srgb,var(--edge) 30%,transparent);white-space:normal;line-height:1.25}
 @keyframes cardIn{
     0%{transform:translateY(-140px) scale(.35) rotate(-10deg);opacity:0}
     45%{transform:translateY(8px) scale(1.04) rotate(2deg);opacity:1}
@@ -895,6 +899,7 @@ body.big .count{font-size:58px}
 .card > .count small{font-size:15px;margin-top:-4px}
 .card > .dots{grid-area:dots;justify-content:center;margin:6px 0 6px}
 .card > .why{grid-area:why}
+.card > .tags{grid-area:tags;align-self:end}
 .card .name > *{position:relative;z-index:3}
 .card .name .face{grid-area:face;justify-self:center;width:74px;height:74px;font-size:44px;margin:2px 0 8px;border-radius:50%;
     background:radial-gradient(circle at 50% 30%,#ffffff 0 12%,#dff3ff 38%,#9fd6ff 72%,#6cb6f2);border:3px solid #fff;
@@ -938,7 +943,7 @@ body.arcade .fame h2,body.arcade .mt h2,body.arcade .tt h2{color:#123a80}
 body.arcade #grid{background:#0f3c8c;border:3px solid #5aa7f5;border-radius:18px;padding:12px;
     box-shadow:inset 0 4px 10px rgba(0,0,0,.45),0 2px 0 rgba(255,255,255,.3);background-image:radial-gradient(circle,rgba(255,255,255,.06) 1.2px,transparent 1.6px);background-size:14px 14px}
 body.arcade #grid .empty{color:#cfe6ff}
-body.arcade .card .ok{background:#163f91;color:#ffb627;border:2px solid #6fb8ff;justify-content:center;font-family:"Jua";
+body.arcade .card .ok,body.arcade .card > .tags > .ok:first-child:last-child{background:#163f91;color:#ffb627;border:2px solid #6fb8ff;justify-content:center;font-family:"Jua";
     box-shadow:inset 0 2px 4px rgba(0,0,0,.35);text-shadow:0 1px 0 rgba(0,0,0,.4)}
 body.arcade .card.t0 .ok{color:#ffd23a}
 body.arcade .hint{background:#eaf6ff;border-color:var(--ao2)}
@@ -12831,7 +12836,7 @@ NG.defs.rd = () => {
 
   /* ---------- 동물 뽑기 · 합치기 · 팔기 · 옮기기 · 강화 · 행운 ---------- */
   function placeK(z, k, pref){ const S = Z[z].s; let i = S.findIndex(q => q.k === k && q.n < 3); if (i < 0 && pref != null && !S[pref].k) i = pref; if (i < 0) i = S.findIndex(q => !q.k); if (i < 0) return -1;
-    const q = S[i]; if (!q.k){ q.k = k; q.n = 0; } q.cd[q.n] = 10 + q.n*7; q.n++; q.hit = 12; gv++; return i; }
+    const q = S[i]; if (isMine(z)) RDB.see(k); if (!q.k){ q.k = k; q.n = 0; } q.cd[q.n] = 10 + q.n*7; q.n++; q.hit = 12; gv++; return i; }
   const sumCost = z => 20 + Math.min(50, Math.floor(Z[z].sum/2));   // 뽑을수록 조금씩 비싸지다가 70에서 멈춰요 (뒤 단계에서 금이 바닥나지 않게)
   function rollG(z){ const r = R.f(), d = z == null ? 0 : RL(z, "dice"); let g = r < .015*(1 + d) ? 2 : r < .15*(1 + .5*d) ? 1 : 0;
     if (z != null && Z[z].clv > 0){ Z[z].clv--; g = Math.max(1, g); } return g; }
@@ -13008,7 +13013,7 @@ NG.defs.rd = () => {
   function bars(){
     const L = []; const two = local.length >= 2;
     if (window.VK_ON){ local.forEach((z, si) => { const w = two && land ? W/2 : W, x0 = two && land ? si*W/2 : 0, y0 = two && !land ? H - BOTH + si*BOTH/2 : H - BOTH, h = two && !land ? BOTH/2 : BOTH; L.push({id: "info", z, x: x0 + 10, y: y0 + 6, w: w - 20, h: h - 12, info: 1, wide: 1}); });
-      if (party !== "guest") L.push({id: "spd", z: -1, x: W - 92, y: 8, w: 84, h: TOPH - 18}); return L; }
+      if (party !== "guest") L.push({id: "spd", z: -1, x: W - 92, y: 8, w: 84, h: TOPH - 18}); L.push({id: "book", z: -1, x: W - (party !== "guest" ? 184 : 92), y: 8, w: 84, h: TOPH - 18}); return L; }
     local.forEach((z, si) => {
       const x0 = two ? (land ? si*W/2 : 0) : 0, w = two && land ? W/2 : W, y0 = two && !land ? H - BOTH + si*BOTH/2 : H - BOTH, h = two && !land ? BOTH/2 : BOTH;
       const pad = 10, rows = !land && !two ? 2 : 1;
@@ -13021,6 +13026,7 @@ NG.defs.rd = () => {
         L.push({id: "up", z, x: x0 + pad, y: y0 + 38 + bh, w: bw, h: bh}); L.push({id: "luck", z, x: x0 + pad + bw + 8, y: y0 + 38 + bh, w: bw, h: bh}); L.push({id: "info", z, x: x0 + pad + 2*bw + 16, y: y0 + 38 + bh, w: bw, h: bh, info: 1}); }
     });
     if (party !== "guest") L.push({id: "spd", z: -1, x: W - 92, y: 8, w: 84, h: TOPH - 18});
+    L.push({id: "book", z: -1, x: W - (party !== "guest" ? 184 : 92), y: 8, w: 84, h: TOPH - 18});
     return L;
   }
   let BARS = [];
@@ -13037,6 +13043,7 @@ NG.defs.rd = () => {
     if (b.id === "sum") act(b.z, ["sum"]);
     else if (b.id === "all") act(b.z, ["all"]);
     else if (b.id === "up" || b.id === "luck"){ if (b.i != null){ act(b.z, b.id === "up" ? ["up", b.i] : ["luck", b.i]); } else panel = panel && panel.id === b.id && panel.z === b.z ? null : {id: b.id, z: b.z}; }
+    else if (b.id === "book"){ const q = sel && Z[sel.z].s[sel.i]; RDB.open(q && q.k); playS("warn"); }
     else if (b.id === "spd"){ speed = speed === 1 ? 2 : speed === 2 ? 4 : 1; playS("warn"); }
     else if (b.id === "smrg"){ if (!b.off){ act(sel.z, ["mrg", sel.i]); sel = null; } }
     else if (b.id === "ssel"){ act(sel.z, ["sel", sel.i]); const q = Z[sel.z].s[sel.i]; if (!q.k || q.n <= 1) sel = null; }
@@ -13125,7 +13132,8 @@ NG.defs.rd = () => {
     g.fillStyle = "rgba(0,0,0,.4)"; rrect(g, bx, by, bw, 20, 10); g.fill(); g.fillStyle = r > .8 ? (fr % 20 < 10 ? "#ff6b6b" : "#c92a2a") : r > .55 ? "#fcc419" : "#51cf66"; rrect(g, bx, by, Math.max(20, bw*r), 20, 10); g.fill();
     G2.put(g, lbl(["👾", `${n} / ${LIMIT}`], 16), W/2 - lbl(["👾", `${n} / ${LIMIT}`], 16).w/2, by - 3);
     const boss = E.find(e => e.kind === 2), sec = Math.ceil(Math.max(0, waveT)/60);
-    const tl = lbl([boss ? "⏰" : "⏱️", `${sec}초`], 20, boss && sec < 15 ? "#ff6b6b" : "#fff"); G2.put(g, tl, W - (party !== "guest" ? 100 : 16) - tl.w, 14);
+    const tl = lbl([boss ? "⏰" : "⏱️", `${sec}초`], 20, boss && sec < 15 ? "#ff6b6b" : "#fff"); G2.put(g, tl, W - (party !== "guest" ? 192 : 100) - tl.w, 14);
+    { const b = BARS.find(q => q.id === "book"); if (b) G2.put(g, btnSpr(b.w, b.h, "#63e6be", "#0ca678", ["📖", "도감"], 16), b.x, b.y); }
     if (land) G2.put(g, lbl([th().n.split(" ")[0], th().n.split(" ").slice(1).join(" ")], 16, "#d0bfff"), 140, 16);
     if (party !== "guest"){ const b = BARS.find(q => q.id === "spd"); if (b) G2.put(g, btnSpr(b.w, b.h, speed === 4 ? "#ff6b6b" : speed > 1 ? "#ff922b" : "#748ffc", speed === 4 ? "#c92a2a" : speed > 1 ? "#e8590c" : "#4c6ef5", ["⏩", `×${speed}`], 17), b.x, b.y); }
   }
@@ -13238,20 +13246,22 @@ NG.defs.rd = () => {
       if (party === "host") for (let z = 1; z < N; z++){ if (!remote(z)) continue; const r = PARTY.remoteIn(z); if (!r) continue; const m = r.m; if (m.sd !== seed || !m.a) continue;
         m.a.forEach(a => { if (a[0] > lastAct[z]){ lastAct[z] = a[0]; doAct(z, a.slice(1)); } }); Z[z].ack = lastAct[z]; }
       if (state === "over"){ if (--overT <= 0) finish(); }
-      else for (let i = 0; i < speed; i++) sim();
+      else if (!(RDB.isOpen && !party)) for (let i = 0; i < speed; i++) sim();   // 📖 도감 보는 동안 잠깐 멈춤 (혼자·둘이)
       if (party === "host" && frame % 4 === 0) PARTY.sendSnap(snap(), NQ.splice(0), gv);
     },
     draw, down, move, up,
     key(code, d, e){
-      if (!d || (e && e.repeat)) return ["Space", "Enter", "KeyM", "KeyQ", "Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "KeyL", "KeyF", "KeyE"].includes(code);
+      if (!d || (e && e.repeat)) return ["Space", "Enter", "KeyM", "KeyQ", "Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "KeyL", "KeyF", "KeyE", "KeyB"].includes(code);
+      if (RDB.isOpen){ if (code === "KeyB" || code === "Escape") RDB.close(); return true; }
       const two = local.length >= 2, z1 = local[0], z2 = two ? local[1] : local[0];
       if (Z[z1].pick && /^Digit[123]$/.test(code)){ act(z1, ["rel", +code[5] - 1]); playS("up"); return true; }
       if (/^Digit[45678]$/.test(code)){ const i = +code[5] - 4; if (Z[z1].it[i]) act(z1, ["it", i]); return true; }
       const M = {Space: [z1, "sum"], KeyQ: [z1, "all"], KeyE: [z1, "luck0"], Digit1: [z1, "up0"], Digit2: [z1, "up1"], Digit3: [z1, "up2"],
-                 Enter: [z2, "sum"], KeyM: [z2, "all"], KeyL: [z2, "luck0"], KeyF: [-1, "spd"]};
+                 Enter: [z2, "sum"], KeyM: [z2, "all"], KeyL: [z2, "luck0"], KeyF: [-1, "spd"], KeyB: [-1, "book"]};
       if (!two){ M.Enter = [z1, "sum"]; M.KeyM = [z1, "all"]; M.KeyL = [z1, "luck0"]; }
       const m = M[code]; if (!m) return false;
       const [z, a] = m;
+      if (a === "book"){ RDB.isOpen ? RDB.close() : RDB.open(); return true; }
       if (a === "spd"){ if (party !== "guest"){ speed = speed === 1 ? 2 : speed === 2 ? 4 : 1; playS("warn"); } }
       else if (a === "sum") act(z, ["sum"]); else if (a === "all") act(z, ["all"]); else if (a === "luck0") act(z, ["luck", 0]); else act(z, ["up", +a[2]]);
       return true;
@@ -13266,14 +13276,20 @@ NG.defs.rd = () => {
    ===================================================================== */
 const RDM = {
   menu(){
-    const me = ARC.me, box = partyModal("rd"), body = $("#wbBody");
+    const me = ARC.me, box = partyModal("rd"), body = $("#wbBody"); RDB.css();
     body.innerHTML = `<div class="rd-intro"><div class="rd-gs">${RD_G.map((g, i) => `<span style="--c:${g.c}"><b>${g.n}</b><em>${RD_BY[i].map(k => RD_A[k].e).join("")}</em></span>`).join("")}</div>
-      <p class="arc-small">🎲 <b>뽑기</b>로 동물 친구를 데려오고, 같은 동물 <b>3마리</b>가 모이면 <b>🔀 합치기</b>로 더 센 등급이 돼요! 빙글빙글 도는 몬스터가 <b>동물 마을</b>을 덮치지 않게 막아요(👾 100마리가 되면 끝).</p>
-      <p class="arc-small">🗺️ 10단계마다 <b>맵 모양이 바뀌어요</b>. 동물을 <b>끌어서 자리를 옮겨요</b>: ⚔️ <b>근거리</b>는 길 바로 옆 칸에서 세게, 🏹 <b>원거리</b>는 뒷줄 칸에서 +25%, ✨ <b>지원</b>은 친구 옆에. 동물마다 🌟 <b>스킬</b>이 있어서 기력 막대가 차면 저절로 펑! ⏩ 4배속까지.</p>
-      <p class="arc-small">🎯 단계마다 <b>미션</b>(🟡 황금 슬라임·🎁 보물상자 몬스터·합치기·뽑기…)을 해내면 🎒 <b>아이템</b>(💣 폭탄 · ❄️ 얼음꽃 · 🔥 응원 깃발 · 🍀 · ⏳ · 💰)! 👑 보스를 잡으면 🎁 <b>유물</b>을 골라 판마다 다르게 강해져요. 100단계까지 도전!</p></div>
+      <div class="rd-cards">
+        <div><h4>🎲 뽑고 🔀 합치기</h4>뽑기로 동물을 데려오고, 같은 동물 3마리면 더 센 등급으로!</div>
+        <div><h4>🏡 동물 마을 지키기</h4>👾 몬스터 문에서 나온 몬스터가 100마리 쌓이면 끝. 10단계마다 👑 보스!</div>
+        <div><h4>🧩 끌어서 배치</h4>⚔️ 근거리는 길 바로 옆 · 🏹 원거리는 뒷줄(+25%) · ✨ 지원은 가운데. 🌟 스킬은 저절로!</div>
+        <div><h4>🎯 미션 · 🎒 아이템 · 🎁 유물</h4>미션 성공 → 아이템, 보스 처치 → 유물 고르기. 맵은 10단계마다 바뀌어요.</div>
+      </div>
+      <button class="arc-btn rd-book-btn" id="rdBook">📖 동물 도감 보기 · 동물마다 힘·스킬·배치 요령</button></div>
       <div class="wb-sec"><h3>🧒 혼자 지키기 <small>최고 단계로 랭킹!</small></h3><button class="arc-btn p" id="rdSolo">▶ 시작!</button></div>
       <div class="wb-sec"><h3>👫 이 기기에서 둘이 <small>한 화면에서 각자 칸을 지켜요 · 같은 점수로 기록</small></h3><button class="arc-btn p" id="rdDuo">👫 친구 들어오기</button></div>
       <div class="wb-sec"><h3>🌐 온라인 함께 지키기 <small>각자 기기로 최대 4명 · ☁️ Firebase 반에서만</small></h3><div id="wbRooms"></div></div>`;
+    $("#rdBook").onclick = () => RDB.open();
+    body.querySelectorAll(".rd-gs span").forEach((el, i) => { el.style.cursor = "pointer"; el.title = "도감에서 보기"; el.onclick = () => { RDB.f = "g" + i; RDB.cur = RD_BY[i][0]; RDB.open(); }; });
     $("#rdSolo").onclick = () => { box.hidden = true; ARC.enter(); ARC.prep(); getAC(); NG.play("rd", [sidOf(me)]); };
     $("#rdDuo").onclick = () => { box.hidden = true; ARC.pickRival("rd", opp => { ARC.enter(); ARC.prep(); getAC(); NG.play("rd", [sidOf(me), sidOf(opp)], {local: [0, 1]}); }); };
     PARTY.renderRooms(); box.hidden = false;
@@ -13323,6 +13339,108 @@ const RDM = {
 @media (min-width:760px){.arc-game.g-rd{grid-column:span 2}.arc-game.g-rd .ag-nm{font-size:30px}.arc-game.g-rd .ag-ic{font-size:52px}}`;
   document.head.appendChild(css);
 })();
+
+/* =====================================================================
+   📖 동물 도감 — 동물마다 역할·힘·빠르기·거리·특기·스킬·배치 요령
+   (메뉴의 📖 단추 · 게임 중 위쪽 📖 단추 · B 키 / 혼자·둘이 할 때는 보는 동안 잠깐 멈춰요)
+   ===================================================================== */
+const RDB = {
+  isOpen: false, tab: "a", f: "all", cur: null,
+  seen(){ try { return JSON.parse(localStorage.getItem("rd.seen") || "{}"); } catch(e){ return {}; } },
+  see(k){ const s = this.seen(); if (s[k]) return; s[k] = 1; try { localStorage.setItem("rd.seen", JSON.stringify(s)); } catch(e) {} },
+  img(k){ this._im = this._im || {}; if (!this._im[k]){ try { this._im[k] = RDA.unitSpr(k, 128).toDataURL(); } catch(e){ this._im[k] = ""; } } return this._im[k]; },
+  tags(A){ const T = [];
+    if (A.sp) T.push(["💥", "주변까지 펑 (범위 공격)"]); if (A.mt) T.push(["🔱", `${A.mt}마리 동시 공격`]); if (A.cr) T.push(["🎯", `치명타 ${Math.round(A.cr*100)}% (3배)`]);
+    if (A.sl) T.push(["🐌", `맞으면 ${Math.round(A.sl*100)}% 느려져요`]); if (A.st) T.push(["💫", `${Math.round(A.st*100)}% 확률로 기절`]); if (A.bf) T.push(["💪", `옆 친구 공격 +${Math.round(A.bf*100)}%`]);
+    if (!T.length) T.push(["⚡", A.t]); return T; },
+  when(S){ return {gold: "🌱 초반에 금 모으기", multi: "👑 보스·센 몬스터 잡기", big: "👑 보스·센 몬스터 잡기", snipe: "👑 보스 잡기 (어디 있든 쏴요)", exec: "👑 약해진 몬스터 마무리",
+    all: "👾 몬스터가 우르르 몰려올 때", storm: "👾 몬스터가 많을 때 (어디든)", pick: "👾 몬스터가 많을 때", slow: "🚨 몬스터가 쌓여서 위험할 때", freeze: "🚨 위험할 때 시간 벌기",
+    stun: "🚨 위험할 때 시간 벌기", push: "🚨 마을이 위험할 때 밀어내기", quake: "🚨 위험할 때 + 보스", buffA: "🤝 센 친구들 한가운데", buffS: "🤝 센 친구들 한가운데"}[S.ty] || ""; },
+  tip(A){ return A.ro === "m" ? "길 바로 옆(빨간 테두리 ⚔️ 칸)에 두어요. 길이 꺾이는 모퉁이 옆이면 길 두 줄에 닿아서 더 좋아요!"
+    : A.ro === "r" ? "뒷줄(파란 테두리 🏹 칸)에 두면 공격 +25%! 거리가 길어서 길에서 조금 떨어져도 괜찮아요."
+    : "근거리·원거리 친구들 가운데에 두면 여러 친구를 한꺼번에 도와줘요."; },
+  css(){ if (this._css) return; this._css = 1; const s = document.createElement("style"); s.textContent = `
+#mdRdBook .arc-card{max-width:980px;padding:18px 20px 20px}
+.rdb-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;padding-right:52px}
+.rdb-top h2{margin:0 auto 0 0}
+.rdb-tabs,.rdb-fl{display:flex;gap:6px;flex-wrap:wrap}
+.rdb-tabs button,.rdb-fl button{border:0;border-radius:999px;padding:7px 14px;font:inherit;font-size:16px;background:#3a3178;color:#e5dbff;cursor:pointer}
+.rdb-tabs button.on{background:#ffd43b;color:#3b2a00}
+.rdb-fl button.on{background:#fff;color:#2b1d6b}
+.rdb-fl{margin:0 0 10px}
+.rdb-wrap{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;align-items:start}
+.rdb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;max-height:62vh;overflow:auto;padding:2px}
+.rdb-c{position:relative;border:0;border-radius:16px;padding:8px 4px 10px;background:#2d2566;color:#fff;font:inherit;cursor:pointer;box-shadow:inset 0 -4px 0 rgba(0,0,0,.25);border-top:4px solid var(--c)}
+.rdb-c.on{outline:3px solid #ffd43b;background:#3d3288}
+.rdb-c img{width:64px;height:64px;display:block;margin:0 auto 2px}
+.rdb-c b{display:block;font-size:15px}.rdb-c small{font-size:12px;color:#bfb3e8}
+.rdb-c i{position:absolute;top:6px;left:6px;font-style:normal;font-size:13px;background:var(--rc);border-radius:999px;padding:1px 5px}
+.rdb-c.new{padding-bottom:24px}.rdb-c.new img{opacity:.75}.rdb-c.new::after{content:"아직 못 만났어요";position:absolute;bottom:6px;left:0;right:0;font-size:11px;color:#ffa8a8}
+.rdb-d{background:#211a52;border-radius:18px;padding:14px;border:2px solid var(--c);position:sticky;top:0}
+.rdb-hd{display:flex;gap:10px;align-items:center}.rdb-hd img{width:92px;height:92px;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 70%);border-radius:50%}
+.rdb-hd h3{margin:0;font-size:24px;color:#fff}.rdb-chip{display:inline-block;border-radius:999px;padding:2px 9px;font-size:13px;margin:3px 3px 0 0;color:#1b1233;background:var(--c)}
+.rdb-bar{display:grid;grid-template-columns:70px 1fr 58px;gap:6px;align-items:center;font-size:14px;margin:6px 0;color:#e5dbff}
+.rdb-bar span{height:12px;border-radius:6px;background:rgba(255,255,255,.12);overflow:hidden}.rdb-bar span em{display:block;height:100%;border-radius:6px;background:var(--bc)}
+.rdb-bar small{text-align:right;color:#fff}
+.rdb-box{background:rgba(255,255,255,.07);border-radius:12px;padding:8px 10px;margin-top:8px;font-size:14px;line-height:1.5;color:#e5dbff}
+.rdb-box h4{margin:0 0 3px;font-size:15px;color:#ffe066}
+.rdb-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;max-height:64vh;overflow:auto}
+.rdb-it{display:flex;gap:10px;align-items:center;background:#2d2566;border-radius:14px;padding:10px 12px;color:#e5dbff;font-size:14px}
+.rdb-it>span{font-size:34px}.rdb-it b{color:#fff;font-size:16px;display:block}
+.rdb-guide{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px}
+.rdb-guide div{background:#2d2566;border-radius:16px;padding:12px 14px;color:#e5dbff;font-size:15px;line-height:1.55}
+.rdb-guide h4{margin:0 0 4px;color:#ffe066;font-size:18px}
+@media (max-width:760px){.rdb-wrap{grid-template-columns:1fr}.rdb-d{position:static}.rdb-grid{max-height:40vh}}
+.rd-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0}
+.rd-cards div{background:rgba(255,255,255,.06);border-radius:14px;padding:9px 12px;font-size:14px;line-height:1.45;color:#e5dbff}
+.rd-cards h4{margin:0 0 2px;font-size:16px;color:#ffe066}.rd-cards p{margin:0}
+.rd-book-btn{width:100%;margin:2px 0 6px}
+@media (max-width:560px){.rd-cards{grid-template-columns:1fr}}`; document.head.appendChild(s); },
+  open(k){ this.css(); let m = $("#mdRdBook");
+    if (!m){ m = document.createElement("div"); m.className = "arc-modal"; m.id = "mdRdBook"; m.hidden = true; m.innerHTML = `<div class="arc-card"><div id="rdbBody"></div><button class="arc-x" data-close>×</button></div>`; document.body.appendChild(m);
+      m.querySelector("[data-close]").onclick = () => this.close();
+      m.addEventListener("pointerdown", e => { if (e.target === m) this.close(); });
+      m.addEventListener("click", e => { const b = e.target.closest("[data-t],[data-f],[data-k]"); if (!b) return; if (b.dataset.t) this.tab = b.dataset.t; if (b.dataset.f) this.f = b.dataset.f; if (b.dataset.k) this.cur = b.dataset.k; this.render(); }); }
+    if (k){ this.tab = "a"; this.cur = k; } this.isOpen = true; m.hidden = false; this.render(); },
+  close(){ const m = $("#mdRdBook"); if (m) m.hidden = true; this.isOpen = false; },
+  render(){
+    const seen = this.seen(), nSeen = RD_K.filter(k => seen[k]).length, T = this.tab;
+    const tabs = [["a", "🐾 동물"], ["r", "🎁 유물"], ["i", "🎒 아이템"], ["g", "🧩 배치 요령"]].map(([id, n]) => `<button data-t="${id}" class="${T === id ? "on" : ""}">${n}</button>`).join("");
+    let html = `<div class="rdb-top"><h2>📖 동물 도감</h2><div class="rdb-tabs">${tabs}</div></div>`;
+    if (T === "a"){
+      const F = [["all", `전체 ${nSeen}/${RD_K.length}`], ["m", "⚔️ 근거리"], ["r", "🏹 원거리"], ["s", "✨ 지원"], ...RD_G.map((g, i) => ["g" + i, g.n])];
+      const list = RD_K.filter(k => { const A = RD_A[k]; return this.f === "all" || A.ro === this.f || this.f === "g" + A.g; });
+      if (!this.cur || !RD_A[this.cur]) this.cur = list[0] || RD_K[0];
+      html += `<div class="rdb-fl">${F.map(([id, n]) => `<button data-f="${id}" class="${this.f === id ? "on" : ""}">${n}</button>`).join("")}</div>
+        <div class="rdb-wrap"><div class="rdb-grid">${list.map(k => { const A = RD_A[k], RO = RD_ROLE[A.ro];
+          return `<button class="rdb-c ${this.cur === k ? "on" : ""} ${seen[k] ? "" : "new"}" data-k="${k}" style="--c:${RD_G[A.g].c};--rc:${RO.c}"><i>${RO.e}</i><img src="${this.img(k)}" alt=""><b>${A.n}</b><small>${RD_G[A.g].n}</small></button>`; }).join("")}</div>${this.detail(this.cur)}</div>`;
+    } else if (T === "r"){
+      html += `<p class="arc-small">👑 10단계마다 보스를 잡으면 3장 중 1장을 골라요. 같은 유물을 또 고르면 효과가 쌓여요!</p><div class="rdb-list">${RD_RK.map(k => { const R0 = RD_REL[k]; return `<div class="rdb-it"><span>${R0.e}</span><div><b>${R0.n}</b>${R0.d}</div></div>`; }).join("")}</div>`;
+    } else if (T === "i"){
+      html += `<p class="arc-small">🎯 미션 성공 · 😈 중간 보스 · 🎁 보물상자 몬스터에게서 받아요. 가방 아이콘을 누르면 바로 써요 (키보드 4~8번).</p><div class="rdb-list">${RD_IK.map(k => { const I = RD_IT[k]; return `<div class="rdb-it"><span>${I.e}</span><div><b>${I.n}</b>${I.d}</div></div>`; }).join("")}</div>`;
+    } else {
+      html += `<div class="rdb-guide">
+        <div><h4>⚔️ 근거리는 길 바로 옆</h4>빨간 테두리 칸이 길에 붙어 있는 자리예요. 근거리 동물은 공격이 1.5배 세지만 거리가 짧아서 <b>길 옆에서만</b> 닿아요. 길이 꺾이는 <b>모퉁이 옆</b>이면 두 줄을 한꺼번에 때려요!</div>
+        <div><h4>🏹 원거리는 뒷줄</h4>파란 테두리 칸은 길에서 먼 자리예요. 원거리 동물을 두면 <b>공격 +25%</b>! 부엉이·독수리처럼 거리가 아주 긴 친구는 어디서든 닿아요.</div>
+        <div><h4>✨ 지원은 가운데</h4>개구리는 몬스터를 느리게, 유니콘은 옆 친구들의 힘을 올려 줘요. <b>센 친구들 사이</b>에 두면 효과가 커요.</div>
+        <div><h4>🔀 합치기 전략</h4>같은 동물 3마리면 다음 등급으로! 3마리가 모인 칸은 반짝여요. 칸이 꽉 차면 약한 동물은 💰 팔아서 자리를 만들어요.</div>
+        <div><h4>🌟 스킬 고르기</h4>👑 보스가 나오기 전엔 <b>한 마리를 세게</b> 때리는 스킬(저격·필살 냥펀치·연속 찌르기)을, 몬스터가 쌓이면 <b>여러 마리를 멈추는</b> 스킬(얼음 폭풍·지진 쿵·해일)을 가진 친구를 앞에 두어요.</div>
+        <div><h4>🗺️ 맵이 바뀌면 다시 배치</h4>10단계마다 길 모양이 바뀌어요. 그때 근거리 친구가 "⚠️ 길에서 멀어요"가 되었는지 확인하고 끌어서 옮겨 주세요!</div></div>`;
+    }
+    $("#rdbBody").innerHTML = html;
+  },
+  detail(k){ const A = RD_A[k], RO = RD_ROLE[A.ro], G = RD_G[A.g], S = A.sk, dps = A.d*60/A.cd;
+    const mx = Math.log10(RD_A.trex.d*60/RD_A.trex.cd), mn = Math.log10(RD_A.frog.d*60/RD_A.frog.cd), pw = Math.max(.06, (Math.log10(dps) - mn)/(mx - mn));
+    const bar = (n, v, t, c) => `<div class="rdb-bar"><b>${n}</b><span><em style="width:${Math.round(Math.min(1, v)*100)}%;--bc:${c}"></em></span><small>${t}</small></div>`;
+    const nx = A.g < 4 ? `${RD_G[A.g + 1].n} ${RD_BY[A.g + 1].map(q => RD_A[q].e).join("")}` : "가장 높은 등급!";
+    return `<div class="rdb-d" style="--c:${G.c}"><div class="rdb-hd"><img src="${this.img(k)}" alt=""><div><h3>${A.e} ${A.n}</h3><span class="rdb-chip" style="--c:${G.c}">${G.n}</span><span class="rdb-chip" style="--c:${RO.c}">${RO.e} ${RO.n}</span></div></div>
+      ${bar("💪 힘", pw, `${A.d}`, "#ff8787")}${bar("⚡ 빠르기", 28/A.cd, `${(60/A.cd).toFixed(1)}번/초`, "#ffd43b")}${bar("📏 거리", A.r/5.6, `${A.r}칸`, "#74c0fc")}
+      <div class="rdb-box"><h4>✨ 특기</h4>${this.tags(A).map(([e, t]) => `${e} ${t}`).join("<br>")}</div>
+      <div class="rdb-box"><h4>🌟 스킬: ${S.e} ${S.n}</h4>${S.d}<br><small>공격 ${S.mp}번마다 저절로 · 이럴 때 좋아요: ${this.when(S)}</small></div>
+      <div class="rdb-box"><h4>🧩 어디에 둘까?</h4>${this.tip(A)}</div>
+      <div class="rdb-box"><h4>🔀 3마리 합치면</h4>${nx}</div></div>`;
+  }
+};
 
 /* =====================================================================
    🎨 동물 랜덤 디펜스 그림 (2026.11.16) — 이모지 대신 직접 그린 귀여운 동물 19종
