@@ -298,156 +298,6 @@ const RD_TOP = [
 ];
 
 /* =====================================================================
-   🗺️ 맵 모양 (2026.11.16) — 한 바퀴 네모 길이 아니라 맵마다 다른 길
-   P = 몬스터 길(한 바퀴 이어짐) · S = 동물 자리(18칸) · H = 동물 마을 · . = 꾸미기
-   ⚔️ 앞줄 = 길 바로 옆 자리(근거리 동물이 닿아요) · 🎯 뒷줄 = 길에서 먼 자리(원거리 동물 +25%)
-   ===================================================================== */
-const RD_MAPS = [
-  {id: "ring",  n: "성 마당",   m: ["...S...S...", ".PPPPPPPPP.", ".P.SSSSS.P.", ".PSS.H.SSP.", ".P.SSSSS.P.", ".PPPPPPPPP.", "...S...S..."]},
-  {id: "bend",  n: "구불 언덕", m: ["...........", ".PPPPPPPPP.", ".PSSS.SSSP.", "SPSSPPPSSPS", ".PSSPSPSSP.", ".PPPPSPPPP.", ".....H....."]},
-  {id: "isle",  n: "쌍둥이 섬", m: [".....H.....", ".PPPP.PPPP.", ".PSSPSPSSP.", ".PSSPSPSSP.", ".PSSPPPSSP.", ".PSS...SSP.", ".PPPPPPPPP."]},
-  {id: "cross", n: "십자 광장", m: ["...PPPPP...", ".PPPS.SPPP.", ".PSSS.SSSP.", ".PS.SHS.SP.", ".PSSS.SSSP.", ".PPP...PPP.", "...PPPPP..."]},
-  {id: "wave",  n: "파도 계곡", m: ["...........", "PPPPP.PPPPP", "PSSSPSPSSSP", "P.S.PSP.S.P", "PSSSPPPSSSP", "P.S.H...S.P", "PPPPPPPPPPP"]},
-  /* 🆕 길이 두 번 휘어 들어와 '목 좋은 자리'가 생기는 맵 — 어디에 누구를 둘지 고민해요 */
-  {id: "maze",  n: "미로 성채", m: ["PPPPP.PPPPP", "PSSSP.PSSSP", "P.S.PPP.S.P", "P.S..H..S.P", "P.S.PPP.S.P", "PSSSP.PSSSP", "PPPPP.PPPPP"]},
-  {id: "crown", n: "왕관 언덕", m: ["..PPPPPPP..", "..PSSSSSP..", "PPP.SHS.PPP", "PSSS...SSSP", "P....S....P", "PSS.....SSP", "PPPPPPPPPPP"]}
-];
-const RD_RING8 = {id: "ring8", n: "네모 마당", m: ["PPPPPPPP", "PSSSSSSP", "PSSSSSSP", "PSSSSSSP", "PPPPPPPP"]};
-/* 🤝 함께 지키기 광장 (2~4명): 몬스터는 🌀 문 한 곳에서 나와 큰 길 한 바퀴를 돌고,
-   친구마다 자기 자리(A·B·C·D, 18칸씩)에서 같은 길을 함께 지켜요. G = 몬스터 문(길의 시작) */
-const RD_CO4 = {id: "co4", n: "함께 지키기 광장", m: [
-  "PPPPPPPP.PPPPPPPP",
-  "PAAAAAAP.PBBBBBBP",
-  "PAAAAAAP.PBBBBBBP",
-  "PAAAAAAPPPBBBBBBP",
-  "G.......H.......P",
-  "PCCCCCCPPPDDDDDDP",
-  "PCCCCCCP.PDDDDDDP",
-  "PCCCCCCP.PDDDDDDP",
-  "PPPPPPPP.PPPPPPPP"]};
-const RD_CO2 = {id: "co2", n: "함께 지키기 마당", m: [
-  "PPPPPPPP.PPPPPPPP",
-  "PAAAAAAP.PBBBBBBP",
-  "GAAAAAAPPPBBBBBBP",
-  "PAAAAAA.H.BBBBBBP",
-  "PPPPPPPPPPPPPPPPP"]};
-/* 10단계마다 바뀌는 같이 하기 맵 (테마 그림·색은 혼자 할 때처럼 단계마다 바뀌어요) */
-const RD_CO4S = [RD_CO4,
-  {id: "co4r", n: "큰 고리 정원", m: [
-  "PPPPPPPPGPPPPPPPP",
-  "PAAAAAA...BBBBBBP",
-  "PAAAAAA...BBBBBBP",
-  "PAAAAAA...BBBBBBP",
-  "P.......H.......P",
-  "PCCCCCC...DDDDDDP",
-  "PCCCCCC...DDDDDDP",
-  "PCCCCCC...DDDDDDP",
-  "PPPPPPPPPPPPPPPPP"]},
-  {id: "co4m", n: "거울 광장", m: [
-  "PPPPPPPP.PPPPPPPP",
-  "PAAAAAAP.PBBBBBBP",
-  "PAAAAAAP.PBBBBBBP",
-  "PAAAAAAPPPBBBBBBP",
-  "P.......H.......G",
-  "PCCCCCCPPPDDDDDDP",
-  "PCCCCCCP.PDDDDDDP",
-  "PCCCCCCP.PDDDDDDP",
-  "PPPPPPPP.PPPPPPPP"]},
-  {id: "co4s", n: "아래 문 계곡", m: [
-  "PPPPPPPP.PPPPPPPP",
-  "PAAAAAAP.PBBBBBBP",
-  "PAAAAAAP.PBBBBBBP",
-  "PAAAAAAPPPBBBBBBP",
-  "P.......H.......P",
-  "PCCCCCC...DDDDDDP",
-  "PCCCCCC...DDDDDDP",
-  "PCCCCCC...DDDDDDP",
-  "PPPPPPPPGPPPPPPPP"]}];
-const RD_CO2S = [RD_CO2,
-  {id: "co2r", n: "작은 고리 정원", m: [
-  "PPPPPPPPGPPPPPPPP",
-  "PAAAAAA...BBBBBBP",
-  "PAAAAAA...BBBBBBP",
-  "PAAAAAA.H.BBBBBBP",
-  "PPPPPPPPPPPPPPPPP"]},
-  {id: "co2m", n: "거울 마당", m: [
-  "PPPPPPPP.PPPPPPPP",
-  "PAAAAAAP.PBBBBBBP",
-  "PAAAAAAPPPBBBBBBG",
-  "PAAAAAA.H.BBBBBBP",
-  "PPPPPPPPPPPPPPPPP"]}];
-/* 👥 5~6명 함께 지키기 (자리 6곳 · 18칸씩) — 길이 자리 사이사이를 파고들어요 */
-const RD_CO6 = {id: "co6", n: "여섯 마을 광장", m: [
-  "PPPPPPPP.PPPPPPPP.PPPPPPPP",
-  "PAAAAAAP.PBBBBBBP.PCCCCCCP",
-  "PAAAAAAP.PBBBBBBP.PCCCCCCP",
-  "PAAAAAAPPPBBBBBBPPPCCCCCCP",
-  "G............H...........P",
-  "PDDDDDDPPPEEEEEEPPPFFFFFFP",
-  "PDDDDDDP.PEEEEEEP.PFFFFFFP",
-  "PDDDDDDP.PEEEEEEP.PFFFFFFP",
-  "PPPPPPPP.PPPPPPPP.PPPPPPPP"]};
-const RD_CO6S = [RD_CO6,
-  {id: "co6t", n: "하늘 문 광장", m: [
-  "PPPPPPPP.PPPPGPPP.PPPPPPPP",
-  "PAAAAAAP.PBBBBBBP.PCCCCCCP",
-  "PAAAAAAP.PBBBBBBP.PCCCCCCP",
-  "PAAAAAAPPPBBBBBBPPPCCCCCCP",
-  "P............H...........P",
-  "PDDDDDDPPPEEEEEEPPPFFFFFFP",
-  "PDDDDDDP.PEEEEEEP.PFFFFFFP",
-  "PDDDDDDP.PEEEEEEP.PFFFFFFP",
-  "PPPPPPPP.PPPPPPPP.PPPPPPPP"]},
-  {id: "co6r", n: "큰 고리 숲", m: [
-  "PPPPPPPPPPPPPPPPPPPPPPPPPP",
-  "PAAAAAA...BBBBBB...CCCCCCP",
-  "PAAAAAA...BBBBBB...CCCCCCP",
-  "PAAAAAA...BBBBBB...CCCCCCP",
-  "P............H...........G",
-  "PDDDDDD...EEEEEE...FFFFFFP",
-  "PDDDDDD...EEEEEE...FFFFFFP",
-  "PDDDDDD...EEEEEE...FFFFFFP",
-  "PPPPPPPPPPPPPPPPPPPPPPPPPP"]},
-  {id: "co6m", n: "거울 성채", m: [
-  "PPPPPPPP.PPPPPPPP.PPPPPPPP",
-  "PAAAAAAP.PBBBBBBP.PCCCCCCP",
-  "PAAAAAAP.PBBBBBBP.PCCCCCCP",
-  "PAAAAAAPPPBBBBBBPPPCCCCCCP",
-  "P............H...........G",
-  "PDDDDDDPPPEEEEEEPPPFFFFFFP",
-  "PDDDDDDP.PEEEEEEP.PFFFFFFP",
-  "PDDDDDDP.PEEEEEEP.PFFFFFFP",
-  "PPPPPPPP.PPPPPPPP.PPPPPPPP"]}];
-function rdParseCo(M, tr, n){
-  let m = M.m; if (tr) m = Array.from({length: m[0].length}, (_, x) => m.map(r => r[x]).join(""));
-  const h = m.length, w = m[0].length, P = new Set(), D = [], key = (x, y) => x + "," + y, ZL = "ABCDEF".slice(0, n), zs = [...ZL].map(() => ({slots: []}));
-  let house = null, start = null;
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){ const c = m[y][x];
-    if (c === "P" || c === "G"){ P.add(key(x, y)); if (c === "G") start = [x, y]; }
-    else if (c === "H") house = [x, y];
-    else if (ZL.includes(c)) zs[ZL.indexOf(c)].slots.push([x, y]);
-    else D.push([x, y]); }
-  const path = [start]; let prev = null, cur = start;
-  for (let guard = 0; guard < 999; guard++){ const nb = [[0, -1], [1, 0], [0, 1], [-1, 0]].map(([dx, dy]) => [cur[0] + dx, cur[1] + dy]).filter(c => P.has(key(c[0], c[1])) && !(prev && c[0] === prev[0] && c[1] === prev[1]));
-    const nx = nb[0]; if (!nx || (nx[0] === start[0] && nx[1] === start[1])) break; prev = cur; cur = nx; path.push(cur); }
-  const isF = ([x, y]) => { for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) if (P.has(key(x + dx, y + dy))) return true; return false; };
-  zs.forEach(Z => { Z.front = Z.slots.map(isF); const xs = Z.slots.map(c => c[0]), ys = Z.slots.map(c => c[1]); Z.box = [Math.min(...xs), Math.min(...ys), Math.max(...xs) + 1, Math.max(...ys) + 1]; });
-  return {id: M.id, n: M.n, w, h, path, deco: D, house, P, zones: zs, slots: zs.flatMap(Z => Z.slots), front: zs.flatMap(Z => Z.front)};
-}
-function rdParse(M, tr){
-  let m = M.m; if (tr) m = Array.from({length: m[0].length}, (_, x) => m.map(r => r[x]).join(""));
-  const h = m.length, w = m[0].length, at = (x, y) => (m[y] || "")[x] || " ", P = new Set(), S = [], D = [];
-  let house = null;
-  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){ const c = at(x, y); if (c === "P") P.add(x + "," + y); else if (c === "S") S.push([x, y]); else if (c === "H") house = [x, y]; else D.push([x, y]); }
-  const key = (x, y) => x + "," + y, start = [...P].map(k => k.split(",").map(Number)).sort((a, b) => a[1] - b[1] || a[0] - b[0])[0];
-  const path = [start]; let prev = null, cur = start;
-  for (let guard = 0; guard < 500; guard++){ const nb = [[1, 0], [0, 1], [-1, 0], [0, -1]].map(([dx, dy]) => [cur[0] + dx, cur[1] + dy]).filter(c => P.has(key(c[0], c[1])) && !(prev && c[0] === prev[0] && c[1] === prev[1]));
-    const nx = nb[0]; if (!nx || (nx[0] === start[0] && nx[1] === start[1])) break; prev = cur; cur = nx; path.push(cur); }
-  const front = S.map(([x, y]) => { for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) if (P.has(key(x + dx, y + dy))) return true; return false; });
-  return {id: M.id, n: M.n, w, h, path, slots: S, front, deco: D, house, P};
-}
-
-/* =====================================================================
    ⚔️ 근거리 · 🏹 원거리 · ✨ 지원 + 🌟 스킬 (공격할 때마다 기력이 차서 저절로 써요)
    ===================================================================== */
 const RD_ROLE = {m: {e: "⚔️", n: "근거리", c: "#ff8787"}, r: {e: "🏹", n: "원거리", c: "#74c0fc"}, s: {e: "✨", n: "지원", c: "#b197fc"}};
@@ -487,6 +337,43 @@ Object.entries(RD_SK).forEach(([k, v]) => { const A = RD_A[k]; if (!A) return; A
   else if (v.ro === "r") A.r = Math.max(2.6, A.r + .4);
   else A.r = Math.max(2.3, A.r); });
 
+/* =====================================================================
+   🧪 조합 (2026.11.17) — 영웅부터는 '같은 동물 3마리'가 아니라 정해진 재료로 만들어요
+   · ⚪ 일반 → 🔵 희귀 → 🟣 영웅까지는 같은 동물 3마리 합치기(랜덤)로 올라가요
+   · 🟣 영웅은 조합으로 '골라서' 만들 수도 있어요 · 🟡 전설부터는 조합으로만!
+   · 재료: [동물, 마리 수] — 내 마당에 있는 동물을 써요 (겹쳐 있는 칸에서 한 마리씩 빠져요)
+   ===================================================================== */
+const RD_MG = 2;   // 같은 동물 3마리 합치기는 이 등급 아래(일반·희귀)까지만
+const RD_RC = {
+  fox:     [["mouse", 1], ["chick", 1], ["cat", 1]],
+  panda:   [["rabbit", 1], ["dog", 1], ["hedgehog", 1]],
+  owl:     [["chick", 2], ["penguin", 1], ["frog", 1]],
+  croc:    [["frog", 1], ["mouse", 1], ["hedgehog", 1]],
+  lion:    [["cat", 2], ["panda", 1], ["dog", 2]],
+  tiger:   [["cat", 1], ["fox", 1], ["croc", 1], ["rabbit", 2]],
+  whale:   [["penguin", 2], ["croc", 1], ["frog", 2]],
+  eagle:   [["owl", 1], ["fox", 1], ["chick", 3]],
+  dragon:  [["eagle", 1], ["croc", 2], ["fox", 2]],
+  unicorn: [["whale", 1], ["owl", 2], ["frog", 3]],
+  trex:    [["lion", 1], ["tiger", 1], ["panda", 2]],
+  phoenix: [["dragon", 1], ["eagle", 2], ["owl", 3]],
+  kirin:   [["unicorn", 1], ["lion", 2], ["panda", 3]],
+  levi:    [["whale", 2], ["dragon", 1], ["penguin", 3]],
+  bdragon: [["dragon", 2], ["phoenix", 1], ["levi", 1]],
+  wtiger:  [["tiger", 2], ["trex", 1], ["kirin", 1]],
+  nine:    [["fox", 3], ["unicorn", 1], ["phoenix", 1]],
+  gdragon: [["bdragon", 1], ["dragon", 2], ["phoenix", 2]],
+  pegasus: [["kirin", 1], ["unicorn", 2], ["nine", 1]],
+  titan:   [["trex", 2], ["wtiger", 1], ["levi", 1]]
+};
+const RD_RCK = Object.keys(RD_RC);
+/* ⚔️ 딜러 · 🛡️ 서포터 — 👑 보스는 단단해서(20단계부터 받는 피해 -50%) 🛡️ 서포터가 먼저 때려 '💥 약점'을 드러내야 딜러가 세게(+40%) 때려요 */
+const RD_JOB = {d: {e: "🗡️", n: "딜러", c: "#ff8787", t: "몬스터를 세게 때려 쓰러뜨려요"}, s: {e: "🛡️", n: "서포터", c: "#63e6be", t: "느리게·멈추게·응원 + 👑 보스 약점 드러내기"}};
+["mouse", "frog", "penguin", "panda", "whale", "lion", "unicorn", "kirin", "levi", "pegasus"].forEach(k => { if (RD_A[k]) RD_A[k].job = "s"; });
+RD_K.forEach(k => { if (!RD_A[k].job) RD_A[k].job = "d"; });
+/* 이 동물이 재료로 쓰이는 조합들 */
+const RD_USE = {}; RD_RCK.forEach(t => RD_RC[t].forEach(([k]) => (RD_USE[k] = RD_USE[k] || []).push(t)));
+
 /* 🏡 동물 마을 (지켜야 하는 곳) */
 RDA.house = function(t, x, y, s, ti){
   const roof = ["#ff6b6b", "#e8590c", "#4dabf7", "#d9480f", "#495057", "#74c0fc", "#5f3dc4", "#f783ac", "#7048e8", "#862e9c"][ti % 10], lw = Math.max(1.5, s*.03);
@@ -502,3 +389,52 @@ RDA.house = function(t, x, y, s, ti){
 /* 👾 몬스터 문 (길이 시작되는 곳) */
 RDA.portal = function(t, x, y, s){ for (let i = 0; i < 4; i++){ this.ell(t, x, y, s*(.42 - i*.09), s*(.42 - i*.09)); t.fillStyle = ["#2b1d3a", "#5f3dc4", "#9775fa", "#e5dbff"][i]; t.fill(); }
   t.strokeStyle = "#e5dbff"; t.lineWidth = Math.max(1.5, s*.03); for (let i = 0; i < 3; i++){ t.beginPath(); t.arc(x, y, s*(.15 + i*.08), i*2, i*2 + 2.4); t.stroke(); } };
+
+/* =====================================================================
+   🗺️ 4×4 마당 맵 (2026.11.17) — 친구마다 16칸(4×4) 자기 마당
+   · 길이 마당을 세 면으로 감싸요(혼자 '꽉 찬 고리'는 네 면) → 길 옆 = ⚔️ 앞줄, 안쪽 = 🏹 뒷줄
+   · 같이 하면 🌀 문이 사람 수만큼! 문마다 그 친구 마당 바로 앞에서 몬스터가 나와요 → 모두 함께 때려요
+   · 모양은 10단계마다 바뀌어요: 0 뱀길 · 1 거울 뱀길 · 2 거꾸로 도는 길 · 3 (혼자) 꽉 찬 고리
+   · 사람 수마다 모두 공평하게(앞줄 10칸씩) 되는 배치를 미리 찾아 두었어요
+   ===================================================================== */
+const RD_GSPEC = {   // K: 위 줄 마당 수 · top: 위 줄 길 높이 · bot: 아래 줄 길 높이 · bb: 아래 줄 마당 자리 (L 가로 화면 · P 세로 화면)
+  L: {1: {K: 1, top: [0]}, 2: {K: 1, top: [0], bot: [12], bb: [1]}, 3: {K: 3, top: [0, 5, 0]}, 4: {K: 4, top: [0, 5, 0, 5]}, 5: {K: 5, top: [0, 5, 0, 5, 0]}, 6: {K: 3, top: [0, 5, 0], bot: [12, 7, 12], bb: [1, 1, 1]}},
+  P: {1: {K: 1, top: [0]}, 2: {K: 1, top: [0], bot: [12], bb: [1]}, 3: {K: 3, top: [0, 5, 0]}, 4: {K: 3, top: [0, 5, 0], bot: [12, 7, 12], bb: [1, 0, 0]}, 5: {K: 3, top: [0, 5, 0], bot: [12, 7, 12], bb: [1, 1, 0]}, 6: {K: 3, top: [0, 5, 0], bot: [12, 7, 12], bb: [1, 1, 1]}}};
+function rdGen(N, v, land){
+  N = Math.max(1, Math.min(6, N)); v = v % (N === 1 ? 4 : 3);
+  const S = RD_GSPEC[land ? "L" : "P"][N], K = S.K, two = !!S.bot, ring = N === 1 && v === 3, mg = N === 1 ? 1 : 0;
+  const W0 = ring ? 6 : 5*K + 1, H0 = ring ? 6 : two ? 13 : 8;
+  const pts = [], add = (x, y) => { const l = pts[pts.length - 1]; if (!l || l[0] !== x || l[1] !== y) pts.push([x, y]); };
+  const line = (x0, y0, x1, y1) => { const sx = Math.sign(x1 - x0), sy = Math.sign(y1 - y0); let x = x0, y = y0; add(x, y); while (x !== x1 || y !== y1){ x += sx; y += sy; add(x, y); } };
+  const blocks = [];
+  if (ring){ line(0, 0, 5, 0); line(5, 0, 5, 5); line(5, 5, 0, 5); line(0, 5, 0, 1); blocks.push([1, 1]); }
+  else {
+    let cx = 0, cy = S.top[0]; add(0, cy);
+    for (let i = 0; i < K; i++){ line(cx, cy, cx, S.top[i]); cy = S.top[i]; line(cx, cy, cx + 5, cy); cx += 5; blocks.push([1 + 5*i, 1]); }
+    if (!two){ line(cx, cy, cx, 7); cy = 7; line(cx, cy, 0, cy); cx = 0; }
+    else { for (let p = K - 1; p >= 0; p--){ line(cx, cy, cx, S.bot[p]); cy = S.bot[p]; line(cx, cy, cx - 5, cy); cx -= 5; } for (let p = 0; p < K; p++) if (S.bb[p]) blocks.push([1 + 5*p, 8]); }
+    line(0, cy, 0, S.top[0] + (cy > S.top[0] ? 1 : -1));
+  }
+  /* 모양 바꾸기 → 여백 → (가로·세로에 맞게) 눕히기 */
+  const tr = (land && H0 > W0) || (!land && W0 > H0);
+  const T = ([x, y]) => { if (v === 1) x = W0 - 1 - x; x += mg; y += mg; return tr ? [y, x] : [x, y]; };
+  let path = pts.map(T); if (v === 1 || v === 2) path.reverse();
+  const w0 = W0 + 2*mg, h0 = H0 + 2*mg, w = tr ? h0 : w0, h = tr ? w0 : h0, key = (x, y) => x + "," + y, P = new Set(path.map(([x, y]) => key(x, y)));
+  const zones = blocks.map(([bx, by]) => { const slots = []; for (let yy = 0; yy < 4; yy++) for (let xx = 0; xx < 4; xx++){ const a = T([bx + xx, by + yy]); slots.push(a); }
+    /* 칸 순서: 늘 화면 기준 위→아래, 왼→오 (1~16번 자리) */
+    slots.sort((a, b) => a[1] - b[1] || a[0] - b[0]); const xs = slots.map(c => c[0]), ys = slots.map(c => c[1]);
+    return {slots, box: [Math.min(...xs), Math.min(...ys), Math.max(...xs) + 1, Math.max(...ys) + 1]}; });
+  /* 마당 순서도 화면 기준 (위 줄 왼쪽부터) → 1번 친구가 늘 왼쪽 위 */
+  zones.sort((a, b) => a.box[1] - b.box[1] || a.box[0] - b.box[0]);
+  const used = new Set([...P, ...zones.flatMap(Z => Z.slots.map(([x, y]) => key(x, y)))]);
+  let house = null, bd = 1e9; for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (!used.has(key(x, y))){ const d = (x - w/2 + .5)**2 + (y - h/2 + .5)**2*1.3; if (d < bd){ bd = d; house = [x, y]; } }
+  const D = []; for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (!used.has(key(x, y)) && !(house && house[0] === x && house[1] === y)) D.push([x, y]);
+  const isF = ([x, y]) => { for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) if (P.has(key(x + dx, y + dy))) return true; return false; };
+  /* 🌀 문: 그 친구 마당을 가장 길게 끼고 도는 길이 시작되기 바로 앞 */
+  const n = path.length;
+  zones.forEach(Z => { const near = i => { const [x, y] = path[((i % n) + n) % n]; return Z.slots.some(([a, b]) => Math.abs(a - x) <= 1 && Math.abs(b - y) <= 1); };
+    Z.front = Z.slots.map(isF); let best = 0, bl = -1;
+    for (let i = 0; i < n; i++){ if (!near(i) || near(i - 1)) continue; let l = 0; while (l < n && near(i + l)) l++; if (l > bl){ bl = l; best = i; } }
+    Z.door = (best - 1 + n) % n; });
+  return {id: `g${N}v${v}${land ? "L" : "P"}`, n: N, w, h, path, deco: D, house, P, zones, slots: zones.flatMap(Z => Z.slots), front: zones.flatMap(Z => Z.front), doors: zones.map(Z => Z.door)};
+}
