@@ -302,6 +302,51 @@ const RD_CO2 = {id: "co2", n: "함께 지키기 마당", m: [
   "GAAAAAAPPPBBBBBBP",
   "PAAAAAA.H.BBBBBBP",
   "PPPPPPPPPPPPPPPPP"]};
+/* 10단계마다 바뀌는 같이 하기 맵 (테마 그림·색은 혼자 할 때처럼 단계마다 바뀌어요) */
+const RD_CO4S = [RD_CO4,
+  {id: "co4r", n: "큰 고리 정원", m: [
+  "PPPPPPPPGPPPPPPPP",
+  "PAAAAAA...BBBBBBP",
+  "PAAAAAA...BBBBBBP",
+  "PAAAAAA...BBBBBBP",
+  "P.......H.......P",
+  "PCCCCCC...DDDDDDP",
+  "PCCCCCC...DDDDDDP",
+  "PCCCCCC...DDDDDDP",
+  "PPPPPPPPPPPPPPPPP"]},
+  {id: "co4m", n: "거울 광장", m: [
+  "PPPPPPPP.PPPPPPPP",
+  "PAAAAAAP.PBBBBBBP",
+  "PAAAAAAP.PBBBBBBP",
+  "PAAAAAAPPPBBBBBBP",
+  "P.......H.......G",
+  "PCCCCCCPPPDDDDDDP",
+  "PCCCCCCP.PDDDDDDP",
+  "PCCCCCCP.PDDDDDDP",
+  "PPPPPPPP.PPPPPPPP"]},
+  {id: "co4s", n: "아래 문 계곡", m: [
+  "PPPPPPPP.PPPPPPPP",
+  "PAAAAAAP.PBBBBBBP",
+  "PAAAAAAP.PBBBBBBP",
+  "PAAAAAAPPPBBBBBBP",
+  "P.......H.......P",
+  "PCCCCCC...DDDDDDP",
+  "PCCCCCC...DDDDDDP",
+  "PCCCCCC...DDDDDDP",
+  "PPPPPPPPGPPPPPPPP"]}];
+const RD_CO2S = [RD_CO2,
+  {id: "co2r", n: "작은 고리 정원", m: [
+  "PPPPPPPPGPPPPPPPP",
+  "PAAAAAA...BBBBBBP",
+  "PAAAAAA...BBBBBBP",
+  "PAAAAAA.H.BBBBBBP",
+  "PPPPPPPPPPPPPPPPP"]},
+  {id: "co2m", n: "거울 마당", m: [
+  "PPPPPPPP.PPPPPPPP",
+  "PAAAAAAP.PBBBBBBP",
+  "PAAAAAAPPPBBBBBBG",
+  "PAAAAAA.H.BBBBBBP",
+  "PPPPPPPPPPPPPPPPP"]}];
 function rdParseCo(M, tr, n){
   let m = M.m; if (tr) m = Array.from({length: m[0].length}, (_, x) => m.map(r => r[x]).join(""));
   const h = m.length, w = m[0].length, P = new Set(), D = [], key = (x, y) => x + "," + y, ZL = "ABCD".slice(0, n), zs = [...ZL].map(() => ({slots: []}));
