@@ -91,6 +91,8 @@ NG.defs.bp = () => {
   }
   const self = {
     get W(){ return W; }, get H(){ return H; }, maxPx: 2.2e6, layout,
+    /* ▶ 이어하기 (🪙 코인): 지금 점수 그대로 다시 */
+    revive(){ over = 0; const m = Math.floor(N/2); for (let r = m - 2; r <= m + 1; r++) if (bd[r]) bd[r].fill(null); if (!tray.some(t => t && canPlace(t))) deal(); PZ.praise(fx, W/2, BY + C*N/2, "▶ 가운데를 비웠어요!", "#ffe066", 1); },
     init(){ bd = Array.from({length: N}, () => Array(N).fill(null)); score = 0; combo = 0; drag = null; clearing = []; fx = []; parts = []; over = 0; moves = 0; shake = 0;
       best = ((Store.recs.bp || {})[NG.sids[0]] || {}).best || 0; deal(); },
     down(x, y, id){
@@ -211,6 +213,8 @@ NG.defs.fm = () => {
   }
   return {
     W, H, maxPx: 2.2e6,
+    /* ▶ 이어하기 (🪙 코인): 지금 점수 그대로 다시 */
+    revive(){ over = 0; dangerT = 0; fr = fr.filter(p => p.y - FR[p.lv].r > DANGER + 90); PZ.praise(fx, W/2, 200, "▶ 위쪽 과일을 치웠어요!", "#ffe066", 1); },
     init(){ fr = []; cur = newFruit(); nxt = newFruit(); aimX = W/2; cool = 0; score = 0; fx = []; parts = []; over = 0; dangerT = 0; maxLv = 0; seq = 0;
       best = ((Store.recs.fm || {})[NG.sids[0]] || {}).best || 0; },
     down(x){ aimX = x; this.held = true; },
@@ -324,6 +328,8 @@ NG.defs.jm = () => {
   const cellAt = (x, y) => { const c = Math.floor((x - BX)/C), r = Math.floor((y - BY)/C); return r >= 0 && c >= 0 && r < N && c < N ? [r, c] : null; };
   return {
     W, H, maxPx: 2.2e6,
+    /* ▶ 이어하기 (🪙 코인): 지금 점수 그대로 다시 */
+    revive(){ over = 0; time = 20*60; busy = false; PZ.praise(fx, W/2, BY + C*4, "▶ +20초!", "#ffe066", 1); },
     init(){ fill(); sel = null; swap = null; fall = false; score = 0; combo = 0; time = TIME; fx = []; parts = []; busy = false; idle = 0; hint = null; over = 0; dragS = null;
       best = ((Store.recs.jm || {})[NG.sids[0]] || {}).best || 0; },
     down(x, y, id){ const p = cellAt(x, y); if (!p || busy || over) return;
@@ -442,6 +448,8 @@ NG.defs.ws = () => {
   }
   return {
     get W(){ return W; }, get H(){ return H; }, maxPx: 2.2e6, layout,
+    /* ▶ 이어하기 (🪙 코인): 지금 점수 그대로 다시 */
+    revive(){ over = 0; time = Math.max(0, time) + 30*60; PZ.praise(fx, W/2, 200, "▶ +30초!", "#ffe066", 1); },
     init(){ level = 0; score = 0; time = TIME; fx = []; parts = []; over = 0; best = ((Store.recs.ws || {})[NG.sids[0]] || {}).best || 0; newLevel(); },
     down(x, y){
       if (over || solvedT) return;

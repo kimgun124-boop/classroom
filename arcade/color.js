@@ -95,6 +95,8 @@ NG.defs.cp = () => {
   }
   function line(a, b){ const d = Math.hypot(b.x - a.x, b.y - a.y), n = Math.max(1, Math.ceil(d/(cs*.35))); for (let i = 1; i <= n; i++) tryAt(a.x + (b.x - a.x)*i/n, a.y + (b.y - a.y)*i/n, false); }
   return { W, H,
+    /* ▶ 이어하기 (🪙 코인): 지금 점수 그대로 다시 */
+    revive(){ t = 20*60; },
     init(){ t = T; score = 0; combo = 0; best = 0; done = 0; painted = 0; wrongs = 0; fx = []; pops = []; flash = 0; shake = 0; drag = {}; freeze = 0; lastHit = -99; bimg = null;
       // 작은 그림부터, 같은 크기끼리는 섞어서
       const by = {}; CPICS.forEach(p => { const n = p[1].length*p[1][0].length; (by[n < 75 ? 0 : n < 100 ? 1 : n < 125 ? 2 : 3] = by[n < 75 ? 0 : n < 100 ? 1 : n < 125 ? 2 : 3] || []).push(p); });

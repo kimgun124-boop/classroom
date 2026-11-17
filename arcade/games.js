@@ -195,6 +195,8 @@ NG.defs.wm = () => {
   let holes, t, score, combo, best, next, fx, pops, hammer, shake, hits, miss;
   const friends = () => roster().map(s => sidOf(s.no));
   return { W, H,
+    /* ▶ 이어하기 (🪙 코인): 지금 점수 그대로 다시 */
+    revive(){ t = 15*60; fx.push({x: W/2, y: H/2, s: "▶ +15초!", c: "#ffe066", t: 80}); },
     init(){ holes = Array.from({length: 9}, (_, i) => ({i, x: HX[i % 3], y: HY[Math.floor(i/3)], k: null, up: 0, life: 0, hit: 0})); t = T; score = 0; combo = 0; best = 0; next = 40; fx = []; pops = []; hammer = null; shake = 0; hits = 0; miss = 0; },
     spawn(){
       const free = holes.filter(h => !h.k); if (!free.length) return;
@@ -288,6 +290,8 @@ NG.defs.bk = () => {
   function newBall(){ stuck = true; balls = [{x: px, y: PY - BR - 2, vx: 0, vy: 0}]; }
   function launch(){ if (!stuck) return; stuck = false; const a = -Math.PI/2 + rnd(-.4, .4), s = speed(); balls.forEach(b => { b.vx = Math.cos(a)*s; b.vy = Math.sin(a)*s; }); SFX.jump(); }
   return { W, H,
+    /* ▶ 이어하기 (🪙 코인): 지금 점수 그대로 다시 */
+    revive(){ lives = 1; balls = []; newBall(); fx.push({x: px, y: PY - 60, s: "▶ 공 하나 더!", t: 70}); },
     init(){ px = W/2; tx = px; pw = 130; lives = 3; level = 1; score = 0; items = []; fx = []; wideT = 0; slowT = 0; keys = new Set(); hitN = 0; build(); newBall(); },
     down(x){ tx = x; launch(); }, move(x){ tx = x; },
     key(code, d){ if (["ArrowLeft","ArrowRight","KeyA","KeyD"].includes(code)){ d ? keys.add(code) : keys.delete(code); return true; } if (d && (code === "Space" || code === "ArrowUp")){ launch(); return true; } return false; },
@@ -464,6 +468,8 @@ NG.defs.rn = () => {
   }
 
   return { W, H,
+    /* ▶ 이어하기 (🪙 코인): 지금 점수 그대로 다시 */
+    revive(){ over = false; invul = 180; obs = obs.filter(o => o.x > PX + 460); p.y = GY - R; p.vy = 0; jumpsLeft = 2; fx.push({x: PX + 40, y: p.y - 70, s: "▶ 다시 달려요!", t: 80, big: 1}); },
     init(){
       p = {y: GY - R, vy: 0}; obs = []; coins = []; items = []; pts = 0; bonus = 0; dist = 0; sp = 7; next = 90; nextItem = 360;
       candies = 0; fx = []; parts = []; flakes = []; jumpsLeft = 2; over = false; shield = false; invul = 0; mapI = 0; fade = 0; lay = layPrev = null; layK = 0; banner = 120;
@@ -607,6 +613,8 @@ NG.defs.tw = () => {
       if (!canMove()) setTimeout(() => NG.over(score, `<div>가장 큰 숫자 <b>${maxV}</b> ${BADGE[maxV] || ""}</div>`), 400); }, 120);
   }
   const this_ = { dom: true,
+    /* ▶ 이어하기 (🪙 코인): 지금 점수 그대로 다시 */
+    revive(){ const L = tiles.filter(t => grid[t.r] && grid[t.r][t.c] === t).sort((a, b) => a.v - b.v).slice(0, 4); L.forEach(t => grid[t.r][t.c] = null); tiles = tiles.filter(t => !L.includes(t)); moving = false; },
     init(){ grid = Array.from({length: N}, () => Array(N).fill(null)); tiles = []; score = 0; idc = 0; moving = false; maxV = 2;
       $("#ngDom").innerHTML = `<div class="tw-board" id="twB"></div>`; board = $("#twB"); this.fit2(); add(); add(); render(); },
     fit(w, h){ this.W2 = w; this.H2 = h; if (board) this.fit2(); },
@@ -843,6 +851,8 @@ NG.defs.st = () => {
     get dbg(){ return {next: st[p + 1] ? st[p + 1].x - st[p].x : 0, f, score, energy, land, W, H}; },
     setScore(n){ score = n; best50 = Math.floor(n/50)*50; },
     layout(sw, sh){ const w0 = W, h0 = H; layout(sw, sh); if (st && (W !== w0 || H !== h0)) setTimeout(prewarm, 50); },
+    /* ▶ 이어하기 (🪙 코인): 지금 점수 그대로 다시 */
+    revive(){ over = 0; fall = null; anim = null; crumble = -1; energy = 1; shownE = 1; flash = null; shake = 0; },
     init(){ st = [{x: 0, dip: 0}]; gen(50); p = 0; f = st[1].x - st[0].x; energy = 1; shownE = 1; score = 0; stars = 0; camX = 0; camI = 0; camKick = 0; anim = null; fall = null; fx = []; dust = [];
       over = 0; best50 = 0; keysDown = new Set(); press = [0, 0]; streak = 0; lastT = 0; flipT = 0; shake = 0; flash = null; beatT = 0; crumble = -1; setTimeout(prewarm, 60); },
     down(x, y){ step(x < W/2); },
