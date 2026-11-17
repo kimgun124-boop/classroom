@@ -133,7 +133,9 @@ NG.defs.rd = () => {
   const sp = (k, w, h, fn) => G2.spr("rd" + k, w, h, fn);
 
   /* ---------- 소리 ---------- */
+  const lastS = {};
   function playS(k){
+    const nf = NG.frame || 0; if (lastS[k] != null && nf - lastS[k] >= 0 && nf - lastS[k] < 4) return; lastS[k] = nf;   // ⚡ 같은 소리가 한 화면에 겹치지 않게
     if (k === "sum") { tone(520, 880, .09, "triangle", .08); tone(880, 1320, .08, "sine", .06, .06); }
     else if (k === "merge") [523, 659, 784, 1046].forEach((f, i) => tone(f, f*1.01, .1, "triangle", .09, i*.06));
     else if (k === "big") { [392, 523, 659, 784, 1046, 1318].forEach((f, i) => tone(f, f, .14, "square", .07, i*.07)); }
@@ -262,6 +264,7 @@ NG.defs.rd = () => {
   const ttSpr = k => sp("tt" + k, 44, 44, t => { t.font = `34px ${EMOJI}`; t.textAlign = "center"; t.textBaseline = "middle"; t.fillText(k === 9 ? "🔥" : k === 8 ? "🔗" : RD_TT[k].e, 22, 24); });
   const iceSpr = () => sp("rdice", 70, 80, t => { t.fillStyle = "rgba(165,216,255,.75)"; t.strokeStyle = "#fff"; t.lineWidth = 2; [[35, 4, 12], [18, 24, 9], [52, 22, 9]].forEach(([x, y, w]) => { t.beginPath(); t.moveTo(x, y); t.lineTo(x + w, y + 34); t.lineTo(x, y + 60); t.lineTo(x - w, y + 34); t.closePath(); t.fill(); t.stroke(); }); });
   const orbSpr = g => { const s = 2*(10 + g*3); return sp("orb" + g + s, s, s, t => { const c = RD_G[g].c, m = s/2; t.fillStyle = BSA.rg(t, m, m, 1, m, [[0, "#fff"], [.4, c], [1, "rgba(255,255,255,0)"]]); t.fillRect(0, 0, s, s); }); };
+  const colSpr = (c, m) => sp("col" + c + m, 24, 128, t => { const gr = t.createLinearGradient(0, 0, 0, 128); gr.addColorStop(0, "rgba(255,255,255,0)"); gr.addColorStop(m, c); gr.addColorStop(1, "#fff"); t.fillStyle = gr; t.fillRect(0, 0, 24, 128); });
   const ringSpr = c => sp("ring" + c, 96, 96, t => { t.strokeStyle = c; t.lineWidth = 5; t.beginPath(); t.arc(48, 48, 44, 0, 7); t.stroke(); t.globalAlpha = .25; t.fillStyle = c; t.fill(); });
   /* 그림 글자 + 숫자를 한 장으로 (테두리 글씨에 그림 글자가 섞이면 숫자가 깨지는 기기가 있어요) */
   function lbl(parts, fs, col = "#fff"){ const key = parts.join("¦") + fs + col; const ws = parts.map(p => /^\p{Extended_Pictographic}/u.test(p) ? fs*1.2 : rdMeasure(p, fs) + 6), w = ws.reduce((a, b) => a + b, 0) + 6, h = fs + 12;
@@ -623,7 +626,33 @@ NG.defs.rd = () => {
 
   /* ---------- 그리기 ---------- */
   let bookDrawn = false;   // 📖 도감 보는 동안(혼자·둘이)은 멈춘 화면을 한 번만 그리고 쉬어요
+  /* ⚡ 4배속 렉 없애기: 화면을 크게 덮는 효과는 동시에 몇 개만 (게임 계산과는 상관없는 그림만 줄여요) */
+  const FXCAP = {flash: 1, novaB: 2, novaS: 4, ringB: 4, ring: 14, line: 6, pillar: 2, col: 3, txs: 6, tx: 14, ice: 8};
+  function fxArea(f, ty){
+    if (ty === "flash") return W*H*.5;
+    if (ty === "novaB" || ty === "novaS"){ const r = Math.min((f.r || 2)*C*1.1, C*4.5); return 4*r*r; }
+    if (ty === "ringB"){ const r = Math.min((f.r || 1)*C, C*3.2); return 4*r*r; }
+    if (ty === "pillar") return C*C*(4.6*4.6 + 1.4*3.4);
+    if (ty === "col") return f.c === RD_G[3].c || f.c === RD_G[4].c ? W*H*.4 : 0;
+    return 0; }
+  /* 🎚️ 기기가 버거워하면(장면 사이가 길어지면) 큰 효과를 저절로 줄이고, 여유가 생기면 다시 늘려요 */
+  let fxQ = 1, fxLast = 0, fxAvg = 16.7;
+  function fxTune(){ const now = performance.now(), dt = now - fxLast; fxLast = now; if (dt <= 0 || dt > 200) return;
+    fxAvg += (dt - fxAvg)*.1; if (fxAvg > 19.5) fxQ = Math.max(.08, fxQ*.92); else if (fxAvg < 17.5) fxQ = Math.min(1, fxQ*1.01 + .002); }
+  function trimFX(){
+    if (FX.length < 3) return;
+    const n = {}, keep = [], budget = W*H*1.1*fxQ*(speed >= 4 ? .6 : speed >= 2 ? .8 : 1)*(PERF.lite ? .5 : 1); let used = 0;
+    for (let i = FX.length - 1; i >= 0; i--){ const f = FX[i];   // 새것부터 남겨요
+      const ty = f.flash ? "flash" : f.nova ? ((f.r || 2) >= 1.5 ? "novaB" : "novaS") : f.ring ? ((f.r || 1) >= 1.5 ? "ringB" : "ring") : (f.bolt || f.beam) ? "line" : f.pillar ? "pillar" : f.ice ? "ice"
+        : f.tx ? (f.ui ? "" : f.sm ? "txs" : (f.cell && !f.nb && f.t > 40 && !/^\+/.test(f.tx)) ? "col" : "tx") : "";
+      if (ty){ n[ty] = (n[ty] || 0) + 1; if (n[ty] > FXCAP[ty]) continue; }
+      // 화면을 칠하는 넓이가 너무 많아지면 (큰 효과가 겹치면) 오래된 것부터 빼요
+      const ar = fxArea(f, ty); if (ar > 0){ if (used + ar > budget && ty !== "flash") continue; used += ar; }
+      keep.push(f); }
+    if (keep.length !== FX.length){ keep.reverse(); FX.length = 0; for (const f of keep) FX.push(f); }
+  }
   function draw(g){
+    fxTune(); trimFX();
     if (RDB.isOpen && !party){ if (bookDrawn) return; bookDrawn = true; } else bookDrawn = false;
     g.clearRect(0, 0, W, H);
     const k = NG.k || 1; buildLayer(); boardBG();
@@ -660,20 +689,20 @@ NG.defs.rd = () => {
       if (p.t >= p.T) PR.splice(i, 1); }
     // 효과
     for (let i = FX.length - 1; i >= 0; i--){ const f = FX[i]; f.t--; if (f.t <= 0){ FX.splice(i, 1); continue; }
-      if (f.ring){ const T = 26, a = 1 - f.t/T, rr = (f.r || 1)*C*(.3 + a*.7); g.globalAlpha = Math.min(1, f.t/10)*.8; g.drawImage(ringSpr(f.c), cx(f.x) - rr, cy(f.y) - rr, rr*2, rr*2); g.globalAlpha = 1; continue; }
-      if (f.nova){ f.T = f.T || f.t + 1; const a = 1 - f.t/f.T, rr = (f.r || 2)*C*(.2 + a*.9), x = cx(f.x), y = cy(f.y); g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = Math.min(1, f.t/12)*.85;
+      if (f.ring){ const T = 26, a = 1 - f.t/T, rr = Math.min((f.r || 1)*C*(.3 + a*.7), C*3.2); g.globalAlpha = Math.min(1, f.t/10)*.8; g.drawImage(ringSpr(f.c), cx(f.x) - rr, cy(f.y) - rr, rr*2, rr*2); g.globalAlpha = 1; continue; }
+      if (f.nova){ f.T = f.T || f.t + 1; const a = 1 - f.t/f.T, rr = Math.min((f.r || 2)*C*(.2 + a*.9), C*4.5), x = cx(f.x), y = cy(f.y); g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = Math.min(1, f.t/12)*.85;
         g.drawImage(novaSpr(f.c), x - rr, y - rr, rr*2, rr*2); g.restore(); continue; }
       if (f.flash){ f.T = f.T || f.t + 1; g.globalAlpha = f.t/f.T*.35; g.fillStyle = f.c; g.fillRect(0, 0, W, H); g.globalAlpha = 1; continue; }
-      if (f.bolt || f.beam){ g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = Math.min(1, f.t/8); g.strokeStyle = f.c; g.shadowColor = f.c; g.shadowBlur = 12; g.lineWidth = f.beam ? 10 : 5; g.lineCap = "round";
+      if (f.bolt || f.beam){ g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = Math.min(1, f.t/8); g.strokeStyle = f.c; g.lineWidth = f.beam ? 10 : 5; g.lineCap = "round"; g.lineJoin = "round";
         const x1 = cx(f.x), y1 = cy(f.y), x2 = cx(f.x2), y2 = cy(f.y2); g.beginPath(); g.moveTo(x1, y1);
         if (f.bolt){ for (let k = 1; k < 5; k++){ const u = k/5; g.lineTo(x1 + (x2 - x1)*u + ((k*37 + f.t*11) % 22) - 11, y1 + (y2 - y1)*u + ((k*53 + f.t*7) % 22) - 11); } }
-        g.lineTo(x2, y2); g.stroke(); g.lineWidth = f.beam ? 3 : 2; g.strokeStyle = "#fff"; g.stroke(); g.restore(); continue; }
+        g.lineTo(x2, y2); const a0 = g.globalAlpha; g.globalAlpha = a0*.35; g.lineWidth = f.beam ? 22 : 13; g.stroke(); g.globalAlpha = a0; g.lineWidth = f.beam ? 10 : 5; g.stroke(); g.lineWidth = f.beam ? 3 : 2; g.strokeStyle = "#fff"; g.stroke(); g.restore(); continue; }
       if (f.ice){ g.globalAlpha = Math.min(1, f.t/10); G2.put(g, iceSpr(), cx(f.x) - C*.35, cy(f.y) - C*.55); g.globalAlpha = 1; continue; }
       if (f.pillar){ f.T = f.T || f.t + 1; const a = f.t/f.T, x = cx(f.x), y = cy(f.y), bw = C*1.4; g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = a*.8;
-        g.fillStyle = BSA.lg(g, 0, y - C*3, 0, y + C*.4, [[0, "rgba(255,255,255,0)"], [.6, f.c], [1, "#fff"]]); g.fillRect(x - bw/2, y - C*3, bw, C*3.4); g.drawImage(novaSpr(f.c), x - C*2.3, y - C*2.3, C*4.6, C*4.6); g.restore(); continue; }
+        g.drawImage(colSpr(f.c, .6), x - bw/2, y - C*3, bw, C*3.4); g.drawImage(novaSpr(f.c), x - C*2.3, y - C*2.3, C*4.6, C*4.6); g.restore(); continue; }
       if (f.tx && f.cell && !f.sm && !f.nb && f.t > 40 && !/^\+/.test(f.tx)){   // ✨ 뽑기·합치기: 칸 위로 빛기둥
         const a = (f.t - 40)/30, bx = cx(f.x), by0 = cy(f.y + .4), bw = C*.62*(.6 + a*.4);
-        g.globalAlpha = a*.8; g.fillStyle = BSA.lg(g, 0, by0 - C*1.6, 0, by0, [[0, "rgba(255,255,255,0)"], [.7, f.c], [1, "#ffffff"]]); g.fillRect(bx - bw/2, by0 - C*1.6, bw, C*1.6);
+        g.globalAlpha = a*.8; g.drawImage(colSpr(f.c, .7), bx - bw/2, by0 - C*1.6, bw, C*1.6);
         if (f.c === RD_G[3].c || f.c === RD_G[4].c){ g.globalAlpha = a*.35; g.fillStyle = f.c === RD_G[4].c ? "#ffd6f5" : "#fff3bf"; g.fillRect(0, 0, W, H); }
         g.globalAlpha = 1; }
       if (f.tx){ g.globalAlpha = Math.min(1, f.t/18); const x = f.cell ? cx(f.x) : f.x, y = (f.cell ? cy(f.y) : f.y) - (f.ui ? 0 : (70 - f.t)*.5); G2.put(g, lbl(splitE(f.tx), f.sm ? 14 : f.ui ? 22 : 18, f.c), x - lbl(splitE(f.tx), f.sm ? 14 : f.ui ? 22 : 18, f.c).w/2, y - 14); g.globalAlpha = 1; } }
@@ -886,7 +915,7 @@ NG.defs.rd = () => {
       if (party === "host") for (let z = 1; z < N; z++){ if (!remote(z)) continue; const r = PARTY.remoteIn(z); if (!r) continue; const m = r.m; if (m.sd !== seed || !m.a) continue;
         m.a.forEach(a => { if (a[0] > lastAct[z]){ lastAct[z] = a[0]; doAct(z, a.slice(1)); } }); Z[z].ack = lastAct[z]; }
       if (state === "over"){ RDS.del(SIDS); if (--overT <= 0) finish(); }
-      else if (!(RDB.isOpen && !party)) for (let i = 0; i < speed; i++) sim();
+      else if (!(RDB.isOpen && !party)) for (let i = 0; i < speed; i++){ const p0 = PR.length; sim(); if (i < speed - 1 && PR.length > p0 + 4) PR.length = p0 + 4; }   // ⚡ 빨리 감기: 총알 그림은 마지막 한 번만 다 그려요 (계산은 그대로)
       if (!party && state === "play" && ++saveT % 180 === 0) saveGame();
       emStep();   // 📖 도감 보는 동안 잠깐 멈춤 (혼자·둘이)
       if (party === "host" && frame % (N >= 4 || E.length > 120 ? 6 : 4) === 0) PARTY.sendSnap(snap(), NQ.splice(0), gv);   // 사람·몬스터가 많으면 조금 덜 자주(친구 기기가 알아서 부드럽게 이어 그려요)

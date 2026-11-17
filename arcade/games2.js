@@ -11,9 +11,10 @@ const G2 = {
   spr(key, w, h, fn){
     const k = NG.k || 1; if (k !== this.ck){ this.cache.clear(); this.ck = k; }
     let c = this.cache.get(key);
-    if (!c){ if (this.cache.size > 500) this.cache.clear();
+    if (c){ c._u = NG.frame; return c; }
+    { if (this.cache.size > 600){ [...this.cache].sort((a, b) => (a[1]._u || 0) - (b[1]._u || 0)).slice(0, 200).forEach(([k2]) => this.cache.delete(k2)); }   // ⚡ 다 지우지 않고 한동안 안 쓴 그림만 (한꺼번에 다시 그리느라 멈칫하지 않게)
       c = document.createElement("canvas"); c.width = Math.max(1, Math.ceil(w*k)); c.height = Math.max(1, Math.ceil(h*k));
-      const t = c.getContext("2d"); t.scale(k, k); fn(t, w, h); c.w = w; c.h = h; this.cache.set(key, c); }
+      const t = c.getContext("2d"); t.scale(k, k); fn(t, w, h); c.w = w; c.h = h; c._u = NG.frame; this.cache.set(key, c); }
     return c;
   },
   /* 화면 점에 딱 맞춰 붙이기 (흐려짐 없이) */
