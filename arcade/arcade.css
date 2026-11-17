@@ -305,3 +305,6 @@ body.arc-lite .arc-logo .g{animation:none !important}
 .tl-qrbig h2{color:#ffe066;margin:0 0 14px;font-size:clamp(26px,4vw,46px)}
 .tl-qrbig svg{width:min(70vh,80vw);height:min(70vh,80vw);background:#fff;border-radius:20px;padding:14px;box-sizing:border-box}
 .tl-qrbig p{color:#d0c8ff;font-size:18px}
+/* 🔇 음소거 단추 */
+.ng-top .ng-snd{font-size:20px;display:flex;align-items:center;justify-content:center}
+.snd-btn.off{background:#5c2b3d!important;color:#ffc9c9!important}

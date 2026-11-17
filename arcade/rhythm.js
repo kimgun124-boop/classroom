@@ -590,11 +590,11 @@ NG.defs.rh = () => {
     try { const a = ac();
       if (!tapBuf){ const n = Math.round(a.sampleRate*.06); tapBuf = a.createBuffer(1, n, a.sampleRate); const d = tapBuf.getChannelData(0);
         for (let i = 0; i < n; i++){ const k = i/n; d[i] = (Math.sin(i/a.sampleRate*2*Math.PI*1800)*.5 + (Math.random()*2 - 1)*.5)*Math.pow(1 - k, 6); } }
-      const s = a.createBufferSource(), g = a.createGain(); s.buffer = tapBuf; s.playbackRate.value = perfect ? 1.15 : .95; g.gain.value = .22; s.connect(g); g.connect(a.destination); s.start(); } catch(e) {}
+      const s = a.createBufferSource(), g = a.createGain(); s.buffer = tapBuf; s.playbackRate.value = perfect ? 1.15 : .95; g.gain.value = .22; s.connect(g); g.connect(OUT(a)); s.start(); } catch(e) {}
   }
   function stopPreview(){ if (preview){ try { preview.g.gain.setTargetAtTime(0, ac().currentTime, .08); preview.s.stop(ac().currentTime + .4); } catch(e) {} preview = null; } }
   function startPreview(b, from){
-    stopPreview(); const a = ac(), s = a.createBufferSource(), g = a.createGain(); s.buffer = b; s.connect(g); g.connect(a.destination);
+    stopPreview(); const a = ac(), s = a.createBufferSource(), g = a.createGain(); s.buffer = b; s.connect(g); g.connect(OUT(a));
     const t = a.currentTime + .05, st = Math.max(0, Math.min(from, b.duration - 14)); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.5*pref.vol, t + .6); g.gain.setValueAtTime(.5*pref.vol, t + 11); g.gain.linearRampToValueAtTime(0, t + 13);
     s.start(t, st, 13.2); preview = {s, g}; s.onended = () => { if (preview && preview.s === s) preview = null; };
   }
@@ -760,7 +760,7 @@ NG.defs.rh = () => {
     score = 0; combo = 0; maxC = 0; cnt = [0, 0, 0, 0]; jSum = 0; jN = 0; life = 1000; judge = null; fx = []; emo = []; fail = false; endAt = 0;
     lead = 2.6/pref.speed;
     menuEl.hidden = true; phase = "play"; NG.ended = false;
-    const a = ac(); src = a.createBufferSource(); gain = a.createGain(); src.buffer = buf; gain.gain.value = pref.vol; src.connect(gain); gain.connect(a.destination);
+    const a = ac(); src = a.createBufferSource(); gain = a.createGain(); src.buffer = buf; gain.gain.value = pref.vol; src.connect(gain); gain.connect(OUT(a));
     T0 = a.currentTime + 2.2; src.start(T0);
     prepAvatar();
   }

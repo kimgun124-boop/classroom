@@ -101,7 +101,7 @@
   <header class="arc-top">
     <div class="arc-me" id="hmMe"></div>
     <div class="arc-brand"><h1 class="arc-logo sm"><span class="e">🕹️</span> <span class="g"><span id="hmClass">우리반</span> 오락실</span></h1><div class="arc-online" id="hmOnline"></div></div>
-    <div class="arc-topb"><button class="arc-btn app-inst" hidden title="홈 화면에 오락실 아이콘 만들기"><span class="ic">📲</span><span class="lb"> 앱 설치</span></button><button class="arc-btn" id="hmAdmin" hidden title="관리자"><span class="ic">🛠️</span><span class="lb"> 관리자</span></button><button class="arc-btn p" id="hmFace" title="꾸미기·상점"><span class="ic">👕</span><span class="lb"> 꾸미기·상점</span></button><button class="arc-btn arc-refresh" onclick="arcRefresh(this)" title="최신 버전으로 새로고침"><span class="ic">🔄</span><span class="lb"> 새로고침</span></button><button class="arc-btn" id="hmOut" title="로그아웃"><span class="ic">🚪</span><span class="lb"> 로그아웃</span></button></div>
+    <div class="arc-topb"><button class="arc-btn app-inst" hidden title="홈 화면에 오락실 아이콘 만들기"><span class="ic">📲</span><span class="lb"> 앱 설치</span></button><button class="arc-btn" id="hmAdmin" hidden title="관리자"><span class="ic">🛠️</span><span class="lb"> 관리자</span></button><button class="arc-btn p" id="hmFace" title="꾸미기·상점"><span class="ic">👕</span><span class="lb"> 꾸미기·상점</span></button><button class="arc-btn snd-btn" title="소리 끄기"><span class="ic">🔊</span><span class="lb"> 소리 켜짐</span></button><button class="arc-btn arc-refresh" onclick="arcRefresh(this)" title="최신 버전으로 새로고침"><span class="ic">🔄</span><span class="lb"> 새로고침</span></button><button class="arc-btn" id="hmOut" title="로그아웃"><span class="ic">🚪</span><span class="lb"> 로그아웃</span></button></div>
   </header>
   <div class="arc-notice" id="hmNotice" hidden></div>
   <div class="arc-lobby">
@@ -264,7 +264,7 @@
 
 <!-- ===== 새 게임 화면 ===== -->
 <div class="ng-ov" id="ng" hidden>
-  <div class="ng-top"><h2 id="ngTitle"></h2><div class="ng-hud" id="ngHud"></div><button class="pk-x" id="ngClose" title="닫기">×</button></div>
+  <div class="ng-top"><h2 id="ngTitle"></h2><div class="ng-hud" id="ngHud"></div><button class="pk-x snd-btn ng-snd" title="소리 끄기"><span class="ic">🔊</span></button><button class="pk-x" id="ngClose" title="닫기">×</button></div>
   <div class="ng-stage" id="ngStage">
     <canvas id="ngCanvas"></canvas>
     <div class="ng-dom" id="ngDom"></div>

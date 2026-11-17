@@ -5,9 +5,10 @@ const EMOJI = `"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-seri
 const rnd = (a = 1, b) => b === undefined ? Math.random()*a : a + Math.random()*(b - a);
 const clampN = (v, a, b) => v < a ? a : v > b ? b : v;
 function tone(f1, f2, dur, type = "sine", vol = .12, delay = 0){
+  if (!SND.on) return;
   try { const a = getAC(), t = a.currentTime + delay, o = a.createOscillator(), g = a.createGain();
     o.type = type; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(Math.max(30, f2), t + dur);
-    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + .02); } catch(e) {}
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur); o.connect(g); g.connect(OUT(a)); o.start(t); o.stop(t + dur + .02); } catch(e) {}
 }
 const SFX = {
   hit: () => { tone(520, 260, .12, "square", .1); tone(1200, 800, .06, "triangle", .08); },

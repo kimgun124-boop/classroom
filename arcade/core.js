@@ -102,6 +102,19 @@ const FULL = {
 
 let ac = null;
 function getAC(){ ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === "suspended") ac.resume(); return ac; }
+/* 🔇 음소거: 모든 소리(효과음·리듬 게임 노래)가 이 큰 볼륨 손잡이를 지나가요. 기기마다 기억해요. */
+const SND = {
+  on: (() => { try { return localStorage.getItem("arcade.snd") !== "0"; } catch(e){ return true; } })(),
+  out: null,
+  set(v){ this.on = !!v; try { localStorage.setItem("arcade.snd", v ? "1" : "0"); } catch(e){}
+    if (this.out) this.out.gain.value = v ? 1 : 0; this.paint(); },
+  toggle(){ this.set(!this.on); toast(this.on ? "🔊 소리를 켰어요" : "🔇 소리를 껐어요"); },
+  paint(){ document.querySelectorAll(".snd-btn").forEach(b => { b.classList.toggle("off", !this.on); const i = b.querySelector(".ic"); if (i) i.textContent = this.on ? "🔊" : "🔇";
+    const l = b.querySelector(".lb"); if (l) l.textContent = this.on ? " 소리 켜짐" : " 소리 꺼짐"; b.title = this.on ? "소리 끄기" : "소리 켜기"; }); }
+};
+document.addEventListener("click", e => { if (e.target.closest(".snd-btn")){ e.stopPropagation(); SND.toggle(); } }, true);
+setTimeout(() => SND.paint(), 0);
+function OUT(a){ if (!SND.out || SND.out.context !== a){ SND.out = a.createGain(); SND.out.gain.value = SND.on ? 1 : 0; SND.out.connect(a.destination); } return SND.out; }
 
 /* ---- 손들고 말해요 게임들이 쓰는 것들 (사진 대신 캐릭터 얼굴) ---- */
 const KEY = "arcade.v1";
@@ -255,8 +268,14 @@ const Store = {
     const cur = Object.assign({coins: 0, total: 0, owned: {}}, JSON.parse(JSON.stringify(this.kids[sid] || {})));
     const nw = fn(cur); this.kids[sid] = nw; this.emit();
     if (this.mode === "local") return this.saveLocal();
+    /* ⚡ 화면은 바로 바뀌고(위에서 이미 바꿨어요), 서버 저장은 뒤에서 차례대로 해요.
+       예전엔 서버 저장(1~2초)을 기다린 뒤에야 단추가 반응했어요. 코인이 모자라면 위의 fn에서 바로 막혀요.
+       서버에 저장하다 실패하면(인터넷·다른 기기와 겹침) 알려 주고 서버 값으로 되돌려요. */
     const fs = this.fs, ref = this.kidRef(sid);
-    await fs.runTransaction(this.db, async t => { const d = await t.get(ref); const base = Object.assign({coins: 0, total: 0, owned: {}}, d.exists() ? d.data() : {}); t.set(ref, fn(base)); });
+    this._txq = (this._txq || Promise.resolve()).then(() =>
+      fs.runTransaction(this.db, async t => { const d = await t.get(ref); const base = Object.assign({coins: 0, total: 0, owned: {}}, d.exists() ? d.data() : {}); t.set(ref, fn(base)); }))
+      .catch(async e => { console.error(e); toast("⚠️ 저장하지 못했어요: " + (e.message || "인터넷을 확인해 주세요"));
+        try { const d = await fs.getDoc(ref); this.kids[sid] = d.exists() ? d.data() : {}; this.emit(); } catch(_){} });
   },
   /* 🪙 코인 규칙: 하루 한도(0 = 무제한) · 이벤트 배율(×1~×3) */
   coinRule(){ const c = (this.cls || {}).coin || {}; return {cap: c.cap === undefined ? DAY_CAP : Math.max(0, +c.cap || 0), boost: Math.max(1, Math.min(3, +c.boost || 1))}; },

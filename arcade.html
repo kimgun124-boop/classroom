@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="c8e9e9df8b">
+<meta name="arc-build" content="f5b7c3f704">
 <script>
 /* 🔄 늘 최신 오락실: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "c8e9e9df8b", K = "arcade.reloaded";
+  var B = "f5b7c3f704", K = "arcade.reloaded";
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
     if (!idle()) return;
@@ -1462,6 +1462,9 @@ body.arc-lite .arc-logo .g{animation:none !important}
 .tl-qrbig h2{color:#ffe066;margin:0 0 14px;font-size:clamp(26px,4vw,46px)}
 .tl-qrbig svg{width:min(70vh,80vw);height:min(70vh,80vw);background:#fff;border-radius:20px;padding:14px;box-sizing:border-box}
 .tl-qrbig p{color:#d0c8ff;font-size:18px}
+/* 🔇 음소거 단추 */
+.ng-top .ng-snd{font-size:20px;display:flex;align-items:center;justify-content:center}
+.snd-btn.off{background:#5c2b3d!important;color:#ffc9c9!important}
 
 /* ===================== 🏠 오락실 로비 (2026.11.13) : 첫 화면 랭킹 · 대결방 · 채팅 · 관리자 ===================== */
 /* ⚡ 렉 줄이기: 고정 배경(background-attachment:fixed)·글자 번짐 필터·모달 흐림은 화면 전체를 계속 다시 그려서 뺐어요 */
@@ -2230,7 +2233,7 @@ body.arc-lite .rh-song{transition:none}
   <header class="arc-top">
     <div class="arc-me" id="hmMe"></div>
     <div class="arc-brand"><h1 class="arc-logo sm"><span class="e">🕹️</span> <span class="g"><span id="hmClass">우리반</span> 오락실</span></h1><div class="arc-online" id="hmOnline"></div></div>
-    <div class="arc-topb"><button class="arc-btn app-inst" hidden title="홈 화면에 오락실 아이콘 만들기"><span class="ic">📲</span><span class="lb"> 앱 설치</span></button><button class="arc-btn" id="hmAdmin" hidden title="관리자"><span class="ic">🛠️</span><span class="lb"> 관리자</span></button><button class="arc-btn p" id="hmFace" title="꾸미기·상점"><span class="ic">👕</span><span class="lb"> 꾸미기·상점</span></button><button class="arc-btn arc-refresh" onclick="arcRefresh(this)" title="최신 버전으로 새로고침"><span class="ic">🔄</span><span class="lb"> 새로고침</span></button><button class="arc-btn" id="hmOut" title="로그아웃"><span class="ic">🚪</span><span class="lb"> 로그아웃</span></button></div>
+    <div class="arc-topb"><button class="arc-btn app-inst" hidden title="홈 화면에 오락실 아이콘 만들기"><span class="ic">📲</span><span class="lb"> 앱 설치</span></button><button class="arc-btn" id="hmAdmin" hidden title="관리자"><span class="ic">🛠️</span><span class="lb"> 관리자</span></button><button class="arc-btn p" id="hmFace" title="꾸미기·상점"><span class="ic">👕</span><span class="lb"> 꾸미기·상점</span></button><button class="arc-btn snd-btn" title="소리 끄기"><span class="ic">🔊</span><span class="lb"> 소리 켜짐</span></button><button class="arc-btn arc-refresh" onclick="arcRefresh(this)" title="최신 버전으로 새로고침"><span class="ic">🔄</span><span class="lb"> 새로고침</span></button><button class="arc-btn" id="hmOut" title="로그아웃"><span class="ic">🚪</span><span class="lb"> 로그아웃</span></button></div>
   </header>
   <div class="arc-notice" id="hmNotice" hidden></div>
   <div class="arc-lobby">
@@ -2393,7 +2396,7 @@ body.arc-lite .rh-song{transition:none}
 
 <!-- ===== 새 게임 화면 ===== -->
 <div class="ng-ov" id="ng" hidden>
-  <div class="ng-top"><h2 id="ngTitle"></h2><div class="ng-hud" id="ngHud"></div><button class="pk-x" id="ngClose" title="닫기">×</button></div>
+  <div class="ng-top"><h2 id="ngTitle"></h2><div class="ng-hud" id="ngHud"></div><button class="pk-x snd-btn ng-snd" title="소리 끄기"><span class="ic">🔊</span></button><button class="pk-x" id="ngClose" title="닫기">×</button></div>
   <div class="ng-stage" id="ngStage">
     <canvas id="ngCanvas"></canvas>
     <div class="ng-dom" id="ngDom"></div>
@@ -2717,6 +2720,19 @@ const FULL = {
 
 let ac = null;
 function getAC(){ ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === "suspended") ac.resume(); return ac; }
+/* 🔇 음소거: 모든 소리(효과음·리듬 게임 노래)가 이 큰 볼륨 손잡이를 지나가요. 기기마다 기억해요. */
+const SND = {
+  on: (() => { try { return localStorage.getItem("arcade.snd") !== "0"; } catch(e){ return true; } })(),
+  out: null,
+  set(v){ this.on = !!v; try { localStorage.setItem("arcade.snd", v ? "1" : "0"); } catch(e){}
+    if (this.out) this.out.gain.value = v ? 1 : 0; this.paint(); },
+  toggle(){ this.set(!this.on); toast(this.on ? "🔊 소리를 켰어요" : "🔇 소리를 껐어요"); },
+  paint(){ document.querySelectorAll(".snd-btn").forEach(b => { b.classList.toggle("off", !this.on); const i = b.querySelector(".ic"); if (i) i.textContent = this.on ? "🔊" : "🔇";
+    const l = b.querySelector(".lb"); if (l) l.textContent = this.on ? " 소리 켜짐" : " 소리 꺼짐"; b.title = this.on ? "소리 끄기" : "소리 켜기"; }); }
+};
+document.addEventListener("click", e => { if (e.target.closest(".snd-btn")){ e.stopPropagation(); SND.toggle(); } }, true);
+setTimeout(() => SND.paint(), 0);
+function OUT(a){ if (!SND.out || SND.out.context !== a){ SND.out = a.createGain(); SND.out.gain.value = SND.on ? 1 : 0; SND.out.connect(a.destination); } return SND.out; }
 
 /* ---- 손들고 말해요 게임들이 쓰는 것들 (사진 대신 캐릭터 얼굴) ---- */
 const KEY = "arcade.v1";
@@ -2870,8 +2886,14 @@ const Store = {
     const cur = Object.assign({coins: 0, total: 0, owned: {}}, JSON.parse(JSON.stringify(this.kids[sid] || {})));
     const nw = fn(cur); this.kids[sid] = nw; this.emit();
     if (this.mode === "local") return this.saveLocal();
+    /* ⚡ 화면은 바로 바뀌고(위에서 이미 바꿨어요), 서버 저장은 뒤에서 차례대로 해요.
+       예전엔 서버 저장(1~2초)을 기다린 뒤에야 단추가 반응했어요. 코인이 모자라면 위의 fn에서 바로 막혀요.
+       서버에 저장하다 실패하면(인터넷·다른 기기와 겹침) 알려 주고 서버 값으로 되돌려요. */
     const fs = this.fs, ref = this.kidRef(sid);
-    await fs.runTransaction(this.db, async t => { const d = await t.get(ref); const base = Object.assign({coins: 0, total: 0, owned: {}}, d.exists() ? d.data() : {}); t.set(ref, fn(base)); });
+    this._txq = (this._txq || Promise.resolve()).then(() =>
+      fs.runTransaction(this.db, async t => { const d = await t.get(ref); const base = Object.assign({coins: 0, total: 0, owned: {}}, d.exists() ? d.data() : {}); t.set(ref, fn(base)); }))
+      .catch(async e => { console.error(e); toast("⚠️ 저장하지 못했어요: " + (e.message || "인터넷을 확인해 주세요"));
+        try { const d = await fs.getDoc(ref); this.kids[sid] = d.exists() ? d.data() : {}; this.emit(); } catch(_){} });
   },
   /* 🪙 코인 규칙: 하루 한도(0 = 무제한) · 이벤트 배율(×1~×3) */
   coinRule(){ const c = (this.cls || {}).coin || {}; return {cap: c.cap === undefined ? DAY_CAP : Math.max(0, +c.cap || 0), boost: Math.max(1, Math.min(3, +c.boost || 1))}; },
@@ -6371,9 +6393,10 @@ const EMOJI = `"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-seri
 const rnd = (a = 1, b) => b === undefined ? Math.random()*a : a + Math.random()*(b - a);
 const clampN = (v, a, b) => v < a ? a : v > b ? b : v;
 function tone(f1, f2, dur, type = "sine", vol = .12, delay = 0){
+  if (!SND.on) return;
   try { const a = getAC(), t = a.currentTime + delay, o = a.createOscillator(), g = a.createGain();
     o.type = type; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(Math.max(30, f2), t + dur);
-    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur); o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + dur + .02); } catch(e) {}
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.001, t + dur); o.connect(g); g.connect(OUT(a)); o.start(t); o.stop(t + dur + .02); } catch(e) {}
 }
 const SFX = {
   hit: () => { tone(520, 260, .12, "square", .1); tone(1200, 800, .06, "triangle", .08); },
@@ -16800,11 +16823,11 @@ NG.defs.rh = () => {
     try { const a = ac();
       if (!tapBuf){ const n = Math.round(a.sampleRate*.06); tapBuf = a.createBuffer(1, n, a.sampleRate); const d = tapBuf.getChannelData(0);
         for (let i = 0; i < n; i++){ const k = i/n; d[i] = (Math.sin(i/a.sampleRate*2*Math.PI*1800)*.5 + (Math.random()*2 - 1)*.5)*Math.pow(1 - k, 6); } }
-      const s = a.createBufferSource(), g = a.createGain(); s.buffer = tapBuf; s.playbackRate.value = perfect ? 1.15 : .95; g.gain.value = .22; s.connect(g); g.connect(a.destination); s.start(); } catch(e) {}
+      const s = a.createBufferSource(), g = a.createGain(); s.buffer = tapBuf; s.playbackRate.value = perfect ? 1.15 : .95; g.gain.value = .22; s.connect(g); g.connect(OUT(a)); s.start(); } catch(e) {}
   }
   function stopPreview(){ if (preview){ try { preview.g.gain.setTargetAtTime(0, ac().currentTime, .08); preview.s.stop(ac().currentTime + .4); } catch(e) {} preview = null; } }
   function startPreview(b, from){
-    stopPreview(); const a = ac(), s = a.createBufferSource(), g = a.createGain(); s.buffer = b; s.connect(g); g.connect(a.destination);
+    stopPreview(); const a = ac(), s = a.createBufferSource(), g = a.createGain(); s.buffer = b; s.connect(g); g.connect(OUT(a));
     const t = a.currentTime + .05, st = Math.max(0, Math.min(from, b.duration - 14)); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.5*pref.vol, t + .6); g.gain.setValueAtTime(.5*pref.vol, t + 11); g.gain.linearRampToValueAtTime(0, t + 13);
     s.start(t, st, 13.2); preview = {s, g}; s.onended = () => { if (preview && preview.s === s) preview = null; };
   }
@@ -16970,7 +16993,7 @@ NG.defs.rh = () => {
     score = 0; combo = 0; maxC = 0; cnt = [0, 0, 0, 0]; jSum = 0; jN = 0; life = 1000; judge = null; fx = []; emo = []; fail = false; endAt = 0;
     lead = 2.6/pref.speed;
     menuEl.hidden = true; phase = "play"; NG.ended = false;
-    const a = ac(); src = a.createBufferSource(); gain = a.createGain(); src.buffer = buf; gain.gain.value = pref.vol; src.connect(gain); gain.connect(a.destination);
+    const a = ac(); src = a.createBufferSource(); gain = a.createGain(); src.buffer = buf; gain.gain.value = pref.vol; src.connect(gain); gain.connect(OUT(a));
     T0 = a.currentTime + 2.2; src.start(T0);
     prepAvatar();
   }
