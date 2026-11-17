@@ -178,7 +178,11 @@ const Store = {
     const {app, auth, fs} = await this.lib();
     const name = "arc-" + cid, a = app.getApps().find(x => x.name === name) || app.initializeApp(cfg, name);
     await auth.signInAnonymously(auth.getAuth(a));
-    const db = fs.getFirestore(a);
+    /* ⚡ 기기 안 저장소(IndexedDB)에 반 정보를 기억해 둬요 → 새로고침해도 바로 뜨고,
+       30명이 동시에 들어와도 바뀐 것만 받아서 Firebase 사용량·버퍼링이 확 줄어요 */
+    let db;
+    try { db = fs.initializeFirestore(a, fs.persistentLocalCache ? {localCache: fs.persistentLocalCache({tabManager: fs.persistentMultipleTabManager()})} : {}); }
+    catch(e){ db = fs.getFirestore(a); }
     this.db = db; this.fs = fs; this.cid = cid;
     this.refCls = fs.doc(db, "arcade", cid);
     if (create){ await fs.setDoc(this.refCls, create); }
@@ -328,7 +332,7 @@ const GAMES = [
   {id: "pp", e: "🏓", n: "얼굴 탁구",   kind: "duel",  d: "둘이서 탁구 대결"},
   {id: "wb", e: "💦", n: "물풍선 대작전", kind: "duel", multi: 1, d: "미로에서 물풍선 펑! 최대 6명"},
   {id: "bs", e: "🫧", n: "버블 특공대", kind: "score", d: "로봇을 거품에 가둬 날려 보내요"},
-  {id: "qd", e: "🛡️", n: "용사 대모험", kind: "score", tag: "🤝 최대 4명 · 협동 점수전", d: "청룡 검객·은빛 창장수·바람 궁장·자색 책사! 30단계 · 보스를 물리쳐요"},
+  {id: "qd", e: "🛡️", n: "용사 대모험", kind: "score", tag: "🤝 최대 4명 · 협동 점수전", d: "청룡 검객·은빛 창장수·바람 궁장·자색 책사! 130단계 · 🛒 장비·🐾펫 · 보스를 물리쳐요"},
   {id: "sk", e: "🌥️", n: "하늘 무사단", kind: "score", tag: "🤝 최대 4명 · 협동 점수전", d: "구름 위 슈팅! 30단계 · 6가지 하늘 · 스킬 · 보스"},
   {id: "bp", e: "🧩", n: "블록 퍼즐",   kind: "score", d: "조각을 끌어 놓고 줄을 채우면 펑!"},
   {id: "fm", e: "🍑", n: "과일 합치기", kind: "score", d: "같은 과일끼리 합쳐 수박까지!"},
