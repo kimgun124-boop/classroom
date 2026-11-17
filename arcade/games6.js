@@ -101,7 +101,7 @@ NG.defs.rd = () => {
   const remote = i => party === "host" && O.remote && O.remote[i] != null;
   const ZS = 18, LIMIT0 = 100 + 40*(N - 1);
   let LIMIT = LIMIT0;   // 🛡️ 수호 방패 · 💥 유리 대포 유물로 바뀌어요
-  let W = 1280, H = 720, land = true, C = 90, BX = 0, BY = 0, COLS = 8, ROWS = 5, GC = 1, TOPH = 70, BOTH = 120, ZO = [], LN = [], CELL = new Map(), MAPI = -1, lastSW = 1280, lastSH = 720, layer = null, layerKey = "", SH = null;   // SH: 🤝 같이 하기 공동 맵
+  let LPAD = 90, W = 1280, H = 720, land = true, C = 90, BX = 0, BY = 0, COLS = 8, ROWS = 5, GC = 1, TOPH = 70, BOTH = 120, ZO = [], LN = [], CELL = new Map(), MAPI = -1, lastSW = 1280, lastSH = 720, layer = null, layerKey = "", SH = null;   // SH: 🤝 같이 하기 공동 맵
   let Z, PS, E, PR, FX, MS, wave, waveT, spawnLeft, spawnT, state, overT, score, kills, bossK, eid, gv, speed, banner, sel, drag, ptr, panel, NQ, outbox, aseq, lastAct, sndT, ended, seed, bossTimer, frame;
   const R = (() => { let s = 1; return {seed(v){ s = (v >>> 0) || 1; }, get(){ return s; }, f(){ s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s/4294967296; }}; })();
   const th = () => RD_TH[Math.floor((Math.max(1, wave) - 1)/10) % 10];
@@ -154,16 +154,18 @@ NG.defs.rd = () => {
   function layout(sw, sh){
     land = sw/Math.max(1, sh) >= 1.05;
     const two = local.length >= 2;
-    if (land){ W = 1280; H = 720; TOPH = 62; BOTH = 112; GC = N === 1 ? 1 : 2; }
-    else { W = 720; H = Math.round(Math.max(1120, Math.min(1500, W*sh/Math.max(1, sw)))); TOPH = 70; BOTH = two ? 250 : 220; GC = 1; }
+    /* 📱 화면 꽉 채우기 (2026.11.17): 판 크기를 기기 화면 비율에 맞춰서 옆·위아래 빈 곳이 없게 */
+    if (land){ H = 720; W = Math.round(Math.max(960, Math.min(1700, H*sw/Math.max(1, sh)))); TOPH = 62; BOTH = 112; GC = N === 1 ? 1 : 2; }
+    else { W = 720; H = Math.round(Math.max(1000, Math.min(1700, W*sh/Math.max(1, sw)))); TOPH = 70; BOTH = two ? 250 : 220; GC = 1; }
+    LPAD = Math.ceil(88/Math.max(.2, Math.min(sw/W, sh/H)));   // 왼쪽 위 🔊·✕ 단추 자리
     if (window.VK_ON) BOTH = two && !land ? 120 : 64;   // ⌨️ 화면 키보드가 있으면 아래 단추 대신 금·보석만
     /* 🗺️ 맵: 혼자면 길 한 바퀴와 동물 자리 18칸(10단계마다 모양이 바뀌어요) · 같이 하면 🌀 문 하나 · 큰 길 하나를 친구마다 자기 자리(18칸)에서 함께 지켜요 */
     lastSW = sw; lastSH = sh;
     const ti = Math.floor((Math.max(1, wave || 1) - 1)/10) % 10; MAPI = ti;
     if (N >= 2){   // 🤝 같이 하기: 한 길 · 한 문, 친구마다 자기 자리
       const CM = N >= 5 ? RD_CO6S : N >= 3 ? RD_CO4S : RD_CO2S, TP = rdParseCo(CM[ti % CM.length], !land, N); GC = 1;   /* 10단계마다 맵 모양도 바뀌어요 */ COLS = TP.w; ROWS = TP.h;
-      const aw = W - 16, ah = H - TOPH - BOTH - 44;
-      C = Math.floor(Math.min(112, aw/COLS, ah/ROWS)); BX = Math.round((W - COLS*C)/2); BY = Math.round(TOPH + 34 + (ah - ROWS*C)/2);
+      const aw = W - 10, ah = H - TOPH - BOTH - 40;
+      C = Math.floor(Math.min(130, aw/COLS, ah/ROWS)); BX = Math.round((W - COLS*C)/2); BY = Math.round(TOPH + 34 + (ah - ROWS*C)/2);
       const path = TP.path.map(([x, y]) => [x + .5, y + .5]);
       SH = {ox: 0, oy: 0, w: TP.w, h: TP.h, map: TP, path, front: TP.front};
       LN = []; CELL = new Map(); ZO = [];
@@ -176,8 +178,8 @@ NG.defs.rd = () => {
     const M = N >= 3 ? RD_RING8 : RD_MAPS[ti % RD_MAPS.length], TP = rdParse(M, !land && N === 1);
     if (N >= 3) GC = 2; else if (N === 2) GC = land ? 2 : 1;
     const GR = Math.ceil(N/GC); COLS = GC*TP.w; ROWS = GR*TP.h;
-    const aw = W - 16, ah = H - TOPH - BOTH - 44;   // 위쪽 미션 줄 자리를 비워요
-    C = Math.floor(Math.min(112, aw/COLS, ah/ROWS)); BX = Math.round((W - COLS*C)/2); BY = Math.round(TOPH + 34 + (ah - ROWS*C)/2);
+    const aw = W - 10, ah = H - TOPH - BOTH - 40;   // 위쪽 미션 줄 자리를 비워요
+    C = Math.floor(Math.min(130, aw/COLS, ah/ROWS)); BX = Math.round((W - COLS*C)/2); BY = Math.round(TOPH + 34 + (ah - ROWS*C)/2);
     LN = []; CELL = new Map(); ZO = [];
     for (let z = 0; z < N; z++){ const ox = (z % GC)*TP.w, oy = Math.floor(z/GC)*TP.h; ZO.push([ox, oy]);
       const L = {ox, oy, w: TP.w, h: TP.h, map: TP, path: TP.path.map(([x, y]) => [ox + x + .5, oy + y + .5]), slots: TP.slots.map(([x, y]) => [ox + x + .5, oy + y + .5]), front: TP.front};
@@ -748,14 +750,16 @@ NG.defs.rd = () => {
   const splitE = s => s.split(/(\p{Extended_Pictographic}️?)/u).filter(Boolean).map(x => x.trim()).filter(Boolean);
   function drawTop(g, fr){
     g.fillStyle = "rgba(15,10,40,.62)"; rrect(g, 8, 6, W - 16, TOPH - 12, 16); g.fill();
-    G2.put(g, lbl(["🏁", `${wave}단계`], 24, "#ffe066"), 18, 12);
-    const n = E.length, r = Math.min(1, n/LIMIT), bw = Math.min(380, W*.36), bx = W/2 - bw/2, by = TOPH/2 - 10;
+    const wl = lbl(["🏁", `${wave}단계`], 24, "#ffe066"); G2.put(g, wl, LPAD, 12);
+    const tR = W - (party !== "guest" ? 192 : 100) - 90, bL0 = LPAD + wl.w + (land ? 150 : 12);   // 👾 막대가 단계 글씨·시계와 겹치지 않게
+    const n = E.length, r = Math.min(1, n/LIMIT); let bw = Math.min(380, W*.36), bx = W/2 - bw/2; if (bx < bL0){ bx = bL0; bw = Math.max(110, Math.min(bw, tR - bx)); }
+    const by = TOPH/2 - 10;
     g.fillStyle = "rgba(0,0,0,.4)"; rrect(g, bx, by, bw, 20, 10); g.fill(); g.fillStyle = r > .8 ? (fr % 20 < 10 ? "#ff6b6b" : "#c92a2a") : r > .55 ? "#fcc419" : "#51cf66"; rrect(g, bx, by, Math.max(20, bw*r), 20, 10); g.fill();
     G2.put(g, lbl(["👾", `${n} / ${LIMIT}`], 16), W/2 - lbl(["👾", `${n} / ${LIMIT}`], 16).w/2, by - 3);
     const boss = E.find(e => e.kind === 2), sec = Math.ceil(Math.max(0, waveT)/60);
     const tl = lbl([boss ? "⏰" : "⏱️", `${sec}초`], 20, boss && sec < 15 ? "#ff6b6b" : "#fff"); G2.put(g, tl, W - (party !== "guest" ? 192 : 100) - tl.w, 14);
     { const b = BARS.find(q => q.id === "book"); if (b) G2.put(g, btnSpr(b.w, b.h, "#63e6be", "#0ca678", ["📖", "도감"], 16), b.x, b.y); }
-    if (land) G2.put(g, lbl([th().n.split(" ")[0], th().n.split(" ").slice(1).join(" ")], 16, "#d0bfff"), 140, 16);
+    if (land) G2.put(g, lbl([th().n.split(" ")[0], th().n.split(" ").slice(1).join(" ")], 16, "#d0bfff"), LPAD + 122, 16);
     { const b = BARS.find(q => q.id === "spd"); if (b) G2.put(g, btnSpr(b.w, b.h, speed === 4 ? "#ff6b6b" : speed > 1 ? "#ff922b" : "#748ffc", speed === 4 ? "#c92a2a" : speed > 1 ? "#e8590c" : "#4c6ef5", ["⏩", `×${speed}`], 17), b.x, b.y); }
   }
   let bL = null, bV = "";
@@ -888,7 +892,7 @@ NG.defs.rd = () => {
   }
   let saveT = 0; const onHide = () => { if (NG.cur === self) saveGame(); };
   const self = {
-    get W(){ return W; }, get H(){ return H; }, maxPx: 1.5e6, layout, save: saveGame,
+    get W(){ return W; }, get H(){ return H; }, maxPx: 1.5e6, full: true, layout, save: saveGame,
     get dbg(){ return {Z, E, wave, waveT, state, score, kills, BARS, N, LIMIT, gv, PR, FX}; },
     cheat(o){ if (o.rel){ Z.forEach(p => Object.assign(p.rel, o.rel)); gv++; } if (o.it) Z.forEach(p => { p.it = o.it.slice(); }); if (o.pick) Z.forEach((p, z) => offerRel(z)); if (o.gold != null) Z.forEach(p => p.gold = o.gold); if (o.gems != null) Z.forEach(p => p.gems = o.gems); if (o.wave != null){ wave = o.wave - 1; startWave(); } if (o.put){ placeK(o.z || 0, o.put); } if (o.clear) E = []; },
     init(){

@@ -104,6 +104,7 @@ const NG = {
     const cur = this.cur = this.defs[gid]();
     cur.sids = sids; cur.opt = opt;
     $("#ngCanvas").style.display = cur.dom ? "none" : ""; $("#ngCanvas").style.backgroundImage = ""; $("#ngCanvas").style.backgroundColor = ""; if (typeof G2 !== "undefined") G2.bgId = null;
+    $("#ng").classList.toggle("ng-full", !!cur.full);   // 📱 꽉 채우는 게임: 위 제목 줄 없이 판을 화면 끝까지
     this.fit(); cur.init && cur.init();
     this.last = performance.now(); this.acc = 0; this.frame = 0; this.drawnEnd = false;
     const loop = now => { this.raf = requestAnimationFrame(loop); this.acc = Math.min(100, this.acc + now - this.last); this.last = now;
@@ -121,8 +122,8 @@ const NG = {
     const cur = this.cur; if (!cur) return; this.drawnEnd = false;
     const st = $("#ngStage").getBoundingClientRect();
     if (cur.dom){ cur.fit && cur.fit(st.width, st.height); return; }
-    if (cur.layout) cur.layout(st.width - 6, st.height - 6);   // 가로·세로에 맞춰 게임판 모양을 바꾸는 게임
-    const s = Math.min((st.width - 16)/cur.W, (st.height - 16)/cur.H), dpr = Math.min(2, window.devicePixelRatio || 1), cv = $("#ngCanvas");
+    if (cur.layout) cur.layout(st.width - (cur.full ? 0 : 6), st.height - (cur.full ? 0 : 6));   // 가로·세로에 맞춰 게임판 모양을 바꾸는 게임
+    const pad = cur.full ? 0 : 16, s = Math.min((st.width - pad)/cur.W, (st.height - pad)/cur.H), dpr = Math.min(2, window.devicePixelRatio || 1), cv = $("#ngCanvas");
     if (cur.pixW){   // 도트 게임: 정수 배로 키워서 점이 모두 같은 크기 (정수 배가 화면을 너무 덜 채우면 꽉 채우기)
       const nf = cur.W*s*dpr/cur.pixW, ni = Math.max(1, Math.floor(nf)), n = ni/nf >= .9 ? ni : nf, kk = n*cur.pixW/cur.W;
       cv.width = Math.round(n*cur.pixW); cv.height = Math.round(cur.H*kk); cv.style.width = cv.width/dpr + "px"; cv.style.height = cv.height/dpr + "px"; cv.style.imageRendering = "pixelated";

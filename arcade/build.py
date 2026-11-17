@@ -267,7 +267,7 @@ def swap(a, b, at_least=1):
 swap("Math.min(2, window.devicePixelRatio || 1)", "ARCDPR()", 6)
 # 게임판 둘레 여백을 줄여서 화면을 더 크게
 swap("w = st.clientWidth - 24, h = st.clientHeight - 12", "w = st.clientWidth - 6, h = st.clientHeight - 4", 4)
-swap("(st.width - 16)/cur.W, (st.height - 16)/cur.H", "(st.width - 6)/cur.W, (st.height - 6)/cur.H")
+swap("const pad = cur.full ? 0 : 16,", "const pad = cur.full ? 0 : 6,")
 
 # 손들고 말해요에서 가져온 CSS 중 오락실에서 안 쓰는 규칙 빼기
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

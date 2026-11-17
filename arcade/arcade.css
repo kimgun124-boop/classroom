@@ -155,6 +155,13 @@ body.arc-body{
 .ng-stage{position:relative;flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none}
 #ngCanvas{border-radius:18px;box-shadow:0 0 0 3px #3e3494,0 20px 60px rgba(0,0,0,.5);touch-action:none}
 .ng-dom{position:absolute}
+/* 📱 꽉 채우는 게임(동물 랜덤 디펜스): 제목 줄을 없애고 🔊·✕만 왼쪽 위에 작게 띄워요 */
+.ng-full .ng-top{position:absolute;z-index:6;top:calc(5px + env(safe-area-inset-top));left:calc(5px + env(safe-area-inset-left));padding:0;gap:6px;pointer-events:none}
+.ng-full .ng-top>*{pointer-events:auto}
+.ng-full .ng-top h2,.ng-full .ng-hud{display:none}
+.ng-full .ng-top .pk-x{width:36px;height:36px;font-size:22px;background:rgba(40,30,110,.88);box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.ng-full .ng-top .ng-snd{font-size:16px}
+.ng-full #ngCanvas{border-radius:0;box-shadow:none}
 .ng-over{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(10,6,30,.6);backdrop-filter:blur(3px);z-index:5}
 .ng-over[hidden]{display:none}
 .ng-box{position:relative;text-align:center;background:linear-gradient(180deg,#2c2470,#1b1642);border:3px solid #ffe066;border-radius:26px;padding:22px 30px;min-width:300px;color:#fff;box-shadow:0 0 40px rgba(255,224,102,.35)}
