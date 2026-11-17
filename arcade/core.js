@@ -114,6 +114,8 @@ const SND = {
 };
 document.addEventListener("click", e => { if (e.target.closest(".snd-btn")){ e.stopPropagation(); SND.toggle(); } }, true);
 setTimeout(() => SND.paint(), 0);
+/* 💾 저장이 끝나기 전에 창을 닫으려 하면 한 번 물어봐요(산 아바타·코인이 사라지지 않게) */
+window.addEventListener("beforeunload", e => { if (typeof Store !== "undefined" && Store.saving && Store.saving()){ e.preventDefault(); e.returnValue = "저장 중이에요"; return "저장 중이에요"; } });
 function OUT(a){ if (!SND.out || SND.out.context !== a){ SND.out = a.createGain(); SND.out.gain.value = SND.on ? 1 : 0; SND.out.connect(a.destination); } return SND.out; }
 
 /* ---- 손들고 말해요 게임들이 쓰는 것들 (사진 대신 캐릭터 얼굴) ---- */
@@ -204,7 +206,7 @@ const Store = {
     this.mode = "cloud"; this.cls = first.data();
     localStorage.setItem(KEY + ".join", JSON.stringify({c: cfg, i: cid}));
     fs.onSnapshot(this.refCls, s => { if (s.exists()){ this.cls = s.data(); this.ok = true; this.emit(); } }, e => { this.ok = false; this.err = e.message; this.emit(); });
-    fs.onSnapshot(fs.collection(db, "arcade", cid, "kids"), qs => { const k = {}; qs.forEach(d => k[d.id] = d.data()); this.kids = k; this.ok = true; this.emit(); }, e => { this.ok = false; this.err = e.message; this.emit(); });
+    fs.onSnapshot(fs.collection(db, "arcade", cid, "kids"), qs => { const k = {}; qs.forEach(d => k[d.id] = d.data()); this.kids = this.withPending(k); this.ok = true; this.emit(); }, e => { this.ok = false; this.err = e.message; this.emit(); });
     fs.onSnapshot(fs.collection(db, "arcade", cid, "recs"), qs => { const r = {}; qs.forEach(d => r[d.id] = d.data()); this.recs = r; this.ok = true; this.emit(); }, e => { this.ok = false; this.err = e.message; this.emit(); });
     return true;
   },
@@ -271,12 +273,26 @@ const Store = {
     /* ⚡ 화면은 바로 바뀌고(위에서 이미 바꿨어요), 서버 저장은 뒤에서 차례대로 해요.
        예전엔 서버 저장(1~2초)을 기다린 뒤에야 단추가 반응했어요. 코인이 모자라면 위의 fn에서 바로 막혀요.
        서버에 저장하다 실패하면(인터넷·다른 기기와 겹침) 알려 주고 서버 값으로 되돌려요. */
-    const fs = this.fs, ref = this.kidRef(sid);
+    const fs = this.fs, ref = this.kidRef(sid), P = this._pend = this._pend || {}, job = {fn};
+    (P[sid] = P[sid] || []).push(job);        // 저장이 끝나기 전에 서버 소식이 와도 산 것이 사라져 보이지 않게(아래 withPending)
+    const done = () => { P[sid] = (P[sid] || []).filter(j => j !== job); if (!P[sid].length) delete P[sid]; this.paintSaving(); };
+    this.paintSaving();
     this._txq = (this._txq || Promise.resolve()).then(() =>
-      fs.runTransaction(this.db, async t => { const d = await t.get(ref); const base = Object.assign({coins: 0, total: 0, owned: {}}, d.exists() ? d.data() : {}); t.set(ref, fn(base)); }))
-      .catch(async e => { console.error(e); toast("⚠️ 저장하지 못했어요: " + (e.message || "인터넷을 확인해 주세요"));
-        try { const d = await fs.getDoc(ref); this.kids[sid] = d.exists() ? d.data() : {}; this.emit(); } catch(_){} });
+      fs.runTransaction(this.db, async t => { const d = await t.get(ref); const base = Object.assign({coins: 0, total: 0, owned: {}}, d.exists() ? d.data() : {}); t.set(ref, fn(JSON.parse(JSON.stringify(base)))); }))
+      .then(done)
+      .catch(async e => { console.error(e); done(); toast("⚠️ 저장하지 못했어요: " + (e.message || "인터넷을 확인해 주세요"));
+        try { const d = await fs.getDoc(ref); this.kids[sid] = this.withPending({[sid]: d.exists() ? d.data() : {}})[sid]; this.emit(); } catch(_){} });
   },
+  /* 서버 소식(onSnapshot)이 와도 아직 저장 중인 내 변경은 그 위에 다시 얹어요 → 산 아바타·코인이 잠깐이라도 '초기화'돼 보이지 않게 */
+  withPending(k){
+    const P = this._pend || {};
+    for (const sid in P){ let w = Object.assign({coins: 0, total: 0, owned: {}}, JSON.parse(JSON.stringify(k[sid] || {})));
+      for (const j of P[sid]){ try { w = j.fn(w) || w; } catch(_){} } k[sid] = w; }
+    return k;
+  },
+  saving(){ return Object.keys(this._pend || {}).length > 0; },
+  async flush(){ try { await this._txq; } catch(_){} },
+  paintSaving(){ const s = this.saving(); document.body && document.body.classList.toggle("arc-saving", s); },
   /* 🪙 코인 규칙: 하루 한도(0 = 무제한) · 이벤트 배율(×1~×3) */
   coinRule(){ const c = (this.cls || {}).coin || {}; return {cap: c.cap === undefined ? DAY_CAP : Math.max(0, +c.cap || 0), boost: Math.max(1, Math.min(3, +c.boost || 1))}; },
   dayOf(sid, w){ w = w || this.kids[sid] || {}; const td = today(), same = w.day === td; return {n: same ? (w.dayN || 0) : 0, c: same ? (w.dayCoins || 0) : 0}; },
@@ -310,9 +326,9 @@ const Store = {
   /* 아이템 사기: 코인이 모자라면 안 사져요 */
   async buy(sid, keys, cost, av){
     await this.kidTx(sid, w => { if ((w.coins || 0) < cost) throw new Error("코인이 모자라요");
-      w.coins -= cost; w.owned = Object.assign({}, w.owned); keys.forEach(k => w.owned[k] = Date.now()); if (av) w.av = av; return w; });
+      w.coins -= cost; w.owned = Object.assign({}, w.owned); keys.forEach(k => w.owned[k] = Date.now()); if (av) w.av = JSON.parse(JSON.stringify(av)); return w; });
   },
-  async putAv(sid, av){ await this.kidTx(sid, w => Object.assign(w, {av})); },
+  async putAv(sid, av){ av = JSON.parse(JSON.stringify(av)); await this.kidTx(sid, w => Object.assign(w, {av})); },
   /* 선생님이 코인 주기·빼기 */
   async give(sid, n){ await this.kidTx(sid, w => Object.assign(w, {coins: Math.max(0, (w.coins || 0) + n), total: (w.total || 0) + Math.max(0, n)})); },
   /* 이 기기 기록 → Firebase 로 옮기기 */
@@ -538,7 +554,7 @@ const ARC = {
     this.pad({who: `<span class="avf">${avHTMLof(sidOf(no), {still: true, face: true})}</span><b>${esc(who(no))}</b>`, title: title || "비밀번호 4자리", len: 4,
       check: v => { if (Store.cls.pw[no] && pwHash(no, v) === Store.cls.pw[no]){ ok(no); return true; } return Store.cls.pw[no] ? "비밀번호가 달라요" : "아직 비밀번호가 없어요. 선생님께 말해요."; }});
   },
-  logout(){ ROOMS.leaveMine(); LIVE.ping("off"); NET.unlisten(); localStorage.removeItem(KEY + ".me"); this.me = null; this.login(); },
+  async logout(){ if (Store.saving()){ toast("💾 산 것을 저장하는 중이에요… 잠깐만요"); await Store.flush(); } ROOMS.leaveMine(); LIVE.ping("off"); NET.unlisten(); localStorage.removeItem(KEY + ".me"); this.me = null; this.login(); },
 
   /* ---------- 캐릭터 ---------- */
   pickFace(first){

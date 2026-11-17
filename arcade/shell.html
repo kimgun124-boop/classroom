@@ -7,7 +7,8 @@
 /* 🔄 늘 최신 오락실: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
   var B = "{{BUILD}}", K = "arcade.reloaded";
-  function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
+  function saving(){ try { return typeof Store !== "undefined" && Store.saving && Store.saving(); } catch(e){ return false; } }
+  function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !saving() && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
     if (!idle()) return;
     fetch("arcade-version.json?_=" + Date.now(), {cache: "no-store"}).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
@@ -20,7 +21,8 @@
   window.arcRefresh = function(btn){
     if (window.ARC && ARC.busy) return;
     if (btn){ btn.disabled = true; btn.classList.add("spin"); }
-    var go = function(b){ var u = new URL(location.href); u.searchParams.set("v", (b || B) + "-" + Date.now().toString(36)); location.replace(u.toString()); };
+    var go0 = function(b){ var u = new URL(location.href); u.searchParams.set("v", (b || B) + "-" + Date.now().toString(36)); location.replace(u.toString()); };
+    var go = function(b){ if (saving()){ Store.flush().then(function(){ go0(b); }); return; } go0(b); };   // 💾 산 것을 다 저장한 뒤 새로고침
     var clear = (window.caches && caches.keys) ? caches.keys().then(function(ks){ return Promise.all(ks.filter(function(k){ return /^arcade/.test(k); }).map(function(k){ return caches.delete(k); })); }).catch(function(){}) : Promise.resolve();
     clear.then(function(){ return fetch("arcade-version.json?_=" + Date.now(), {cache: "no-store"}); })
       .then(function(r){ return r.ok ? r.json() : null; }).then(function(j){ try { sessionStorage.removeItem(K); } catch(e){} go(j && j.b); })
