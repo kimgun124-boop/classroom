@@ -113,9 +113,11 @@ NG.defs.rd = () => {
   const gmul = () => Math.pow(1.025, Math.max(0, wave - 60));
   /* 🎁 유물 · 🎒 아이템 */
   const RL = (z, k) => (Z[z] && Z[z].rel && Z[z].rel[k]) || 0;
-  const bagN = z => 3 + 2*RL(z, "bag");
+  /* 🔬 동물 연구소(코인으로 영원히 키우는 능력) — 판마다 지갑에서 읽어 두고 써요 */
+  const PK = z => (Z[z] && Z[z].pk) || RDP.perk(SIDS[z]);
+  const bagN = z => 3 + 2*RL(z, "bag") + (PK(z).bag || 0);
   const slowAll = () => Math.min(.3, Z.reduce((a, p) => a + ((p.rel && p.rel.slow) || 0), 0)*.1);
-  const relMul = (z, A, e) => (1 + .3*RL(z, "atk"))*(A.g < 2 ? 1 + .6*RL(z, "low") : 1)*(A.g >= 3 ? 1 + .4*RL(z, "top") : 1)*(A.g >= 4 ? 1 + .6*RL(z, "myth") : 1)*(Z[z].fev > 0 ? 2 : 1)*(e && (e.kind === 1 || e.kind === 2) ? 1 + .6*RL(z, "boss") : 1)
+  const relMul = (z, A, e) => (1 + .04*(PK(z).atk || 0))*(1 + .3*RL(z, "atk"))*(A.g < 2 ? 1 + .6*RL(z, "low") : 1)*(A.g >= 3 ? 1 + .4*RL(z, "top") : 1)*(A.g >= 4 ? 1 + .6*RL(z, "myth") : 1)*(Z[z].fev > 0 ? 2 : 1)*(e && (e.kind === 1 || e.kind === 2) ? 1 + .6*RL(z, "boss") : 1)
     *(A.ro === "m" ? 1 + .5*RL(z, "melee") : A.ro === "r" ? 1 + .5*RL(z, "ranged") : 1 + .8*RL(z, "support"))*(1 + .7*RL(z, "glass"))
     *(e && e.tt === 1 ? (A.ro === "r" ? .5 : 1.2) : 1)*(e && e.tt === 3 ? (A.ro === "s" ? 1.8 : .6) : 1);   // 🛡️ 단단한 몬스터는 원거리 반감·근거리 +20% · 👻 유령은 지원 동물이 잘 잡아요
   const rndItem = () => RD_IK[Math.floor(R.f()*RD_IK.length)];
@@ -322,7 +324,9 @@ NG.defs.rd = () => {
   function placeK(z, k, pref){ const S = Z[z].s; let i = S.findIndex(q => q.k === k && q.n < 3); if (i < 0 && pref != null && !S[pref].k) i = pref; if (i < 0) i = S.findIndex(q => !q.k); if (i < 0) return -1;
     const q = S[i]; if (isMine(z)) RDB.see(k); if (!q.k){ q.k = k; q.n = 0; } q.cd[q.n] = 10 + q.n*7; q.n++; q.hit = 12; gv++; return i; }
   const sumCost = z => 20 + Math.min(50, Math.floor(Z[z].sum/2));   // 뽑을수록 조금씩 비싸지다가 70에서 멈춰요 (뒤 단계에서 금이 바닥나지 않게)
-  function rollG(z){ const r = R.f(), d = z == null ? 0 : RL(z, "dice"); let g = r < .015*(1 + d) ? 2 : r < .15*(1 + .5*d) ? 1 : 0;
+  function rollG(z){ const r = R.f(), d = z == null ? 0 : RL(z, "dice"), lk = z == null ? 0 : (PK(z).luck || 0);
+    let g = r < .015*(1 + d)*(1 + .1*lk) ? 2 : r < .15*(1 + .5*d)*(1 + .06*lk) ? 1 : 0;
+    if (z != null && Z[z].minG) g = Math.max(g, Z[z].minG);   // 👑 희귀 이상 소환권
     if (z != null && Z[z].clv > 0){ Z[z].clv--; g = Math.max(1, g); } return g; }
   function pick(g){ const L = RD_BY[g]; return L[Math.floor(R.f()*L.length)]; }
   function doAct(z, a){
@@ -401,7 +405,7 @@ NG.defs.rd = () => {
     fxN.t = FX.reduce((a, f) => a + (f.sm ? 1 : 0), 0); fxN.r = FX.reduce((a, f) => a + (f.k ? 1 : 0), 0);
     if (bufV !== gv){ BUF = buffMap(); bufV = gv; }
     for (let z = 0; z < Z.length; z++){ const p = Z[z];
-      const rB = .5*RL(z, "rng"), crB = .1*RL(z, "crit"), cdM0 = 1/(1 + .15*RL(z, "spd"));
+      const pk = PK(z), rB = .5*RL(z, "rng"), crB = .1*RL(z, "crit") + .015*(pk.crit || 0), cdM0 = 1/((1 + .15*RL(z, "spd"))*(1 + .03*(pk.spd || 0)));
       for (let i = 0; i < ZS; i++){ const q = p.s[i]; if (!q.k) continue; const A = RD_A[q.k], [sx, sy] = slotXY(z, i), r2 = (A.r + rB)*(A.r + rB);
         const tb = tbAt(z, sx, sy), cdM = cdM0/tb.s, pm = (A.ro === "r" && !isFront(z, i) ? 1.25 : 1)*tb.a;   // 🏹 원거리는 뒷줄에서 +25% · 🦁🦄 스킬 응원
         for (let u = 0; u < q.n; u++){ if (--q.cd[u] > 0) continue;
@@ -814,6 +818,28 @@ NG.defs.rd = () => {
 
   /* 💾 자동 저장: 혼자·둘이 할 때 3초마다 + 나갈 때 저장 → 다음에 '이어하기'로 그대로 (도감 보러 나가도, 창이 닫혀도) */
   const SKEY = RDS.key(SIDS);
+  /* 🏪 판 시작: 🔬 연구 적용(모두) + 🎒 준비물 꺼내기(혼자·둘이, 이 기기 사람만) */
+  function applyKit(){
+    const msg = [];
+    Z.forEach((p, z) => {
+      p.pk = RDP.perk(SIDS[z]);
+      if (p.pk.gold) p.gold += 25*p.pk.gold;
+      if (party || !local.includes(z)) return;
+      const kit = RDP.takeKit(SIDS[z], Math.max(0, bagN(z) - p.it.length));
+      if (kit.items.length) p.it = p.it.concat(kit.items).slice(0, bagN(z));
+      if (kit.rare) p.minG = 1;
+      if (kit.hero){ const k = pick(2), i = placeK(z, k); if (i >= 0) popAt(z, i, `🦸 ${RD_A[k].e} ${RD_A[k].n}!`, RD_G[2].c); }
+      if (kit.legend){ const k = pick(3), i = placeK(z, k); if (i >= 0) popAt(z, i, `🌟 ${RD_A[k].e} ${RD_A[k].n}!`, RD_G[3].c); }
+      const P = p.pk, bits = [];
+      if (P.level > 1) bits.push(`🎓 Lv.${P.level}`);
+      if (P.atk) bits.push(`💪+${P.atk*4}%`); if (P.spd) bits.push(`⚡+${P.spd*3}%`);
+      if (kit.items.length) bits.push(`🎒 ${kit.items.map(k => RD_IT[k].e).join("")}`);
+      if (kit.rare) bits.push("👑 희귀 이상 뽑기"); if (kit.hero) bits.push("🦸 영웅"); if (kit.legend) bits.push("🌟 전설");
+      if (bits.length) msg.push((N > 1 ? nameOf(noOf_(SIDS[z])) + " " : "") + bits.join(" · "));
+    });
+    gv++;
+    if (msg.length) banner = {t: "🏪 준비 완료!", s: msg.join("  /  ").slice(0, 90), k: 150, c: "#ffe066"};
+  }
   function saveGame(){
     if (party || !Z || ended || state !== "play" || wave < 1) return;
     try { localStorage.setItem(SKEY, JSON.stringify({v: 1, at: Date.now(), sids: SIDS, local, seed, rs: R.get(), wave, waveT, spawnLeft, spawnT, score, kills, bossK, eid, speed, bossTimer, laneRR, MS, TB,
@@ -842,7 +868,7 @@ NG.defs.rd = () => {
       setSky();
       const RES = !party && O.resume ? RDS.get(SIDS) : null;
       if (RES && loadGame(RES)){ /* 이어하기 */ }
-      else if (party !== "guest"){ startWave(); [0, 1].forEach(() => Z.forEach((p, z) => { const k = pick(0); placeK(z, k); })); }
+      else if (party !== "guest"){ startWave(); [0, 1].forEach(() => Z.forEach((p, z) => { const k = pick(0); placeK(z, k); })); applyKit(); }
       else { wave = 1; }
       if (party) PARTY.attach(self, gridMsg);
       if (!party){ document.addEventListener("visibilitychange", onHide); window.addEventListener("pagehide", onHide); }
@@ -909,11 +935,16 @@ const RDM = {
         <div><h4>🧩 끌어서 배치</h4>⚔️ 근거리는 길 바로 옆 · 🏹 원거리는 뒷줄(+25%) · ✨ 지원은 가운데. 🌟 스킬은 저절로!</div>
         <div><h4>🎯 미션 · 🎒 아이템 · 🎁 유물</h4>미션 성공 → 아이템, 보스 처치 → 유물 고르기. 맵은 10단계마다 바뀌어요.</div>
       </div>
-      <button class="arc-btn rd-book-btn" id="rdBook">📖 동물 도감 보기 · 동물마다 힘·스킬·배치 요령</button></div>
+      <button class="arc-btn rd-book-btn" id="rdBook">📖 동물 도감 보기 · 동물마다 힘·스킬·배치 요령</button>
+      <button class="arc-btn rd-shop-btn" id="rdShop">🏪 코인 상점 · 🔬 동물 연구소 <small id="rdShopMe"></small></button></div>
       <div class="wb-sec"><h3>🧒 혼자 지키기 <small>최고 단계로 랭킹!</small></h3>${(sv => sv ? `<button class="arc-btn p rd-resume" id="rdResume">💾 이어하기 · ${sv.wave}단계 · ${(sv.score || 0).toLocaleString()}점 <small>(${RDS.ago(sv.at)})</small></button>` : "")(RDS.get([sidOf(me)]))}<button class="arc-btn ${RDS.get([sidOf(me)]) ? "" : "p"}" id="rdSolo">${RDS.get([sidOf(me)]) ? "🆕 새로 시작" : "▶ 시작!"}</button></div>
       <div class="wb-sec"><h3>👫 이 기기에서 둘이 <small>한 길을 둘이 자기 자리에서 함께 지켜요 · 같은 점수로 기록</small></h3><button class="arc-btn p" id="rdDuo">👫 친구 들어오기</button></div>
       <div class="wb-sec"><h3>🌐 온라인 함께 지키기 <small>각자 기기로 최대 6명 · 문 하나에서 나오는 몬스터를 다 같이 막아요 · ☁️ Firebase 반에서만</small></h3><div id="wbRooms"></div></div>`;
     $("#rdBook").onclick = () => RDB.open();
+    const meLine = () => { const sid = sidOf(me), L = RDP.level(sid), iv = RDP.inv(sid), n = Object.values(iv).reduce((a, b) => a + (b || 0), 0);
+      const el = $("#rdShopMe"); if (el) el.textContent = `· ${RDP.title(L)} Lv.${L} · 🪙 ${(walletOf(sid).coins || 0).toLocaleString()}${n ? ` · 🎒 준비물 ${n}개` : ""}`; };
+    meLine(); RDP.css && RDP.css();
+    $("#rdShop").onclick = () => { RDP.open(); const m = $("#mdRdShop"); if (m && !m._w){ m._w = 1; new MutationObserver(() => { if (m.hidden) meLine(); }).observe(m, {attributes: true, attributeFilter: ["hidden"]}); } };
     body.querySelectorAll(".rd-gs span").forEach((el, i) => { el.style.cursor = "pointer"; el.title = "도감에서 보기"; el.onclick = () => { RDB.f = "g" + i; RDB.cur = RD_BY[i][0]; RDB.open(); }; });
     $("#rdSolo").onclick = () => { if (RDS.get([sidOf(me)]) && !confirm("저장된 게임이 지워지고 새로 시작해요. 괜찮아요?")) return; RDS.del([sidOf(me)]); box.hidden = true; ARC.enter(); ARC.prep(); getAC(); NG.play("rd", [sidOf(me)]); };
     const rs = $("#rdResume"); if (rs) rs.onclick = () => { box.hidden = true; ARC.enter(); ARC.prep(); getAC(); NG.play("rd", [sidOf(me)], {resume: 1}); };
