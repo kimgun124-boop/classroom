@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="03bc7b16c7">
+<meta name="arc-build" content="78001bafe3">
 <script>
 /* 🔄 늘 최신 오락실: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "03bc7b16c7", K = "arcade.reloaded";
+  var B = "78001bafe3", K = "arcade.reloaded";
   function saving(){ try { return typeof Store !== "undefined" && Store.saving && Store.saving(); } catch(e){ return false; } }
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !saving() && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
@@ -14716,6 +14716,10 @@ NG.defs.rd = () => {
     if (z != null && Z[z].minG) g = Math.max(g, Z[z].minG);   // 👑 희귀 이상 소환권
     if (z != null && Z[z].clv > 0){ Z[z].clv--; g = Math.max(1, g); } return g; }
   function pick(g){ const L = RD_BY[g]; return L[Math.floor(R.f()*L.length)]; }
+  /* 💰 고급 뽑기 (금으로): 🟣 영웅 이상 · 🌈 신화 이상 — 합치는 시간을 줄이는 대신 금을 많이 써요. 쓸수록 조금씩 비싸져요 */
+  const heroCost = z => Math.min(700, 260 + 20*(Z[z].hd || 0)), mythCost = z => Math.min(6000, 2600 + 250*(Z[z].md || 0));
+  const HERO_P = [[2, .78], [3, .19], [4, .03]], MYTH_P = [[4, .86], [5, .12], [6, .02]];   // [등급, 확률] 영웅·전설·신화 / 신화·초월·불멸
+  function rollP(T){ let r = R.f(); for (const [g, pr] of T){ if ((r -= pr) < 0) return g; } return T[0][0]; }
   function doAct(z, a){
     const p = Z[z]; if (!p) return;
     if (a[0] === "emo"){ emote(z, a[1] | 0, a[2]/100, a[3]/100); return; }
@@ -14737,6 +14741,11 @@ NG.defs.rd = () => {
     else if (ty === "up"){ const g = a[1] | 0; if (g < 0 || g > 3) return; while (p.up.length < 4) p.up.push(0); const c = upCost(z, g); if (p.gold < c){ toastZ(z, "💰 금이 모자라요"); return; } p.gold -= c; p.up[g]++; sfx("up", z); toastZ(z, `⬆️ ${RD_UPN[g]} 공격력 Lv.${p.up[g]}!`); gv++; }
     else if (ty === "rel"){ if (p.pick) takeRel(z, a[1] | 0); }
     else if (ty === "it"){ const i = a[1] | 0, k = p.it[i]; if (!k) return; p.it.splice(i, 1); gv++; useItem(z, k); }
+    else if (ty === "luck" && (a[1] === 2 || a[1] === 3)){ const my = a[1] === 3, c = my ? mythCost(z) : heroCost(z);
+      if (p.gold < c){ toastZ(z, `💰 금이 모자라요 (${rdN(c)} 필요)`); return; }
+      const g = rollP(my ? MYTH_P : HERO_P), k = pick(g), i = placeK(z, k); if (i < 0){ toastZ(z, "🈵 자리가 꽉 찼어요! 합치거나 팔아요"); return; }
+      p.gold -= c; if (my) p.md = (p.md || 0) + 1; else p.hd = (p.hd || 0) + 1; gv++;
+      sfx("big", z); popAt(z, i, `${g > (my ? 4 : 2) ? "🎉 대박! " : "✨ "}${RD_A[k].e} ${RD_A[k].n}!`, RD_G[g].c); if (g > (my ? 4 : 2)) toastZ(z, `🎉 ${RD_G[g].n} 등급이 나왔어요!`); }
     else if (ty === "luck"){ const big = a[1] === 1, c = big ? 4 : 1; if (p.gems < c){ toastZ(z, "💎 보석이 모자라요 (보스를 잡으면 생겨요)"); return; }
       const r = R.f(), g = big ? (r < .35 ? 4 : 3) : (r < .15 ? 3 : r < .7 ? 2 : -1);
       if (g < 0){ p.gems -= c; sfx("fail", z); toastZ(z, "😅 꽝! 다음엔 꼭!"); return; }
@@ -15026,7 +15035,7 @@ NG.defs.rd = () => {
   }
   let BARS = [];
   function panelBtns(){ if (!panel) return []; const b = BARS.find(q => q.id === panel.id && q.z === panel.z); if (!b) return [];
-    const n = panel.id === "up" ? 4 : 2, w = Math.min(360, W - 20), h = 60, x = Math.max(10, Math.min(W - w - 10, b.x + b.w/2 - w/2)), y0 = Math.min(b.y, H - BOTH) - 10 - n*(h + 8);
+    const n = panel.id === "up" ? 4 : 4, w = Math.min(360, W - 20), h = 60, x = Math.max(10, Math.min(W - w - 10, b.x + b.w/2 - w/2)), y0 = Math.min(b.y, H - BOTH) - 10 - n*(h + 8);
     return Array.from({length: n}, (_, i) => ({id: panel.id, i, z: panel.z, x, y: y0 + i*(h + 8), w, h})); }
   function selBtns(){ if (!sel) return []; const q = Z[sel.z].s[sel.i]; if (!q.k) return []; const [x, y] = slotXY(sel.z, sel.i), px = cx(x), py = cy(y) - C*.62;
     const w = 112, h = 50, L = []; const can = q.n >= 3 && RD_A[q.k].g < RD_MG;
@@ -15200,7 +15209,7 @@ NG.defs.rd = () => {
       else if (b.id === "cr"){ const n = crN(b.z); G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), n ? "#ffc078" : "#ffa94d", "#d9480f", ["🧪", "조합"], Math.min(24, Math.floor(b.w*.22)), false), b.x, b.y);
         if (n){ const l = lbl(["✨", `${n}개 가능`], 14, "#fff"); g.fillStyle = "#e8590c"; rrect(g, b.x + b.w - l.w - 12, b.y - 12, l.w + 12, l.h + 4, 10); g.fill(); g.strokeStyle = "#ffd43b"; g.lineWidth = 2; g.stroke(); G2.put(g, l, b.x + b.w - l.w - 6, b.y - 10); } }
       else if (b.id === "up") G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), "#74c0fc", "#1971c2", ["⬆️", "강화"], Math.min(24, Math.floor(b.w*.22)), false), b.x, b.y);
-      else if (b.id === "luck") G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), "#e599f7", "#9c36b5", ["💎", "행운"], Math.min(24, Math.floor(b.w*.22)), p.gems < 1), b.x, b.y);
+      else if (b.id === "luck") G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), "#e599f7", "#9c36b5", ["🎰", "고급 뽑기"], Math.min(22, Math.floor(b.w*.2)), p.gems < 1 && p.gold < heroCost(b.z)), b.x, b.y);
       else if (b.id === "bag"){ g.fillStyle = "rgba(255,255,255,.06)"; rrect(g, b.x, b.y, b.w, b.h, 14); g.fill(); g.strokeStyle = "rgba(255,212,59,.6)"; g.lineWidth = 2; g.setLineDash([6, 5]); g.stroke(); g.setLineDash([]);
         G2.put(g, lbl(["🎒", `가방 ${p.it.length}/${bagN(b.z)}`], 13, "#ffe066"), b.x + 6, b.y - 18); }
       else if (b.id === "info"){ g.fillStyle = "rgba(255,255,255,.08)"; rrect(g, b.x, b.y, b.w, b.h, 14); g.fill(); g.strokeStyle = col; g.lineWidth = 3; g.stroke();
@@ -15298,6 +15307,8 @@ NG.defs.rd = () => {
         G2.put(g, btnSpr(Math.round(b.w), b.h, b.i === 3 ? "#66d9e8" : "#74c0fc", b.i === 3 ? "#0b7285" : "#1864ab", [...splitE(nm), RD_UPN[b.i], `Lv${lv}`, "💰", rdN(c)], 17, p.gold < c), b.x, b.y);
         if (kHint) { const l = lbl([String(b.i + 1)], 13, "#3b2a00"); g.fillStyle = "#ffd43b"; rrect(g, b.x + 6, b.y + 6, l.w + 8, l.h + 2, 7); g.fill(); G2.put(g, l, b.x + 10, b.y + 7); }
         if (have){ const l = lbl([`내 동물 ${have}`], 12, "#d0ebff"); G2.put(g, l, b.x + b.w - l.w - 8, b.y + b.h - l.h - 4); } }
+      else if (b.i >= 2){ const my = b.i === 3, c = my ? mythCost(b.z) : heroCost(b.z);
+        G2.put(g, btnSpr(Math.round(b.w), b.h, my ? "#ff8fb1" : "#b197fc", my ? "#c2255c" : "#5f3dc4", my ? ["🌈", `신화 이상${kHint ? " Y" : ""}`, "초월12%", "💰", rdN(c)] : ["🟣", `영웅 이상${kHint ? " T" : ""}`, "전설19%", "💰", rdN(c)], 16, p.gold < c), b.x, b.y); }
       else { const c = b.i ? 4 : 1; G2.put(g, btnSpr(Math.round(b.w), b.h, "#e599f7", "#862e9c", b.i ? ["🌈", "신화 35%·전설", "💎", "4"] : ["🎁", "영웅 55%·전설 15%", "💎", "1"], 17, p.gems < c), b.x, b.y); } });
     selBtns().forEach(b => { const q = Z[sel.z].s[sel.i]; if (!q.k) return;
       if (b.id === "smrg") G2.put(g, btnSpr(b.w, b.h, "#69db7c", "#2b8a3e", RD_A[q.k].g >= RD_MG ? ["🧪", kHint ? "조합 C" : "조합으로"] : ["🔀", kHint ? "합치기 R" : "합치기"], 17, b.off && RD_A[q.k].g < RD_MG), b.x, b.y);
@@ -15412,7 +15423,7 @@ NG.defs.rd = () => {
     },
     draw, down, move, up,
     key(code, d, e){
-      const KEYS = ["Space", "Enter", "KeyM", "KeyQ", "Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "KeyL", "KeyF", "KeyE", "KeyB", "KeyC", "KeyX", "KeyR", "KeyG", "KeyP", "KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Escape"];
+      const KEYS = ["Space", "Enter", "KeyM", "KeyQ", "Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "KeyL", "KeyF", "KeyE", "KeyT", "KeyY", "KeyB", "KeyC", "KeyX", "KeyR", "KeyG", "KeyP", "KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Escape"];
       if (!d || (e && e.repeat && !/^Arrow|^Key[WASD]$/.test(code))) return KEYS.includes(code);
       if (!kHint){ kHint = true; bV = ""; }
       if (RDB.isOpen){ if (code === "KeyB" || code === "Escape") RDB.close(); return true; }
@@ -15438,6 +15449,7 @@ NG.defs.rd = () => {
         else { if (grab.i !== sel.i) act(z1, ["mov", grab.i, sel.i]); grab = null; playS("merge"); } return true; }
       if (Z[z1].pick && /^Digit[123]$/.test(code)){ act(z1, ["rel", +code[5] - 1]); playS("up"); return true; }
       if (/^Digit[56789]$/.test(code)){ const i = +code[5] - 5; if (Z[z1].it[i]) act(z1, ["it", i]); return true; }
+      if (code === "KeyT" || code === "KeyY"){ act(z1, ["luck", code === "KeyY" ? 3 : 2]); if (party === "guest") playS("sum"); return true; }   // 💰 고급 뽑기
       const M = {Space: [z1, "sum"], KeyQ: [z1, "all"], KeyE: [z1, "luck0"], Digit1: [z1, "up0"], Digit2: [z1, "up1"], Digit3: [z1, "up2"], Digit4: [z1, "up3"],
                  Enter: [z2, "sum"], KeyM: [z2, "all"], KeyL: [z2, "luck0"], KeyF: [-1, "spd"], KeyB: [-1, "book"]};
       if (!two){ M.Enter = [z1, "sum"]; M.KeyM = [z1, "all"]; M.KeyL = [z1, "luck0"]; }
@@ -15468,7 +15480,7 @@ const RDM = {
     const me = ARC.me, box = partyModal("rd"), body = $("#wbBody"); RDB.css();
     body.innerHTML = `<div class="rd-intro"><div class="rd-gs">${RD_G.map((g, i) => `<span style="--c:${g.c}"><b>${g.n}</b><em>${RD_BY[i].map(k => RD_A[k].e).join("")}</em></span>`).join("")}</div>
       <div class="rd-cards">
-        <div><h4>🎲 뽑고 🔀 합치고 🧪 조합</h4>일반·희귀는 같은 동물 3마리를 합쳐요. 🟣 영웅부터는 조합표대로 재료를 모아 원하는 동물을 골라 만들어요 — 🌟 태초까지!</div>
+        <div><h4>🎲 뽑고 🔀 합치고 🧪 조합</h4>일반·희귀는 같은 동물 3마리를 합쳐요. 🟣 영웅부터는 조합표대로 재료를 모아 원하는 동물을 골라 만들어요 — 🌟 태초까지!<br>🎰 <b>고급 뽑기</b>: 금을 많이 내고 바로 🟣 영웅 이상(T 키) · 🌈 신화 이상(Y 키)을 뽑아요 — 가끔 전설·초월·불멸 대박!</div>
         <div><h4>🤝 배치 시너지</h4>같은 동물끼리 붙이면 🤝, ⚔️🏹✨ 셋이 모이면 🔺 삼각 진형, 같은 등급 셋이면 🎖️ — 힘이 세져요</div>
         <div><h4>🏡 1000단계 도전</h4>👾 몬스터가 꽉 차면 끝. 10단계마다 👑 보스, 100단계마다 🌀 차원 대왕! ⬆️ 강화는 끝없이 올라가요</div>
         <div><h4>👥 최대 6명 협동</h4>🔗 여러 친구 동물에게 번갈아 맞으면 더 아파요 · 💞 지원은 길 건너 친구도 응원 · 🎌 친구마다 ⚔️🏹✨ 주력을 나누면 모두 세져요</div>
