@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="72c4cbe538">
+<meta name="arc-build" content="3cb1a349d8">
 <script>
 /* 🔄 늘 최신 오락실: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "72c4cbe538", K = "arcade.reloaded";
+  var B = "3cb1a349d8", K = "arcade.reloaded";
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
     if (!idle()) return;
@@ -6515,7 +6515,13 @@ window.addEventListener("resize", () => NG.cur && NG.fit());
   const up = e => { const c = NG.cur; if (!c) return; const p = c.dom ? {x: e.clientX, y: e.clientY} : NG.pt(e); c.up && c.up(p.x, p.y, e.pointerId, e); };
   stg.addEventListener("pointerup", up); stg.addEventListener("pointercancel", up);
   window.addEventListener("keydown", e => { const c = NG.cur; if (!c || $("#ng").hidden) return;
-    if (e.key === "Escape"){ e.preventDefault(); NG.close(); return; }
+    if (e.key === "Escape"){ e.preventDefault();
+      // 게임 위에 열린 창(도감·설정 등)이 있으면 그 창만 닫아요 — 게임은 그대로!
+      const m = [...document.querySelectorAll(".arc-modal")].filter(x => !x.hidden).pop();
+      if (m){ if (m.id === "mdRdBook" && typeof RDB !== "undefined") RDB.close(); else m.hidden = true; return; }
+      if (c.key && c.key("Escape", true, e)) return;
+      if (!NG.ended && !confirm("게임을 그만하고 나갈까요?")) return;
+      NG.close(); return; }
     if (NG.ended){ if (e.code === "Enter" || e.code === "Space"){ e.preventDefault(); NG.again(); } return; }
     if (c.key && c.key(e.code, true, e)) e.preventDefault(); });
   window.addEventListener("keyup", e => { const c = NG.cur; if (c && c.key && !$("#ng").hidden) c.key(e.code, false, e); });
@@ -13677,7 +13683,7 @@ NG.defs.rd = () => {
   const ZS = 18, LIMIT = 100 + 40*(N - 1);
   let W = 1280, H = 720, land = true, C = 90, BX = 0, BY = 0, COLS = 8, ROWS = 5, GC = 1, TOPH = 70, BOTH = 120, ZO = [], LN = [], CELL = new Map(), MAPI = -1, lastSW = 1280, lastSH = 720, layer = null, layerKey = "", SH = null;   // SH: 🤝 같이 하기 공동 맵
   let Z, PS, E, PR, FX, MS, wave, waveT, spawnLeft, spawnT, state, overT, score, kills, bossK, eid, gv, speed, banner, sel, drag, ptr, panel, NQ, outbox, aseq, lastAct, sndT, ended, seed, bossTimer, frame;
-  const R = (() => { let s = 1; return {seed(v){ s = (v >>> 0) || 1; }, f(){ s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s/4294967296; }}; })();
+  const R = (() => { let s = 1; return {seed(v){ s = (v >>> 0) || 1; }, get(){ return s; }, f(){ s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s/4294967296; }}; })();
   const th = () => RD_TH[Math.min(9, Math.floor((Math.max(1, wave) - 1)/10))];
   /* 30단계부터는 조금 덜 가파르게 (예전엔 40단계에서 다 막혔어요) — 대신 🎁 유물·🎒 아이템으로 강해져요 */
   const hpAt = w => 15*Math.pow(1.19, Math.min(w, 30) - 1)*Math.pow(1.16, Math.max(0, w - 30));
@@ -14299,17 +14305,39 @@ NG.defs.rd = () => {
     if (d.on){ const s = slotAt(x, y); if (s && s.z === d.z && s.i !== d.i){ act(d.z, ["mov", d.i, s.i]); if (sel && sel.z === d.z) sel = {z: d.z, i: s.i}; playS("sell"); } return; }
     sel = sel && sel.z === d.z && sel.i === d.i ? null : (Z[d.z].s[d.i].k ? {z: d.z, i: d.i} : null); }
 
+  /* 💾 자동 저장: 혼자·둘이 할 때 3초마다 + 나갈 때 저장 → 다음에 '이어하기'로 그대로 (도감 보러 나가도, 창이 닫혀도) */
+  const SKEY = RDS.key(SIDS);
+  function saveGame(){
+    if (party || !Z || ended || state !== "play" || wave < 1) return;
+    try { localStorage.setItem(SKEY, JSON.stringify({v: 1, at: Date.now(), sids: SIDS, local, seed, rs: R.get(), wave, waveT, spawnLeft, spawnT, score, kills, bossK, eid, speed, bossTimer, laneRR, MS, TB,
+      Z: Z.map(p => Object.assign({}, p, {s: p.s.map(q => ({k: q.k, n: q.n, cd: [0, 0, 0], hit: 0}))})),
+      E: E.map(e => ({id: e.id, kind: e.kind, l: e.l, d: e.d, tr: e.tr, hp: e.hp, mhp: e.mhp, spd: e.spd, slT: e.slT, slF: e.slF, stT: e.stT, f: e.f}))})); } catch(e){}
+  }
+  function loadGame(D){
+    try {
+      seed = D.seed; R.seed(D.rs); wave = D.wave; waveT = D.waveT; spawnLeft = D.spawnLeft; spawnT = D.spawnT; score = D.score; kills = D.kills; bossK = D.bossK; eid = D.eid; speed = D.speed || 1; bossTimer = D.bossTimer; laneRR = D.laneRR || 0; MS = D.MS || null; TB = D.TB || [];
+      D.Z.forEach((p, z) => { if (Z[z]) Object.assign(Z[z], p); });
+      remap(); layerKey = ""; setSky();
+      E = D.E.map(e => { const p0 = posAt(e.d, e.l || 0); return Object.assign({}, e, {x: p0[0], y: p0[1]}); });
+      gv++; banner = {t: `▶ ${wave}단계부터 이어하기!`, s: "저번에 하던 그대로예요", k: 120, c: "#69db7c"};
+      return true;
+    } catch(e){ console.error(e); return false; }
+  }
+  let saveT = 0; const onHide = () => { if (NG.cur === self) saveGame(); };
   const self = {
-    get W(){ return W; }, get H(){ return H; }, maxPx: 1.5e6, layout,
+    get W(){ return W; }, get H(){ return H; }, maxPx: 1.5e6, layout, save: saveGame,
     get dbg(){ return {Z, E, wave, waveT, state, score, kills, BARS, N, LIMIT, gv, PR, FX}; },
     cheat(o){ if (o.rel){ Z.forEach(p => Object.assign(p.rel, o.rel)); gv++; } if (o.it) Z.forEach(p => { p.it = o.it.slice(); }); if (o.pick) Z.forEach((p, z) => offerRel(z)); if (o.gold != null) Z.forEach(p => p.gold = o.gold); if (o.gems != null) Z.forEach(p => p.gems = o.gems); if (o.wave != null){ wave = o.wave - 1; startWave(); } if (o.put){ placeK(o.z || 0, o.put); } if (o.clear) E = []; },
     init(){
       seed = O.seed || (Math.floor(Math.random()*1e9) + 1); R.seed(seed);
       Z = SIDS.map(() => mkZone()); E = []; PR = []; FX = []; TB = []; MS = null; wave = 0; waveT = 0; spawnLeft = 0; spawnT = 0; state = "play"; overT = 0; score = 0; kills = 0; bossK = 0; eid = 0; gv = 1; speed = 1; banner = null; sel = null; drag = null; ptr = new Map(); panel = null; EM = []; emPick = null; NQ = []; outbox = []; aseq = 0; lastAct = SIDS.map(() => 0); ended = false; frame = 0;
       setSky();
-      if (party !== "guest"){ startWave(); [0, 1].forEach(() => Z.forEach((p, z) => { const k = pick(0); placeK(z, k); })); }
+      const RES = !party && O.resume ? RDS.get(SIDS) : null;
+      if (RES && loadGame(RES)){ /* 이어하기 */ }
+      else if (party !== "guest"){ startWave(); [0, 1].forEach(() => Z.forEach((p, z) => { const k = pick(0); placeK(z, k); })); }
       else { wave = 1; }
       if (party) PARTY.attach(self, gridMsg);
+      if (!party){ document.addEventListener("visibilitychange", onHide); window.addEventListener("pagehide", onHide); }
       const jobs = RD_K.map(k => () => { unitSpr(k, Math.round(C*.62)); unitSpr(k, Math.round(C*.62*.78)); });
       const run = dl => { if (NG.cur !== self) return; do { const j = jobs.shift(); if (!j) return; j(); } while (dl && dl.timeRemaining && dl.timeRemaining() > 6); (window.requestIdleCallback || setTimeout)(run, {timeout: 300}); };
       (window.requestIdleCallback || setTimeout)(run, {timeout: 300});
@@ -14323,8 +14351,9 @@ NG.defs.rd = () => {
       // 친구 기기에서 온 손가락
       if (party === "host") for (let z = 1; z < N; z++){ if (!remote(z)) continue; const r = PARTY.remoteIn(z); if (!r) continue; const m = r.m; if (m.sd !== seed || !m.a) continue;
         m.a.forEach(a => { if (a[0] > lastAct[z]){ lastAct[z] = a[0]; doAct(z, a.slice(1)); } }); Z[z].ack = lastAct[z]; }
-      if (state === "over"){ if (--overT <= 0) finish(); }
+      if (state === "over"){ RDS.del(SIDS); if (--overT <= 0) finish(); }
       else if (!(RDB.isOpen && !party)) for (let i = 0; i < speed; i++) sim();
+      if (!party && state === "play" && ++saveT % 180 === 0) saveGame();
       emStep();   // 📖 도감 보는 동안 잠깐 멈춤 (혼자·둘이)
       if (party === "host" && frame % 4 === 0) PARTY.sendSnap(snap(), NQ.splice(0), gv);
     },
@@ -14353,6 +14382,13 @@ NG.defs.rd = () => {
 /* =====================================================================
    🐾 동물 랜덤 디펜스 — 시작 창 · 친구 기기 결과 · 온라인 방
    ===================================================================== */
+/* 💾 저장된 게임 (기기마다 · 같이 한 친구 조합마다) */
+const RDS = {
+  key: sids => "rd.save." + sids.join("_"),
+  get(sids){ try { const d = JSON.parse(localStorage.getItem(this.key(sids))); if (!d || d.v !== 1 || Date.now() - d.at > 3*864e5) return null; return d; } catch(e){ return null; } },
+  del(sids){ try { localStorage.removeItem(this.key(sids)); } catch(e){} },
+  ago(at){ const m = Math.round((Date.now() - at)/6e4); return m < 1 ? "방금" : m < 60 ? `${m}분 전` : `${Math.round(m/60)}시간 전`; }
+};
 const RDM = {
   menu(){
     const me = ARC.me, box = partyModal("rd"), body = $("#wbBody"); RDB.css();
@@ -14364,13 +14400,15 @@ const RDM = {
         <div><h4>🎯 미션 · 🎒 아이템 · 🎁 유물</h4>미션 성공 → 아이템, 보스 처치 → 유물 고르기. 맵은 10단계마다 바뀌어요.</div>
       </div>
       <button class="arc-btn rd-book-btn" id="rdBook">📖 동물 도감 보기 · 동물마다 힘·스킬·배치 요령</button></div>
-      <div class="wb-sec"><h3>🧒 혼자 지키기 <small>최고 단계로 랭킹!</small></h3><button class="arc-btn p" id="rdSolo">▶ 시작!</button></div>
+      <div class="wb-sec"><h3>🧒 혼자 지키기 <small>최고 단계로 랭킹!</small></h3>${(sv => sv ? `<button class="arc-btn p rd-resume" id="rdResume">💾 이어하기 · ${sv.wave}단계 · ${(sv.score || 0).toLocaleString()}점 <small>(${RDS.ago(sv.at)})</small></button>` : "")(RDS.get([sidOf(me)]))}<button class="arc-btn ${RDS.get([sidOf(me)]) ? "" : "p"}" id="rdSolo">${RDS.get([sidOf(me)]) ? "🆕 새로 시작" : "▶ 시작!"}</button></div>
       <div class="wb-sec"><h3>👫 이 기기에서 둘이 <small>한 길을 둘이 자기 자리에서 함께 지켜요 · 같은 점수로 기록</small></h3><button class="arc-btn p" id="rdDuo">👫 친구 들어오기</button></div>
       <div class="wb-sec"><h3>🌐 온라인 함께 지키기 <small>각자 기기로 최대 4명 · 문 하나에서 나오는 몬스터를 다 같이 막아요 · ☁️ Firebase 반에서만</small></h3><div id="wbRooms"></div></div>`;
     $("#rdBook").onclick = () => RDB.open();
     body.querySelectorAll(".rd-gs span").forEach((el, i) => { el.style.cursor = "pointer"; el.title = "도감에서 보기"; el.onclick = () => { RDB.f = "g" + i; RDB.cur = RD_BY[i][0]; RDB.open(); }; });
-    $("#rdSolo").onclick = () => { box.hidden = true; ARC.enter(); ARC.prep(); getAC(); NG.play("rd", [sidOf(me)]); };
-    $("#rdDuo").onclick = () => { box.hidden = true; ARC.pickRival("rd", opp => { ARC.enter(); ARC.prep(); getAC(); NG.play("rd", [sidOf(me), sidOf(opp)], {local: [0, 1]}); }); };
+    $("#rdSolo").onclick = () => { if (RDS.get([sidOf(me)]) && !confirm("저장된 게임이 지워지고 새로 시작해요. 괜찮아요?")) return; RDS.del([sidOf(me)]); box.hidden = true; ARC.enter(); ARC.prep(); getAC(); NG.play("rd", [sidOf(me)]); };
+    const rs = $("#rdResume"); if (rs) rs.onclick = () => { box.hidden = true; ARC.enter(); ARC.prep(); getAC(); NG.play("rd", [sidOf(me)], {resume: 1}); };
+    $("#rdDuo").onclick = () => { box.hidden = true; ARC.pickRival("rd", opp => { const sids = [sidOf(me), sidOf(opp)], sv = RDS.get(sids), res = sv && confirm(`이 친구와 하던 게임(${sv.wave}단계)이 있어요. 이어할까요?\n(취소를 누르면 새로 시작해요)`);
+      if (!res) RDS.del(sids); ARC.enter(); ARC.prep(); getAC(); NG.play("rd", sids, {local: [0, 1], resume: res ? 1 : 0}); }); };
     PARTY.renderRooms(); box.hidden = false;
   },
   guestOver(score, wave, kills){
@@ -14389,8 +14427,11 @@ const RDM = {
     if (gid !== "rd") return play.call(this, gid);
     if (!LOBBY.canPlay(gid)) return; getAC(); this.game = gid; this.lastRank = gid; RDM.menu();
   };
+  /* 게임 창을 닫을 때(× · Esc · 홈) 먼저 저장 */
+  const close = NG.close;
+  NG.close = function(){ try { if (this.gid === "rd" && this.cur && this.cur.save) this.cur.save(); } catch(e){} if (typeof RDB !== "undefined" && RDB.isOpen) RDB.close(); return close.apply(this, arguments); };
   const again = NG.again;
-  NG.again = function(){ if (this.gid === "rd"){ if (this.opt.party){ if (this.opt.party === "host") PARTY.again(); return; } return this.play("rd", this.sids, Object.assign({}, this.opt, {seed: 0})); } return again.call(this); };
+  NG.again = function(){ if (this.gid === "rd"){ if (this.opt.party){ if (this.opt.party === "host") PARTY.again(); return; } RDS.del(this.sids); return this.play("rd", this.sids, Object.assign({}, this.opt, {seed: 0, resume: 0})); } return again.call(this); };
   PARTY.CFG.rd = {max: 4, bots: 0, min: 2};
   const start = PARTY.start;
   PARTY.start = function(again){
@@ -14410,6 +14451,7 @@ const RDM = {
   const css = document.createElement("style");
   css.textContent = `.in-room>.rd-intro{display:none}.rd-gs{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px}
 .rd-gs span{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:12px;border:2px solid var(--c);background:rgba(255,255,255,.06)}
+.rd-resume{display:block;width:100%;margin-bottom:8px;font-size:20px !important}.rd-resume small{opacity:.8;font-size:13px}
 .rd-gs b{font:15px "Jua",sans-serif;color:var(--c)}.rd-gs em{font-style:normal;font-size:18px;letter-spacing:-2px;white-space:nowrap}
 @media (max-width:560px){.rd-gs em{font-size:14px}}
 /* ⭐ 대표 게임: 홈에서 크게, 금빛 테두리 */

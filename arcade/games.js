@@ -174,7 +174,13 @@ window.addEventListener("resize", () => NG.cur && NG.fit());
   const up = e => { const c = NG.cur; if (!c) return; const p = c.dom ? {x: e.clientX, y: e.clientY} : NG.pt(e); c.up && c.up(p.x, p.y, e.pointerId, e); };
   stg.addEventListener("pointerup", up); stg.addEventListener("pointercancel", up);
   window.addEventListener("keydown", e => { const c = NG.cur; if (!c || $("#ng").hidden) return;
-    if (e.key === "Escape"){ e.preventDefault(); NG.close(); return; }
+    if (e.key === "Escape"){ e.preventDefault();
+      // 게임 위에 열린 창(도감·설정 등)이 있으면 그 창만 닫아요 — 게임은 그대로!
+      const m = [...document.querySelectorAll(".arc-modal")].filter(x => !x.hidden).pop();
+      if (m){ if (m.id === "mdRdBook" && typeof RDB !== "undefined") RDB.close(); else m.hidden = true; return; }
+      if (c.key && c.key("Escape", true, e)) return;
+      if (!NG.ended && !confirm("게임을 그만하고 나갈까요?")) return;
+      NG.close(); return; }
     if (NG.ended){ if (e.code === "Enter" || e.code === "Space"){ e.preventDefault(); NG.again(); } return; }
     if (c.key && c.key(e.code, true, e)) e.preventDefault(); });
   window.addEventListener("keyup", e => { const c = NG.cur; if (c && c.key && !$("#ng").hidden) c.key(e.code, false, e); });
