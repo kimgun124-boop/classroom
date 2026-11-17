@@ -153,6 +153,14 @@ const RD_EMO = ["👍", "😂", "😍", "😱", "🔥", "👏", "❤️", "😭"
 .rd-cr .cx-ac button.cx-go{background:linear-gradient(180deg,#ff8fb1,#f06595);color:#fff;font-size:17px;box-shadow:0 3px 0 #c2255c}.rd-cr .cx-ac button.cx-go[disabled]{background:#e9ecef;color:#adb5bd;box-shadow:none;cursor:default}
 .rd-cr .cx-ac button small{opacity:.75;font-size:12px}
 .rd-cr .cx-tip{font:12.5px/1.45 "Gowun Dodum",sans-serif;color:#7a6aa8;text-align:center}
+.rd-cr .cx-h[data-drag]{cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.rd-cr.cx-mv{opacity:.92;box-shadow:0 0 0 3px #b197fc,0 26px 60px rgba(40,20,90,.55)}.rd-cr.cx-mv .cx-h{cursor:grabbing}
+.rd-cr .cx-grip{flex:none;font-size:20px;color:#b197fc;letter-spacing:-2px}
+.rd-cr .cx-h button.cx-mini{background:#f3f0ff}
+.rd-cr.cx-sm{width:min(470px,96vw);height:min(560px,78vh)}
+.rd-cr.cx-sm .cx-h small,.rd-cr.cx-sm .cx-ls{display:none}
+.rd-cr.cx-sm .cx-bd{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr)}
+.rd-cr.cx-sm .cx-fl{display:none}
 .rd-cr ::-webkit-scrollbar{width:8px}.rd-cr ::-webkit-scrollbar-thumb{background:#d0bfff;border-radius:4px}
 @media (max-width:720px),(orientation:portrait){.rd-cr{height:min(860px,86vh)}.rd-cr .cx-bd{grid-template-columns:1fr;grid-template-rows:minmax(0,.8fr) minmax(0,1.6fr)}}`; document.head.appendChild(st); })();
 
@@ -738,7 +746,8 @@ NG.defs.rd = () => {
   }
 
   /* ---------- 그리기 ---------- */
-  let bookDrawn = false;   // 📖 도감 보는 동안(혼자·둘이)은 멈춘 화면을 한 번만 그리고 쉬어요
+  let bookDrawn = false;
+  const CRUIS = (() => { try { return JSON.parse(localStorage.getItem("arcade.rdcr")) || {}; } catch(e){ return {}; } })();   // 조합 창 위치·크기 기억   // 📖 도감 보는 동안(혼자·둘이)은 멈춘 화면을 한 번만 그리고 쉬어요
   /* ⚡ 4배속 렉 없애기: 화면을 크게 덮는 효과는 동시에 몇 개만 (게임 계산과는 상관없는 그림만 줄여요) */
   const FXCAP = {flash: 1, novaB: 2, novaS: 4, ringB: 4, ring: 14, line: 6, pillar: 2, col: 3, txs: 6, tx: 14, ice: 8};
   function fxArea(f, ty){
@@ -767,7 +776,7 @@ NG.defs.rd = () => {
   function draw(g){
     fxTune(); trimFX();
     if (crOpen && NG.frame % 10 === 0) crRender();
-    if ((RDB.isOpen || crOpen) && !party){ if (bookDrawn) return; bookDrawn = true; } else bookDrawn = false;
+    if (RDB.isOpen && !party){ if (bookDrawn) return; bookDrawn = true; } else bookDrawn = false;
     g.clearRect(0, 0, W, H);
     const k = NG.k || 1; buildLayer(); boardBG();
     g.setTransform(1, 0, 0, 1, 0, 0); if (!bgURL) g.drawImage(layer, Math.round(BX*k), Math.round(BY*k));
@@ -828,6 +837,11 @@ NG.defs.rd = () => {
     local.forEach(z => { if (Z[z].fev > 0 && LN[z]){ const L = LN[z]; g.globalAlpha = .55 + Math.sin(fr*.3)*.3; g.strokeStyle = "#ff922b"; g.lineWidth = 6; rrect(g, cx(L.ox) + 3, cy(L.oy) + 3, L.w*C - 6, L.h*C - 6, C*.4); g.stroke(); g.globalAlpha = 1; } });
     // 🚨 마을이 위험하면 화면 가장자리가 빨갛게
     { const r = E.length/LIMIT; if (r > .55){ const a = Math.min(1, (r - .55)/.35)*(.55 + Math.sin(fr*.18)*.25); g.globalAlpha = a; G2.put(g, sp(`vig${W}x${H}`, W, H, t => { const gr = t.createRadialGradient(W/2, H/2, Math.min(W, H)*.35, W/2, H/2, Math.max(W, H)*.65); gr.addColorStop(0, "rgba(255,0,40,0)"); gr.addColorStop(1, "rgba(255,0,40,.75)"); t.fillStyle = gr; t.fillRect(0, 0, W, H); }), 0, 0); g.globalAlpha = 1; } }
+    if (crOpen && crSel && RD_RC[crSel] && LN[crZ]){ const S0 = Z[crZ].s, R0 = RD_RC[crSel], r = C*.47;
+      S0.forEach((q, i) => { if (!q.k) return; const use = crPick.includes(i), rel = R0.some(rr => rr[0] === q.k); if (!use && !rel && i !== crDest) return;
+        const [sx, sy] = slotXY(crZ, i), X = cx(sx), Y = cy(sy); g.lineWidth = use ? 5 : 3; g.strokeStyle = i === crDest ? "#fab005" : use ? "#51cf66" : "rgba(255,212,59,.9)";
+        if (!use) g.setLineDash([8, 6]); g.beginPath(); g.arc(X, Y, r, 0, 7); g.stroke(); g.setLineDash([]);
+        if (use){ g.fillStyle = "#51cf66"; g.beginPath(); g.arc(X - r*.7, Y - r*.7, 11, 0, 7); g.fill(); g.fillStyle = "#fff"; g.font = "bold 14px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("✔", X - r*.7, Y - r*.7); } }); }
     emDraw(g, fr); drawTop(g, fr); drawBottom(g); bagDraw(g); drawMission(g, fr);
     if (party === "guest" && performance.now() - (PARTY.rxT || 0) > 2500){ g.fillStyle = "rgba(10,6,30,.55)"; g.fillRect(0, H/2 - 60, W, 120); outlined(g, "📡 방장 화면을 받고 있어요…", W/2, H/2 - 6, 38, "#ffe066"); outlined(g, PARTY.hp && PARTY.hp.relay ? "☁️ 다리(저장소)로 연결 중 · 잠깐만 기다려요" : "자동으로 다시 이어요 · 나가지 말고 기다려요", W/2, H/2 + 36, 22, "#fff"); }
     if (banner && banner.k > 0){ g.globalAlpha = Math.min(1, banner.k/18); outlined(g, banner.t, W/2, BY + ROWS*C*.42, land ? 60 : 50, banner.c || "#fff"); if (banner.s) outlined(g, banner.s, W/2, BY + ROWS*C*.42 + 52, 26, "#ffe066"); g.globalAlpha = 1; }
@@ -914,7 +928,7 @@ NG.defs.rd = () => {
   /* 🧪 조합 창 (DOM) — 왼쪽: 조합 목록(만들 수 있는 것이 위) · 오른쪽: 내 4×4 마당에서 재료로 쓸 동물을 직접 골라 넣고 📍 만들 자리도 골라요
      ⏸️ 혼자·둘이 할 때는 조합 창이 열려 있는 동안 게임이 잠깐 멈춰요 (천천히 생각해요) */
   function crToggle(z){ if (crOpen && crZ === z){ crClose(); return; } crOpen = true; crZ = z; crR = crD = ""; crMode = ""; panel = null; grab = null;
-    if (!crSel || !RD_RC[crSel] || !canCraft(z, crSel)) crSel = crList(z)[0] || crSel || RD_RCK[0]; crPick = autoPick(z, crSel); crDest = -1; crRender(); playS("warn"); }
+    if (!crSel || !RD_RC[crSel]) crSel = crList(z)[0] || RD_RCK[0]; /* 💾 고르던 조합은 그대로 기억해요 */ crPick = autoPick(z, crSel); crDest = -1; crRender(); playS("warn"); }
   function crClose(){ crOpen = false; crMode = ""; bookDrawn = false; const el = $("#rdCr"); if (el) el.hidden = true; }
   const crMiss = (t, H) => RD_RC[t].reduce((a, [k, c]) => a + Math.max(0, c - (H[k] || 0)), 0);   // 🧭 모자란 재료 수
   function crShown(){ const H = haveOf(crZ), ok = RD_RCK.filter(t => canCraft(crZ, t, H)); const L = crF === "ok" ? ok.concat(RD_RCK.filter(t => !ok.includes(t)).sort((a, b) => crMiss(a, H) - crMiss(b, H) || RD_A[a].g - RD_A[b].g)) : RD_RCK.filter(t => crF === "s" || crF === "d" ? RD_A[t].job === crF : RD_A[t].g === +crF);
@@ -943,11 +957,28 @@ NG.defs.rd = () => {
     act(crZ, ["cr", crSel, crPick.slice(), crDest]); if (party === "guest") playS("merge"); bookDrawn = false;
     if (!party){ crPick = autoPick(crZ, crSel); crDest = -1; } crR = crD = ""; crRender(); }
   const imgOf = k => RDB.img(k);
+  /* 🖐️ 조합 창: 위쪽 줄을 끌어서 옮기고(마우스·손가락), ➖ 작게 줄여서 마당을 보면서 조합해요 — 위치·크기는 기억해요 */
+  function crSave(){ try { localStorage.setItem("arcade.rdcr", JSON.stringify(CRUIS)); } catch(e){} }
+  function crPlace(el){ el.classList.toggle("cx-sm", !!CRUIS.mini); const m = el.querySelector(".cx-mini"); if (m) m.textContent = CRUIS.mini ? "➕ 크게" : "➖ 작게";
+    const r = el.getBoundingClientRect(), vw = innerWidth, vh = innerHeight, w = r.width || 600, h = r.height || 400;
+    // 화면 밖으로 나가지 않게 (위쪽 줄은 꼭 보이게)
+    const mx = Math.max(0, (vw - w)/2 - 6), my = Math.max(0, (vh - h)/2 - 6);
+    CRUIS.x = Math.max(-mx, Math.min(mx, CRUIS.x || 0)); CRUIS.y = Math.max(-my - 30, Math.min(my + 30, CRUIS.y || 0));
+    el.style.transform = `translate(calc(-50% + ${Math.round(CRUIS.x)}px), calc(-50% + ${Math.round(CRUIS.y)}px))`; }
+  function crDragInit(el){ const h = el.querySelector("[data-drag]"); let st = null;
+    h.addEventListener("pointerdown", e => { if (e.target.closest("button")) return; st = {px: e.clientX, py: e.clientY, x: CRUIS.x || 0, y: CRUIS.y || 0, id: e.pointerId}; try { h.setPointerCapture(e.pointerId); } catch(_){} el.classList.add("cx-mv"); e.preventDefault(); });
+    h.addEventListener("pointermove", e => { if (!st || e.pointerId !== st.id) return; CRUIS.x = st.x + e.clientX - st.px; CRUIS.y = st.y + e.clientY - st.py;
+      el.style.transform = `translate(calc(-50% + ${Math.round(CRUIS.x)}px), calc(-50% + ${Math.round(CRUIS.y)}px))`; });   // ⚡ 옮길 때는 위치만 바꿔요 (다시 그리지 않아요)
+    const end = e => { if (!st) return; st = null; el.classList.remove("cx-mv"); crPlace(el); crSave(); };
+    h.addEventListener("pointerup", end); h.addEventListener("pointercancel", end);
+    h.addEventListener("dblclick", () => { CRUIS.x = CRUIS.y = 0; crPlace(el); crSave(); }); }
   function crRender(){ if (!crOpen) return; const D = $("#ngDom"); let el = $("#rdCr");
     if (!el){ el = document.createElement("div"); el.id = "rdCr"; el.className = "rd-cr"; D.appendChild(el);
-      el.innerHTML = `<div class="cx-h"><b>🧪 조합 공방</b><small>① 왼쪽에서 만들고 싶은 동물 고르기 → ② 🧭 만드는 길대로 재료 모으기 → ③ 🧪 만들기! · 위쪽일수록 거의 다 모은 조합이에요</small><button data-x>✕ 닫기 <small>Esc</small></button></div><div class="cx-fl"></div><div class="cx-bd"><div class="cx-ls"></div><div class="cx-dt"></div></div>`;
+      el.innerHTML = `<div class="cx-h" data-drag="1"><span class="cx-grip" title="끌어서 옮겨요">⠿</span><b>🧪 조합 공방</b><small>⠿ 여기를 끌어서 옮겨요 · 창을 연 채로 마당의 내 동물을 눌러 재료로 넣어요 · ➖ 작게 하면 마당이 잘 보여요</small><button data-mini="1" class="cx-mini" title="작게/크게">➖ 작게</button><button data-x>✕ 닫기 <small>Esc</small></button></div><div class="cx-fl"></div><div class="cx-bd"><div class="cx-ls"></div><div class="cx-dt"></div></div>`;
       const stop = e => e.stopPropagation(); ["pointerdown", "pointerup", "touchstart", "mousedown", "wheel"].forEach(ev => el.addEventListener(ev, stop, {passive: true}));
-      el.onclick = e => { const b = e.target.closest("[data-x],[data-f],[data-t],[data-s],[data-a]"); if (!b) return;
+      crDragInit(el); crPlace(el);
+      el.onclick = e => { const m = e.target.closest("[data-mini]"); if (m){ CRUIS.mini = !CRUIS.mini; crSave(); crPlace(el); crR = crD = ""; crRender(); return; }
+        const b = e.target.closest("[data-x],[data-f],[data-t],[data-s],[data-a]"); if (!b) return;
         if (b.dataset.x != null){ crClose(); return; } if (b.dataset.f){ crF = b.dataset.f; crR = ""; crRender(); return; }
         if (b.dataset.t){ crPickSel(b.dataset.t); return; } if (b.dataset.s != null){ crCur = +b.dataset.s; crTap(+b.dataset.s); return; }
         const a = b.dataset.a; if (a === "go") crGo(); else if (a === "auto"){ crPick = autoPick(crZ, crSel); crDest = -1; crMode = ""; crD = ""; crRender(); playS("warn"); } else if (a === "dest"){ crMode = crMode === "dest" ? "" : "dest"; crD = ""; crRender(); playS("warn"); } }; }
@@ -1034,6 +1065,8 @@ NG.defs.rd = () => {
     for (const b of BARS){ if (!b.info && inR(b, x, y)){ press(b); if (b.id !== "up" && b.id !== "luck") panel = null; return; } }
     panel = null;
     const s = slotAt(x, y);
+    if (crOpen){   // 🧪 조합 창을 연 채로 마당을 눌러도 돼요: 내 동물 = 재료 넣기/빼기 (📍 모드면 만들 자리)
+      if (s && s.z === crZ){ crCur = s.i; crTap(s.i); } return; }
     if (emPick && !s){ emClose(); }
     if (s && isMine(s.z)){ emClose(); ptr.set(id, {sx: x, sy: y}); drag = {z: s.z, i: s.i, x, y, on: false, id}; return; }
     // 💬 같이 할 때: 빈 땅을 누르면 이모티콘·말풍선 고르기
