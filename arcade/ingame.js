@@ -44,6 +44,7 @@ const GCHAT = {
 #gcForm{display:flex;gap:6px;padding:8px 10px 10px}
 #gcForm input{flex:1;min-width:0;height:40px;box-sizing:border-box;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:0 14px;background:rgba(255,255,255,.07);color:#fff;font:15px "Gowun Dodum",sans-serif;outline:none}
 #gcForm input:focus{border-color:#a594ff}
+#gcPanel.kb #gcQuick{display:none}#gcPanel.kb .hd small{display:none}#gcPanel.kb .hd{padding:4px 8px 4px 12px;font-size:15px}#gcPanel.kb #gcList{padding:4px 10px}
 #gcForm button{height:40px;border:0;border-radius:999px;padding:0 15px;background:linear-gradient(160deg,#8f7cff,#6c5ce7);color:#fff;font:15px "Jua",sans-serif;cursor:pointer}
 #gcForm button:disabled,#gcForm input:disabled{opacity:.5}
 #gcMsg{padding:0 14px 8px;font:12px "Gowun Dodum",sans-serif;color:#ffa8a8;min-height:0}
@@ -69,6 +70,14 @@ const GCHAT = {
     $("#gcQuick").onclick = e => { const b = e.target.closest("button"); if (b) this.send(b.textContent); };
     $("#gcForm").onsubmit = e => { e.preventDefault(); const i = $("#gcIn"); this.send(i.value).then(ok => { if (ok) i.value = ""; }); };
     LIVE.subs.push(k => { if (k.chat || k.on) this.paint(); });
+    /* 📱 글자 칠 때 화면 키보드가 올라오면 채팅 창을 보이는 곳에 맞춰 줄여요 (글자 칸이 키보드에 가려져 안 쳐지던 문제) */
+    const vv = window.visualViewport, fitVV = () => { if (!vv || !this.el) return; const kb = vv.height < window.innerHeight - 80 || vv.height < 360;
+      this.el.classList.toggle("kb", kb); if (kb){ this.el.style.top = (vv.offsetTop + 6) + "px"; this.el.style.bottom = "auto"; this.el.style.height = Math.max(150, vv.height - 12) + "px"; }
+      else { this.el.style.top = this.el.style.bottom = this.el.style.height = ""; }
+      if (kb){ const L = $("#gcList"); if (L) L.scrollTop = L.scrollHeight; } };
+    if (vv){ vv.addEventListener("resize", fitVV); vv.addEventListener("scroll", fitVV); }
+    $("#gcIn").addEventListener("focus", () => setTimeout(fitVV, 300));
+    $("#gcIn").addEventListener("blur", () => setTimeout(fitVV, 300));
     new MutationObserver(() => this.paint()).observe(document.body, {attributes: true, attributeFilter: ["class"]});
     this.seen = Date.now(); this.paint();
   },

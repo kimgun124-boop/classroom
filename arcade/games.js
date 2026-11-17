@@ -165,8 +165,13 @@ const NG = {
   }
 };
 $("#ngOver").addEventListener("click", e => { const b = e.target.closest("[data-ng]"); if (!b) return; if (b.dataset.ng === "again") NG.again(); else NG.close(); });
-$("#ngClose").onclick = () => NG.close();
-window.addEventListener("resize", () => NG.cur && NG.fit());
+$("#ngClose").onclick = () => { if (NG.cur && NG.cur.full && !NG.ended && !confirm("게임을 그만하고 나갈까요?")) return; NG.close(); };   // 📱 꽉 찬 화면에선 ✕가 판 위에 있어서 잘못 눌러도 바로 나가지 않게
+/* ⌨️ 채팅 글자를 칠 때 화면 키보드가 올라오면 창 크기가 바뀌어요 → 그때마다 게임판을 다시 짜면 버벅이고 글자 칸이 흔들려서
+   글자 칸에 있는 동안은 게임판을 그대로 두고, 글자 칸에서 나오면 한 번만 맞춰요 */
+const typing = () => { const a = document.activeElement; return !!a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.isContentEditable); };
+let fitLater = false;
+window.addEventListener("resize", () => { if (!NG.cur) return; if (typing()){ fitLater = true; return; } NG.fit(); });
+document.addEventListener("focusout", () => setTimeout(() => { if (fitLater && !typing()){ fitLater = false; NG.cur && NG.fit(); } }, 250));
 (function(){
   const cv = $("#ngCanvas"), stg = $("#ngStage");
   stg.addEventListener("pointerdown", e => { const c = NG.cur; if (!c || NG.ended || e.target.closest(".ng-over")) return; getAC(); if (!c.dom) e.preventDefault(); const p = c.dom ? {x: e.clientX, y: e.clientY} : NG.pt(e); c.down && c.down(p.x, p.y, e.pointerId, e); try { stg.setPointerCapture(e.pointerId); } catch(er) {} });

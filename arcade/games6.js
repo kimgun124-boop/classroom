@@ -297,7 +297,7 @@ NG.defs.rd = () => {
       /* 🏡 지켜야 하는 동물 마을 · 👾 몬스터 문 */
       if (L.map.house){ const [x, y] = cell(L.map.house[0], L.map.house[1]); RDA.house(t, x + C*.5, y + C*.55, C*1.0, ti); }
       /* 🌀 몬스터 문: 친구 마당마다 하나씩 (같은 색 고리) */
-      (SH.doors || [0]).forEach((di, zz) => { const a = P[di % P.length]; if (!a) return; if (N > 1){ t.globalAlpha = .85; t.strokeStyle = RD_PC[zz]; t.lineWidth = Math.max(3, C*.08); t.beginPath(); t.ellipse(a[0], a[1] + C*.22, C*.46, C*.2, 0, 0, 7); t.stroke(); t.globalAlpha = 1; } RDA.portal(t, a[0], a[1], C*.8); });
+      (SH.doors || [0]).slice(0, 1).forEach((di, zz) => { const a = P[di % P.length]; if (!a) return; if (N > 1){ t.globalAlpha = .85; t.strokeStyle = "#ff6b6b"; t.lineWidth = Math.max(3, C*.08); t.beginPath(); t.ellipse(a[0], a[1] + C*.22, C*.46, C*.2, 0, 0, 7); t.stroke(); t.globalAlpha = 1; } RDA.portal(t, a[0], a[1], C*.8); });
     });
   }
   const unitSpr = (k, s) => RDA.unitSpr(k, s);   // 🎨 직접 그린 동물 (rdart.js)
@@ -336,7 +336,8 @@ NG.defs.rd = () => {
     if (party === "host") NQ.push(["b", banner.t, "🎒 아이템을 받았어요!", banner.k, banner.c]); }
   function msFail(why){ if (!MS || MS.st) return; MS.st = 2; if (why){ banner = {t: why, s: "괜찮아요, 다음 미션!", k: 90, c: "#ffa94d"}; if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); } }
   const msTick = k => { if (MS && !MS.st && MS.k === k){ MS.p++; if (MS.p >= MS.n) msWin(); } };
-  function startWave(){
+  let DMGZ = [], teamK = 0;
+  function startWave(){ DMGZ = Z ? Z.map(() => 0) : []; teamK = 0;
     let msOk = false; if (MS && !MS.st){ if (MS.k === "keep" && E.length <= MS.n){ msWin(true); msOk = true; } else msFail(); }
     wave++; const boss = wave % 10 === 0, mini = !boss && wave % 5 === 0;
     waveT = boss ? 60*60 : 20*60; spawnLeft = boss ? 0 : Math.round((30 + Math.min(14, wave*.3))*(1 + .6*(N - 1))); spawnT = 0; spawnI = N === 1 ? 28 : Math.max(6, Math.floor(waveT*.8/Math.max(1, spawnLeft)));
@@ -360,7 +361,8 @@ NG.defs.rd = () => {
     /* 몬스터 특성 (단계가 오를수록): 🛡️ 단단함(원거리 반감) · 🦇 날개(근거리 못 닿음) · 👻 유령(지원이 잘 잡음) · 🔰 방패(처음 몇 번 막음) → 역할을 섞어 배치해야 해요 */
     let tt = 0; if (kind === 0 && wave >= 12){ const r = R.f(); tt = r < .16 ? 1 : wave >= 20 && r < .3 ? 2 : wave >= 35 && r < .4 ? 3 : wave >= 50 && r < .47 ? 4 : wave >= 100 && r < .55 ? 5 : wave >= 150 && r < .62 ? 6 : 0;
       if (tt && !TTS.has(tt)){ TTS.add(tt); banner = {t: RD_TT[tt].t, s: RD_TT[tt].s, k: 200, c: "#ffd43b"}; if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); } }
-    const d0 = (SH && SH.doors && SH.doors[l]) || 0, p0 = posAt(d0, l); E.push({id: ++eid, kind, l, d: d0, tr: 0, hp: h*(tt === 1 ? 1.3 : tt === 6 ? .75 : 1), mhp: h*(tt === 1 ? 1.3 : tt === 6 ? .75 : 1), spd: KSPD(kind)*(tt === 2 ? 1.25 : tt === 6 ? 1.7 : 1), slT: 0, slF: 0, stT: 0, x: p0[0], y: p0[1], f: R.f()*60|0, tt, sh: tt === 4 ? 3 + Math.floor(wave/25) : 0}); }
+    /* 🤝 (2026.11.17) 같이 할 때 몬스터 문은 하나! 모든 몬스터가 한 문에서 나와 친구들 마당을 차례로 지나가요 → 내 몬스터·친구 몬스터 없이 다 같이 잡아요 */
+    const d0 = (SH && SH.doors && SH.doors[0]) || 0, p0 = posAt(d0, l); E.push({id: ++eid, kind, l, d: d0, tr: 0, hp: h*(tt === 1 ? 1.3 : tt === 6 ? .75 : 1), mhp: h*(tt === 1 ? 1.3 : tt === 6 ? .75 : 1), spd: KSPD(kind)*(tt === 2 ? 1.25 : tt === 6 ? 1.7 : 1), slT: 0, slF: 0, stT: 0, x: p0[0], y: p0[1], f: R.f()*60|0, tt, sh: tt === 4 ? 3 + Math.floor(wave/25) : 0}); }
   const TTS = new Set();
   function setSky(){ const cv = $("#ngCanvas"); cv.style.backgroundImage = (bgURL ? `url(${bgURL}),` : "") + th().sky; cv.style.backgroundColor = "#1c1d52";
     if (bgURL){ cv.style.backgroundSize = `${COLS*C/W*100}% ${ROWS*C/H*100}%, 100% 100%`; cv.style.backgroundPosition = `${W > COLS*C ? BX/(W - COLS*C)*100 : 0}% ${H > ROWS*C ? BY/(H - ROWS*C)*100 : 0}%, 0 0`; cv.style.backgroundRepeat = "no-repeat"; } else { cv.style.backgroundSize = ""; cv.style.backgroundPosition = ""; } }
@@ -574,6 +576,7 @@ NG.defs.rd = () => {
     if (N > 1 && z != null){ if (e.lz !== z){ if (e.lz != null) e.co = Math.min(5, (e.co || 0) + 1); e.lz = z; } if (e.co) dm *= 1 + .1*e.co; }
     /* 👑 단단한 보스: 20단계부터 받는 피해 -50% · 🛡️ 서포터가 때리면 4초 동안 💥 약점 → 모두 +40% */
     if (e.kind === 1 || e.kind === 2){ if (A.job === "s") e.exT = 240; dm *= e.exT > 0 ? 1.4 : wave >= 20 ? (e.kind === 2 ? .5 : .7) : 1; }
+    if (z != null && dm > 0) DMGZ[z] = (DMGZ[z] || 0) + Math.min(dm, Math.max(0, e.hp));   // 🤝 누가 얼마나 함께 때렸는지
     e.hp -= dm; if (A.sl){ e.slT = 90; e.slF = Math.max(e.slF, A.sl); } if (A.st && R.f() < A.st) e.stT = 40;
     const bn = (A.burn || 0) + (z != null ? .15*RL(z, "burn") : 0); if (bn){ e.bnT = 180; e.bnD = Math.max(e.bnD || 0, dm*bn/60); }
     if (z != null && RL(z, "frost") && R.f() < .08*RL(z, "frost") && e.kind !== 2) e.stT = Math.max(e.stT, 50); }
@@ -586,7 +589,7 @@ NG.defs.rd = () => {
     for (let i = E.length - 1; i >= 0; i--){ const e = E[i]; if (e.kind === 3 && e.tr > plOf(e.l)*(N > 1 ? 1 : 1.5)){ E.splice(i, 1); msFail("🟡 황금 슬라임이 도망갔어요!"); } }
     for (const e of E){ if (e.exT > 0) e.exT--; if (e.bnT > 0){ e.bnT--; e.hp -= e.bnD; } else if (e.tt === 5 && e.hp < e.mhp) e.hp = Math.min(e.mhp, e.hp + e.mhp*.0006); if (e.stT > 0){ e.stT--; } else { const v = e.spd*(e.slT > 0 ? 1 - e.slF : 1)*slw; e.d += v; e.tr += v; } if (e.slT > 0 && --e.slT === 0) e.slF = 0; const pp = posAt(e.d, e.l); e.x = pp[0]; e.y = pp[1]; e.f++; }
     attack(false);
-    for (let i = E.length - 1; i >= 0; i--){ const e = E[i]; if (e.hp > 0) continue; E.splice(i, 1); kills++; msTick("kill");
+    for (let i = E.length - 1; i >= 0; i--){ const e = E[i]; if (e.hp > 0) continue; E.splice(i, 1); kills++; teamK++; msTick("kill");
       const gd = Math.floor((e.kind === 2 ? 120 : e.kind === 1 ? 35 : e.kind === 3 ? 60 + wave*3 : e.kind === 4 ? 40 : 2 + Math.floor(wave/10))*gmul()); Z.forEach((p, z) => p.gold += gd*(1 + RL(z, "greed")));
       if (e.kind === 3 || e.kind === 4){ boom(e.x, e.y, 1); if (MS && !MS.st && MS.k === (e.kind === 3 ? "gold" : "chest")) msWin(); else { Z.forEach((p, z) => giveItem(z, rndItem())); } continue; }
       if (e.kind){ const gm = e.kind === 2 ? 2 : 1, more = E.some(o => o.kind === e.kind); if (!more) Z.forEach(p => p.gems += gm); bossK += e.kind === 2 && !more ? 1 : 0; sfx("kboss"); banner = {t: e.kind === 2 ? "🎉 보스 처치!" : "😈 중간 보스 처치!", s: `💎 보석 +${gm} · 💰 +${gd}`, k: 120, c: "#ffe066"};
@@ -615,8 +618,13 @@ NG.defs.rd = () => {
 
   /* ---------- 🌐 친구 기기 ---------- */
   function gridMsg(){ return {t: "grid", gv, z: Z.map(p => p.s.map(q => q.k ? RD_K.indexOf(q.k)*4 + q.n : -1))}; }
+<<<<<<< Updated upstream
   function snap(){ return {sp: speed, w: wave, wt: waveT, st: state, sc: score, kl: kills, bk: bossK, gv, lm: LIMIT,
     P: Z.map(p => [Math.floor(p.gold), p.gems, p.up[0], p.up[1], p.up[2], p.sum, p.ack, Object.entries(p.rel).map(a => a.join(":")).join(","), p.it.join(","), p.pick ? p.pick.join(",") : "", p.clv, p.fev, p.up[3] || 0]),
+=======
+  function snap(){ return {sp: speed, w: wave, wt: waveT, st: state, sc: score, kl: kills, bk: bossK, gv, lm: LIMIT, dz: DMGZ.map(v => Math.round(v || 0)), tk: teamK,
+    P: Z.map(p => [Math.floor(p.gold), p.gems, p.up[0], p.up[1], p.up[2], p.sum, p.ack, Object.entries(p.rel).map(a => a.join(":")).join(","), p.it.join(","), p.pick ? p.pick.join(",") : "", p.clv, p.fev]),
+>>>>>>> Stashed changes
     M: MS ? [MS.k, MS.n, MS.p, MS.st] : null,
     E: E.map(e => [e.id, e.kind, Math.round(e.d*100), Math.max(1, Math.round(e.hp/e.mhp*100)), (e.slT > 0 ? 1 : 0) | (e.stT > 0 ? 2 : 0) | (e.bnT > 0 ? 4 : 0) | ((e.co || 0) >= 3 ? 8 : 0) | (e.exT > 0 ? 16 : 0), e.l || 0, e.tt || 0, e.sh || 0])}; }
   function apply(d){
@@ -631,6 +639,7 @@ NG.defs.rd = () => {
       else if (k === "e"){ if (!isMine(e[1])) emShow(e[1], e[2], e[3], e[4]); } }); return; }
     const s = d.s; if (!s) return;
     if (s.w !== wave){ const nt = Math.floor((s.w - 1)/10) !== Math.floor((Math.max(1, wave) - 1)/10); wave = s.w; if (nt){ remap(); layerKey = ""; setSky(); } }
+    if (s.dz) DMGZ = s.dz; if (s.tk != null) teamK = s.tk;
     speed = s.sp || 1; waveT = s.wt; state = s.st; score = s.sc; kills = s.kl; bossK = s.bk; if (s.lm) LIMIT = s.lm;
     MS = s.M ? {k: s.M[0], n: s.M[1], p: s.M[2], st: s.M[3]} : null;
     s.P.forEach((a, z) => { const p = Z[z]; if (!p) return; p.gold = a[0]; p.gems = a[1]; p.up = [a[2], a[3], a[4], a[12] || 0]; p.sum = a[5];
@@ -837,8 +846,14 @@ NG.defs.rd = () => {
     parts.push({l: lbl(["🌀", `${dimOf(wave)}차원`, `· ${wave}/${RD_END}`], 14, "#e5dbff"), c: "rgba(60,20,90,.7)"});
     if (N >= 3) parts.push({l: lbl(["🎌", TEAM > 1 ? `역할 분담 +${Math.round((TEAM - 1)*100)}%` : "역할 분담: 친구마다 ⚔️🏹✨ 주력을 나눠요"], 14, TEAM > 1 ? "#8ce99a" : "#ced4da"), c: "rgba(15,10,40,.6)"});
     const rel = Object.entries(Z[local[0]].rel || {}); if (rel.length) parts.push({l: lbl(rel.flatMap(([k, v]) => [RD_REL[k].e, v > 1 ? `${v}` : ""]).filter(Boolean), 14, "#ffe066"), c: "rgba(15,10,40,.6)"});
-    let tw = parts.reduce((a, q) => a + q.l.w + 22, -8), x = W/2 - tw/2;
-    parts.forEach(q => { g.fillStyle = q.c; rrect(g, x, y, q.l.w + 14, q.l.h + 2, 12); g.fill(); G2.put(g, q.l, x + 7, y + 1); x += q.l.w + 22; });
+    /* 🤝 같이 할 때: 이번 단계에 다 같이 잡은 수 + 친구마다 함께 때린 몫 (색 막대) */
+    if (N > 1){ const tl = lbl(["🤝", `다 같이 ${teamK}마리`], 14, "#fff"); parts.unshift({l: tl, c: "rgba(30,90,60,.78)", team: 1, w: tl.w + 150}); }
+    let tw = parts.reduce((a, q) => a + (q.w || q.l.w) + 22, -8), x = W/2 - tw/2;
+    if (x < LPAD*.2){ const keep = []; let w2 = -8; for (const q of parts){ if (w2 + (q.w || q.l.w) + 22 > W - 20) break; keep.push(q); w2 += (q.w || q.l.w) + 22; } parts.length = 0; parts.push(...keep); tw = w2; x = W/2 - tw/2; }
+    parts.forEach(q => { const qw = q.w || q.l.w; g.fillStyle = q.c; rrect(g, x, y, qw + 14, q.l.h + 2, 12); g.fill(); G2.put(g, q.l, x + 7, y + 1);
+      if (q.team){ const bx = x + 7 + q.l.w + 6, bw = 136, bh = 10, by = y + q.l.h/2 - 4, tot = DMGZ.reduce((a, v) => a + (v || 0), 0); g.fillStyle = "rgba(0,0,0,.45)"; g.fillRect(bx, by, bw, bh);
+        if (tot > 0){ let ox = bx; DMGZ.forEach((v, z) => { const w = bw*(v || 0)/tot; if (w <= 0) return; g.fillStyle = RD_PC[z]; g.fillRect(ox, by, w, bh); ox += w; }); } }
+      x += qw + 22; });
   }
   const splitE = s => s.split(/(\p{Extended_Pictographic}️?)/u).filter(Boolean).map(x => x.trim()).filter(Boolean);
   function drawTop(g, fr){
