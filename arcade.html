@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="a92d363463">
+<meta name="arc-build" content="03bc7b16c7">
 <script>
 /* 🔄 늘 최신 오락실: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "a92d363463", K = "arcade.reloaded";
+  var B = "03bc7b16c7", K = "arcade.reloaded";
   function saving(){ try { return typeof Store !== "undefined" && Store.saving && Store.saving(); } catch(e){ return false; } }
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !saving() && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
@@ -760,6 +760,9 @@ body.big .card .why{font-size:15px}
 .tr-pad .d{grid-column:2;grid-row:2}
 .tr-pad .r{grid-column:3;grid-row:2}
 .tr-pad[hidden]{display:none}
+#wheel{position:fixed;inset:0;z-index:9990;display:none;flex-direction:column;background:radial-gradient(ellipse at 50% 40%,#3f2f6b 0%,#2a1f4c 60%,#1c1536 100%);color:#fff;font-family:"Jua";user-select:none}
+#wheel.open{display:flex;animation:bcIn .3s ease}
+#wheel::before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,.5) 1px,transparent 1.5px),radial-gradient(rgba(255,216,77,.45) 1px,transparent 1.5px);background-size:90px 90px,140px 140px;background-position:0 0,40px 60px;opacity:.5}
 .wh-top{position:relative;display:flex;align-items:center;gap:12px;padding:12px 18px;flex-wrap:wrap}
 .wh-top h2{font-weight:400;font-size:clamp(24px,2.6vw,38px);margin:0;flex:1}
 .wh-top .pk-x{background:rgba(255,255,255,.14)}
@@ -14353,6 +14356,7 @@ const RD_G = [
   {n: "태초", c: "#fde047", c2: "#fefce8", sell: 6000}
 ];
 const RD_MAXG = RD_G.length - 1;
+const RD_UPN = ["일반·희귀", "영웅·전설", "신화", "초월·불멸·태초"];   // ⬆️ 강화 4갈래
 const RD_TT = [null,
   {e: "🛡️", t: "🛡️ 단단한 몬스터 등장!", s: "원거리 공격은 절반만 · 근거리 동물이 +20% 더 세게 때려요"},
   {e: "🦇", t: "🦇 날개 달린 몬스터 등장!", s: "근거리 동물은 못 때려요 → 원거리·지원 동물을 꼭 섞어요"},
@@ -14428,30 +14432,50 @@ const RD_EMO = ["👍", "😂", "😍", "😱", "🔥", "👏", "❤️", "😭"
 .rd-emo .l button{font:15px "Jua",sans-serif;color:#2b1d5c;background:#fff;border:0;border-radius:999px;padding:8px 13px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.25)}
 .rd-emo .l button.e{font-size:24px;padding:4px 9px;background:rgba(255,255,255,.12);box-shadow:none}
 .rd-emo .l button:active{transform:scale(.92)}
-.rd-cr{position:fixed;left:50%;top:calc(50% - 40px);transform:translate(-50%,-50%);z-index:460;width:min(940px,96vw);max-height:min(640px,78vh);display:flex;flex-direction:column;background:linear-gradient(180deg,#2a1f63,#1a1440);border:2px solid #ffa94d;border-radius:22px;padding:12px 14px 14px;box-shadow:0 16px 50px rgba(0,0,0,.6);color:#fff;font-family:"Jua",sans-serif;animation:rdCrIn .16s ease-out}
+.rd-cr{position:fixed;left:50%;top:calc(50% - 30px);transform:translate(-50%,-50%);z-index:460;width:min(1000px,97vw);height:min(600px,80vh);display:flex;flex-direction:column;background:#1d1748;border:2px solid #ffa94d;border-radius:22px;padding:12px 14px 14px;box-shadow:0 14px 40px rgba(0,0,0,.55);color:#fff;font-family:"Jua",sans-serif;contain:layout paint}
 .rd-cr[hidden]{display:none}
-@keyframes rdCrIn{from{transform:translate(-50%,-46%);opacity:0}to{transform:translate(-50%,-50%);opacity:1}}
-.rd-cr .h{display:flex;align-items:center;gap:10px;padding:0 2px 8px}
-.rd-cr .h b{font-size:22px}.rd-cr .h small{flex:1;font:13px "Gowun Dodum",sans-serif;color:#d0c6ff}
-.rd-cr .h button{border:0;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;font:15px "Jua",sans-serif;padding:6px 12px;cursor:pointer}
-.rd-cr .fl{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-.rd-cr .fl button{border:0;border-radius:999px;padding:6px 12px;font:14px "Jua",sans-serif;background:#3a3178;color:#e5dbff;cursor:pointer}
-.rd-cr .fl button.on{background:#ffd43b;color:#3b2a00}
-.rd-cr .ls{flex:1 1 auto;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));align-content:start;gap:8px;padding:2px}
-.rd-cr .rc{position:relative;display:flex;gap:10px;align-items:center;text-align:left;border-radius:16px;padding:9px 10px;background:#2d2566;color:#fff;cursor:pointer;border-left:6px solid var(--g);box-shadow:inset 0 -3px 0 rgba(0,0,0,.25);user-select:none;-webkit-user-select:none;line-height:1.3}
-.rd-cr .rc.ok{background:linear-gradient(135deg,#3f3290,#5a2f7a);outline:3px solid #ffd43b;animation:rdCrGlow 1.2s ease-in-out infinite alternate}
-@keyframes rdCrGlow{from{box-shadow:0 0 0 rgba(255,212,59,0)}to{box-shadow:0 0 18px rgba(255,212,59,.55)}}
-.rd-cr .rc .e{flex:0 0 52px;font-size:40px;text-align:center;line-height:1}
-.rd-cr .rc .b{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
-.rd-cr .rc .t{font-size:17px;display:flex;gap:5px;align-items:center;flex-wrap:wrap;padding-right:22px}
-.rd-cr .rc .t i{font-style:normal;font-size:12px;border-radius:999px;padding:1px 7px;color:#1b1233;background:var(--q)}
-.rd-cr .rc .s{font:12.5px/1.35 "Gowun Dodum",sans-serif;color:#d0c6ff}
-.rd-cr .rc .r{display:flex;gap:4px;flex-wrap:wrap}
-.rd-cr .rc .r span{font-size:14px;border-radius:10px;padding:2px 7px;background:rgba(255,255,255,.08);color:#adb5bd}
-.rd-cr .rc .r span.y{background:rgba(81,207,102,.22);color:#b2f2bb}
-.rd-cr .rc .k{position:absolute;top:6px;right:8px;font-size:13px;background:#ffd43b;color:#3b2a00;border-radius:8px;padding:1px 7px}
-.rd-cr .rc:active{transform:scale(.98)}
-.rd-cr .none{font:14px "Gowun Dodum",sans-serif;color:#d0c6ff;padding:10px}`; document.head.appendChild(st); })();
+.rd-cr .cx-h{display:flex;align-items:center;gap:10px;padding:0 2px 8px}
+.rd-cr .cx-h b{font-size:22px;white-space:nowrap}.rd-cr .cx-h small{flex:1;font:13px "Gowun Dodum",sans-serif;color:#cfc5ff}
+.rd-cr .cx-h button{border:0;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;font:15px "Jua",sans-serif;padding:6px 12px;cursor:pointer}
+.rd-cr .cx-fl{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.rd-cr .cx-fl button{border:0;border-radius:999px;padding:5px 12px;font:14px "Jua",sans-serif;background:#332a72;color:#e5dbff;cursor:pointer}
+.rd-cr .cx-fl button.cx-on{background:#ffd43b;color:#3b2a00}
+.rd-cr .cx-bd{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:12px}
+.rd-cr .cx-ls{min-height:0;overflow:auto;display:flex;flex-direction:column;gap:5px;padding:2px 4px 2px 2px}
+.rd-cr .cx-rw{display:flex;align-items:center;gap:8px;border-radius:13px;padding:5px 8px;background:#2a2263;cursor:pointer;border-left:5px solid var(--g);user-select:none;-webkit-user-select:none;flex:none}
+.rd-cr .cx-rw.cx-ok{background:#3b2f86;box-shadow:inset 0 0 0 2px #ffd43b}
+.rd-cr .cx-rw.cx-on{background:#5b46c9;box-shadow:inset 0 0 0 3px #fff}
+.rd-cr .cx-rw img{width:38px;height:38px;flex:none}
+.rd-cr .cx-rw .cx-nm{flex:1;min-width:0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rd-cr .cx-rw .cx-nm small{display:block;font:11.5px "Gowun Dodum",sans-serif;color:var(--g)}
+.rd-cr .cx-rw .cx-ig{display:flex;gap:2px;font-size:15px;flex:none}
+.rd-cr .cx-rw .cx-ig span{opacity:.35}.rd-cr .cx-rw .cx-ig span.cx-y{opacity:1}
+.rd-cr .cx-rw .cx-k{flex:none;font-size:12px;background:#ffd43b;color:#3b2a00;border-radius:7px;padding:1px 6px}
+.rd-cr .cx-dt{min-height:0;overflow:auto;background:#251e5c;border-radius:16px;padding:12px;border:2px solid var(--g,#ffa94d);display:flex;flex-direction:column;gap:9px}
+.rd-cr .cx-tp{display:flex;gap:10px;align-items:center}.rd-cr .cx-tp img{width:70px;height:70px;flex:none;background:radial-gradient(circle,rgba(255,255,255,.16),transparent 70%);border-radius:50%}
+.rd-cr .cx-tp h3{margin:0;font-size:22px}.rd-cr .cx-tp i{display:inline-block;font-style:normal;font-size:12px;border-radius:999px;padding:1px 8px;margin:3px 3px 0 0;color:#1b1233;background:var(--q)}
+.rd-cr .cx-sk{font:13px/1.4 "Gowun Dodum",sans-serif;color:#c5f6fa}
+.rd-cr .cx-nd{display:flex;flex-wrap:wrap;gap:5px}
+.rd-cr .cx-nd span{font-size:14px;border-radius:10px;padding:3px 9px;background:rgba(255,255,255,.07);color:#adb5bd;border:2px solid transparent}
+.rd-cr .cx-nd span.cx-y{background:rgba(81,207,102,.18);color:#b2f2bb;border-color:rgba(81,207,102,.5)}
+.rd-cr .cx-yd{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;max-width:250px;width:100%;align-self:center}
+.rd-cr .cx-yd>div{position:relative;aspect-ratio:1;border-radius:12px;background:#3a3080;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid transparent;user-select:none;-webkit-user-select:none}
+.rd-cr .cx-yd>div.cx-no{background:#2a2360;cursor:default}.rd-cr .cx-yd>div.cx-no img{opacity:.35}
+.rd-cr .cx-yd>div.cx-use{border-color:#69db7c;background:#2f5a3e}
+.rd-cr .cx-yd>div.cx-can{border-color:rgba(255,212,59,.65)}
+.rd-cr .cx-yd>div.cx-cur{outline:3px solid #fff;outline-offset:1px}
+.rd-cr .cx-yd img{width:78%;height:78%}
+.rd-cr .cx-yd b{position:absolute;right:4px;bottom:2px;font-size:12px;color:#fff;text-shadow:0 1px 2px #000}
+.rd-cr .cx-yd em{position:absolute;left:3px;top:2px;font-style:normal;font-size:12px;background:#51cf66;color:#0b2e13;border-radius:7px;padding:0 5px}
+.rd-cr .cx-yd u{position:absolute;right:2px;top:0;text-decoration:none;font-size:16px}
+.rd-cr .cx-yd>div.cx-dst{background:#5a4a1e;border-color:#ffd43b}
+.rd-cr .cx-ac{display:flex;gap:6px;flex-wrap:wrap}
+.rd-cr .cx-ac button{flex:1;min-width:110px;border:0;border-radius:12px;padding:9px 8px;font:15px "Jua",sans-serif;cursor:pointer;background:#3a3178;color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.3)}
+.rd-cr .cx-ac button.cx-on{background:#ffd43b;color:#3b2a00}
+.rd-cr .cx-ac button.cx-go{background:#ff922b;font-size:17px}.rd-cr .cx-ac button.cx-go[disabled]{background:#4a4470;color:#9e98c0;cursor:default}
+.rd-cr .cx-ac button small{opacity:.75;font-size:12px}
+.rd-cr .cx-tip{font:12.5px/1.4 "Gowun Dodum",sans-serif;color:#cfc5ff;text-align:center}
+@media (max-width:720px),(orientation:portrait){.rd-cr{height:min(860px,86vh)}.rd-cr .cx-bd{grid-template-columns:1fr;grid-template-rows:minmax(0,.8fr) minmax(0,1.6fr)}}`; document.head.appendChild(st); })();
 
 NG.defs.rd = () => {
   const O = NG.opt || {}, SIDS = NG.sids.slice(0, 6), N = SIDS.length;
@@ -14635,7 +14659,7 @@ NG.defs.rd = () => {
     const l = lbl(parts, fs); t.globalAlpha = off ? .6 : 1; t.drawImage(l, w/2 - l.w/2, h/2 - l.h/2, l.w, l.h); }); }
 
   /* ---------- 시작 · 단계 ---------- */
-  function mkZone(){ return {s: Array.from({length: ZS}, () => ({k: null, n: 0, cd: [0, 0, 0], hit: 0})), gold: 140, gems: 0, up: [0, 0, 0], sum: 0, ack: 0, rel: {}, it: ["bomb"], pick: null, clv: 0, fev: 0}; }
+  function mkZone(){ return {s: Array.from({length: ZS}, () => ({k: null, n: 0, cd: [0, 0, 0], hit: 0})), gold: 140, gems: 0, up: [0, 0, 0, 0], sum: 0, ack: 0, rel: {}, it: ["bomb"], pick: null, clv: 0, fev: 0}; }
   /* 🎯 단계 미션: 보스가 아닌 단계마다 하나 */
   function newMission(){
     if (wave % 10 === 0){ MS = null; return; }
@@ -14665,7 +14689,7 @@ NG.defs.rd = () => {
   /* 몬스터: 0 슬라임 · 1 😈 중간 보스 · 2 👑 보스 · 3 🟡 황금 슬라임(빨라요, 놓치면 도망) · 4 🎁 보물상자(느리고 단단) */
   const KSPD = kind => (kind === 2 ? 1.15 : kind === 1 ? 1.55 : kind === 3 ? 3.4 : kind === 4 ? .9 : 2.05 + Math.min(.6, wave*.012))/60;
   /* 같이 하기(SH)는 문 하나에서 모두 나와요 (보스는 한 마리, 대신 사람 수만큼 튼튼) */
-  let laneRR = 0, bossRR = 0, netT = 0, spawnI = 28, crOpen = false, crF = "ok", crZ = 0, crR = "", grab = null, kHint = (() => { try { return matchMedia("(pointer:fine)").matches; } catch(e){ return false; } })();
+  let laneRR = 0, bossRR = 0, netT = 0, spawnI = 28, crOpen = false, crF = "ok", crZ = 0, crR = "", crD = "", crSel = null, crPick = [], crDest = -1, crMode = "", crCur = 0, grab = null, kHint = (() => { try { return matchMedia("(pointer:fine)").matches; } catch(e){ return false; } })();
   function spawn(kind, l){ let one = 1;
     /* 🌀 문이 사람 수만큼: 몬스터는 친구마다 자기 마당 앞 문에서 번갈아 나와요 → 모두가 함께 때려요 · 보스는 한 마리(대신 다 같이 튼튼), 나오는 문은 돌아가며 */
     if (kind === 1 || kind === 2){ one = N; l = bossRR++ % N; } else if (l == null) l = laneRR++ % N;
@@ -14684,7 +14708,7 @@ NG.defs.rd = () => {
     try { layer.toBlob(bl => { if (!bl || key !== layerKey || NG.cur !== self) return; if (RD_BG.url) URL.revokeObjectURL(RD_BG.url); RD_BG.url = bgURL = URL.createObjectURL(bl); setSky(); }, "image/png"); } catch(e) {} }
 
   /* ---------- 동물 뽑기 · 합치기 · 팔기 · 옮기기 · 강화 · 행운 ---------- */
-  function placeK(z, k, pref){ const S = Z[z].s; let i = S.findIndex(q => q.k === k && q.n < 3); if (i < 0 && pref != null && !S[pref].k) i = pref; if (i < 0) i = S.findIndex(q => !q.k); if (i < 0) return -1;
+  function placeK(z, k, pref, force){ const S = Z[z].s; let i = force && pref != null && S[pref] && (!S[pref].k || (S[pref].k === k && S[pref].n < 3)) ? pref : S.findIndex(q => q.k === k && q.n < 3); if (i < 0 && pref != null && !S[pref].k) i = pref; if (i < 0) i = S.findIndex(q => !q.k); if (i < 0) return -1;
     const q = S[i]; if (isMine(z)) RDB.see(k); if (!q.k){ q.k = k; q.n = 0; } q.cd[q.n] = 10 + q.n*7; q.n++; q.hit = 12; gv++; return i; }
   const sumCost = z => 20 + Math.min(50, Math.floor(Z[z].sum/2));   // 뽑을수록 조금씩 비싸지다가 70에서 멈춰요 (뒤 단계에서 금이 바닥나지 않게)
   function rollG(z){ const r = R.f(), d = z == null ? 0 : RL(z, "dice"), lk = z == null ? 0 : (PK(z).luck || 0);
@@ -14708,9 +14732,9 @@ NG.defs.rd = () => {
     else if (ty === "all"){ let n = 0; for (let loop = 0; loop < 40; loop++){ const i = S.findIndex(q => q.k && q.n >= 3 && RD_A[q.k].g < RD_MG); if (i < 0) break; mergeAt(z, i, true); n++; }
       if (!n) toastZ(z, "🔀 3마리 모인 동물이 없어요"); else sfx("merge", z); }
     else if (ty === "sel"){ const i = a[1], q = S[i]; if (!q || !q.k) return; const v = RD_G[RD_A[q.k].g].sell; q.n--; if (!q.n) q.k = null; p.gold += v; gv++; sfx("sell", z); popAt(z, i, `+${v}💰`, "#ffe066"); }
-    else if (ty === "cr") craft(z, a[1]);
+    else if (ty === "cr") craft(z, a[1], a[2], a[3]);
     else if (ty === "mov"){ const i = a[1], j = a[2]; if (i === j || !S[i] || !S[j]) return; const t = S[i]; S[i] = S[j]; S[j] = t; gv++; }
-    else if (ty === "up"){ const g = a[1], c = upCost(z, g); if (p.gold < c){ toastZ(z, "💰 금이 모자라요"); return; } p.gold -= c; p.up[g]++; sfx("up", z); toastZ(z, `⬆️ ${["일반·희귀", "영웅·전설", "신화 이상"][g]} 공격력 Lv.${p.up[g]}!`); gv++; }
+    else if (ty === "up"){ const g = a[1] | 0; if (g < 0 || g > 3) return; while (p.up.length < 4) p.up.push(0); const c = upCost(z, g); if (p.gold < c){ toastZ(z, "💰 금이 모자라요"); return; } p.gold -= c; p.up[g]++; sfx("up", z); toastZ(z, `⬆️ ${RD_UPN[g]} 공격력 Lv.${p.up[g]}!`); gv++; }
     else if (ty === "rel"){ if (p.pick) takeRel(z, a[1] | 0); }
     else if (ty === "it"){ const i = a[1] | 0, k = p.it[i]; if (!k) return; p.it.splice(i, 1); gv++; useItem(z, k); }
     else if (ty === "luck"){ const big = a[1] === 1, c = big ? 4 : 1; if (p.gems < c){ toastZ(z, "💎 보석이 모자라요 (보스를 잡으면 생겨요)"); return; }
@@ -14738,20 +14762,38 @@ NG.defs.rd = () => {
   function haveOf(z){ const H = {}; Z[z].s.forEach(q => { if (q.k) H[q.k] = (H[q.k] || 0) + q.n; }); return H; }
   function canCraft(z, t, H){ const R0 = RD_RC[t]; if (!R0) return false; H = H || haveOf(z); return R0.every(([k, c]) => (H[k] || 0) >= c); }
   const crList = z => { const H = haveOf(z); return RD_RCK.filter(t => canCraft(z, t, H)); };
-  let crV = -1, crC = [];
-  const crN = z => { if (crV !== gv + "/" + z){ crV = gv + "/" + z; crC = crList(z); } return crC.length; };
-  function craft(z, t){ const R0 = RD_RC[t], p = Z[z]; if (!R0 || !RD_A[t]) return;
+  const crCache = {};
+  const crN = z => { const c = crCache[z]; if (c && c.v === gv) return c.n; const n = crList(z).length; crCache[z] = {v: gv, n}; return n; };
+  /* 재료 고르기: picks = 재료로 쓸 칸 번호 목록(한 칸에서 여러 마리면 그 번호가 여러 번) */
+  function autoPick(z, t, keep, noFill){ const S = Z[z].s, R0 = RD_RC[t]; if (!R0) return [];
+    const use = {}, out = []; (keep || []).forEach(i => { const q = S[i], need = q && q.k && (R0.find(r => r[0] === q.k) || [])[1]; if (!need) return;
+      const k = q.k, inK = out.filter(j => S[j].k === k).length, inI = out.filter(j => j === i).length; if (inK < need && inI < q.n) out.push(i); });
+    if (noFill) return out;
+    R0.forEach(([k, c]) => { let left = c - out.filter(j => S[j].k === k).length; const idx = S.map((q, i) => i).filter(i => S[i].k === k).sort((a, b) => S[a].n - S[b].n);
+      for (const i of idx){ while (left > 0 && out.filter(j => j === i).length < S[i].n){ out.push(i); left--; } if (!left) break; } });
+    return out; }
+  const pickOK = (z, t, picks) => { const S = Z[z].s, R0 = RD_RC[t]; if (!R0 || !Array.isArray(picks)) return false;
+    for (const [k, c] of R0) if (picks.filter(i => S[i] && S[i].k === k).length !== c) return false;
+    const per = {}; for (const i of picks){ if (!S[i] || !S[i].k || !R0.some(r => r[0] === S[i].k)) return false; per[i] = (per[i] || 0) + 1; if (per[i] > S[i].n) return false; } return true; };
+  /* 새 동물이 생길 칸 (고른 자리가 없으면: 같은 동물 칸 → 가장 높은 등급 재료 칸 → 빈 칸) */
+  function destOf(z, t, picks, dest){ const S = Z[z].s, left = S.map((q, i) => ({k: q.k, n: q.n - picks.filter(j => j === i).length}));
+    const fits = i => left[i] && (left[i].n <= 0 || (left[i].k === t && left[i].n < 3));
+    if (dest != null && dest >= 0 && fits(dest)) return dest;
+    let i = left.findIndex(q => q.k === t && q.n > 0 && q.n < 3); if (i >= 0) return i;
+    let best = -1, bg = -1; picks.forEach(j => { const g = RD_A[S[j].k].g; if (left[j].n <= 0 && g > bg){ bg = g; best = j; } }); if (best >= 0) return best;
+    return left.findIndex(q => q.n <= 0); }
+  function craft(z, t, picks, dest){ const R0 = RD_RC[t], p = Z[z]; if (!R0 || !RD_A[t]) return;
     if (!canCraft(z, t)){ toastZ(z, `🧪 재료가 모자라요: ${R0.map(([k, c]) => RD_A[k].e + "×" + c).join(" ")}`); sfx("no", z); return; }
-    /* 가장 높은 등급 재료가 있던 칸에 새 동물이 생겨요 (아이들이 둔 자리 그대로) */
-    let pref = -1, pg = -1; const S = p.s;
-    R0.forEach(([k, c]) => { let left = c; const idx = S.map((q, i) => i).filter(i => S[i].k === k).sort((a, b) => S[a].n - S[b].n);
-      for (const i of idx){ if (!left) break; const q = S[i], take = Math.min(left, q.n); q.n -= take; left -= take; if (RD_A[k].g > pg){ pg = RD_A[k].g; pref = i; } if (!q.n){ q.k = null; q.cd = [0, 0, 0]; q.mp = 0; } } });
-    const j = placeK(z, t, pref >= 0 ? pref : null); gv++; msTick("merge");
+    if (!pickOK(z, t, picks)) picks = autoPick(z, t);
+    const S = p.s, at = destOf(z, t, picks, dest);
+    picks.forEach(i => { const q = S[i]; q.n--; if (q.n <= 0){ q.n = 0; q.k = null; q.cd = [0, 0, 0]; q.mp = 0; } });
+    const j = placeK(z, t, at >= 0 ? at : null, true); gv++; msTick("merge");
     const G = RD_A[t].g; sfx(G >= 3 ? "big" : "merge", z); popAt(z, j, `🧪 ${RD_A[t].e} ${RD_A[t].n}${G >= 3 ? "!!" : "!"}`, RD_G[G].c); fxRing(z, j, RD_G[G].c);
     if (G >= 4){ banner = {t: `🧪 ${RD_G[G].n} 조합 성공!`, s: `${RD_A[t].e} ${RD_A[t].n} — ${RD_A[t].sk ? RD_A[t].sk.n : RD_A[t].t}`, k: 120, c: RD_G[G].c}; if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); if (j >= 0){ const [x, y] = slotXY(z, j); FX.push({nova: 1, x, y, t: 50, c: RD_G[G].c}); } } }
   /* ⬆️ 강화는 끝이 없어요: Lv25까지는 차근차근, 그 뒤로는 한 번 올릴 때마다 ×1.075 (값도 ×1.07씩) */
-  const upCost = (z, g) => { const L = Z[z].up[g]; return Math.round([30, 90, 250][g]*(L < 25 ? L + 1 : 26*Math.pow(1.07, L - 25))*(1 - .25*RL(z, "cheap"))); };
-  const upMul = (z, g) => { const L = Z[z].up[g < 2 ? 0 : g < 4 ? 1 : 2]; return (1 + .3*Math.min(25, L)*(g >= 5 ? 1.3 : 1))*Math.pow(1.075, Math.max(0, L - 25)); };
+  const upCost = (z, g) => { const L = Z[z].up[g] || 0; return Math.round([30, 90, 250, 600][g]*(L < 25 ? L + 1 : 26*Math.pow(1.07, L - 25))*(1 - .25*RL(z, "cheap"))); };
+  const upTier = g => g < 2 ? 0 : g < 4 ? 1 : g < 5 ? 2 : 3;   // ⬆️ 강화 4갈래: 일반·희귀 / 영웅·전설 / 신화 / 초월·불멸·태초
+  const upMul = (z, g) => { const L = Z[z].up[upTier(g)] || 0; return (1 + .3*Math.min(25, L)*(g >= 5 ? 1.3 : 1))*Math.pow(1.075, Math.max(0, L - 25)); };
   function toastZ(z, s){ if (isMine(z)){ for (let i = FX.length - 1; i >= 0; i--) if (FX[i].ui && FX[i].z === z) FX.splice(i, 1); } if (isMine(z)) FX.push({tx: s, x: W/2, y: H - BOTH - 26, t: 90, c: "#fff", ui: 1, z}); else if (party === "host" && remote(z)) NQ.push(["t", z, s]); }
   function popAt(z, i, s, c, nb){ if (i < 0) return; const [x, y] = slotXY(z, i); FX.push({tx: s, x, y: y - .4, t: nb ? 50 : 70, c, cell: 1, nb}); if (party === "host") NQ.push(["p", z, i, s, c, nb ? 1 : 0]); }
   function fxRing(z, i, c){ if (i < 0) return; const [x, y] = slotXY(z, i); FX.push({ring: 1, x, y, t: 26, c}); if (party === "host") NQ.push(["r", +x.toFixed(2), +y.toFixed(2), c]); }
@@ -14903,7 +14945,7 @@ NG.defs.rd = () => {
   /* ---------- 🌐 친구 기기 ---------- */
   function gridMsg(){ return {t: "grid", gv, z: Z.map(p => p.s.map(q => q.k ? RD_K.indexOf(q.k)*4 + q.n : -1))}; }
   function snap(){ return {sp: speed, w: wave, wt: waveT, st: state, sc: score, kl: kills, bk: bossK, gv, lm: LIMIT,
-    P: Z.map(p => [Math.floor(p.gold), p.gems, p.up[0], p.up[1], p.up[2], p.sum, p.ack, Object.entries(p.rel).map(a => a.join(":")).join(","), p.it.join(","), p.pick ? p.pick.join(",") : "", p.clv, p.fev]),
+    P: Z.map(p => [Math.floor(p.gold), p.gems, p.up[0], p.up[1], p.up[2], p.sum, p.ack, Object.entries(p.rel).map(a => a.join(":")).join(","), p.it.join(","), p.pick ? p.pick.join(",") : "", p.clv, p.fev, p.up[3] || 0]),
     M: MS ? [MS.k, MS.n, MS.p, MS.st] : null,
     E: E.map(e => [e.id, e.kind, Math.round(e.d*100), Math.max(1, Math.round(e.hp/e.mhp*100)), (e.slT > 0 ? 1 : 0) | (e.stT > 0 ? 2 : 0) | (e.bnT > 0 ? 4 : 0) | ((e.co || 0) >= 3 ? 8 : 0) | (e.exT > 0 ? 16 : 0), e.l || 0, e.tt || 0, e.sh || 0])}; }
   function apply(d){
@@ -14920,7 +14962,7 @@ NG.defs.rd = () => {
     if (s.w !== wave){ const nt = Math.floor((s.w - 1)/10) !== Math.floor((Math.max(1, wave) - 1)/10); wave = s.w; if (nt){ remap(); layerKey = ""; setSky(); } }
     speed = s.sp || 1; waveT = s.wt; state = s.st; score = s.sc; kills = s.kl; bossK = s.bk; if (s.lm) LIMIT = s.lm;
     MS = s.M ? {k: s.M[0], n: s.M[1], p: s.M[2], st: s.M[3]} : null;
-    s.P.forEach((a, z) => { const p = Z[z]; if (!p) return; p.gold = a[0]; p.gems = a[1]; p.up = [a[2], a[3], a[4]]; p.sum = a[5];
+    s.P.forEach((a, z) => { const p = Z[z]; if (!p) return; p.gold = a[0]; p.gems = a[1]; p.up = [a[2], a[3], a[4], a[12] || 0]; p.sum = a[5];
       if (a[7] != null){ p.rel = {}; String(a[7]).split(",").filter(Boolean).forEach(x => { const [k, v] = x.split(":"); p.rel[k] = +v; }); p.it = String(a[8] || "").split(",").filter(Boolean); p.pick = a[9] ? String(a[9]).split(",") : null; p.clv = a[10] || 0; p.fev = a[11] || 0; } if (z === myIdx){ const ack = a[6]; outbox = outbox.filter(o => o[0] > ack); } });
     const old = new Map(E.map(e => [e.id, e]));
     E = s.E.map(a => { const o = old.get(a[0]), d0 = a[2]/100, kind = a[1];
@@ -14984,7 +15026,7 @@ NG.defs.rd = () => {
   }
   let BARS = [];
   function panelBtns(){ if (!panel) return []; const b = BARS.find(q => q.id === panel.id && q.z === panel.z); if (!b) return [];
-    const n = panel.id === "up" ? 3 : 2, w = Math.min(330, W - 20), h = 64, x = Math.max(10, Math.min(W - w - 10, b.x + b.w/2 - w/2)), y0 = b.y - 14 - n*(h + 8);
+    const n = panel.id === "up" ? 4 : 2, w = Math.min(360, W - 20), h = 60, x = Math.max(10, Math.min(W - w - 10, b.x + b.w/2 - w/2)), y0 = Math.min(b.y, H - BOTH) - 10 - n*(h + 8);
     return Array.from({length: n}, (_, i) => ({id: panel.id, i, z: panel.z, x, y: y0 + i*(h + 8), w, h})); }
   function selBtns(){ if (!sel) return []; const q = Z[sel.z].s[sel.i]; if (!q.k) return []; const [x, y] = slotXY(sel.z, sel.i), px = cx(x), py = cy(y) - C*.62;
     const w = 112, h = 50, L = []; const can = q.n >= 3 && RD_A[q.k].g < RD_MG;
@@ -15032,7 +15074,8 @@ NG.defs.rd = () => {
   }
   function draw(g){
     fxTune(); trimFX();
-    if (RDB.isOpen && !party){ if (bookDrawn) return; bookDrawn = true; } else bookDrawn = false;
+    if (crOpen && NG.frame % 10 === 0) crRender();
+    if ((RDB.isOpen || crOpen) && !party){ if (bookDrawn) return; bookDrawn = true; } else bookDrawn = false;
     g.clearRect(0, 0, W, H);
     const k = NG.k || 1; buildLayer(); boardBG();
     g.setTransform(1, 0, 0, 1, 0, 0); if (!bgURL) g.drawImage(layer, Math.round(BX*k), Math.round(BY*k));
@@ -15046,7 +15089,6 @@ NG.defs.rd = () => {
     // 끌어서 옮길 때: 이 동물에게 좋은 자리 반짝
     if (drag && drag.on){ const q0 = Z[drag.z].s[drag.i]; if (q0.k){ const ro = RD_A[q0.k].ro; LN[drag.z].slots.forEach(([x, y], s) => { const good = ro === "m" ? isFront(drag.z, s) : ro === "r" ? !isFront(drag.z, s) : true;
       if (!good) return; g.globalAlpha = .4 + Math.sin(fr*.2)*.15; g.fillStyle = RD_ROLE[ro].c; rrect(g, cx(x - .45), cy(y - .45), C*.9, C*.9, C*.2); g.fill(); g.globalAlpha = 1; }); } }
-    if (crOpen && fr % 10 === 0) crRender();
     if (grab && LN[grab.z]){ const [x, y] = slotXY(grab.z, grab.i); g.strokeStyle = "#ffd43b"; g.lineWidth = 4; g.setLineDash([8, 6]); rrect(g, cx(x - .47), cy(y - .47), C*.94, C*.94, C*.18); g.stroke(); g.setLineDash([]); outlined(g, "✋ G로 놓기", cx(x), cy(y) - C*.56, 14, "#ffe066"); }
     if (sel){ const [x, y] = slotXY(sel.z, sel.i), q = Z[sel.z].s[sel.i]; g.strokeStyle = "#fff"; g.lineWidth = 4; rrect(g, cx(x - .47), cy(y - .47), C*.94, C*.94, C*.18); g.stroke();
       if (q.k){ g.globalAlpha = .14; g.fillStyle = "#fff"; g.beginPath(); g.arc(cx(x), cy(y), (RD_A[q.k].r + .5*RL(sel.z, "rng"))*C, 0, 7); g.fill(); g.globalAlpha = .6; g.strokeStyle = "#fff"; g.lineWidth = 2; g.stroke(); g.globalAlpha = 1; } }
@@ -15166,30 +15208,63 @@ NG.defs.rd = () => {
         else { const f1 = Math.min(26, Math.floor(b.w*.2)); G2.put(g, lbl(["💰", rdN(p.gold)], f1, "#ffe066"), b.x + 8, b.y + b.h*.5 - f1 - 10); G2.put(g, lbl(["💎", String(p.gems)], Math.min(22, f1), "#e5dbff"), b.x + 8, b.y + b.h*.5 + 2); }
         if (local.length >= 2 || N > 1) faceAt(g, SIDS[b.z], b.x + b.w - 4, b.y + 4, 14, col); } });
     /* ⌨️ 단추마다 자판 글자 (키보드가 있는 기기) */
-    if (kHint || window.VK_ON) BARS.forEach(b => { if (b.z < 0 || b.z !== local[0]) return; const two = local.length >= 2, key = {sum: "Space", all: "Q", cr: "C", up: "1·2·3", luck: "E", bag: "4~8"}[b.id]; if (!key) return;
+    if (kHint || window.VK_ON) BARS.forEach(b => { if (b.z < 0 || b.z !== local[0]) return; const two = local.length >= 2, key = {sum: "Space", all: "Q", cr: "C", up: "1~4", luck: "E", bag: "5~9"}[b.id]; if (!key) return;
       const l = lbl([key], 12, "#fff"); g.fillStyle = "rgba(0,0,0,.55)"; rrect(g, b.x + 4, b.y + b.h - l.h - 4, l.w + 8, l.h + 2, 7); g.fill(); G2.put(g, l, b.x + 8, b.y + b.h - l.h - 3); });
     if ((kHint || window.VK_ON) && local.length >= 2) BARS.forEach(b => { if (b.z !== local[1]) return; const key = {sum: "Enter", all: "M", luck: "L"}[b.id]; if (!key) return;
       const l = lbl([key], 12, "#fff"); g.fillStyle = "rgba(0,0,0,.55)"; rrect(g, b.x + 4, b.y + b.h - l.h - 4, l.w + 8, l.h + 2, 7); g.fill(); G2.put(g, l, b.x + 8, b.y + b.h - l.h - 3); });
   }
-  /* 🧪 조합 창 (DOM) — 만들 수 있는 조합이 맨 앞에서 반짝여요. 숫자 키 1~9로 바로 만들어요 */
-  function crToggle(z){ if (crOpen && crZ === z){ crClose(); return; } crOpen = true; crZ = z; crR = ""; panel = null; crRender(); playS("warn"); }
-  function crClose(){ crOpen = false; const el = $("#rdCr"); if (el) el.hidden = true; }
-  function crShown(){ const H = haveOf(crZ), ok = RD_RCK.filter(t => canCraft(crZ, t, H)); let L = crF === "ok" ? ok.concat(RD_RCK.filter(t => !ok.includes(t))) : RD_RCK.filter(t => crF === "s" || crF === "d" ? RD_A[t].job === crF : RD_A[t].g === +crF);
+  /* 🧪 조합 창 (DOM) — 왼쪽: 조합 목록(만들 수 있는 것이 위) · 오른쪽: 내 4×4 마당에서 재료로 쓸 동물을 직접 골라 넣고 📍 만들 자리도 골라요
+     ⏸️ 혼자·둘이 할 때는 조합 창이 열려 있는 동안 게임이 잠깐 멈춰요 (천천히 생각해요) */
+  function crToggle(z){ if (crOpen && crZ === z){ crClose(); return; } crOpen = true; crZ = z; crR = crD = ""; crMode = ""; panel = null; grab = null;
+    if (!crSel || !RD_RC[crSel] || !canCraft(z, crSel)) crSel = crList(z)[0] || crSel || RD_RCK[0]; crPick = autoPick(z, crSel); crDest = -1; crRender(); playS("warn"); }
+  function crClose(){ crOpen = false; crMode = ""; bookDrawn = false; const el = $("#rdCr"); if (el) el.hidden = true; }
+  function crShown(){ const H = haveOf(crZ), ok = RD_RCK.filter(t => canCraft(crZ, t, H)); const L = crF === "ok" ? ok.concat(RD_RCK.filter(t => !ok.includes(t))) : RD_RCK.filter(t => crF === "s" || crF === "d" ? RD_A[t].job === crF : RD_A[t].g === +crF);
     return {H, ok, L}; }
+  function crPickSel(t){ if (!RD_RC[t]) return; crSel = t; crPick = autoPick(crZ, t); crDest = -1; crMode = ""; crD = ""; crRender(); playS("warn"); }
+  /* 마당 칸 누르기: 재료로 넣기/빼기 (이미 다 찼으면 다른 칸 것과 바꿔요) · 📍 모드면 만들 자리 정하기 */
+  function crTap(i){ const S = Z[crZ].s, q = S[i], R0 = RD_RC[crSel]; if (!q || !R0) return;
+    if (crMode === "dest"){ crDest = i; crMode = ""; playS("sum"); crD = ""; crRender(); return; }
+    const need = q.k && (R0.find(r => r[0] === q.k) || [])[1]; if (!need){ playS("no"); return; }
+    const inI = crPick.filter(j => j === i).length, inK = crPick.filter(j => S[j].k === q.k).length, o = crPick.findIndex(j => j !== i && S[j].k === q.k);
+    if (inI < q.n && inK < need) crPick.push(i);                       // 넣기
+    else if (inI < q.n && o >= 0){ crPick.splice(o, 1); crPick.push(i); }   // 다 찼으면 다른 칸 것과 바꾸기
+    else if (inI > 0) crPick = crPick.filter(j => j !== i);              // 빼기
+    playS("sum"); crD = ""; crRender(); }
+  function crGo(){ if (!crSel || !canCraft(crZ, crSel)){ playS("no"); return; } if (!pickOK(crZ, crSel, crPick)){ crPick = autoPick(crZ, crSel, crPick); crD = ""; crRender(); playS("warn"); return; }   // 모자란 재료만 채워서 보여 줘요 → 한 번 더 누르면 만들어요
+    act(crZ, ["cr", crSel, crPick.slice(), crDest]); if (party === "guest") playS("merge"); bookDrawn = false;
+    if (!party){ crPick = autoPick(crZ, crSel); crDest = -1; } crR = crD = ""; crRender(); }
+  const imgOf = k => RDB.img(k);
   function crRender(){ if (!crOpen) return; const D = $("#ngDom"); let el = $("#rdCr");
     if (!el){ el = document.createElement("div"); el.id = "rdCr"; el.className = "rd-cr"; D.appendChild(el);
-      const stop = e => e.stopPropagation(); ["pointerdown", "pointerup", "touchstart", "mousedown"].forEach(ev => el.addEventListener(ev, stop));
-      el.onclick = e => { const b = e.target.closest("[data-x],[data-f],[data-t]"); if (!b) return; if (b.dataset.x != null){ crClose(); return; } if (b.dataset.f){ crF = b.dataset.f; crR = ""; crRender(); return; }
-        const t = b.dataset.t; if (canCraft(crZ, t)){ act(crZ, ["cr", t]); if (party === "guest") playS("merge"); } else { playS("no"); b.animate && b.animate([{transform: "translateX(-5px)"}, {transform: "translateX(5px)"}, {transform: "none"}], {duration: 180}); } }; }
-    const {H, ok, L} = crShown(), sig = crF + "|" + RD_RCK.map(t => RD_RC[t].map(([k]) => H[k] || 0).join(".")).join(","); if (sig === crR && !el.hidden) return; crR = sig;
-    const F = [["ok", `✨ 만들 수 있는 것 ${ok.length}`], ["d", "🗡️ 딜러"], ["s", "🛡️ 서포터"], ...[2, 3, 4, 5, 6, 7].map(g => [String(g), RD_G[g].n])];
-    el.innerHTML = `<div class="h"><b>🧪 조합</b><small>재료 동물을 모아 원하는 동물을 만들어요 · 🟣 영웅부터는 조합으로! · 숫자 키로 바로 만들기 · C/Esc 닫기</small><button data-x>✕ 닫기</button></div>
-      <div class="fl">${F.map(([id, n]) => `<button data-f="${id}" class="${crF === id ? "on" : ""}">${n}</button>`).join("")}</div>
-      <div class="ls">${L.map(t => { const A = RD_A[t], G = RD_G[A.g], J = RD_JOB[A.job], RO = RD_ROLE[A.ro], can = ok.includes(t), ki = can ? ok.indexOf(t) : -1;
-        return `<div role="button" class="rc ${can ? "ok" : ""}" data-t="${t}" style="--g:${G.c}">${ki >= 0 && ki < 9 ? `<span class="k">${ki + 1}</span>` : ""}<span class="e">${A.e}</span><div class="b">
-          <div class="t">${A.n} <i style="--q:${G.c}">${G.n}</i><i style="--q:${J.c}">${J.e} ${J.n}</i><i style="--q:${RO.c}">${RO.e} ${RO.n}</i></div>
-          <div class="s">🌟 ${A.sk.e} ${A.sk.n}: ${A.sk.d}</div>
-          <div class="r">${RD_RC[t].map(([k, c]) => `<span class="${(H[k] || 0) >= c ? "y" : ""}">${RD_A[k].e} ${RD_A[k].n} ${Math.min(H[k] || 0, c)}/${c}</span>`).join("")}</div></div></div>`; }).join("") || `<div class="none">아직 조합이 없어요</div>`}</div>`;
+      el.innerHTML = `<div class="cx-h"><b>🧪 조합</b><small>목록에서 고르고 → 오른쪽 내 마당에서 재료로 쓸 동물을 눌러 넣어요 · 📍 만들 자리도 고를 수 있어요</small><button data-x>✕ 닫기 <small>Esc</small></button></div><div class="cx-fl"></div><div class="cx-bd"><div class="cx-ls"></div><div class="cx-dt"></div></div>`;
+      const stop = e => e.stopPropagation(); ["pointerdown", "pointerup", "touchstart", "mousedown", "wheel"].forEach(ev => el.addEventListener(ev, stop, {passive: true}));
+      el.onclick = e => { const b = e.target.closest("[data-x],[data-f],[data-t],[data-s],[data-a]"); if (!b) return;
+        if (b.dataset.x != null){ crClose(); return; } if (b.dataset.f){ crF = b.dataset.f; crR = ""; crRender(); return; }
+        if (b.dataset.t){ crPickSel(b.dataset.t); return; } if (b.dataset.s != null){ crCur = +b.dataset.s; crTap(+b.dataset.s); return; }
+        const a = b.dataset.a; if (a === "go") crGo(); else if (a === "auto"){ crPick = autoPick(crZ, crSel); crDest = -1; crMode = ""; crD = ""; crRender(); playS("warn"); } else if (a === "dest"){ crMode = crMode === "dest" ? "" : "dest"; crD = ""; crRender(); playS("warn"); } }; }
+    const {H, ok, L} = crShown(), S = Z[crZ].s;
+    if (crSel && RD_RC[crSel]) crPick = autoPick(crZ, crSel, crPick, true);   // 마당이 바뀌어 없어진 재료만 빼요 (아이가 뺀 건 다시 안 채워요)
+    /* 왼쪽 목록: 가진 동물 수가 바뀔 때만 다시 그려요 (스크롤 그대로) */
+    const sig = crF + "|" + RD_RCK.map(t => RD_RC[t].map(([k]) => H[k] || 0).join(".")).join(",") + "|" + crSel;
+    if (sig !== crR){ crR = sig;
+      const F = [["ok", `✨ 만들 수 있는 것 ${ok.length}`], ["d", "🗡️ 딜러"], ["s", "🛡️ 서포터"], ...[2, 3, 4, 5, 6, 7].map(g => [String(g), RD_G[g].n])];
+      el.querySelector(".cx-fl").innerHTML = F.map(([id, n]) => `<button data-f="${id}" class="${crF === id ? "cx-on" : ""}">${n}</button>`).join("");
+      el.querySelector(".cx-ls").innerHTML = L.map(t => { const A = RD_A[t], G = RD_G[A.g], J = RD_JOB[A.job], can = ok.includes(t), ki = can ? ok.indexOf(t) : -1;
+        return `<div class="cx-rw ${can ? "cx-ok" : ""} ${crSel === t ? "cx-on" : ""}" data-t="${t}" style="--g:${G.c}"><img data-im="${t}" ${imgOf(t)} alt=""><span class="cx-nm">${A.n}<small>${G.n} · ${J.e} ${J.n} · ${RD_ROLE[A.ro].e}</small></span>
+          <span class="cx-ig">${RD_RC[t].map(([k, c]) => `<span class="${(H[k] || 0) >= c ? "cx-y" : ""}">${RD_A[k].e}${c > 1 ? `<sub>${c}</sub>` : ""}</span>`).join("")}</span>${ki >= 0 && ki < 9 ? `<span class="cx-k">${ki + 1}</span>` : ""}</div>`; }).join(""); }
+    /* 오른쪽: 고른 조합 · 내 마당 4×4 */
+    const t = crSel, A = RD_A[t], R0 = RD_RC[t]; if (!A || !R0) return;
+    const G = RD_G[A.g], J = RD_JOB[A.job], RO = RD_ROLE[A.ro], can = canCraft(crZ, t, H), done = pickOK(crZ, t, crPick), dst = can ? destOf(crZ, t, crPick, crDest) : -1;
+    const dsig = [t, crPick.join("."), crDest, crMode, crCur, S.map(q => q.k ? q.k + q.n : "").join(","), can].join("|"); if (dsig === crD && !el.hidden) return; crD = dsig;
+    const dt = el.querySelector(".cx-dt"); dt.style.setProperty("--g", G.c); const newT = dt.dataset.t !== t; dt.dataset.t = t;
+    dt.innerHTML = `<div class="cx-tp"><img data-im="${t}" ${imgOf(t)} alt=""><div><h3>${A.e} ${A.n}</h3><i style="--q:${G.c}">${G.n}</i><i style="--q:${J.c}">${J.e} ${J.n}</i><i style="--q:${RO.c}">${RO.e} ${RO.n}</i></div></div>
+      <div class="cx-sk">🌟 ${A.sk.e} <b>${A.sk.n}</b> — ${A.sk.d}<br>💪 ${A.t}${A.job === "s" ? " · 👑 보스 💥 약점 드러내기" : ""}</div>
+      <div class="cx-nd">${R0.map(([k, c]) => { const n = crPick.filter(i => S[i] && S[i].k === k).length; return `<span class="${n >= c ? "cx-y" : ""}">${RD_A[k].e} ${RD_A[k].n} ${n}/${c}${(H[k] || 0) < c ? ` <small>(가진 것 ${H[k] || 0})</small>` : ""}</span>`; }).join("")}</div>
+      <div class="cx-yd">${S.map((q, i) => { const use = crPick.filter(j => j === i).length, rel = q.k && R0.some(r => r[0] === q.k);
+        return `<div data-s="${i}" class="${q.k ? "" : "cx-no"} ${!rel && crMode !== "dest" ? "cx-no" : ""} ${use ? "cx-use" : rel ? "cx-can" : ""} ${i === dst ? "cx-dst" : ""} ${i === crCur && kHint ? "cx-cur" : ""}">${q.k ? `<img data-im="${q.k}" ${imgOf(q.k)} alt=""><b>${q.n > 1 ? "×" + q.n : ""}</b>` : ""}${use ? `<em>✔${use > 1 ? use : ""}</em>` : ""}${i === dst ? "<u>📍</u>" : ""}</div>`; }).join("")}</div>
+      <div class="cx-ac"><button data-a="auto">🔄 자동으로 고르기 <small>R</small></button><button data-a="dest" class="${crMode === "dest" ? "cx-on" : ""}">${crMode === "dest" ? "📍 마당에서 칸을 눌러요" : "📍 만들 자리 고르기"} <small>P</small></button>
+        <button data-a="go" class="cx-go" ${can && done ? "" : "disabled"}>🧪 만들기 <small>Enter</small></button></div>
+      <div class="cx-tip">${!can ? "재료 동물이 아직 모자라요 — 뽑기·합치기로 모아요!" : !done ? "초록 칸 = 재료로 넣은 동물 · 노란 테두리 칸을 눌러 넣거나 빼요" : `✔ 재료 준비 끝! 📍 ${Math.floor(dst/4) + 1}줄 ${dst % 4 + 1}번째 칸에 ${A.n}이(가) 생겨요`}${kHint ? "<br>⌨️ 방향키 칸 이동 · Space 넣기/빼기 · P 자리 · R 자동 · Enter 만들기 · 1~9 조합 고르기" : ""}</div>`; if (newT) dt.scrollTop = 0;
     el.hidden = false; }
   /* 🎒 가방 아이템 단추 (누르면 바로 써요) */
   function bagIcons(){ const L = []; BARS.forEach(b => { if (!b.bag) return; const p = Z[b.z], n = Math.max(1, p.it.length), s = Math.min(b.h - 12, (b.w - 10)/Math.min(n, 5) - 6);
@@ -15219,8 +15294,10 @@ NG.defs.rd = () => {
   }
   function popsDraw(g){
     panelBtns().forEach(b => { const p = Z[b.z];
-      if (b.id === "up"){ const nm = ["⚪🔵", "🟣🟡", "🌈"][b.i], c = upCost(b.z, b.i), lv = p.up[b.i];
-        G2.put(g, btnSpr(Math.round(b.w), b.h, "#74c0fc", "#1864ab", [...splitE(nm), ["일반·희귀", "영웅·전설", "신화"][b.i], `Lv${lv}`, "💰", rdN(c)], 18, p.gold < c), b.x, b.y); }
+      if (b.id === "up"){ const nm = ["⚪🔵", "🟣🟡", "🌈", "🔥🌟"][b.i], c = upCost(b.z, b.i), lv = p.up[b.i] || 0, have = p.s.reduce((a, q) => a + (q.k && upTier(RD_A[q.k].g) === b.i ? q.n : 0), 0);
+        G2.put(g, btnSpr(Math.round(b.w), b.h, b.i === 3 ? "#66d9e8" : "#74c0fc", b.i === 3 ? "#0b7285" : "#1864ab", [...splitE(nm), RD_UPN[b.i], `Lv${lv}`, "💰", rdN(c)], 17, p.gold < c), b.x, b.y);
+        if (kHint) { const l = lbl([String(b.i + 1)], 13, "#3b2a00"); g.fillStyle = "#ffd43b"; rrect(g, b.x + 6, b.y + 6, l.w + 8, l.h + 2, 7); g.fill(); G2.put(g, l, b.x + 10, b.y + 7); }
+        if (have){ const l = lbl([`내 동물 ${have}`], 12, "#d0ebff"); G2.put(g, l, b.x + b.w - l.w - 8, b.y + b.h - l.h - 4); } }
       else { const c = b.i ? 4 : 1; G2.put(g, btnSpr(Math.round(b.w), b.h, "#e599f7", "#862e9c", b.i ? ["🌈", "신화 35%·전설", "💎", "4"] : ["🎁", "영웅 55%·전설 15%", "💎", "1"], 17, p.gems < c), b.x, b.y); } });
     selBtns().forEach(b => { const q = Z[sel.z].s[sel.i]; if (!q.k) return;
       if (b.id === "smrg") G2.put(g, btnSpr(b.w, b.h, "#69db7c", "#2b8a3e", RD_A[q.k].g >= RD_MG ? ["🧪", kHint ? "조합 C" : "조합으로"] : ["🔀", kHint ? "합치기 R" : "합치기"], 17, b.off && RD_A[q.k].g < RD_MG), b.x, b.y);
@@ -15289,7 +15366,7 @@ NG.defs.rd = () => {
   function loadGame(D){
     try {
       seed = D.seed; R.seed(D.rs); wave = D.wave; waveT = D.waveT; spawnLeft = D.spawnLeft; spawnT = D.spawnT; score = D.score; kills = D.kills; bossK = D.bossK; eid = D.eid; speed = D.speed || 1; bossTimer = D.bossTimer; laneRR = D.laneRR || 0; MS = D.MS || null; TB = D.TB || [];
-      D.Z.forEach((p, z) => { if (Z[z]) Object.assign(Z[z], p); });
+      D.Z.forEach((p, z) => { if (Z[z]){ Object.assign(Z[z], p); while (Z[z].up.length < 4) Z[z].up.push(0); } });
       remap(); layerKey = ""; setSky();
       E = D.E.map(e => { const p0 = posAt(e.d, e.l || 0); return Object.assign({}, e, {x: p0[0], y: p0[1]}); });
       calcLimit(); E.forEach(e => { if (e.tt) TTS.add(e.tt); }); for (let k = 1; k <= 6; k++) if (wave >= [0, 12, 20, 35, 50, 100, 150][k] + 3) TTS.add(k);
@@ -15326,7 +15403,7 @@ NG.defs.rd = () => {
       if (party === "host") for (let z = 1; z < N; z++){ if (!remote(z)) continue; const r = PARTY.remoteIn(z); if (!r) continue; const m = r.m; if (m.sd !== seed || !m.a) continue;
         m.a.forEach(a => { if (a[0] > lastAct[z]){ lastAct[z] = a[0]; doAct(z, a.slice(1)); } }); Z[z].ack = lastAct[z]; }
       if (state === "over"){ RDS.del(SIDS); if (--overT <= 0) finish(); }
-      else if (!(RDB.isOpen && !party)) for (let i = 0; i < speed; i++){ const p0 = PR.length; sim(); if (i < speed - 1 && PR.length > p0 + 4) PR.length = p0 + 4; }   // ⚡ 빨리 감기: 총알 그림은 마지막 한 번만 다 그려요 (계산은 그대로)
+      else if (!((RDB.isOpen || crOpen) && !party)) for (let i = 0; i < speed; i++){ const p0 = PR.length; sim(); if (i < speed - 1 && PR.length > p0 + 4) PR.length = p0 + 4; }   // ⚡ 빨리 감기: 총알 그림은 마지막 한 번만 다 그려요 (계산은 그대로)
       if (!party && state === "play" && ++saveT % 180 === 0) saveGame();
       emStep();   // 📖 도감 보는 동안 잠깐 멈춤 (혼자·둘이)
       /* 📡 친구 기기로 보내기: 화면 장면 수로 세요 (예전엔 게임 계산 횟수로 세서, 2·4배속에서 홀수 칸에 걸리면 영영 안 보내져 친구 화면이 멈췄어요) */
@@ -15335,14 +15412,20 @@ NG.defs.rd = () => {
     },
     draw, down, move, up,
     key(code, d, e){
-      const KEYS = ["Space", "Enter", "KeyM", "KeyQ", "Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "KeyL", "KeyF", "KeyE", "KeyB", "KeyC", "KeyX", "KeyR", "KeyG", "KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Escape"];
+      const KEYS = ["Space", "Enter", "KeyM", "KeyQ", "Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "KeyL", "KeyF", "KeyE", "KeyB", "KeyC", "KeyX", "KeyR", "KeyG", "KeyP", "KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Escape"];
       if (!d || (e && e.repeat && !/^Arrow|^Key[WASD]$/.test(code))) return KEYS.includes(code);
       if (!kHint){ kHint = true; bV = ""; }
       if (RDB.isOpen){ if (code === "KeyB" || code === "Escape") RDB.close(); return true; }
       const two = local.length >= 2, z1 = local[0], z2 = two ? local[1] : local[0];
       /* 🧪 조합 창: 숫자 = 그 번호 조합 만들기 · C/Esc = 닫기 */
-      if (crOpen){ if (code === "KeyC" || code === "Escape"){ crClose(); return true; }
-        if (/^Digit[1-9]$/.test(code)){ const ok = crShown().ok, t = ok[+code[5] - 1]; if (t){ act(crZ, ["cr", t]); if (party === "guest") playS("merge"); } else playS("no"); return true; } }
+      if (crOpen){ if (code === "Escape" && crMode){ crMode = ""; crD = ""; crRender(); return true; } if (code === "KeyC" || code === "Escape"){ crClose(); return true; }
+        if (/^Digit[1-9]$/.test(code)){ const ok = crShown().ok, t = ok[+code[5] - 1]; if (t) crPickSel(t); else playS("no"); return true; }
+        const CD = {ArrowUp: -4, KeyW: -4, ArrowDown: 4, KeyS: 4, ArrowLeft: -1, KeyA: -1, ArrowRight: 1, KeyD: 1}[code];
+        if (CD != null){ const r = Math.floor(crCur/4), c = crCur % 4; if (Math.abs(CD) === 1) crCur = r*4 + Math.max(0, Math.min(3, c + CD)); else crCur = Math.max(0, Math.min(15, crCur + CD)); crD = ""; crRender(); return true; }
+        if (code === "Space"){ crTap(crCur); return true; } if (code === "Enter"){ crGo(); return true; }
+        if (code === "KeyP"){ crMode = crMode === "dest" ? "" : "dest"; crD = ""; crRender(); return true; }
+        if (code === "KeyR"){ crPick = autoPick(crZ, crSel); crDest = -1; crMode = ""; crD = ""; crRender(); return true; }
+        return true; }
       if (code === "KeyC"){ crToggle(z1); return true; }
       /* 🎯 방향키·WASD로 내 마당 4×4 칸 고르기 → R 합치기 · X 팔기 · G 집어서 옮기기 */
       const DIR = {ArrowUp: [0, -1], KeyW: [0, -1], ArrowDown: [0, 1], KeyS: [0, 1], ArrowLeft: [-1, 0], KeyA: [-1, 0], ArrowRight: [1, 0], KeyD: [1, 0]}[code];
@@ -15354,8 +15437,8 @@ NG.defs.rd = () => {
         if (!grab){ if (Z[z1].s[sel.i].k){ grab = {z: z1, i: sel.i}; playS("sum"); } else playS("no"); }
         else { if (grab.i !== sel.i) act(z1, ["mov", grab.i, sel.i]); grab = null; playS("merge"); } return true; }
       if (Z[z1].pick && /^Digit[123]$/.test(code)){ act(z1, ["rel", +code[5] - 1]); playS("up"); return true; }
-      if (/^Digit[45678]$/.test(code)){ const i = +code[5] - 4; if (Z[z1].it[i]) act(z1, ["it", i]); return true; }
-      const M = {Space: [z1, "sum"], KeyQ: [z1, "all"], KeyE: [z1, "luck0"], Digit1: [z1, "up0"], Digit2: [z1, "up1"], Digit3: [z1, "up2"],
+      if (/^Digit[56789]$/.test(code)){ const i = +code[5] - 5; if (Z[z1].it[i]) act(z1, ["it", i]); return true; }
+      const M = {Space: [z1, "sum"], KeyQ: [z1, "all"], KeyE: [z1, "luck0"], Digit1: [z1, "up0"], Digit2: [z1, "up1"], Digit3: [z1, "up2"], Digit4: [z1, "up3"],
                  Enter: [z2, "sum"], KeyM: [z2, "all"], KeyL: [z2, "luck0"], KeyF: [-1, "spd"], KeyB: [-1, "book"]};
       if (!two){ M.Enter = [z1, "sum"]; M.KeyM = [z1, "all"]; M.KeyL = [z1, "luck0"]; }
       const m = M[code]; if (!m) return false;
@@ -15390,7 +15473,7 @@ const RDM = {
         <div><h4>🏡 1000단계 도전</h4>👾 몬스터가 꽉 차면 끝. 10단계마다 👑 보스, 100단계마다 🌀 차원 대왕! ⬆️ 강화는 끝없이 올라가요</div>
         <div><h4>👥 최대 6명 협동</h4>🔗 여러 친구 동물에게 번갈아 맞으면 더 아파요 · 💞 지원은 길 건너 친구도 응원 · 🎌 친구마다 ⚔️🏹✨ 주력을 나누면 모두 세져요</div>
         <div><h4>🧩 4×4 마당 · 🗡️ 딜러 🛡️ 서포터</h4>⚔️ 근거리는 길 옆 · 🏹 원거리는 안쪽(+25%). 20단계부터 👑 보스는 단단해요 → 🛡️ 서포터가 💥 약점을 드러내야 해요!</div>
-        <div><h4>⌨️ 키보드로도!</h4>Space 뽑기 · Q 합치기 · C 조합 · 1·2·3 강화 · 방향키로 칸 고르고 X 팔기 · G 옮기기 (도감 → 요령에 전부)</div>
+        <div><h4>⌨️ 키보드로도!</h4>Space 뽑기 · Q 합치기 · C 조합 · 1~4 강화 · 방향키로 칸 고르고 X 팔기 · G 옮기기 (도감 → 요령에 전부)</div>
       </div>
       <button class="arc-btn rd-book-btn" id="rdBook">📖 동물 도감 보기 · 동물마다 힘·스킬·배치 요령</button>
       <button class="arc-btn rd-shop-btn" id="rdShop">🏪 코인 상점 · 🔬 동물 연구소 <small id="rdShopMe"></small></button></div>
@@ -15482,7 +15565,7 @@ const RDB = {
   queue(k){ if (this._im[k] !== undefined) return; this._im[k] = null; (this._q = this._q || []).push(k); if (this._q.length === 1) this.pump(); },
   pump(){ const idle = window.requestIdleCallback || (f => setTimeout(f, 16));
     idle(() => { const k = this._q.shift(); if (!k) return;
-      const done = u => { this._im[k] = u || ""; if (u) document.querySelectorAll(`#mdRdBook img[data-im="${k}"]`).forEach(el => { el.src = u; }); if (this._q.length) this.pump(); };
+      const done = u => { this._im[k] = u || ""; if (u) document.querySelectorAll(`img[data-im="${k}"]`).forEach(el => { el.src = u; }); if (this._q.length) this.pump(); };
       try { const S = 96, c = RDA.unitSpr(k, S); G2.cache.delete(`rdu2${k}${S}`);   // 게임 그림 기억 칸은 비워 둬요 (꽉 차면 게임 그림이 전부 지워져 버벅여요)
         if (c.toBlob) c.toBlob(b => done(b ? URL.createObjectURL(b) : ""), "image/png"); else done(c.toDataURL()); } catch(e){ done(""); } }, {timeout: 200}); },
   tags(A){ const T = [];
@@ -15575,7 +15658,7 @@ const RDB = {
     } else if (T === "r"){
       html += `<p class="arc-small">👑 10단계마다 보스를 잡으면 3장 중 1장을 골라요. 같은 유물을 또 고르면 효과가 쌓여요!</p><div class="rdb-list">${RD_RK.map(k => { const R0 = RD_REL[k]; return `<div class="rdb-it"><span>${R0.e}</span><div><b>${R0.n}</b>${R0.d}</div></div>`; }).join("")}</div>`;
     } else if (T === "i"){
-      html += `<p class="arc-small">🎯 미션 성공 · 😈 중간 보스 · 🎁 보물상자 몬스터에게서 받아요. 가방 아이콘을 누르면 바로 써요 (키보드 4~8번).</p><div class="rdb-list">${RD_IK.map(k => { const I = RD_IT[k]; return `<div class="rdb-it"><span>${I.e}</span><div><b>${I.n}</b>${I.d}</div></div>`; }).join("")}</div>`;
+      html += `<p class="arc-small">🎯 미션 성공 · 😈 중간 보스 · 🎁 보물상자 몬스터에게서 받아요. 가방 아이콘을 누르면 바로 써요 (키보드 5~9번).</p><div class="rdb-list">${RD_IK.map(k => { const I = RD_IT[k]; return `<div class="rdb-it"><span>${I.e}</span><div><b>${I.n}</b>${I.d}</div></div>`; }).join("")}</div>`;
     } else {
       html += `<div class="rdb-guide">
         <div><h4>⚔️ 근거리는 길 바로 옆</h4>빨간 테두리 칸이 길에 붙어 있는 자리예요. 근거리 동물은 공격이 1.5배 세지만 거리가 짧아서 <b>길 옆에서만</b> 닿아요. 길이 꺾이는 <b>모퉁이 옆</b>이면 두 줄을 한꺼번에 때려요!</div>
@@ -15584,7 +15667,7 @@ const RDB = {
         <div><h4>🔀 합치기 · 🧪 조합</h4>⚪ 일반·🔵 희귀는 같은 동물 3마리를 합쳐요(R 키 / Q 키 모두). 🟣 영웅부터는 <b>🧪 조합표</b>대로 재료를 모아 원하는 동물을 골라 만들어요. 다음에 만들 동물의 재료는 팔지 말고 남겨 두세요!</div>
         <div><h4>🗡️ 딜러 · 🛡️ 서포터</h4>🗡️ 딜러는 세게 때려서 쓰러뜨리고, 🛡️ 서포터(🐭🐸🐧🐼🐳🦁🦄🦌🐋천마)는 느리게·멈추게·응원해요. <b>20단계부터 👑 보스는 단단해서 피해 -50%</b>! 서포터가 보스를 때리면 4초 동안 <b>💥 약점</b>이 드러나 모두 +40%로 때려요. 서포터 1~2마리를 꼭 길 옆에 두어요.</div>
         <div><h4>🌀 문이 친구마다</h4>같이 하면 몬스터 문이 친구 마당마다 하나씩 생겨요. 몬스터는 자기 문에서 나와 큰 길을 한 바퀴 돌아요 → 모두가 함께 때리고, 내 문 앞은 내가 먼저 지켜요!</div>
-        <div><h4>⌨️ 키보드로 하기</h4>Space 뽑기 · Q 모두 합치기 · C 조합 · 1·2·3 강화 · E 행운 · 4~8 아이템 · F 속도 · B 도감 · 방향키/WASD 칸 고르기 · R 이 칸 합치기 · X 팔기 · G 집기→놓기 · Esc 닫기</div>
+        <div><h4>⌨️ 키보드로 하기</h4>Space 뽑기 · Q 모두 합치기 · C 조합 · 1~4 강화 · E 행운 · 5~9 아이템 · F 속도 · B 도감 · 방향키/WASD 칸 고르기 · R 이 칸 합치기 · X 팔기 · G 집기→놓기 · Esc 닫기</div>
         <div><h4>🌟 스킬 고르기</h4>👑 보스가 나오기 전엔 <b>한 마리를 세게</b> 때리는 스킬(저격·필살 냥펀치·연속 찌르기)을, 몬스터가 쌓이면 <b>여러 마리를 멈추는</b> 스킬(얼음 폭풍·지진 쿵·해일)을 가진 친구를 앞에 두어요.</div>
         <div><h4>🗺️ 4×4 마당</h4>내 마당은 16칸(4×4)! 길에 붙은 가장자리 = ⚔️ 앞줄, 안쪽 = 🏹 뒷줄이에요. 10단계마다 길 모양이 바뀌니 근거리 친구가 "⚠️ 길에서 멀어요"가 되면 옮겨 주세요.</div></div>`;
     }
