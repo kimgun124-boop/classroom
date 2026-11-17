@@ -258,36 +258,36 @@ const QDBG = (() => {
 
 /* ---------- 직업 · 적 · 스테이지 ---------- */
 const QCL = [
-  {id: "kn", n: "검사",   e: "⚔️", c: "#4dabf7", hp: 130, spd: 4.3, dmg: [11, 11, 20], reach: 105, sp: "회오리 베기",
+  {id: "kn", n: "청룡 검객",   e: "⚔️", c: "#4dabf7", hp: 130, spd: 4.3, dmg: [11, 11, 20], reach: 105, sp: "회오리 베기",
     art: {skin: "#ffd8b1", armor: "#1c7ed6", pants: "#364fc7", boots: "#5c3d2e", helm: "knight", weapon: "sword", shield: "#e03131", belt: "#fab005"}},
-  {id: "ln", n: "창기사", e: "🔱", c: "#51cf66", hp: 120, spd: 4.0, dmg: [10, 10, 19], reach: 150, sp: "돌격 찌르기",
+  {id: "ln", n: "은빛 창장수", e: "🔱", c: "#51cf66", hp: 120, spd: 4.0, dmg: [10, 10, 19], reach: 150, sp: "돌격 찌르기",
     art: {skin: "#ffd8b1", armor: "#2f9e44", pants: "#5c940d", boots: "#5c3d2e", helm: "lancer", weapon: "spear", belt: "#ffd43b", cape: "#e03131"}},
-  {id: "ar", n: "궁수",   e: "🏹", c: "#fcc419", hp: 100, spd: 4.7, dmg: [9, 9, 9], reach: 0, sp: "화살비",
+  {id: "ar", n: "바람 궁장",   e: "🏹", c: "#fcc419", hp: 100, spd: 4.7, dmg: [9, 9, 9], reach: 0, sp: "화살비",
     art: {skin: "#ffd8b1", armor: "#e67700", pants: "#5c940d", boots: "#7f5539", helm: "hood", weapon: "bow", belt: "#5c3d2e"}},
-  {id: "wz", n: "마법사", e: "🔮", c: "#cc5de8", hp: 95, spd: 4.0, dmg: [13, 13, 13], reach: 0, sp: "별똥별",
+  {id: "wz", n: "자색 책사", e: "🔮", c: "#cc5de8", hp: 95, spd: 4.0, dmg: [13, 13, 13], reach: 0, sp: "별똥별",
     art: {skin: "#ffd8b1", armor: "#7048e8", pants: "#5f3dc4", boots: "#3b2314", helm: "wizard", weapon: "staff", robe: 1, orb: "#ff8787", belt: "#ffd43b"}}
 ];
 /* 적: hp · 빠르기 · 공격력 · 닿는 거리 · 점수 · 크기(px) */
 const QEN = {
-  gob:   {n: "고블린", hp: 30, spd: 2.3, dmg: 6,  reach: 70,  sc: 100, px: 3.3, wind: 22, art: {skin: "#94d82d", armor: "#8d6e63", pants: "#6d4c41", boots: "#4e342e", face: false, ears: 1, teeth: 1, weapon: "club", eye: "#e03131"}},
-  gob2:  {n: "고블린 대장", hp: 55, spd: 2.5, dmg: 9, reach: 80, sc: 200, px: 3.6, wind: 20, art: {skin: "#82c91e", armor: "#495057", pants: "#343a40", boots: "#212529", face: false, ears: 1, teeth: 1, weapon: "rsword", helm: "horn", eye: "#ffd43b", shield: "#868e96"}},
+  gob:   {n: "황건 졸개", hp: 30, spd: 2.3, dmg: 6,  reach: 70,  sc: 100, px: 3.3, wind: 22, art: {skin: "#94d82d", armor: "#8d6e63", pants: "#6d4c41", boots: "#4e342e", face: false, ears: 1, teeth: 1, weapon: "club", eye: "#e03131"}},
+  gob2:  {n: "황건 두목", hp: 55, spd: 2.5, dmg: 9, reach: 80, sc: 200, px: 3.6, wind: 20, art: {skin: "#82c91e", armor: "#495057", pants: "#343a40", boots: "#212529", face: false, ears: 1, teeth: 1, weapon: "rsword", helm: "horn", eye: "#ffd43b", shield: "#868e96"}},
   wolf:  {n: "늑대", hp: 26, spd: 4.6, dmg: 7, reach: 90, sc: 120, px: 3.4, wind: 18, quad: 1, art: {col: "#868e96", mane: "#495057"}},
-  skel:  {n: "해골 병사", hp: 42, spd: 2.1, dmg: 9, reach: 80, sc: 150, px: 3.5, wind: 22, art: {skin: "#f1f3f5", armor: "#e9ecef", pants: "#dee2e6", boots: "#adb5bd", face: false, ribs: 1, weapon: "rsword", eye: "#111", shield: "#a0522d"}},
-  skar:  {n: "해골 궁수", hp: 32, spd: 2.2, dmg: 8, reach: 0, sc: 180, px: 3.5, wind: 28, ranged: 1, art: {skin: "#f1f3f5", armor: "#e9ecef", pants: "#dee2e6", boots: "#adb5bd", face: false, ribs: 1, weapon: "bow", eye: "#c92a2a"}},
-  igob:  {n: "얼음 고블린", hp: 36, spd: 2.4, dmg: 7, reach: 70, sc: 130, px: 3.3, wind: 22, art: {skin: "#a5d8ff", armor: "#4c6ef5", pants: "#364fc7", boots: "#1c2a6b", face: false, ears: 1, teeth: 1, weapon: "club", eye: "#1864ab"}},
+  skel:  {n: "망령 병사", hp: 42, spd: 2.1, dmg: 9, reach: 80, sc: 150, px: 3.5, wind: 22, art: {skin: "#f1f3f5", armor: "#e9ecef", pants: "#dee2e6", boots: "#adb5bd", face: false, ribs: 1, weapon: "rsword", eye: "#111", shield: "#a0522d"}},
+  skar:  {n: "망령 궁수", hp: 32, spd: 2.2, dmg: 8, reach: 0, sc: 180, px: 3.5, wind: 28, ranged: 1, art: {skin: "#f1f3f5", armor: "#e9ecef", pants: "#dee2e6", boots: "#adb5bd", face: false, ribs: 1, weapon: "bow", eye: "#c92a2a"}},
+  igob:  {n: "설원 산적", hp: 36, spd: 2.4, dmg: 7, reach: 70, sc: 130, px: 3.3, wind: 22, art: {skin: "#a5d8ff", armor: "#4c6ef5", pants: "#364fc7", boots: "#1c2a6b", face: false, ears: 1, teeth: 1, weapon: "club", eye: "#1864ab"}},
   iwolf: {n: "눈늑대", hp: 30, spd: 4.8, dmg: 8, reach: 90, sc: 140, px: 3.4, wind: 18, quad: 1, art: {col: "#e7f5ff", mane: "#a5d8ff", eye: "#4dabf7"}},
-  liz:   {n: "도마뱀 전사", hp: 60, spd: 2.6, dmg: 11, reach: 110, sc: 250, px: 3.7, wind: 20, art: {skin: "#e8590c", armor: "#862e9c", pants: "#5f3dc4", boots: "#3b2314", face: false, horns: 1, teeth: 1, weapon: "spear", eye: "#ffd43b"}},
+  liz:   {n: "남만 전사", hp: 60, spd: 2.6, dmg: 11, reach: 110, sc: 250, px: 3.7, wind: 20, art: {skin: "#e8590c", armor: "#862e9c", pants: "#5f3dc4", boots: "#3b2314", face: false, horns: 1, teeth: 1, weapon: "spear", eye: "#ffd43b"}},
   /* 보스 */
-  orc:   {n: "오크 대장 쿵쾅", boss: 1, hp: 520, spd: 2.5, dmg: 15, reach: 150, sc: 3000, px: 5.4, wind: 26, art: {skin: "#5c940d", armor: "#5c3d2e", pants: "#3b2314", boots: "#212529", face: false, teeth: 1, ears: 1, horns: 1, weapon: "axe", eye: "#e03131", big: 1, belt: "#adb5bd"}},
+  orc:   {n: "거한 장수 쿵쾅", boss: 1, hp: 520, spd: 2.5, dmg: 15, reach: 150, sc: 3000, px: 5.4, wind: 26, art: {skin: "#5c940d", armor: "#5c3d2e", pants: "#3b2314", boots: "#212529", face: false, teeth: 1, ears: 1, horns: 1, weapon: "axe", eye: "#e03131", big: 1, belt: "#adb5bd"}},
   rider: {n: "불꽃 기마 장군", boss: 1, hp: 720, spd: 3, dmg: 16, reach: 180, sc: 4000, px: 4.6, wind: 24, rider: 1, art: {skin: "#ffc9c9", armor: "#c92a2a", pants: "#862e2e", boots: "#212529", face: false, helm: "bandana", plume: "#ffd43b", weapon: "spear", eye: "#111", belt: "#ffd43b"}, horse: {col: "#a0522d", mane: "#3b2314", saddle: "#c92a2a", horse: 1}},
-  yeti:  {n: "얼음 거인 예티", boss: 1, hp: 820, spd: 2.4, dmg: 17, reach: 150, sc: 5000, px: 6.2, wind: 28, art: {skin: "#d0ebff", armor: "#e7f5ff", pants: "#c5d6f8", boots: "#4dabf7", face: false, teeth: 1, horns: 1, weapon: "club", eye: "#1971c2", big: 1, belt: "#74c0fc", ribs: 1}},
+  yeti:  {n: "설원 거인 장수", boss: 1, hp: 820, spd: 2.4, dmg: 17, reach: 150, sc: 5000, px: 6.2, wind: 28, art: {skin: "#d0ebff", armor: "#e7f5ff", pants: "#c5d6f8", boots: "#4dabf7", face: false, teeth: 1, horns: 1, weapon: "club", eye: "#1971c2", big: 1, belt: "#74c0fc", ribs: 1}},
   drag:  {n: "붉은 용 화르륵", boss: 1, hp: 1150, spd: 2.2, dmg: 18, reach: 200, sc: 8000, px: 5.6, wind: 30, dragon: 1, art: {col: "#e03131"}}
 };
 /* 새 친구·새 보스 (색을 바꾼 강한 녀석들) */
 Object.assign(QEN, {
   nwolf:  Object.assign({}, QEN.wolf, {n: "그림자 늑대", hp: 36, spd: 5, dmg: 9, sc: 170, art: {col: "#343a40", mane: "#212529", eye: "#ff6b6b"}}),
-  lskel:  Object.assign({}, QEN.skel, {n: "용암 해골", hp: 56, dmg: 11, sc: 210, art: Object.assign({}, QEN.skel.art, {skin: "#ffc078", armor: "#e8590c", pants: "#c92a2a", boots: "#5c1010", eye: "#ffe066", shield: "#5c1010"})}),
-  korc:   Object.assign({}, QEN.orc, {n: "달밤 늑대왕 우르릉", ai: "orc", hp: 900, dmg: 17, sc: 6000, art: Object.assign({}, QEN.orc.art, {skin: "#495057", armor: "#1c2a6b", pants: "#212529", eye: "#ffe066"})}),
+  lskel:  Object.assign({}, QEN.skel, {n: "화염 망령병", hp: 56, dmg: 11, sc: 210, art: Object.assign({}, QEN.skel.art, {skin: "#ffc078", armor: "#e8590c", pants: "#c92a2a", boots: "#5c1010", eye: "#ffe066", shield: "#5c1010"})}),
+  korc:   Object.assign({}, QEN.orc, {n: "달밤 패왕 우르릉", ai: "orc", hp: 900, dmg: 17, sc: 6000, art: Object.assign({}, QEN.orc.art, {skin: "#495057", armor: "#1c2a6b", pants: "#212529", eye: "#ffe066"})}),
   lrider: Object.assign({}, QEN.rider, {n: "용암 기사 활활", ai: "rider", hp: 1000, dmg: 18, sc: 7000, art: Object.assign({}, QEN.rider.art, {armor: "#ff6b00", pants: "#5c1010", plume: "#ffe066"})}),
   kdrag:  Object.assign({}, QEN.drag, {n: "황금 용왕 번쩍", ai: "drag", hp: 1500, dmg: 20, sc: 15000, art: {col: "#f59f00"}})
 });
@@ -778,33 +778,27 @@ NG.defs.qd = () => {
     else g.drawImage(c, Math.round(x - ax), Math.round(y - ay), c.w, c.h);
   }
   function whiten(t, w, h){ t.globalCompositeOperation = "source-atop"; t.fillStyle = "rgba(255,255,255,.8)"; t.fillRect(0, 0, w, h); t.globalCompositeOperation = "source-over"; }
+  /* ⚔️ 장수 그림 (WAR · 삼국지 무장 느낌의 오리지널 디자인) */
+  const flashOver = (g, c, x, y, ax, ay, f) => { g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = .65; blit(g, c, x, y, ax, ay, f); g.restore(); };
   function drawHero(g, p, sx, sy){
-    const pose = (p.st === "dead" || p.st === "down") ? "lie" : poseOf(p), px = HP4, art = heroArt(p.cls), blink = p.inv > 0 && p.st !== "spc" && (NG.frame >> 2) % 2;
+    const pose = (p.st === "dead" || p.st === "down") ? "lie" : poseOf(p), blink = p.inv > 0 && p.st !== "spc" && (NG.frame >> 2) % 2;
     if (blink) g.globalAlpha = .45;
-    if (pose === "lie"){ const c = QD.spr(`hl${p.cls}`, 52, 46, px, t => QD.lying(t, art)); blit(g, c, sx, sy - p.z, 26*px, 45*px, p.f);
-      faceAt(g, p.sid, sx - p.f*42, sy - p.z - 80, 19, QCL[p.cls].c, p.st === "dead"); g.globalAlpha = 1; return; }
-    const back = QD.spr(`hb${p.cls}${pose}`, QD.GW, QD.GH, px, t => QD.human(t, Object.assign({pose, part: "back"}, art)));
-    const over = QD.spr(`ho${p.cls}${pose}`, QD.GW, QD.GH, px, t => QD.human(t, Object.assign({pose, part: "over"}, art)));
-    blit(g, back, sx, sy - p.z, 20*px, 45*px, p.f);
-    const walk = pose.startsWith("walk") ? +pose[4] : -1, bob = pose === "idle1" ? 1 : walk === 1 || walk === 3 ? -1 : 0, lean = pose === "hurt" ? -2 : pose === "atk1" ? 1 : 0;
-    faceAt(g, p.sid, sx + (1 + lean)*px*p.f, sy - p.z - (45 - (13 + bob))*px, 23, QCL[p.cls].c);
-    blit(g, over, sx, sy - p.z, 20*px, 45*px, p.f);
+    const c = WAR.spr("h" + p.cls, "war", WDEF[QCL[p.cls].id], pose, .95);
+    blit(g, c, sx, sy - p.z, c.ax, c.ay, p.f);
     g.globalAlpha = 1;
   }
   function drawEnemy(g, e){
-    const D = QEN[e.k], fl = e.flash > 0 && (e.flash % 2 === 0) ? 1 : 0, dying = e.st === "die";
+    const D = QEN[e.k], fl = e.flash > 0 && (e.flash % 2 === 0), dying = e.st === "die";
     if (dying && (e.t >> 2) % 2) return;
     let pose = (e.st === "down" || dying) ? "lie" : poseOf(e, true);
-    const sx = e.x, sy = e.y - e.z;
-    if (D.dragon){ const fr = (NG.frame >> 3) % 2, c = QD.spr(`dr${pose}${fr}${fl}`, 76, 66, D.px, (t, w, h) => { QD.dragon(t, {pose, f: fr, col: D.art.col}); if (fl) whiten(t, w, h); }); blit(g, c, sx, sy, 38*D.px, 63*D.px, e.f); return; }
-    if (D.rider){ const c = QD.spr(`rd${pose}${fl}`, 64, 62, D.px, (t, w, h) => { QD.quad(t, Object.assign({pose: pose === "lie" ? "idle0" : pose.startsWith("walk") ? pose : "walk1"}, D.horse)); t.save(); t.translate(2, -18); QD.human(t, Object.assign({pose: pose === "lie" ? "hurt" : pose.startsWith("walk") ? "idle0" : pose}, D.art)); t.restore(); if (fl) whiten(t, w, h); });
-      if (pose === "lie"){ g.save(); g.globalAlpha = .9; } blit(g, c, sx, sy, 32*D.px, 58*D.px, e.f); if (pose === "lie") g.restore(); return; }
-    if (D.quad){ const c = QD.spr(`q${e.k}${pose}${fl}`, 48, 54, D.px, (t, w, h) => { QD.quad(t, Object.assign({pose: pose === "lie" ? "idle0" : pose}, D.art)); if (fl) whiten(t, w, h); });
-      if (pose === "lie"){ g.save(); g.translate(sx, sy); g.scale(1, -.6); g.translate(-sx, -sy); blit(g, c, sx, sy, 24*D.px, 51*D.px, e.f); g.restore(); return; }
-      blit(g, c, sx, sy, 24*D.px, 51*D.px, e.f); return; }
-    if (pose === "lie"){ const c = QD.spr(`el${e.k}${fl}`, 52, 46, D.px, (t, w, h) => { QD.lying(t, D.art); if (fl) whiten(t, w, h); }); blit(g, c, sx, sy, 26*D.px, 45*D.px, e.f); return; }
-    const c = QD.spr(`e${e.k}${pose}${fl}`, QD.GW, QD.GH, D.px, (t, w, h) => { QD.human(t, Object.assign({pose}, D.art)); if (fl) whiten(t, w, h); });
-    blit(g, c, sx, sy, 20*D.px, 45*D.px, e.f);
+    const sx = e.x, sy = e.y - e.z, W8 = WDEF[e.k];
+    let c;
+    if (D.dragon){ const fr = (NG.frame >> 4) % 2; c = WAR.spr("dr" + e.k + fr, "dragon", W8, pose.startsWith("atk") ? "atk1" : "idle0", D.px/5.6, {fr}); }
+    else if (D.rider) c = WAR.spr("rd" + e.k, "rider", W8, pose, D.px/4.6*.95);
+    else if (D.quad) c = WAR.spr("q" + e.k, "wolf", W8, pose, D.px/3.4*.78);
+    else c = WAR.spr("e" + e.k, "war", W8, pose, D.px/4*.95);
+    blit(g, c, sx, sy, c.ax, c.ay, e.f);
+    if (fl) flashOver(g, c, sx, sy, c.ax, c.ay, e.f);
   }
   function drawShot(g, q){
     const x = q.x, y = q.y - q.z;
@@ -877,8 +871,7 @@ NG.defs.qd = () => {
     QCL.forEach((C, ci) => { const x = x0 + ci*cw + cw/2, y = 420;
       g.fillStyle = "rgba(255,255,255,.08)"; rrect(g, x - cw/2 + 10, 240, cw - 20, 380, 20); g.fill(); g.strokeStyle = C.c; g.lineWidth = 4; g.stroke();
       const pose = ["idle0", "atk1"][(NG.frame >> 5) % 2];
-      const back = QD.spr(`hb${ci}${pose}`, QD.GW, QD.GH, 4, t => QD.human(t, Object.assign({pose, part: "back"}, C.art))), over = QD.spr(`ho${ci}${pose}`, QD.GW, QD.GH, 4, t => QD.human(t, Object.assign({pose, part: "over"}, C.art)));
-      g.drawImage(back, x - 80, y - 180 + 60, back.w, back.h); g.drawImage(over, x - 80, y - 180 + 60, over.w, over.h);
+      const hc = WAR.spr("h" + ci, "war", WDEF[C.id], pose, .95); g.drawImage(hc, x - hc.ax, y + 120 - hc.ay, hc.w, hc.h);
       outlined(g, `${C.e} ${C.n}`, x, 280, 30, C.c); outlined(g, `✨ ${C.sp}`, x, 590, 19, "#fff");
       const here = P.filter(p => p.cls === ci);
       here.forEach((p, k) => { const fx = x - (here.length - 1)*28 + k*56; faceAt(g, p.sid, fx, 625 + 28, 24, p.ready ? "#69db7c" : "#fff"); if (p.ready) outlined(g, "✔", fx + 18, 625 + 10, 22, "#69db7c"); }); });

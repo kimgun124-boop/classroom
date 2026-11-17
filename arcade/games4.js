@@ -47,7 +47,21 @@ const REACH = {
       return `<button data-rch="${st}" class="${cur === st ? "on" : ""}" ${open ? "" : "disabled"}><b>${open ? "" : "🔒 "}${st}~${st + 4}단계</b><small>${n}</small></button>`; }).join("")}</div></div>`; },
   bind(box, cb){ box.querySelectorAll("[data-rch]").forEach(b => b.onclick = () => { if (b.disabled) return; box.querySelectorAll("[data-rch]").forEach(x => x.classList.toggle("on", x === b)); cb(+b.dataset.rch); }); }
 };
-/* 캐릭터 그림 (오른쪽을 보고 구름을 타고 날아요) — 88×76 */
+/* ⚔️ 장수 디자인 (WAR · 오리지널) — 구름을 타고 나는 무사들 · 보스 · 졸개 */
+const SKW = [
+  {weapon: "sword", armor: "#1d6fd1", trim: "#e7f5ff", cloth: "#f1f3f5", skin: "#f3cfae", hair: "#141022", helm: "crown", cape: "#1c4f9c", sash: "#74c0fc", wd: {glow: "#a5d8ff", tassel: "#4dabf7"}},
+  {weapon: "dao", armor: "#3b2a7a", trim: "#c084fc", cloth: "#1e1b4b", skin: "#f3cfae", hair: "#141022", helm: "band", band: "#7c3aed", sash: "#a78bfa", wd: {glow: "#c4b5fd"}},
+  {weapon: "fan", robe: 1, cloth: "#be185d", armor: "#9d174d", trim: "#fbcfe8", skin: "#f6d7bb", hair: "#141022", helm: "scholar", sash: "#f9a8d4", wd: {glow: "#fbcfe8"}},
+  {weapon: "axe", armor: "#c2410c", trim: "#fde047", cloth: "#7c2d12", skin: "#e8b48f", hair: "#141022", helm: "general", plume: "#fde047", beard: "#1a1423", big: 1, cape: "#9a3412"}
+];
+const SKB = [
+  {col: "#e03131", fin: "#ffd43b", horn: "#ffe066", mane: "#f8f0e3"},
+  {weapon: "halberd", armor: "#1e293b", trim: "#fde047", cloth: "#0f172a", skin: "#c98b62", hair: "#0b0b14", helm: "horned", beard: "#0b0b14", angry: 1, big: 1, cape: "#7f1d1d"},
+  {weapon: "guandao", armor: "#64748b", trim: "#e2e8f0", cloth: "#334155", skin: "#e8b48f", hair: "#141022", helm: "general", plume: "#e03131", beard: "#141022", angry: 1, big: 1, cape: "#475569", wd: {glow: "#bae6fd"}}
+];
+const SKE_CROW = {weapon: "dao", armor: "#3f3f46", trim: "#a1a1aa", cloth: "#27272a", skin: "#d9a47c", hair: "#141022", helm: "band", band: "#facc15", angry: 1};
+const skHeroW = (c, pose, s = .52) => WAR.spr("skh" + c, "war", SKW[c], pose, s, {cloud: 1});
+/* (옛 그림) 캐릭터 그림 (오른쪽을 보고 구름을 타고 날아요) — 88×76 */
 function skHero(t, c, f){
   const C = SKC[c], skin = "#ffe0bd";
   // 타는 구름
@@ -88,7 +102,7 @@ NG.defs.sk = () => {
   const PCOL = ["#4dabf7", "#ff6b6b", "#51cf66", "#fcc419"];
   const KIND = ["kite", "crow", "lantern", "turret", "fish"], ITK = "PBHGSX";
   const EN = {kite: {w: 46, h: 46, hp: 3, sc: 100}, crow: {w: 58, h: 42, hp: 4, sc: 150}, lantern: {w: 44, h: 60, hp: 14, sc: 300, drop: 1}, turret: {w: 72, h: 62, hp: 20, sc: 400}, fish: {w: 108, h: 66, hp: 55, sc: 900, drop: 1}};
-  const BS = [{n: "기계 용머리 비행선", w: 300, h: 210, hp: 650, mx: -135, my: 30, k: 1}, {n: "구름 거북 요새", w: 320, h: 230, hp: 800, mx: -150, my: 20, k: 0}, {n: "강철 장군", w: 260, h: 290, hp: 950, mx: -95, my: -60, k: 2}];
+  const BS = [{n: "하늘 적룡 화르륵", w: 300, h: 210, hp: 650, mx: -135, my: 30, k: 1}, {n: "구름 패왕 우르릉", w: 320, h: 230, hp: 800, mx: -150, my: 20, k: 0}, {n: "강철 대장군", w: 260, h: 290, hp: 950, mx: -95, my: -60, k: 2}];
   const STAGE_LEN = 2200, SEL_T = 900;
   const TOUCH = ("ontouchstart" in window) || navigator.maxTouchPoints > 0;
   const sp = (k, w, h, fn) => G2.spr("sk" + k, w, h, fn), spP = (k, w, h, fn, o) => sp(k, w, h, t => { fn(t); skPolish(t, o); });
@@ -113,8 +127,8 @@ NG.defs.sk = () => {
   const sfx = k => { playS(k); if (party === "host") NQ.push(["s", k]); };
 
   /* ---------- 그림 (한 번만 그려요) ---------- */
-  const heroSpr = (c, f) => spP(`h${c}${f}`, 88, 76, t => skHero(t, c, f), {w: 2});
-  const ghostSpr = c => sp(`gh${c}`, 88, 76, t => { t.globalAlpha = .5; skHero(t, c, 1); t.globalCompositeOperation = "source-atop"; t.fillStyle = "rgba(80,40,160,.55)"; t.fillRect(0, 0, 88, 76); });
+  const heroSpr = (c, f) => skHeroW(c, f ? "fly1" : "fly");
+  const ghostSpr = c => sp(`ghw${c}`, 170, 160, t => { const h = skHeroW(c, "fly1"); t.globalAlpha = .5; t.drawImage(h, 85 - h.ax, 150 - h.ay, h.w, h.h); t.globalCompositeOperation = "source-atop"; t.fillStyle = "rgba(80,40,160,.55)"; t.fillRect(0, 0, 88, 76); });
   const orb = (t, m, r, c0, c1, c2) => { const gr = t.createRadialGradient(m - r*.3, m - r*.3, 1, m, m, r); gr.addColorStop(0, c0); gr.addColorStop(.5, c1); gr.addColorStop(1, c2); t.fillStyle = gr; t.beginPath(); t.arc(m, m, r, 0, 7); t.fill(); };
   const ebSpr = k => sp("eb" + k, 26, 26, t => { const r = [8, 10, 7][k], m = 13;
     t.fillStyle = ["rgba(255,146,43,.35)", "rgba(240,101,149,.35)", "rgba(116,192,252,.35)"][k]; t.beginPath(); t.arc(m, m, r + 3, 0, 7); t.fill();
@@ -159,40 +173,12 @@ NG.defs.sk = () => {
       t.fillStyle = "#fff"; t.beginPath(); t.arc(w*.18, h*.42, 8, 0, 7); t.fill(); t.fillStyle = "#e03131"; t.beginPath(); t.arc(w*.16, h*.42, 4.5, 0, 7); t.fill();
       t.strokeStyle = "#e8590c"; t.lineWidth = 3; t.beginPath(); t.moveTo(w*.08, h*.6); t.quadraticCurveTo(-4, h*.72 + f*4, 2, h*.9); t.stroke(); }
   }); };
-  const bossSpr = (k, f) => { const d = BS[k]; return spP(`b${k}${f}`, d.w + 20, d.h + 20, t => { t.translate(10, 10); const w = d.w, h = d.h;
-    if (k === 0){ // 기계 용머리 비행선
-      t.fillStyle = "#e7f5ff"; [[w*.35, h*.12, 30], [w*.55, h*.08, 36], [w*.75, h*.14, 28]].forEach(([x, y, r]) => { t.beginPath(); t.arc(x, y + 20, r, 0, 7); t.fill(); });
-      t.fillStyle = "#8d5524"; rrect(t, w*.3, h*.38, w*.66, h*.36, 26); t.fill(); t.fillStyle = "#6f4518"; rrect(t, w*.3, h*.6, w*.66, h*.14, 14); t.fill();
-      t.fillStyle = "#fab005"; for (let i = 0; i < 6; i++){ t.beginPath(); t.arc(w*(.38 + i*.1), h*.5, 7, 0, 7); t.fill(); }
-      t.fillStyle = "#c92a2a"; t.beginPath(); t.moveTo(w*.5, h*.38); t.lineTo(w*.6, h*.12); t.lineTo(w*.72, h*.38); t.fill(); t.beginPath(); t.moveTo(w*.72, h*.38); t.lineTo(w*.84, h*.18); t.lineTo(w*.92, h*.38); t.fill();
-      t.fillStyle = "#868e96"; t.fillRect(w*.9, h*.7 + (f ? 2 : -2), 14, 30); t.fillRect(w*.94, h*.76, 24, 6);
-      // 용머리
-      t.fillStyle = "#fab005"; t.beginPath(); t.moveTo(w*.34, h*.4); t.lineTo(w*.06, h*.42); t.lineTo(0, h*.56); t.lineTo(w*.1, h*.62); t.lineTo(w*.06, h*.74); t.lineTo(w*.34, h*.72); t.closePath(); t.fill();
-      t.fillStyle = "#e67700"; t.beginPath(); t.moveTo(w*.1, h*.62); t.lineTo(w*.32, h*.6); t.lineTo(w*.34, h*.72); t.lineTo(w*.06, h*.74); t.fill();
-      t.fillStyle = "#fff"; t.beginPath(); t.moveTo(w*.08, h*.6); t.lineTo(w*.11, h*.66); t.lineTo(w*.14, h*.6); t.fill();
-      t.fillStyle = "#c92a2a"; t.beginPath(); t.arc(w*.17, h*.48, 9, 0, 7); t.fill(); t.fillStyle = "#ffe066"; t.beginPath(); t.arc(w*.16, h*.48, 4, 0, 7); t.fill();
-      t.strokeStyle = "#e67700"; t.lineWidth = 6; t.lineCap = "round"; t.beginPath(); t.moveTo(w*.25, h*.4); t.quadraticCurveTo(w*.3, h*.15, w*.42, h*.2 + (f ? 4 : 0)); t.stroke();
-      t.strokeStyle = "#868e96"; t.lineWidth = 3; t.beginPath(); t.moveTo(w*.04, h*.66); t.quadraticCurveTo(-10, h*.8, 0, h*.92 + (f ? 4 : 0)); t.stroke(); }
-    else if (k === 1){ // 구름 거북 요새
-      t.fillStyle = "#e7f5ff"; [[w*.15, h*.9, 30], [w*.4, h*.95, 40], [w*.65, h*.95, 40], [w*.88, h*.9, 30]].forEach(([x, y, r]) => { t.beginPath(); t.arc(x, y, r, 0, 7); t.fill(); });
-      t.fillStyle = "#2b8a3e"; t.beginPath(); t.ellipse(w*.58, h*.62, w*.38, h*.3, 0, Math.PI, 0); t.fill(); t.fillRect(w*.2, h*.62, w*.76, h*.12);
-      t.strokeStyle = "#69db7c"; t.lineWidth = 4; for (let i = 0; i < 4; i++){ t.beginPath(); t.arc(w*(.36 + i*.15), h*.56, 22, 0, 7); t.stroke(); }
-      t.fillStyle = "#c92a2a"; t.beginPath(); t.moveTo(w*.4, h*.34); t.lineTo(w*.58, h*.16); t.lineTo(w*.76, h*.34); t.fill(); t.fillStyle = "#862e9c"; t.fillRect(w*.46, h*.34, w*.24, h*.08);
-      t.fillStyle = "#c92a2a"; t.beginPath(); t.moveTo(w*.44, h*.2); t.lineTo(w*.58, h*.04); t.lineTo(w*.72, h*.2); t.fill(); t.fillStyle = "#fab005"; t.fillRect(w*.57, 0, 6, h*.06);
-      t.fillStyle = "#495057"; t.fillRect(w*.38, h*.44 - (f ? 2 : 0), 16, 20); t.fillRect(w*.74, h*.44 + (f ? 2 : 0), 16, 20);
-      t.fillStyle = "#40c057"; t.beginPath(); t.ellipse(w*.12, h*.6, w*.1, h*.11, -.2, 0, 7); t.fill(); t.fillRect(w*.14, h*.56, w*.1, h*.1);
-      t.fillStyle = "#fff"; t.beginPath(); t.arc(w*.08, h*.56, 8, 0, 7); t.fill(); t.fillStyle = "#e03131"; t.beginPath(); t.arc(w*.07, h*.56, 4, 0, 7); t.fill();
-      t.fillStyle = "#2b8a3e"; [[.3, f], [.8, 1 - f]].forEach(([x, q]) => { t.beginPath(); t.ellipse(w*x, h*.8 + q*4, 20, 10, 0, 0, 7); t.fill(); }); }
-    else { // 강철 장군
-      t.fillStyle = "#e7f5ff"; [[w*.2, h*.94, 30], [w*.5, h*.97, 40], [w*.8, h*.94, 30]].forEach(([x, y, r]) => { t.beginPath(); t.arc(x, y, r, 0, 7); t.fill(); });
-      t.fillStyle = "#495057"; rrect(t, w*.25, h*.32, w*.56, h*.48, 24); t.fill(); t.fillStyle = "#868e96"; for (let i = 0; i < 4; i++){ rrect(t, w*.28, h*(.4 + i*.09), w*.5, h*.06, 6); t.fill(); }
-      t.fillStyle = "#c92a2a"; t.beginPath(); t.ellipse(w*.3, h*.36, w*.14, h*.08, -.3, 0, 7); t.fill(); t.beginPath(); t.ellipse(w*.76, h*.36, w*.14, h*.08, .3, 0, 7); t.fill();
-      t.fillStyle = "#343a40"; rrect(t, w*.36, h*.12, w*.32, h*.22, 16); t.fill();
-      t.fillStyle = "#fab005"; t.beginPath(); t.moveTo(w*.38, h*.14); t.lineTo(w*.22, 0); t.lineTo(w*.46, h*.12); t.fill(); t.beginPath(); t.moveTo(w*.66, h*.14); t.lineTo(w*.82, 0); t.lineTo(w*.58, h*.12); t.fill();
-      t.fillStyle = "#212529"; t.fillRect(w*.38, h*.2, w*.28, h*.07); t.fillStyle = f ? "#ff8787" : "#ff6b6b"; t.fillRect(w*.4, h*.22, w*.08, h*.03); t.fillRect(w*.55, h*.22, w*.08, h*.03);
-      t.save(); t.translate(w*.2, h*.55); t.rotate(-.5 + (f ? .06 : 0)); t.fillStyle = "#dee2e6"; t.fillRect(-w*.22, -8, w*.26, 16); t.fillStyle = "#fff"; t.fillRect(-w*.22, -8, w*.26, 4); t.fillStyle = "#fab005"; t.fillRect(0, -14, 10, 28); t.restore();
-      t.fillStyle = "#495057"; t.beginPath(); t.arc(w*.2, h*.55, 16, 0, 7); t.fill(); }
-  }); };
+  /* 보스: 하늘 적룡 · 구름 패왕 · 강철 대장군 (왼쪽을 봐요) */
+  const bossSpr = (k, f) => { const d = BS[k]; return sp(`bw${k}${f}`, d.w + 20, d.h + 20, t => {
+    const c = k === 0 ? WAR.spr("skb0" + f, "dragon", SKB[0], f ? "atk1" : "idle0", .7, {fr: f}) : WAR.spr("skb" + k, "war", SKB[k], f ? "idle1" : "idle0", 1.2, {cloud: 1});
+    const bw = d.w + 20, bh = d.h + 20, sc = Math.min(bw/c.w, bh/c.h)*1.12; t.save(); t.translate(bw, 0); t.scale(-1, 1); t.drawImage(c, (bw - c.w*sc)/2, (bh - c.h*sc)/2 + (k ? 8 : 0), c.w*sc, c.h*sc); t.restore(); }); };
+  /* 졸개 까마귀 → 검은 구름을 탄 산적 무사 */
+  const crowSpr = f => sp(`ecw${f}`, 130, 120, t => { const c = WAR.spr("skc" + f, "war", SKE_CROW, f ? "fly1" : "fly", .4, {cloud: "dark"}); t.translate(130, 0); t.scale(-1, 1); t.drawImage(c, 62 - c.ax, 108 - c.ay, c.w, c.h); });
   const cloudStrip = (k, w, h, n, rmin, rmax, seed) => sp(`cl${k}`, w, h, t => { const th = SKTH[skTI(stage)]; let s = seed; const r = () => { s = (s*9301 + 49297) % 233280; return s/233280; };
     for (let i = 0; i < n; i++){ const x = r()*w, y = h*.25 + r()*h*.6, R = rmin + r()*(rmax - rmin);
       [[x - R*.8, y + R*.2, R*.7], [x, y, R], [x + R*.9, y + R*.15, R*.75]].forEach(([a, b, c]) => { [a - w, a, a + w].forEach(ax => { t.fillStyle = k[0] === "f" ? th.far : th.cs; t.beginPath(); t.arc(ax, b + (k[0] === "f" ? 0 : 8), c, 0, 7); t.fill(); }); });
@@ -235,7 +221,7 @@ NG.defs.sk = () => {
   const cardSpr = c => sp("card" + c, 260, 400, t => { const C = SKC[c], gr = t.createLinearGradient(0, 0, 0, 400); gr.addColorStop(0, C.col); gr.addColorStop(.55, "#1c1d52"); gr.addColorStop(1, "#14112e");
     t.fillStyle = gr; rrect(t, 0, 0, 260, 400, 22); t.fill(); t.strokeStyle = "rgba(255,255,255,.35)"; t.lineWidth = 3; rrect(t, 2, 2, 256, 396, 20); t.stroke();
     t.fillStyle = "rgba(255,255,255,.15)"; t.beginPath(); t.arc(130, 96, 74, 0, 7); t.fill();
-    t.save(); t.translate(130 - 88*1.05, 96 - 38*2.1); t.scale(2.1, 2.1); skHero(t, c, 0); t.restore();
+    { const h = skHeroW(c, "idle0", .78); t.drawImage(h, 130 - h.ax, 172 - h.ay, h.w, h.h); }
     outlinedRaw(t, C.n, 130, 190, 25, "#fff"); outlinedRaw(t, `${C.e} ${C.shot}`, 130, 222, 17, "#ffe066");
     ["속도", "공격", "범위", "스킬"].forEach((l, i) => { const y = 250 + i*22; t.font = `16px "Jua",sans-serif`; t.textAlign = "left"; t.textBaseline = "middle"; t.fillStyle = "#dee2e6"; t.fillText(l, 34, y);
       for (let s = 0; s < 5; s++){ t.fillStyle = s < C.st[i] ? "#ffd43b" : "rgba(255,255,255,.18)"; t.beginPath(); for (let q = 0; q < 10; q++){ const r = q % 2 ? 4 : 9, a = -Math.PI/2 + q*Math.PI/5; t.lineTo(100 + s*26 + Math.cos(a)*r, y + Math.sin(a)*r); } t.fill(); } });
@@ -624,8 +610,8 @@ NG.defs.sk = () => {
       IT.forEach(it => { const s2 = itemSpr(it.k), b = Math.sin((it.t || 0)*.12)*3; G2.put(g, s2, it.x - 26, it.y - 26 + b); });
       // 적
       const af = (fr >> 3) & 1;
-      E.forEach(e => { if (e.dead) return; const d = EN[e.k], s2 = enSpr(e.k, af); G2.put(g, s2, e.x - d.w/2 - 4, e.y - d.h/2 - 4);
-        if (e.hf){ g.globalAlpha = .55; g.globalCompositeOperation = "lighter"; G2.put(g, s2, e.x - d.w/2 - 4, e.y - d.h/2 - 4); g.globalCompositeOperation = "source-over"; g.globalAlpha = 1; } });
+      E.forEach(e => { if (e.dead) return; const d = EN[e.k], cw = e.k === "crow", s2 = cw ? crowSpr(af) : enSpr(e.k, af), ox = cw ? e.x - 65 : e.x - d.w/2 - 4, oy = cw ? e.y - 66 : e.y - d.h/2 - 4; G2.put(g, s2, ox, oy);
+        if (e.hf){ g.globalAlpha = .55; g.globalCompositeOperation = "lighter"; G2.put(g, s2, ox, oy); g.globalCompositeOperation = "source-over"; g.globalAlpha = 1; } });
       // 보스
       if (boss){ const d = BS[boss.t], s2 = bossSpr(boss.t, (fr >> 4) & 1), bx = boss.x - d.w/2 - 10, by = boss.y - d.h/2 - 10;
         if (!(boss.dead && fr % 4 < 2)) G2.put(g, s2, bx, by);
@@ -638,9 +624,9 @@ NG.defs.sk = () => {
       // 캐릭터
       P.forEach((p, i) => { if (!p.alive) return; const x = p.x, y = p.y, mine = party === "guest" ? i === myIdx : local.includes(i) && !BOT.has(i);
         const inv = party === "guest" ? p.invF || p.ent : p.inv > 0 || p.ent > 0;
-        if (p.skT > 0 && p.ch === 1){ G2.put(g, ghostSpr(1), x - 50, cy(y - 80) - 38); G2.put(g, ghostSpr(1), x - 50, cy(y + 80) - 38); }
+        if (p.skT > 0 && p.ch === 1){ G2.put(g, ghostSpr(1), x - 85, cy(y - 80) - 120); G2.put(g, ghostSpr(1), x - 85, cy(y + 80) - 120); }
         if (p.skT > 0 && p.ch === 2){ g.fillStyle = "rgba(247,131,172,.18)"; g.beginPath(); g.arc(x, y, 95, 0, 7); g.fill(); g.strokeStyle = `rgba(255,222,235,${.6 + Math.sin(fr*.3)*.3})`; g.lineWidth = 4; g.stroke(); }
-        if (!(inv && fr % 6 < 3)) G2.put(g, heroSpr(p.ch, (fr >> 3) & 1), x - 44, y - 40);
+        if (!(inv && fr % 6 < 3)){ const h = heroSpr(p.ch, (fr >> 3) & 1); G2.put(g, h, x - h.ax + 6, y + 30 - h.ay); }
         if (p.skT > 0 && p.ch === 0){ g.strokeStyle = "rgba(208,235,255,.85)"; g.lineWidth = 6; const a = fr*.45; for (let k = 0; k < 3; k++){ g.beginPath(); g.arc(x, y, 120 + k*22, a + k*2.1, a + k*2.1 + 1.4); g.stroke(); } }
         if (mine){ g.fillStyle = "#fff"; g.beginPath(); g.arc(x, y, 5, 0, 7); g.fill(); g.strokeStyle = PCOL[i]; g.lineWidth = 2; g.stroke(); }
         if (N > 1) outlined(g, `${i + 1}P`, x - 8, y - 50, 15, PCOL[i]); });
@@ -713,7 +699,7 @@ const SKY = {
       <div class="wb-sec"><h3>🧍 혼자 출발 <small>🤖 컴퓨터 동료를 데려갈 수 있어요</small></h3>${botRow("skB1", 3, this.bots)}<button class="arc-btn p" id="skSolo">▶ 출발!</button></div>
       <div class="wb-sec"><h3>🧒 이 기기에서 친구와 둘이 <small>화면 왼쪽·오른쪽 반씩 · 키보드 1P W·A·S·D / 2P 방향키</small></h3>${botRow("skB2", 2, this.bots2)}<button class="arc-btn p" id="skFriend">🧒 친구 들어오기</button></div>
       <div class="wb-sec"><h3>🌐 온라인 방 <small>각자 기기로 최대 4명 · ☁️ Firebase 반에서만</small></h3><div id="wbRooms"></div></div>`;
-    body.querySelectorAll("[data-skc]").forEach(cv => { const t = cv.getContext("2d"); t.scale(2, 2); skHero(t, +cv.dataset.skc, 0); });
+    body.querySelectorAll("[data-skc]").forEach(cv => { const t = cv.getContext("2d"), h = skHeroW(+cv.dataset.skc, "fly", .5), k = NG.k || 1; t.scale(2/k, 2/k); t.drawImage(h, (44 - h.ax*.92)*k, (74 - h.ay*.92)*k, h.w*.92*k, h.h*.92*k); });
     const seg = (id, key) => { const s = $("#" + id); s.onclick = e => { const b = e.target.closest("button"); if (!b) return; s.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); this[key] = +b.dataset.v; }; };
     seg("skB1", "bots"); seg("skB2", "bots2"); REACH.bind(body, v => { this.st = v; });
     $("#skSolo").onclick = () => { box.hidden = true; this.start([me], this.bots); };
