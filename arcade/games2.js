@@ -724,11 +724,24 @@ const PARTY = {
   attach(game, gridFn){ this.game = game; this.gridFn = gridFn; this.seq = 0; this.inSeq = 0; this.lastGv = -1; this.input = {d: 0, b: this.input.b || 0}; },
   readInputs(IN){ this.peers.forEach(P => { if (P.idx >= 0 && IN[P.idx]){ const open = P.r.readyState === "open"; IN[P.idx].d = open ? P.last.d : 0; IN[P.idx].b = P.last.b; } }); },
   /* 📡 화면 정보: 크면(몬스터가 많으면) 꼭 도착하는 통로로, 친구 기기가 밀려 있으면 이번 장면은 건너뛰어요(다음 장면이 최신이라 괜찮아요) */
+  /* 🧊 멈춤·튕김 막기 (2026.11.17)
+     - 화면 정보는 '안 와도 다음 장면이 오는' 빠른 통로(u)로 보내요. 예전엔 크면 '꼭 도착하는' 통로(r)로 보냈는데,
+       와이파이가 약한 친구는 그 통로가 줄줄이 밀려서 몇 초씩 멈춘 화면만 보였어요.
+       대신 10장마다 한 장은 꼭 도착하는 통로로도 보내요(빠른 통로가 아예 막혀도 화면이 움직이게).
+     - 4배속처럼 일이 많을 때 반짝이·소리 소식이 쌓이면 통로가 넘쳐서 끊겼어요(팅김) → 밀려 있으면 꾸밈 소식은 빼고 꼭 필요한 것만 보내요. */
   sendSnap(s, ev, gv){
     if (gv !== this.lastGv && this.gridFn){ this.lastGv = gv; this.sendAll(this.gridFn()); }
-    if (ev.length) this.sendAll({t: "ev", ev});
-    const str = JSON.stringify({t: "s", n: ++this.seq, s}), big = str.length > 900;
-    this.connected().forEach(P => { const ch = P.relay ? P.r : big ? P.r : P.u; if (!ch || ch.readyState !== "open" || ch.bufferedAmount > 48000) return; try { ch.send(str); } catch(e) {} });
+    const str = JSON.stringify({t: "s", n: ++this.seq, s}), key = this.seq % 10 === 0;
+    let evS = null, evL = null;
+    this.connected().forEach(P => {
+      if (ev.length){ const busy = P.relay || (P.r && P.r.bufferedAmount > 24000);
+        if (busy){ if (evL === null){ const L = ev.filter(e => !["x", "s", "r", "p"].includes(e[0])).slice(-40); evL = L.length ? JSON.stringify({t: "ev", ev: L}) : ""; } if (evL) this.send(P, evL); }
+        else { if (evS === null) evS = JSON.stringify({t: "ev", ev: ev.slice(-120)}); try { if (P.r.readyState === "open" && P.r.bufferedAmount < 256000) P.r.send(evS); } catch(e) {} } }
+      if (P.relay){ try { P.r.send(str); } catch(e) {} return; }
+      const uok = P.u && P.u !== P.r && P.u.readyState === "open" && str.length < 60000;
+      try { if (uok && P.u.bufferedAmount < 64000) P.u.send(str); } catch(e) {}
+      try { if ((key || !uok) && P.r && P.r.readyState === "open" && P.r.bufferedAmount < 32000) P.r.send(str); } catch(e) {}   // 빠른 통로가 없으면 믿음 통로로 매번
+    });
   },
   /* ======== ☁️ 다리(릴레이): 기기끼리 바로 못 이으면(학교 와이파이 등) Firebase 저장소를 거쳐 주고받아요 ======== */
   relayPeer(no, d){
@@ -813,9 +826,11 @@ const PARTY = {
   onHost(m){
     this.rxT = performance.now();
     if (m.t === "hi") return;
-    if (m.t === "s"){ if (m.n > this.inSeq || m.n < this.inSeq - 500){ this.inSeq = m.n; this.game && this.game.apply({s: m.s}); } }
-    else if (m.t === "ev"){ this.game && this.game.apply({ev: m.ev}); }
-    else if (m.t === "grid"){ this.game && this.game.apply({grid: m}); }
+    if (m.t === "s"){ const now = performance.now();
+      // 방장이 다시 켜지거나 다시 이어지면 번호가 처음부터 다시 시작해요 → 1.5초 넘게 새 장면이 없으면 작은 번호도 받아요(예전엔 한참 멈춰 있었어요)
+      if (m.n > this.inSeq || m.n < this.inSeq - 500 || now - (this.snapT || 0) > 1500){ this.inSeq = m.n; this.snapT = now; this.safeApply({s: m.s}); } }
+    else if (m.t === "ev"){ this.safeApply({ev: m.ev}); }
+    else if (m.t === "grid"){ this.safeApply({grid: m}); }
     else if (m.t === "lobby"){ this.members = m.m; this.bots = m.bots; if (!this.game || $("#ng").hidden) this.renderRooms(); }
     else if (m.t === "start"){
       clearTimeout(this.conT); const md = $("#mdWb"); if (md) md.hidden = true; this.myIdx = m.idx; this.inSeq = 0;
@@ -838,9 +853,13 @@ const PARTY = {
   },
   needGrid(force){ const now = performance.now(); if (!force && now - this.ngT < 400) return; this.ngT = now; const H = this.hp; if (H && H.r && H.r.readyState === "open") try { H.r.send('{"t":"ng"}'); } catch(e) {} },
   /* 👀 친구 기기 지킴이: 방장 화면이 3초 넘게 안 오면 판을 다시 달라고 하고, 8초면 다리(저장소)로 바꿔 이어요 → 화면이 안 나오는 일이 없게 */
-  watch(){ clearInterval(this.wdT); this.wdT = setInterval(() => { if (this.role !== "guest" || $("#ng").hidden){ clearInterval(this.wdT); return; }
-    const gap = performance.now() - this.rxT; if (gap > 3000) this.needGrid(true);
-    if (gap > 8000 && this.canRelay() && !(this.hp && this.hp.relay)) this.relayJoin(); }, 1000); },
+  safeApply(d){ try { this.game && this.game.apply(d); } catch(e){ console.error("apply", e); if (!this.applyErrT || performance.now() - this.applyErrT > 10000){ this.applyErrT = performance.now(); this.needGrid(true); } } },
+  /* 🧊 친구 기기 지킴이: '소식'이 아니라 '화면 장면'이 끊긴 시간을 봐요(예전엔 다른 소식만 와도 괜찮다고 여겨서 화면이 멈춘 채 그대로였어요) */
+  watch(){ clearInterval(this.wdT); this.snapT = performance.now(); this.wdT = setInterval(() => { if (this.role !== "guest" || $("#ng").hidden){ clearInterval(this.wdT); return; }
+    const now = performance.now(), gap = now - Math.max(this.snapT || 0, this.joinT || 0);
+    if (gap > 2500){ this.inSeq = 0; this.needGrid(true); }
+    if (gap > 4000 && $("#ngOver").hidden && NG.cur && !NG.ended && (!this.stallT || now - this.stallT > 6000)){ this.stallT = now; toast("📡 방장 화면을 다시 받아오는 중이에요…"); }
+    if (gap > 8000 && this.canRelay() && !(this.hp && this.hp.relay)){ this.relayJoin(); this.joinT = now; } }, 1000); },
   hostGone(msg){
     if (this.role !== "guest") return;
     const playing = NG.cur && NG.gid === this.gid && !$("#ng").hidden;

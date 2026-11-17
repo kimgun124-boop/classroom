@@ -107,13 +107,16 @@ const NG = {
     this.fit(); cur.init && cur.init();
     this.last = performance.now(); this.acc = 0; this.frame = 0; this.drawnEnd = false;
     const loop = now => { this.raf = requestAnimationFrame(loop); this.acc = Math.min(100, this.acc + now - this.last); this.last = now;
-      while (this.acc >= 1000/60){ this.acc -= 1000/60; if (!this.ended && !this.paused){ this.frame++; cur.step && cur.step(); } }
+      // 🛡️ 한 장면에서 오류가 나도 화면은 계속 그려요 (예전엔 오류 하나에 그 기기 화면만 멈춰 보였어요)
+      try { while (this.acc >= 1000/60){ this.acc -= 1000/60; if (!this.ended && !this.paused){ this.frame++; cur.step && cur.step(); } } } catch(e){ this.acc = 0; this.oops(e, "step"); }
       if (cur.netAd && opt.net) NET.tick(cur.netAd);
       // ⚡ 게임이 끝나 결과 창(흐림 효과)이 떠 있으면 뒤 그림은 멈춰 둬요 — 매 장면 다시 그리면 흐림 계산이 아주 무거워요
-      if (cur.draw && !(this.ended && this.drawnEnd)){ const g = this.g; g.setTransform(this.k, 0, 0, this.k, 0, 0); cur.draw(g); if (this.ended) this.drawnEnd = true; }
+      if (cur.draw && !(this.ended && this.drawnEnd)){ const g = this.g; try { g.setTransform(this.k, 0, 0, this.k, 0, 0); cur.draw(g); } catch(e){ try { g.restore(); } catch(_){} this.oops(e, "draw"); } if (this.ended) this.drawnEnd = true; }
       if (this.frame % 6 === 0 && cur.hud) $("#ngHud").innerHTML = cur.hud(); };
     this.raf = requestAnimationFrame(loop);
   },
+  oops(e, w){ const now = performance.now(); if (!this.oopsT || now - this.oopsT > 5000){ this.oopsT = now; console.error("NG " + w, e);
+      if (this.opt && this.opt.party === "guest" && typeof PARTY !== "undefined") try { PARTY.needGrid(true); } catch(_){} } },
   fit(){
     const cur = this.cur; if (!cur) return; this.drawnEnd = false;
     const st = $("#ngStage").getBoundingClientRect();
