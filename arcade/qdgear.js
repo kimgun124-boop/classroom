@@ -25,31 +25,44 @@ const QG = (() => {
   const price = t => 40*t*(t + 1)/2;                      // 1강 40 · 5강 600 · 10강 2,200 · 12강 3,120
   const rec = s => Math.round(s*.42);                       // 단계별 추천 장비 ⭐ (5부위 × 12강 = 60)
   /* 💪 몬스터 세기: 단계가 오를수록 체력·공격이 쑥쑥 (장비 없이는 50단계 넘기 어려워요) */
-  const SD = s => 1.15*(1 + .055*s)*(1 + s/110);             // 체력 배율  (1단계 ×1.15 · 30단계 ×3.8 · 60단계 ×7.6 · 100단계 ×14 · 130단계 ×20)
-  const ED = s => 1.1 + .035*s;                              // 공격 배율  (30단계 ×2.1 · 100단계 ×4.6)
+  const SD = s => 1.3*(1 + .065*s)*(1 + s/90);              // 체력 배율  (1단계 ×1.3 · 30단계 ×5.1 · 60단계 ×11 · 100단계 ×20 · 130단계 ×29)
+  const ED = s => 1.2 + .045*s;                              // 공격 배율  (30단계 ×2.5 · 100단계 ×5.7)
+  /* 🔨 강화 (+1 ~ +15): 코인을 내고 두근두근 도전! 실패해도 장비는 그대로 (코인만 써요) */
+  const EMAX = 15, ecost = n => 60*(n + 1)*(n + 2)/2, echance = n => Math.max(.3, 1 - n*.05);
   function kid(sid){ return (walletOf(sid).qd) || {}; }
-  function of(sid, clsId){ const q = kid(sid), g = Object.assign({wpn: 0, arm: 0, helm: 0, boot: 0, wing: 0}, q[clsId] || {}); g.pet = q.pet || null; return g; }
-  function botGear(stage){ const r = rec(stage), b = Math.floor(r/5), x = r % 5, g = {pet: null}; SLOTS.forEach((s, i) => g[s.k] = Math.min(MAX, b + (i < x ? 1 : 0))); return g; }
-  const power = g => SLOTS.reduce((a, s) => a + (g[s.k] || 0), 0);
+  function of(sid, clsId){ const q = kid(sid), g = Object.assign({wpn: 0, arm: 0, helm: 0, boot: 0, wing: 0}, q[clsId] || {}); g.e = Object.assign({}, (q[clsId] || {}).e || {}); g.pet = q.pet || null; return g; }
+  function botGear(stage){ const r = rec(stage), b = Math.floor(r/5), x = r % 5, g = {pet: null, e: {wpn: Math.floor(stage/12)}}; SLOTS.forEach((s, i) => g[s.k] = Math.min(MAX, b + (i < x ? 1 : 0))); return g; }
+  const power = g => SLOTS.reduce((a, s) => a + (g[s.k] || 0) + Math.floor(((g.e || {})[s.k] || 0)/3), 0);   // ⭐: 단계 + 강화 3마다 1
   function stats(g){
-    const w = g.wpn || 0, a = g.arm || 0, h = g.helm || 0, b = g.boot || 0, wi = g.wing || 0;
-    return {dm: (1 + .5*w)*(1 + .025*wi), hpm: (1 + .3*a)*(1 + .08*h)*(1 + .02*wi), dr: Math.min(.3, .022*a + .004*h), crit: Math.min(.4, .03*h + .005*wi),
-      spm: 1 + .035*b + .012*wi, dcd: Math.max(14, 40 - 2*b - wi), jmp: 1 + .03*wi, regen: wi*.0015};
+    const w = g.wpn || 0, a = g.arm || 0, h = g.helm || 0, b = g.boot || 0, wi = g.wing || 0, E = g.e || {}, ew = E.wpn || 0, ea = E.arm || 0, eh = E.helm || 0, eb = E.boot || 0, ewi = E.wing || 0;
+    return {dm: (1 + .5*w)*(1 + .025*wi)*(1 + .07*ew)*(1 + .01*ewi), hpm: (1 + .3*a)*(1 + .08*h)*(1 + .02*wi)*(1 + .05*ea)*(1 + .01*ewi), dr: Math.min(.4, .022*a + .004*h + .005*ea), crit: Math.min(.55, .03*h + .005*wi + .01*eh),
+      spm: 1 + .035*b + .012*wi + .01*eb, dcd: Math.max(12, 40 - 2*b - wi - Math.floor(eb/3)), jmp: 1 + .03*wi, regen: wi*.0015 + ewi*.0005};
   }
   const nameOf = (slot, clsId, t) => t ? `${TIER[t].n} ${slot === "wpn" ? WPN[clsId] : SLOTS.find(s => s.k === slot).n}` : `기본 ${slot === "wpn" ? WPN[clsId] : SLOTS.find(s => s.k === slot).n}`;
-  function effTxt(slot, t){ const s = stats({[slot]: t});
+  function effTxt(slot, t, e = 0){ const s = stats({[slot]: t, e: {[slot]: e}});
     return slot === "wpn" ? `공격 ×${s.dm.toFixed(1)}` : slot === "arm" ? `체력 ×${s.hpm.toFixed(1)} · 받는 피해 -${Math.round(s.dr*100)}%` : slot === "helm" ? `치명타 ${Math.round(s.crit*100)}% · 체력 +${t*8}%`
       : slot === "boot" ? `이동 +${Math.round((s.spm - 1)*100)}% · 대시 대기 ${(s.dcd/60).toFixed(2)}초` : `모든 능력 조금 ↑ · 회복 · 높이 점프`; }
   /* 🎨 장비에 따라 바뀌는 영웅 모습 (갑옷 색 · 장식 색 · 무기 빛) */
   function def(clsId, g){
-    const base = WDEF[clsId]; if (!g || !power(g)) return {d: base, sig: ""};
+    const base = WDEF[clsId], E = g && g.e || {}; if (!g || !power(g)) return {d: base, sig: ""};
     const d = JSON.parse(JSON.stringify(base));
-    if (g.arm){ d.armor = TIER[g.arm].c; if (g.arm >= 6) d.cloth = TIER[Math.max(1, g.arm - 3)].c; }
-    if (g.helm){ d.trim = TIER[g.helm].c; d.plume = TIER[g.helm].c; if (g.helm >= 9) d.helm = clsId === "wz" ? "scholar" : "crown"; }
-    if (g.wpn){ d.wd = Object.assign({}, d.wd || {}, {glow: TIER[g.wpn].c, tassel: TIER[Math.max(1, g.wpn - 1)].c}); }
+    /* ⚔️ 무기: 단계마다 모양이 바뀌어요 (검 → 큰칼 → 언월도 / 창 → 미늘창 → 언월도 · 활·부채는 빛깔) */
+    const W = g.wpn || 0, WT = {kn: ["sword", "sword", "dao", "guandao"], ln: ["spear", "spear", "halberd", "guandao"], ar: ["bow", "bow", "bow", "bow"], wz: ["fan", "fan", "fan", "fan"]}[clsId];
+    d.weapon = WT[W >= 9 ? 3 : W >= 5 ? 2 : W >= 1 ? 1 : 0];
+    if (W){ d.wd = Object.assign({}, d.wd || {}, {glow: TIER[W].c, tassel: TIER[Math.max(1, W - 1)].c, metal: W >= 6 ? TIER[W].c : "#dfe6ee"}); }
+    if ((E.wpn || 0) >= 10) d.wd = Object.assign({}, d.wd || {}, {glow: "#ffffff"});
+    /* 🛡️ 갑옷: 색 → 망토 → 방패 → 우람한 몸 */
+    const A = g.arm || 0;
+    if (A){ d.armor = TIER[A].c; d.cloth = TIER[Math.max(1, A - 3)].c; }
+    if (A >= 4) d.cape = TIER[Math.max(1, A - 1)].c;
+    if (A >= 7 && (clsId === "kn" || clsId === "ln")) d.shield = TIER[A].c;
+    if (A >= 10) d.big = 1;
+    /* ⛑️ 투구: 단계마다 다른 투구 (병사 → 장군 깃털 → 뿔 → 왕관) */
+    const Hh = g.helm || 0;
+    if (Hh){ d.trim = TIER[Hh].c; d.plume = TIER[Hh].c; d.band = TIER[Hh].c;
+      d.helm = clsId === "wz" ? (Hh >= 10 ? "crown" : Hh >= 7 ? "general" : "scholar") : Hh >= 10 ? "crown" : Hh >= 7 ? "horned" : Hh >= 4 ? "general" : clsId === "ar" ? "band" : "soldier"; }
     if (g.wing) d.sash = TIER[g.wing].c;
-    if (g.boot >= 6) d.cape = TIER[g.boot].c;
-    return {d, sig: `${g.arm}.${g.helm}.${g.wpn}.${g.wing}.${g.boot >= 6 ? g.boot : 0}`};
+    return {d, sig: `${A}.${Hh}.${W}.${g.wing || 0}.${(E.wpn || 0) >= 10 ? 1 : 0}`};
   }
   /* 🪽 날개 그림 (단계마다 색·크기) */
   const WCACHE = new Map();
@@ -79,6 +92,15 @@ const QG = (() => {
       const q = JSON.parse(JSON.stringify(w.qd || {})); q[clsId] = Object.assign({}, q[clsId] || {}); if ((q[clsId][slot] || 0) !== cur) throw new Error("다시 눌러 주세요");
       q[clsId][slot] = cur + 1; w.coins -= cost; w.qd = q; return w; });
     return cur + 1;
+  }
+  async function enhance(sid, clsId, slot){
+    const g = of(sid, clsId), n = g.e[slot] || 0; if (n >= EMAX) throw new Error("이미 +15 최고 강화예요");
+    const cost = ecost(n), ok = Math.random() < echance(n);   // 🎲 성공은 미리 정해요 (저장할 때 똑같이)
+    await Store.kidTx(sid, w => { if ((w.coins || 0) < cost) throw new Error(`코인이 ${(cost - (w.coins || 0)).toLocaleString()}개 모자라요`);
+      const q = JSON.parse(JSON.stringify(w.qd || {})); q[clsId] = Object.assign({}, q[clsId] || {}); q[clsId].e = Object.assign({}, q[clsId].e || {});
+      if ((q[clsId].e[slot] || 0) !== n) throw new Error("다시 눌러 주세요");
+      if (ok) q[clsId].e[slot] = n + 1; w.coins -= cost; w.qd = q; return w; });
+    return ok ? n + 1 : -1;
   }
   async function buyPet(sid, id){
     const P = PETS.find(p => p.id === id); if (!P) return;
@@ -120,7 +142,7 @@ const QG = (() => {
 .qg-pow{display:inline-block;margin-top:6px;font:15px "Jua",sans-serif;color:#ffe066;background:rgba(0,0,0,.25);border-radius:999px;padding:4px 12px}
 .qg-hero small{display:block;color:#b9b0dd;font-size:12.5px;margin-top:6px;line-height:1.5}
 .qg-list{display:flex;flex-direction:column;gap:8px}
-.qg-it{display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:10px 12px}
+.qg-it{display:grid;grid-template-columns:52px 1fr auto auto;gap:12px;align-items:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:10px 12px}
 .qg-ic{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:28px;background:linear-gradient(150deg,var(--c),rgba(0,0,0,.25));box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
 .qg-it b{font:17px "Jua",sans-serif;font-weight:400}
 .qg-it b i{font-style:normal;font-size:13px;color:#ffe066;margin-left:6px}
@@ -133,6 +155,12 @@ const QG = (() => {
 .qg-buy.on{background:rgba(255,255,255,.12);color:#fff;box-shadow:none}
 .qg-bar{height:6px;border-radius:3px;background:rgba(255,255,255,.1);margin-top:6px;overflow:hidden}
 .qg-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--c),#fff)}
+.qg-ic{position:relative}.qg-ic u{position:absolute;right:-6px;bottom:-6px;text-decoration:none;font:12px "Jua",sans-serif;background:#ff6b6b;color:#fff;border-radius:999px;padding:1px 6px;box-shadow:0 2px 0 rgba(0,0,0,.3)}
+.qg-buy.qg-en{background:linear-gradient(180deg,#b197fc,#7048e8);color:#fff;box-shadow:0 3px 0 #4c2fb0}
+.qg-ok .qg-msg{color:#8ce99a;animation:qgPop .5s}.qg-no .qg-msg{color:#ffa8a8;animation:qgShake .4s}
+@keyframes qgPop{0%{transform:scale(.6)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+@keyframes qgShake{0%,100%{transform:none}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+@media (max-width:700px){.qg-it{grid-template-columns:44px 1fr;}.qg-it .qg-buy{grid-column:span 1}.qg-ic{width:44px;height:44px}}
 .qg-msg{min-height:20px;margin-top:10px;text-align:center;font-size:14px;color:#ffa8a8}
 .qg-rec{margin-top:12px;font-size:12.5px;color:#b9b0dd;line-height:1.6;background:rgba(0,0,0,.2);border-radius:14px;padding:8px 12px}
 .qg-rec b{color:#ffe066;font-weight:400;font-family:"Jua",sans-serif}
@@ -143,15 +171,16 @@ const QG = (() => {
       const tabs = QCL.map((C, i) => `<button data-tab="${i}" class="${T === i ? "on" : ""}">${C.e} ${C.n}</button>`).join("") + `<button data-tab="4" class="${T === 4 ? "on" : ""}">🐾 펫</button>`;
       let main;
       if (T < 4){ const C = QCL[T], g = of(sid, C.id), pw = power(g);
-        const rows = SLOTS.map(s => { const t = g[s.k] || 0, nx = t + 1, max = t >= MAX, cost = price(nx);
-          return `<div class="qg-it" style="--c:${TIER[t].c}"><span class="qg-ic">${s.e}</span><div><b>${nameOf(s.k, C.id, t)}<i>${t}강</i></b>
-            <p>${t ? effTxt(s.k, t) : "아직 기본 장비예요"}${max ? "" : ` → <em>${effTxt(s.k, nx)}</em>`}</p><div class="qg-bar"><i style="width:${t/MAX*100}%"></i></div></div>
-            ${max ? `<button class="qg-buy on" disabled>👑 최고</button>` : `<button class="qg-buy" data-buy="${s.k}" ${(w.coins || 0) < cost || this.busy ? "disabled" : ""}>🪙 ${cost.toLocaleString()}<small>${TIER[nx].n}(으)로 강화</small></button>`}</div>`; }).join("");
+        const rows = SLOTS.map(s => { const t = g[s.k] || 0, nx = t + 1, max = t >= MAX, cost = price(nx), en = g.e[s.k] || 0, ec = ecost(en), emax = en >= EMAX;
+          return `<div class="qg-it" style="--c:${TIER[t].c}"><span class="qg-ic">${s.e}${en ? `<u>+${en}</u>` : ""}</span><div><b>${en ? `+${en} ` : ""}${nameOf(s.k, C.id, t)}<i>Lv.${t}</i></b>
+            <p>${t || en ? effTxt(s.k, t, en) : "아직 기본 장비예요"}${max ? "" : ` → <em>${effTxt(s.k, nx, en)}</em>`}</p><div class="qg-bar"><i style="width:${t/MAX*100}%"></i></div></div>
+            ${max ? `<button class="qg-buy on" disabled>👑 최고 장비</button>` : `<button class="qg-buy" data-buy="${s.k}" ${(w.coins || 0) < cost || this.busy ? "disabled" : ""}>🪙 ${cost.toLocaleString()}<small>🆙 ${TIER[nx].n}(으)로 바꾸기</small></button>`}
+            ${emax ? `<button class="qg-buy on qg-en" disabled>🔨 +15 최고</button>` : `<button class="qg-buy qg-en" data-en="${s.k}" ${(w.coins || 0) < ec || this.busy ? "disabled" : ""}>🔨 ${ec.toLocaleString()}<small>+${en + 1} 강화 · 성공 ${Math.round(echance(en)*100)}%</small></button>`}</div>`; }).join("");
         const reach = REACH.get("qd", sid), nextRec = rec(Math.min(QD_MAX - 1, reach - 1));
         main = `<div class="qg-main"><div class="qg-hero"><canvas id="qgCv" width="400" height="440"></canvas><b>${C.e} ${C.n}</b><span class="qg-pow">⭐ 장비 ${pw} / ${SLOTS.length*MAX}</span>
           <small>${g.pet ? `🐾 ${PETS.find(p => p.id === g.pet).e} ${PETS.find(p => p.id === g.pet).n} 데려가는 중` : "🐾 펫 없음 (펫 탭에서 데려와요)"}<br>✨ ${C.sp} · 🌀 ${QSK[C.id][0].n} · 🌊 ${QSK[C.id][1].n}${C.reach ? "<br>💪 근거리 영웅: 공격력 ×1.45" : ""}</small></div>
           <div><div class="qg-list">${rows}</div><div class="qg-rec">🗺️ 지금 <b>${reach}단계</b>까지 왔어요 · 이 단계 추천 장비 <b>⭐${nextRec}</b>${pw < nextRec ? " — 강화하면 훨씬 쉬워져요!" : " — 충분해요! 💪"}<br>
-          추천: 30단계 ⭐${rec(29)} · 50단계 ⭐${rec(49)} · 80단계 ⭐${rec(79)} · 100단계 ⭐${rec(99)} · ${QD_MAX}단계 ⭐${rec(QD_MAX - 1)}</div></div></div>`;
+          🆙 바꾸기: 더 좋은 장비로 · 🔨 강화: 코인으로 +1씩 (실패해도 장비는 그대로)<br>추천: 30단계 ⭐${rec(29)} · 50단계 ⭐${rec(49)} · 80단계 ⭐${rec(79)} · 100단계 ⭐${rec(99)} · ${QD_MAX}단계 ⭐${rec(QD_MAX - 1)}</div></div></div>`;
       } else {
         const q = kid(sid), own = q.pets || {};
         main = `<div class="qg-list">${PETS.map(P => { const has = !!own[P.id], on = q.pet === P.id;
@@ -159,9 +188,9 @@ const QG = (() => {
             ${on ? `<button class="qg-buy on" data-petoff="1">✔ 데려가는 중</button>` : has ? `<button class="qg-buy eq" data-pet="${P.id}">데려가기</button>` : `<button class="qg-buy" data-pet="${P.id}" ${(w.coins || 0) < P.price || this.busy ? "disabled" : ""}>🪙 ${P.price.toLocaleString()}<small>입양하기</small></button>`}</div>`; }).join("")}</div>
           <div class="qg-rec">🐾 펫은 한 번 데려오면 <b>모든 영웅</b>이 함께 다녀요 · 한 번에 한 마리</div>`;
       }
-      el.innerHTML = `<div class="qg-box"><div class="qg-hd"><h2>🛒 용사 상점<small>${esc(who(noOf_(sid)))} · 영웅마다 장비가 따로예요</small></h2><span class="qg-coin">🪙 ${(w.coins || 0).toLocaleString()}</span><button class="qg-x" data-x>✕</button></div>
+      el.innerHTML = `<div class="qg-box${this.flash ? " qg-" + this.flash : ""}"><div class="qg-hd"><h2>🛒 용사 상점<small>${esc(who(noOf_(sid)))} · 영웅마다 장비가 따로예요</small></h2><span class="qg-coin">🪙 ${(w.coins || 0).toLocaleString()}</span><button class="qg-x" data-x>✕</button></div>
         <div class="qg-tabs">${tabs}</div>${main}<div class="qg-msg" id="qgMsg">${this.msg || ""}</div></div>`;
-      if (T < 4) this.hero(T);
+      if (T < 4) this.hero(T); this.flash = "";
     },
     hero(ci){ const cv = $("#qgCv"); if (!cv || typeof WAR === "undefined") return; const C = QCL[ci], g = of(this.sid, C.id), D = def(C.id, g), t = cv.getContext("2d"); t.clearRect(0, 0, 400, 440);
       try { if (g.wing){ const ws = wingSpr(g.wing); t.drawImage(ws, 200 - ws.w*1.25, 150 - ws.h*.9, ws.w*2.5, ws.h*2.5); }
@@ -173,7 +202,9 @@ const QG = (() => {
       if (b.dataset.tab != null){ this.tab = +b.dataset.tab; this.msg = ""; this.paint(); return; }
       const sid = this.sid; this.busy = true; this.msg = "";
       try {
-        if (b.dataset.buy){ const C = QCL[this.tab], t = await buy(sid, C.id, b.dataset.buy); this.msg = `✨ ${nameOf(b.dataset.buy, C.id, t)}(${t}강)으로 강화했어요!`; SFX.item && SFX.item(); }
+        if (b.dataset.en){ const C = QCL[this.tab], r = await enhance(sid, C.id, b.dataset.en); this.flash = r > 0 ? "ok" : "no";
+          this.msg = r > 0 ? `🔨✨ 강화 성공! ${SLOTS.find(x => x.k === b.dataset.en).n} +${r}` : "💥 아쉽게 강화 실패… 장비는 그대로예요. 한 번 더?"; (r > 0 ? (SFX.rec || SFX.item) : (SFX.over || (() => {})))(); }
+        else if (b.dataset.buy){ const C = QCL[this.tab], t = await buy(sid, C.id, b.dataset.buy); this.msg = `✨ ${nameOf(b.dataset.buy, C.id, t)}(${t}강)으로 강화했어요!`; SFX.item && SFX.item(); }
         else if (b.dataset.pet){ await buyPet(sid, b.dataset.pet); const P = PETS.find(p => p.id === b.dataset.pet); this.msg = `🐾 ${P.e} ${P.n}이(가) 함께 다녀요!`; SFX.item && SFX.item(); }
         else if (b.dataset.petoff){ await petOff(sid); this.msg = "펫을 쉬게 했어요"; }
       } catch(err){ this.msg = "😢 " + (err.message || err); }
@@ -181,5 +212,5 @@ const QG = (() => {
     }
   };
   setTimeout(() => UI.css(), 0);
-  return {MAX, SLOTS, TIER, PETS, price, rec, SD, ED, of, botGear, power, stats, def, wingSpr, petSpr, nameOf, buy, buyPet, UI};
+  return {EMAX, ecost, echance, enhance, MAX, SLOTS, TIER, PETS, price, rec, SD, ED, of, botGear, power, stats, def, wingSpr, petSpr, nameOf, buy, buyPet, UI};
 })();

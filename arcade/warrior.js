@@ -372,7 +372,7 @@ const WAR = (() => {
   function spr(key, kind, d, pn, scale, opt = {}){
     const k = NG.k || 1; if (k !== CK){ CACHE.clear(); CK = k; }
     const K = key + "|" + pn + "|" + scale; let c = CACHE.get(K); if (c){ if (CACHE.size > 60){ CACHE.delete(K); CACHE.set(K, c); } return c; }
-    while (CACHE.size >= 170) CACHE.delete(CACHE.keys().next().value);   // ⚡ 오래 안 쓴 그림부터 비워요 (메모리 아끼기)
+    while (CACHE.size >= 240) CACHE.delete(CACHE.keys().next().value);   // ⚡ 오래 안 쓴 그림부터 비워요 (메모리 아끼기)
     const box = kind === "dragon" ? [460, 300, 230, 290] : kind === "rider" ? [470, 360, 190, 348] : kind === "wolf" ? [220, 150, 110, 142] : kind === "blob" ? [130, 110, 65, 104] : [400, 300, 170, 286];
     const [bw, bh, ax, ay] = box.map(v => v*scale);
     c = document.createElement("canvas"); c.width = Math.ceil(bw*k); c.height = Math.ceil(bh*k);

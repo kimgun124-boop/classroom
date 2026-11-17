@@ -295,6 +295,51 @@ Object.assign(QEN, {
   shroom: {n: "버섯 병사", hp: 22, spd: 2.2, dmg: 5, reach: 60, sc: 70, px: 3.0, wind: 20, art: {}},
   blob:   {n: "젤리 슬라임", hp: 16, spd: 1.7, dmg: 4, reach: 50, sc: 50, px: 2.6, wind: 18, blob: 1, art: {}}
 });
+/* ---------- 🆕 다양한 병사 14종 · 보스 20종 (2026.11.17) — 모두 오리지널 디자인 ---------- */
+const QNEW = [
+  ["spr",   "붉은 창병",     {hp: 40, spd: 2.4, dmg: 9,  reach: 115, sc: 160, px: 3.5, wind: 22}, {weapon: "spear", armor: "#c92a2a", trim: "#ffd43b", cloth: "#7f1d1d", skin: "#f3cfae", hair: "#141022", helm: "soldier", plume: "#ff6b6b", angry: 1}],
+  ["axe",   "도끼 산적",     {hp: 52, spd: 2.3, dmg: 12, reach: 90,  sc: 190, px: 3.7, wind: 24}, {weapon: "axe", armor: "#5c4033", trim: "#adb5bd", cloth: "#3b2314", skin: "#d9a47c", hair: "#2a1a10", helm: "band", band: "#e03131", beard: "#2a1a10", angry: 1, big: 1}],
+  ["nin",   "그림자 자객",   {hp: 28, spd: 3.6, dmg: 10, reach: 75,  sc: 170, px: 3.3, wind: 14}, {weapon: "dao", armor: "#212529", trim: "#ced4da", cloth: "#343a40", skin: "#e8c2a0", hair: "#0b0b14", helm: "band", band: "#212529", angry: 1, wd: {glow: "#e599f7"}}],
+  ["farc",  "불화살 궁수",   {hp: 34, spd: 2.3, dmg: 10, reach: 0,   sc: 190, px: 3.5, wind: 26, ranged: 1}, {weapon: "bow", armor: "#e8590c", trim: "#ffd43b", cloth: "#7c2d12", skin: "#f3cfae", hair: "#141022", helm: "band", band: "#ff922b", wd: {glow: "#ffa94d"}}],
+  ["sham",  "보라 주술사",   {hp: 30, spd: 2.0, dmg: 11, reach: 0,   sc: 200, px: 3.4, wind: 30, ranged: 1}, {weapon: "fan", armor: "#5f3dc4", trim: "#e599f7", cloth: "#3b1d6e", skin: "#d0bfff", hair: "#141022", helm: "scholar", robe: 1, angry: 1, wd: {glow: "#da77f2"}}],
+  ["shld",  "철벽 방패병",   {hp: 85, spd: 1.8, dmg: 9,  reach: 80,  sc: 230, px: 3.7, wind: 26}, {weapon: "dao", armor: "#495057", trim: "#ffd43b", cloth: "#343a40", skin: "#f3cfae", hair: "#141022", helm: "general", plume: "#adb5bd", shield: "#868e96", angry: 1, big: 1}],
+  ["halb",  "미늘창 근위병", {hp: 58, spd: 2.2, dmg: 13, reach: 135, sc: 220, px: 3.7, wind: 26}, {weapon: "halberd", armor: "#1864ab", trim: "#ffd43b", cloth: "#0b3d75", skin: "#f3cfae", hair: "#141022", helm: "general", plume: "#4dabf7", angry: 1}],
+  ["bear",  "곰가죽 전사",   {hp: 95, spd: 2.0, dmg: 15, reach: 100, sc: 260, px: 4.0, wind: 28}, {weapon: "club", armor: "#5c3d2e", trim: "#c08a50", cloth: "#3b2314", skin: "#c98b62", hair: "#2a1a10", helm: "fur", beard: "#2a1a10", angry: 1, big: 1, cape: "#5c3d2e"}],
+  ["gsp",   "망령 창병",     {hp: 48, spd: 2.3, dmg: 11, reach: 115, sc: 200, px: 3.5, wind: 22}, {weapon: "spear", armor: "#364fc7", trim: "#a5d8ff", cloth: "#1c2a6b", skin: "#dbe4ff", helm: "soldier", plume: "#748ffc", ghost: 1, eyeGlow: "#91a7ff"}],
+  ["isp",   "얼음 창병",     {hp: 50, spd: 2.3, dmg: 11, reach: 115, sc: 210, px: 3.5, wind: 22}, {weapon: "spear", armor: "#a5d8ff", trim: "#e7f5ff", cloth: "#4dabf7", skin: "#e8c2a0", hair: "#3b2a20", helm: "fur", angry: 1, wd: {glow: "#a5d8ff"}}],
+  ["gold",  "황금 근위대",   {hp: 75, spd: 2.4, dmg: 14, reach: 130, sc: 300, px: 3.8, wind: 22}, {weapon: "guandao", armor: "#fab005", trim: "#fff3bf", cloth: "#e67700", skin: "#f3cfae", hair: "#141022", helm: "crown", cape: "#c92a2a", angry: 1, wd: {glow: "#ffe066"}}],
+  ["monk",  "떠돌이 무승",   {hp: 46, spd: 3.1, dmg: 11, reach: 90,  sc: 210, px: 3.4, wind: 16}, {weapon: "club", armor: "#e67700", trim: "#ffd43b", cloth: "#d9480f", skin: "#e8b48f", hair: "#e8b48f", helm: "band", band: "#fab005", angry: 1}],
+  ["fwolf", "불꽃 늑대",     {hp: 40, spd: 5.2, dmg: 10, reach: 90,  sc: 190, px: 3.4, wind: 16, quad: 1}, {col: "#e8590c", mane: "#ffd43b", eye: "#fff3bf"}],
+  ["pblob", "독 슬라임",     {hp: 34, spd: 1.9, dmg: 8,  reach: 55,  sc: 110, px: 2.8, wind: 18, blob: 1}, {col: "#94d82d"}]
+];
+QNEW.forEach(([k, n, st, art]) => { QEN[k] = Object.assign({n, art: {}}, st); WDEF[k] = art; });
+/* 보스 20종: [키, 이름, 바탕(ai), 체력, 공격, 그림] — 사람 장수 · 기마 장군 · 용 */
+const QBOSS = [
+  ["b_frog",  "독두꺼비 대왕",   "yeti",  900, 17, {weapon: "club", armor: "#2b8a3e", trim: "#c0eb75", cloth: "#1b4332", skin: "#8ce99a", hair: "#2b8a3e", helm: "skull", angry: 1, big: 1, cape: "#2f9e44"}],
+  ["b_ghost", "망령 대장군",     "orc",   950, 18, {weapon: "guandao", armor: "#364fc7", trim: "#a5d8ff", cloth: "#1c2a6b", skin: "#dbe4ff", helm: "general", plume: "#748ffc", ghost: 1, eyeGlow: "#91a7ff", big: 1, cape: "#3b5bdb", wd: {glow: "#91a7ff"}}],
+  ["r_tiger", "호랑이 기마 장군", "rider", 1000, 18, {weapon: "halberd", armor: "#f08c00", trim: "#212529", cloth: "#e8590c", skin: "#f3cfae", hair: "#141022", helm: "general", plume: "#212529", angry: 1, cape: "#d9480f", horse: {col: "#f08c00", mane: "#212529", barding: "#212529", trim: "#ffd43b"}}],
+  ["d_blue",  "푸른 용 쏴아",    "drag",  1150, 19, {col: "#1c7ed6", fin: "#a5d8ff", horn: "#e7f5ff", mane: "#d0ebff"}],
+  ["b_monk",  "금강 무승",       "orc",   1050, 19, {weapon: "club", armor: "#fab005", trim: "#fff3bf", cloth: "#e8590c", skin: "#e8b48f", hair: "#e8b48f", helm: "band", band: "#ffd43b", angry: 1, big: 1, cape: "#f08c00", wd: {glow: "#ffe066"}}],
+  ["b_witch", "보라 마녀 장수",   "yeti",  1100, 19, {weapon: "fan", armor: "#862e9c", trim: "#f783ac", cloth: "#5f3dc4", skin: "#e599f7", hair: "#141022", helm: "scholar", robe: 1, angry: 1, big: 1, cape: "#ae3ec9", wd: {glow: "#f783ac"}}],
+  ["r_ice",   "얼음 기마 여왕",   "rider", 1200, 20, {weapon: "spear", armor: "#a5d8ff", trim: "#ffffff", cloth: "#4dabf7", skin: "#f3cfae", hair: "#e7f5ff", helm: "crown", angry: 1, cape: "#74c0fc", wd: {glow: "#e7f5ff"}, horse: {col: "#f8f9fa", mane: "#a5d8ff", barding: "#1c7ed6", trim: "#e7f5ff"}}],
+  ["d_black", "흑룡 어둠",       "drag",  1350, 21, {col: "#343a40", fin: "#e64980", horn: "#f8f9fa", mane: "#868e96"}],
+  ["b_bull",  "황소 뿔 장사",    "orc",   1300, 21, {weapon: "axe", armor: "#862e2e", trim: "#ffd43b", cloth: "#5c1010", skin: "#a0522d", hair: "#141022", helm: "horned", beard: "#141022", angry: 1, big: 1, cape: "#c92a2a", wd: {glow: "#ff8787"}}],
+  ["b_snow",  "눈보라 거인왕",   "yeti",  1400, 22, {weapon: "club", armor: "#e7f5ff", trim: "#74c0fc", cloth: "#a5d8ff", skin: "#d0ebff", hair: "#ffffff", helm: "fur", beard: "#ffffff", angry: 1, big: 1, cape: "#d0ebff", eyeGlow: "#74c0fc"}],
+  ["r_shadow","그림자 흑기사",   "rider", 1450, 22, {weapon: "guandao", armor: "#212529", trim: "#e64980", cloth: "#0b0b14", skin: "#adb5bd", hair: "#0b0b14", helm: "horned", angry: 1, cape: "#343a40", wd: {glow: "#f06595"}, horse: {col: "#0b0b14", mane: "#e64980", barding: "#343a40", trim: "#f06595"}}],
+  ["d_green", "독룡 쉬이익",     "drag",  1550, 23, {col: "#2f9e44", fin: "#d8f5a2", horn: "#fff9db", mane: "#c0eb75"}],
+  ["b_sun",   "태양 패왕",       "orc",   1600, 23, {weapon: "guandao", armor: "#ff922b", trim: "#fff3bf", cloth: "#e8590c", skin: "#f3cfae", hair: "#141022", helm: "crown", angry: 1, big: 1, cape: "#ffd43b", beard: "#141022", wd: {glow: "#ffe066"}}],
+  ["b_bone",  "해골 대마왕",     "yeti",  1650, 24, {weapon: "axe", armor: "#212529", trim: "#ced4da", cloth: "#343a40", skin: "#f1f3f5", helm: "skull", ghost: 1, eyeGlow: "#ff6b6b", big: 1, cape: "#495057", wd: {glow: "#ff8787"}}],
+  ["r_flame", "화룡 기병 대장",  "rider", 1700, 24, {weapon: "halberd", armor: "#e03131", trim: "#ffd43b", cloth: "#5c1010", skin: "#f3cfae", hair: "#141022", helm: "general", plume: "#ffd43b", angry: 1, cape: "#ff6b6b", beard: "#141022", wd: {glow: "#ffa94d"}, horse: {col: "#c92a2a", mane: "#ffd43b", barding: "#5c1010", trim: "#ffd43b"}}],
+  ["d_white", "백룡 눈부심",     "drag",  1800, 25, {col: "#f1f3f5", fin: "#74c0fc", horn: "#ffe066", mane: "#e7f5ff"}],
+  ["b_star",  "별빛 대장군",     "orc",   1900, 26, {weapon: "sword", armor: "#5f3dc4", trim: "#ffe066", cloth: "#1c2a6b", skin: "#f3cfae", hair: "#141022", helm: "general", plume: "#ffe066", angry: 1, big: 1, cape: "#7048e8", wd: {glow: "#b197fc"}}],
+  ["r_gold",  "황금 천마 장군",  "rider", 2000, 26, {weapon: "guandao", armor: "#fab005", trim: "#ffffff", cloth: "#e67700", skin: "#f3cfae", hair: "#141022", helm: "crown", angry: 1, cape: "#fff3bf", beard: "#141022", wd: {glow: "#fff3bf"}, horse: {col: "#fff9db", mane: "#fab005", barding: "#e67700", trim: "#ffffff"}}],
+  ["d_rainbow","무지개 용 반짝", "drag",  2150, 27, {col: "#cc5de8", fin: "#ffd43b", horn: "#ffffff", mane: "#63e6be"}],
+  ["b_king",  "어둠의 마왕",     "yeti",  2300, 28, {weapon: "guandao", armor: "#1a1423", trim: "#ff6b6b", cloth: "#0b0b14", skin: "#c5b3e6", hair: "#0b0b14", helm: "horned", angry: 1, big: 1, cape: "#862e2e", eyeGlow: "#ff6b6b", wd: {glow: "#ff6b6b"}}]
+];
+QBOSS.forEach(([k, n, ai, hp, dmg, art]) => { const B = QEN[ai === "rider" ? "rider" : ai === "drag" ? "drag" : ai === "yeti" ? "yeti" : "orc"];
+  QEN[k] = Object.assign({}, B, {n, ai, hp, dmg, sc: Math.round(hp*6), art: {}}); WDEF[k] = art; });
+const QNEWK = QNEW.map(x => x[0]);
+
 /* 26장 × 5단계 = 130단계. 장마다 배경(th) · 졸개 · 보스가 달라요. 3단계는 작은 보스, 5단계는 진짜 보스!
    31단계부터는 같은 땅의 Ⅱ·Ⅲ·Ⅳ·Ⅴ — 다음 땅의 졸개까지 섞여 나오고 몬스터가 훨씬 세져요 (🛒 상점에서 장비를 강화해야 해요) */
 const QCH0 = [
@@ -307,7 +352,9 @@ const QCH0 = [
 ];
 const QCH = [];
 for (let c = 0; c < 26; c++){ const B = QCH0[c % 6], r = Math.floor(c/6), nx = QCH0[(c + 1) % 6];
-  QCH.push(r ? {n: B.n + ["", " Ⅱ", " Ⅲ", " Ⅳ", " Ⅴ"][r], th: B.th, boss: B.boss, r, bmin: B.bmin.concat(r >= 2 ? nx.bmin.slice(0, 1) : []), pool: B.pool.map((pl, i) => pl.concat(nx.pool[i].slice(0, Math.min(3, r))))} : Object.assign({r: 0}, B)); }
+  const nw = [QNEWK[(c*2) % QNEWK.length], QNEWK[(c*2 + 1) % QNEWK.length], QNEWK[(c*3 + 5) % QNEWK.length]];   // 🆕 장마다 다른 새 병사
+  QCH.push(r ? {n: B.n + ["", " Ⅱ", " Ⅲ", " Ⅳ", " Ⅴ"][r], th: B.th, boss: QBOSS[(c - 6) % QBOSS.length][0], r, bmin: B.bmin.slice(0, 1).concat(nw.slice(0, 2)), pool: B.pool.map((pl, i) => pl.concat(nx.pool[i].slice(0, Math.min(2, r)), nw.slice(0, 1 + i)))}
+    : Object.assign({r: 0}, B, {pool: B.pool.map((pl, i) => i ? pl.concat(nw.slice(0, i)) : pl)})); }
 const QST = [];
 QCH.forEach((C, c) => { for (let k = 0; k < 5; k++){
   const n = c*5 + k, nSeg = 3 + (k >= 2 ? 1 : 0), seg = [];
@@ -346,7 +393,8 @@ NG.defs.qd = () => {
   const local = (O.local || [0]).slice();
   const W = 1280, H = 720, YT = 456, YB = 700, HP4 = 4;
   const HUM = SIDS.map((s, i) => i).filter(i => !isBot(i));
-  const emult = .75 + .25*N, bmult = .55 + .45*N;
+  const emult = .8 + .15*N, bmult = .6 + .3*N;   // 🤝 같이 하면 몬스터는 덜 늘고
+  const TEAM = 1 + .15*(Math.max(1, SIDS.filter((s, i) => !isBot(i)).length) - 1);   // 🤝 우정 파워: 사람 친구가 많을수록 다 같이 세져요 (2명 +15% · 4명 +45%)
   let P, E, PR, IT, PROPS, FX, phase, pt, stage, camX, lockX, segI, waveQ, team, banner, shake, NQ, IN, LAST, ended, lastSnap, bossId, goT, keys, ptr, uid, rs, flashT, flashC, stageT, results;
   /* ---------- 작은 도구 ---------- */
   const rand = () => (rs = (rs*16807) % 2147483647) / 2147483647;
@@ -389,7 +437,8 @@ NG.defs.qd = () => {
   function say(t, s, k = 120){ banner = {t, s, k}; ev("b", t, s || "", k); }
 
   /* ---------- 🛒 장비 · 🐾 펫 (QG) ---------- */
-  function gearOf(p){ const key = p.cls + "|" + stage + "|" + (isBot(p.i) ? "b" : JSON.stringify(walletOf(p.sid).qd || 0).length);
+  function gearOf(p){ const kq = isBot(p.i) ? null : ((Store.kids || {})[p.sid] || {}).qd || null;   // ⚡ 지갑이 바뀔 때만 다시 계산
+    if (p.ggq === kq && p.ggc === p.cls && p.ggs === stage && p.gg) return p.gg; p.ggq = kq; p.ggc = p.cls; p.ggs = stage; const key = p.cls + "|" + stage + "|" + (isBot(p.i) ? "b" : JSON.stringify(kq || 0));
     if (p.ggk !== key){ p.ggk = key; p.gg = isBot(p.i) ? QG.botGear(stage) : QG.of(p.sid, QCL[p.cls].id); p.gd = QG.def(QCL[p.cls].id, p.gg); } return p.gg; }
   function applyGear(p){ const g = gearOf(p); p.gs = QG.stats(g); p.mhp = Math.round(QCL[p.cls].hp*p.gs.hpm); p.pet = g.pet; }
   const mhpOf = p => p.mhp || QCL[p.cls].hp;
@@ -414,6 +463,7 @@ NG.defs.qd = () => {
     PROPS = S.props.map((x, k) => ({id: uid++, k: k % 2 ? "chest" : "barrel", x: x + 300, y: YT + 40 + ((k*97) % 180), hp: 3}));
     P.forEach((p, i) => { if (p.st === "out" && s > 0){ p.st = "idle"; p.lives = 1; } if (p.st === "dead"){ p.st = "idle"; } applyGear(p); if (p.st !== "out"){ Object.assign(p, {x: 120 + i*60, y: YT + 40 + i*50, z: 0, vz: 0, f: 1, st: "idle", t: 0, inv: 90, hp: p.mhp}); } });
     phase = "play"; say(`STAGE ${s + 1}/${QD_MAX}`, `${S.n} · ${S.k + 1}번째 길${S.boss ? (S.mini ? " · 👑 작은 보스" : " · 👑 보스") : ""}`, 160); sfx("go");
+    if (TEAM > 1 && s === (O.stage || 0)) setTimeout0(() => say("", `🤝 우정 파워! 친구와 함께라 공격 +${Math.round((TEAM - 1)*100)}% · 받는 피해 ↓`, 160), 120);
     // ⭐ 장비가 추천보다 많이 약하면 알려 줘요
     { const R = QG.rec(s), weak = P.filter(p => !isBot(p.i) && p.st !== "out" && QG.power(p.gg || {}) < R - 4); if (weak.length && R >= 8) setTimeout0(() => say("", `⚠️ 이 단계 추천 장비 ⭐${R} — 🛒 용사 상점에서 강화하면 쉬워져요`, 200), 170); }
   }
@@ -467,7 +517,7 @@ NG.defs.qd = () => {
   function hitEnemy(e, dmg, f, kd, pi){
     if (e.st === "die" || e.inv > 0) return;
     const D = QEN[e.k], p = P[pi]; let crit = false;
-    if (p && p.gs){ dmg *= p.gs.dm*(QCL[p.cls].reach ? 1.45 : 1); if (rand() < p.gs.crit){ dmg *= 1.8; crit = true; } }   // 🛒 장비 · 💪 근거리 영웅은 더 세게 · 💥 치명타
+    if (p && p.gs){ dmg *= p.gs.dm*TEAM*(QCL[p.cls].reach ? 1.45 : 1); if (rand() < p.gs.crit){ dmg *= 1.8; crit = true; } }   // 🛒 장비 · 💪 근거리 영웅은 더 세게 · 💥 치명타
     dmg = Math.round(dmg*(.9 + rand()*.2));
     const real = Math.min(dmg, Math.max(0, e.hp)); e.hp -= dmg; e.flash = 6; if (p){ p.mp = Math.min(100, p.mp + real*.9); p.score += real*3; }
     spark(e.x, e.y, (e.z || 0) + (D.boss ? 130 : 80), kd ? "#ffd43b" : "#fff", kd ? 12 : 7); num(e.x, e.y, (e.z || 0) + (D.boss ? 220 : 150), dmg, kd || crit ? "#ffd43b" : "#fff");
@@ -605,7 +655,7 @@ NG.defs.qd = () => {
   }
   function hurtPlayer(p, dmg, f, kd){
     if (!alive(p) || p.inv > 0 || p.st === "down" || p.st === "spc") return false;
-    dmg = Math.max(1, Math.round(dmg*QG.ED(stage)*(1 - (p.gs ? p.gs.dr : 0))));   // 💪 단계가 오를수록 아프게 · 🛡️ 갑옷이 막아 줘요
+    dmg = Math.max(1, Math.round(dmg*QG.ED(stage)*(1 - (p.gs ? p.gs.dr : 0))/(1 + (TEAM - 1)*.6)));   // 💪 단계가 오를수록 아프게 · 🛡️ 갑옷이 막아 줘요
     p.hp -= dmg; p.inv = 12; spark(p.x, p.y, p.z + 90, "#ff6b6b", 8); num(p.x, p.y, p.z + 170, `-${dmg}`, "#ff6b6b"); sfx("ouch");
     if (p.hp <= 0){ p.hp = 0; p.st = "dead"; p.t = 0; p.vz = 9; p.z = Math.max(1, p.z); p.kx = f*5; quake(6); say("", `💫 ${who(noOf_(p.sid))} 쓰러졌어요!`, 70); return true; }
     if (kd){ p.st = "down"; p.t = 0; p.vz = 8; p.z = Math.max(1, p.z); p.kx = f*6; quake(4); }
@@ -794,7 +844,7 @@ NG.defs.qd = () => {
       if (pt <= 0){ if (stage < QD_MAX - 1) startStage(stage + 1); else finish(true); }
     }
     upFx();
-    if (party === "host"){ const now = performance.now(); if (now - lastSnap > 32){ lastSnap = now; PARTY.sendSnap(snap(), NQ.splice(0), 0); } }
+    if (party === "host"){ const now = performance.now(); if (now - lastSnap > (N >= 3 ? 44 : 36)){ lastSnap = now; PARTY.sendSnap(snap(), NQ.splice(0), 0); } }
   }
   function upFx(){
     for (let k = FX.length - 1; k >= 0; k--){ const f = FX[k];
