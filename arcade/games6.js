@@ -94,49 +94,66 @@ const RD_EMO = ["👍", "😂", "😍", "😱", "🔥", "👏", "❤️", "😭"
 .rd-emo .l button{font:15px "Jua",sans-serif;color:#2b1d5c;background:#fff;border:0;border-radius:999px;padding:8px 13px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.25)}
 .rd-emo .l button.e{font-size:24px;padding:4px 9px;background:rgba(255,255,255,.12);box-shadow:none}
 .rd-emo .l button:active{transform:scale(.92)}
-.rd-cr{position:fixed;left:50%;top:calc(50% - 30px);transform:translate(-50%,-50%);z-index:460;width:min(1000px,97vw);height:min(600px,80vh);display:flex;flex-direction:column;background:#1d1748;border:2px solid #ffa94d;border-radius:22px;padding:12px 14px 14px;box-shadow:0 14px 40px rgba(0,0,0,.55);color:#fff;font-family:"Jua",sans-serif;contain:layout paint}
+.rd-cr{position:fixed;left:50%;top:calc(50% - 30px);transform:translate(-50%,-50%);z-index:460;width:min(1000px,97vw);height:min(610px,82vh);display:flex;flex-direction:column;background:linear-gradient(170deg,#fff8fc 0%,#f6f1ff 55%,#eef8ff 100%);border:4px solid #fff;border-radius:28px;padding:12px 14px 14px;box-shadow:0 0 0 3px #d0bfff,0 18px 44px rgba(40,20,90,.45);color:#3b2a6b;font-family:"Jua",sans-serif;contain:layout paint}
 .rd-cr[hidden]{display:none}
 .rd-cr .cx-h{display:flex;align-items:center;gap:10px;padding:0 2px 8px}
-.rd-cr .cx-h b{font-size:22px;white-space:nowrap}.rd-cr .cx-h small{flex:1;font:13px "Gowun Dodum",sans-serif;color:#cfc5ff}
-.rd-cr .cx-h button{border:0;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;font:15px "Jua",sans-serif;padding:6px 12px;cursor:pointer}
-.rd-cr .cx-fl{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-.rd-cr .cx-fl button{border:0;border-radius:999px;padding:5px 12px;font:14px "Jua",sans-serif;background:#332a72;color:#e5dbff;cursor:pointer}
-.rd-cr .cx-fl button.cx-on{background:#ffd43b;color:#3b2a00}
+.rd-cr .cx-h b{font-size:23px;white-space:nowrap;background:linear-gradient(135deg,#ff8fb1,#b197fc);color:#fff;border-radius:999px;padding:4px 14px 4px 10px;box-shadow:0 3px 0 #9775fa}
+.rd-cr .cx-h small{flex:1;font:13px "Gowun Dodum",sans-serif;color:#7a6aa8}
+.rd-cr .cx-h button{border:0;border-radius:999px;background:#fff;color:#7048e8;font:15px "Jua",sans-serif;padding:7px 13px;cursor:pointer;box-shadow:0 2px 0 #d0bfff}
+.rd-cr .cx-fl{display:flex;gap:6px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-bottom:8px;padding-bottom:2px}
+.rd-cr .cx-fl::-webkit-scrollbar{display:none}
+.rd-cr .cx-fl button{flex:none;border:2px solid #e5dbff;border-radius:999px;padding:5px 12px;font:14px "Jua",sans-serif;background:#fff;color:#6741d9;cursor:pointer}
+.rd-cr .cx-fl button.cx-on{background:#7048e8;border-color:#7048e8;color:#fff;box-shadow:0 2px 0 #4c2fb0}
 .rd-cr .cx-bd{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:12px}
-.rd-cr .cx-ls{min-height:0;overflow:auto;display:flex;flex-direction:column;gap:5px;padding:2px 4px 2px 2px}
-.rd-cr .cx-rw{display:flex;align-items:center;gap:8px;border-radius:13px;padding:5px 8px;background:#2a2263;cursor:pointer;border-left:5px solid var(--g);user-select:none;-webkit-user-select:none;flex:none}
-.rd-cr .cx-rw.cx-ok{background:#3b2f86;box-shadow:inset 0 0 0 2px #ffd43b}
-.rd-cr .cx-rw.cx-on{background:#5b46c9;box-shadow:inset 0 0 0 3px #fff}
-.rd-cr .cx-rw img{width:38px;height:38px;flex:none}
-.rd-cr .cx-rw .cx-nm{flex:1;min-width:0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.rd-cr .cx-rw .cx-nm small{display:block;font:11.5px "Gowun Dodum",sans-serif;color:var(--g)}
+.rd-cr .cx-ls{min-height:0;overflow:auto;display:flex;flex-direction:column;gap:9px;padding:9px 4px 2px 2px}
+.rd-cr .cx-rw{position:relative;display:flex;align-items:center;gap:8px;border-radius:16px;padding:6px 9px;background:#fff;cursor:pointer;border:2px solid #eee6ff;user-select:none;-webkit-user-select:none;flex:none;box-shadow:0 2px 0 rgba(112,72,232,.08)}
+.rd-cr .cx-rw::before{content:"";position:absolute;left:-2px;top:10px;bottom:10px;width:5px;border-radius:0 4px 4px 0;background:var(--g)}
+.rd-cr .cx-rw.cx-ok{background:linear-gradient(90deg,#ebfbee,#fff);border-color:#8ce99a}
+.rd-cr .cx-rw.cx-ok::after{content:"✨ 만들 수 있어요";position:absolute;right:8px;top:-9px;font-size:11px;background:#51cf66;color:#fff;border-radius:999px;padding:1px 7px}
+.rd-cr .cx-rw.cx-on{border-color:#7048e8;box-shadow:0 0 0 3px rgba(112,72,232,.25)}
+.rd-cr .cx-rw img{width:40px;height:40px;flex:none;border-radius:12px;background:radial-gradient(circle,var(--g2,#f3f0ff),transparent 70%)}
+.rd-cr .cx-rw .cx-nm{flex:1;min-width:0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#3b2a6b}
+.rd-cr .cx-rw .cx-nm small{display:block;font:11.5px "Gowun Dodum",sans-serif;color:#8a7cb8}
+.rd-cr .cx-rw .cx-nm small i{font-style:normal;color:#e8590c;font-family:"Jua",sans-serif}
 .rd-cr .cx-rw .cx-ig{display:flex;gap:2px;font-size:15px;flex:none}
-.rd-cr .cx-rw .cx-ig span{opacity:.35}.rd-cr .cx-rw .cx-ig span.cx-y{opacity:1}
-.rd-cr .cx-rw .cx-k{flex:none;font-size:12px;background:#ffd43b;color:#3b2a00;border-radius:7px;padding:1px 6px}
-.rd-cr .cx-dt{min-height:0;overflow:auto;background:#251e5c;border-radius:16px;padding:12px;border:2px solid var(--g,#ffa94d);display:flex;flex-direction:column;gap:9px}
-.rd-cr .cx-tp{display:flex;gap:10px;align-items:center}.rd-cr .cx-tp img{width:70px;height:70px;flex:none;background:radial-gradient(circle,rgba(255,255,255,.16),transparent 70%);border-radius:50%}
-.rd-cr .cx-tp h3{margin:0;font-size:22px}.rd-cr .cx-tp i{display:inline-block;font-style:normal;font-size:12px;border-radius:999px;padding:1px 8px;margin:3px 3px 0 0;color:#1b1233;background:var(--q)}
-.rd-cr .cx-sk{font:13px/1.4 "Gowun Dodum",sans-serif;color:#c5f6fa}
+.rd-cr .cx-rw .cx-ig span{opacity:.3;filter:grayscale(.6)}.rd-cr .cx-rw .cx-ig span.cx-y{opacity:1;filter:none}
+.rd-cr .cx-rw .cx-ig sub{font-size:10px;color:#7048e8}
+.rd-cr .cx-rw .cx-k{flex:none;font-size:12px;background:#ffd43b;color:#5c3d00;border-radius:7px;padding:1px 6px}
+.rd-cr .cx-dt{min-height:0;overflow:auto;background:#fff;border-radius:22px;padding:12px;border:3px dashed var(--g,#d0bfff);display:flex;flex-direction:column;gap:9px}
+.rd-cr .cx-tp{display:flex;gap:10px;align-items:center}.rd-cr .cx-tp img{width:72px;height:72px;flex:none;background:radial-gradient(circle,#f3f0ff 30%,transparent 72%);border-radius:50%}
+.rd-cr .cx-tp h3{margin:0;font-size:23px;color:#3b2a6b}.rd-cr .cx-tp i{display:inline-block;font-style:normal;font-size:12px;border-radius:999px;padding:1px 8px;margin:3px 3px 0 0;color:#fff;background:var(--q);text-shadow:0 1px 0 rgba(0,0,0,.2)}
+.rd-cr .cx-sk{font:13px/1.45 "Gowun Dodum",sans-serif;color:#5f3dc4;background:#f8f5ff;border-radius:12px;padding:7px 10px}
+.rd-cr .cx-gd{background:linear-gradient(135deg,#fff9db,#fff4e6);border:2px solid #ffe066;border-radius:16px;padding:8px 10px;display:flex;flex-direction:column;gap:5px}
+.rd-cr .cx-gd>b{font-size:15px;color:#e67700}
+.rd-cr .cx-gd .st{display:flex;align-items:flex-start;gap:7px;font:13px/1.45 "Gowun Dodum",sans-serif;color:#5c3d00}
+.rd-cr .cx-gd .st>span:first-child{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font:12px "Jua",sans-serif;background:#ffd43b;color:#5c3d00}
+.rd-cr .cx-gd .st.ok>span:first-child{background:#51cf66;color:#fff}
+.rd-cr .cx-gd .st b{font-family:"Jua",sans-serif;font-weight:400;color:#3b2a6b}
+.rd-cr .cx-gd .st em{font-style:normal;color:#2b8a3e}.rd-cr .cx-gd .st u{text-decoration:none;color:#e03131}
+.rd-cr .cx-gd .sub{display:inline-flex;gap:3px;flex-wrap:wrap;margin-left:2px}
+.rd-cr .cx-gd .sub span{font-size:12px;border-radius:8px;padding:0 5px;background:#fff;border:1px solid #ffe8a1}
+.rd-cr .cx-gd .sub span.y{background:#d3f9d8;border-color:#8ce99a}
 .rd-cr .cx-nd{display:flex;flex-wrap:wrap;gap:5px}
-.rd-cr .cx-nd span{font-size:14px;border-radius:10px;padding:3px 9px;background:rgba(255,255,255,.07);color:#adb5bd;border:2px solid transparent}
-.rd-cr .cx-nd span.cx-y{background:rgba(81,207,102,.18);color:#b2f2bb;border-color:rgba(81,207,102,.5)}
-.rd-cr .cx-yd{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;max-width:250px;width:100%;align-self:center}
-.rd-cr .cx-yd>div{position:relative;aspect-ratio:1;border-radius:12px;background:#3a3080;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid transparent;user-select:none;-webkit-user-select:none}
-.rd-cr .cx-yd>div.cx-no{background:#2a2360;cursor:default}.rd-cr .cx-yd>div.cx-no img{opacity:.35}
-.rd-cr .cx-yd>div.cx-use{border-color:#69db7c;background:#2f5a3e}
-.rd-cr .cx-yd>div.cx-can{border-color:rgba(255,212,59,.65)}
-.rd-cr .cx-yd>div.cx-cur{outline:3px solid #fff;outline-offset:1px}
-.rd-cr .cx-yd img{width:78%;height:78%}
-.rd-cr .cx-yd b{position:absolute;right:4px;bottom:2px;font-size:12px;color:#fff;text-shadow:0 1px 2px #000}
-.rd-cr .cx-yd em{position:absolute;left:3px;top:2px;font-style:normal;font-size:12px;background:#51cf66;color:#0b2e13;border-radius:7px;padding:0 5px}
+.rd-cr .cx-nd span{font-size:14px;border-radius:12px;padding:3px 9px;background:#f1f3f5;color:#868e96;border:2px solid transparent}
+.rd-cr .cx-nd span.cx-y{background:#d3f9d8;color:#2b8a3e;border-color:#8ce99a}
+.rd-cr .cx-yd{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:260px;width:100%;align-self:center;background:#e6fcf5;border-radius:18px;padding:8px}
+.rd-cr .cx-yd>div{position:relative;aspect-ratio:1;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid #c3fae8;user-select:none;-webkit-user-select:none;box-shadow:0 2px 0 rgba(0,0,0,.06)}
+.rd-cr .cx-yd>div.cx-no{background:#f8f9fa;border-color:#f1f3f5;cursor:default}.rd-cr .cx-yd>div.cx-no img{opacity:.3;filter:grayscale(.7)}
+.rd-cr .cx-yd>div.cx-use{border-color:#51cf66;background:#d3f9d8}
+.rd-cr .cx-yd>div.cx-can{border-color:#ffd43b;border-style:dashed}
+.rd-cr .cx-yd>div.cx-cur{outline:3px solid #7048e8;outline-offset:1px}
+.rd-cr .cx-yd img{width:80%;height:80%}
+.rd-cr .cx-yd b{position:absolute;right:4px;bottom:2px;font-size:12px;color:#5f3dc4}
+.rd-cr .cx-yd em{position:absolute;left:3px;top:2px;font-style:normal;font-size:12px;background:#51cf66;color:#fff;border-radius:7px;padding:0 5px}
 .rd-cr .cx-yd u{position:absolute;right:2px;top:0;text-decoration:none;font-size:16px}
-.rd-cr .cx-yd>div.cx-dst{background:#5a4a1e;border-color:#ffd43b}
+.rd-cr .cx-yd>div.cx-dst{background:#fff9db;border-color:#fab005}
 .rd-cr .cx-ac{display:flex;gap:6px;flex-wrap:wrap}
-.rd-cr .cx-ac button{flex:1;min-width:110px;border:0;border-radius:12px;padding:9px 8px;font:15px "Jua",sans-serif;cursor:pointer;background:#3a3178;color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.3)}
-.rd-cr .cx-ac button.cx-on{background:#ffd43b;color:#3b2a00}
-.rd-cr .cx-ac button.cx-go{background:#ff922b;font-size:17px}.rd-cr .cx-ac button.cx-go[disabled]{background:#4a4470;color:#9e98c0;cursor:default}
+.rd-cr .cx-ac button{flex:1;min-width:110px;border:0;border-radius:14px;padding:9px 8px;font:15px "Jua",sans-serif;cursor:pointer;background:#f3f0ff;color:#5f3dc4;box-shadow:0 3px 0 #d0bfff}
+.rd-cr .cx-ac button.cx-on{background:#ffd43b;color:#5c3d00;box-shadow:0 3px 0 #f08c00}
+.rd-cr .cx-ac button.cx-go{background:linear-gradient(180deg,#ff8fb1,#f06595);color:#fff;font-size:17px;box-shadow:0 3px 0 #c2255c}.rd-cr .cx-ac button.cx-go[disabled]{background:#e9ecef;color:#adb5bd;box-shadow:none;cursor:default}
 .rd-cr .cx-ac button small{opacity:.75;font-size:12px}
-.rd-cr .cx-tip{font:12.5px/1.4 "Gowun Dodum",sans-serif;color:#cfc5ff;text-align:center}
+.rd-cr .cx-tip{font:12.5px/1.45 "Gowun Dodum",sans-serif;color:#7a6aa8;text-align:center}
+.rd-cr ::-webkit-scrollbar{width:8px}.rd-cr ::-webkit-scrollbar-thumb{background:#d0bfff;border-radius:4px}
 @media (max-width:720px),(orientation:portrait){.rd-cr{height:min(860px,86vh)}.rd-cr .cx-bd{grid-template-columns:1fr;grid-template-rows:minmax(0,.8fr) minmax(0,1.6fr)}}`; document.head.appendChild(st); })();
 
 NG.defs.rd = () => {
@@ -899,8 +916,19 @@ NG.defs.rd = () => {
   function crToggle(z){ if (crOpen && crZ === z){ crClose(); return; } crOpen = true; crZ = z; crR = crD = ""; crMode = ""; panel = null; grab = null;
     if (!crSel || !RD_RC[crSel] || !canCraft(z, crSel)) crSel = crList(z)[0] || crSel || RD_RCK[0]; crPick = autoPick(z, crSel); crDest = -1; crRender(); playS("warn"); }
   function crClose(){ crOpen = false; crMode = ""; bookDrawn = false; const el = $("#rdCr"); if (el) el.hidden = true; }
-  function crShown(){ const H = haveOf(crZ), ok = RD_RCK.filter(t => canCraft(crZ, t, H)); const L = crF === "ok" ? ok.concat(RD_RCK.filter(t => !ok.includes(t))) : RD_RCK.filter(t => crF === "s" || crF === "d" ? RD_A[t].job === crF : RD_A[t].g === +crF);
+  const crMiss = (t, H) => RD_RC[t].reduce((a, [k, c]) => a + Math.max(0, c - (H[k] || 0)), 0);   // 🧭 모자란 재료 수
+  function crShown(){ const H = haveOf(crZ), ok = RD_RCK.filter(t => canCraft(crZ, t, H)); const L = crF === "ok" ? ok.concat(RD_RCK.filter(t => !ok.includes(t)).sort((a, b) => crMiss(a, H) - crMiss(b, H) || RD_A[a].g - RD_A[b].g)) : RD_RCK.filter(t => crF === "s" || crF === "d" ? RD_A[t].job === crF : RD_A[t].g === +crF);
     return {H, ok, L}; }
+  /* 🧭 만드는 길: 재료마다 '이미 있어요 / 어떻게 모아요'를 한 줄씩 (재료가 조합 동물이면 그 재료까지) */
+  function crGuide(t, H){
+    const R0 = RD_RC[t], miss = crMiss(t, H), how = k => { const A = RD_A[k];
+      if (A.g === 0) return "🎲 <b>뽑기</b>(Space)로 나와요";
+      if (A.g < RD_MG) return "🔀 같은 일반 동물 3마리를 <b>합치면</b> 나와요 · 🎲 뽑기에서도 가끔";
+      if (RD_RC[k]) return `🧪 <b>조합</b>으로 만들어요 <span class="sub">${RD_RC[k].map(([k2, c2]) => `<span class="${(H[k2] || 0) >= c2 ? "y" : ""}">${RD_A[k2].e}${RD_A[k2].n} ${Math.min(H[k2] || 0, c2)}/${c2}</span>`).join("")}</span> <button class="cx-lk" data-t="${k}" style="border:0;background:none;color:#7048e8;font:12px 'Jua';cursor:pointer">→ 보러 가기</button>`;
+      return "🎰 <b>고급 뽑기</b>에서 나와요"; };
+    const steps = R0.map(([k, c], i) => { const h = H[k] || 0, ok = h >= c;
+      return `<div class="st ${ok ? "ok" : ""}"><span>${ok ? "✔" : i + 1}</span><div><b>${RD_A[k].e} ${RD_A[k].n} ${c}마리</b> — ${ok ? `<em>준비됐어요! (가진 것 ${h})</em>` : `<u>${c - h}마리 더 필요</u> · ${how(k)}`}</div></div>`; }).join("");
+    return `<div class="cx-gd"><b>${miss ? `🧭 만드는 길 — ${miss}마리만 더 모으면 돼요!` : "🎉 재료가 다 모였어요! 아래에서 🧪 만들기!"}</b>${steps}</div>`; }
   function crPickSel(t){ if (!RD_RC[t]) return; crSel = t; crPick = autoPick(crZ, t); crDest = -1; crMode = ""; crD = ""; crRender(); playS("warn"); }
   /* 마당 칸 누르기: 재료로 넣기/빼기 (이미 다 찼으면 다른 칸 것과 바꿔요) · 📍 모드면 만들 자리 정하기 */
   function crTap(i){ const S = Z[crZ].s, q = S[i], R0 = RD_RC[crSel]; if (!q || !R0) return;
@@ -917,7 +945,7 @@ NG.defs.rd = () => {
   const imgOf = k => RDB.img(k);
   function crRender(){ if (!crOpen) return; const D = $("#ngDom"); let el = $("#rdCr");
     if (!el){ el = document.createElement("div"); el.id = "rdCr"; el.className = "rd-cr"; D.appendChild(el);
-      el.innerHTML = `<div class="cx-h"><b>🧪 조합</b><small>목록에서 고르고 → 오른쪽 내 마당에서 재료로 쓸 동물을 눌러 넣어요 · 📍 만들 자리도 고를 수 있어요</small><button data-x>✕ 닫기 <small>Esc</small></button></div><div class="cx-fl"></div><div class="cx-bd"><div class="cx-ls"></div><div class="cx-dt"></div></div>`;
+      el.innerHTML = `<div class="cx-h"><b>🧪 조합 공방</b><small>① 왼쪽에서 만들고 싶은 동물 고르기 → ② 🧭 만드는 길대로 재료 모으기 → ③ 🧪 만들기! · 위쪽일수록 거의 다 모은 조합이에요</small><button data-x>✕ 닫기 <small>Esc</small></button></div><div class="cx-fl"></div><div class="cx-bd"><div class="cx-ls"></div><div class="cx-dt"></div></div>`;
       const stop = e => e.stopPropagation(); ["pointerdown", "pointerup", "touchstart", "mousedown", "wheel"].forEach(ev => el.addEventListener(ev, stop, {passive: true}));
       el.onclick = e => { const b = e.target.closest("[data-x],[data-f],[data-t],[data-s],[data-a]"); if (!b) return;
         if (b.dataset.x != null){ crClose(); return; } if (b.dataset.f){ crF = b.dataset.f; crR = ""; crRender(); return; }
@@ -928,10 +956,10 @@ NG.defs.rd = () => {
     /* 왼쪽 목록: 가진 동물 수가 바뀔 때만 다시 그려요 (스크롤 그대로) */
     const sig = crF + "|" + RD_RCK.map(t => RD_RC[t].map(([k]) => H[k] || 0).join(".")).join(",") + "|" + crSel;
     if (sig !== crR){ crR = sig;
-      const F = [["ok", `✨ 만들 수 있는 것 ${ok.length}`], ["d", "🗡️ 딜러"], ["s", "🛡️ 서포터"], ...[2, 3, 4, 5, 6, 7].map(g => [String(g), RD_G[g].n])];
+      const F = [["ok", `🧭 추천 순 · 지금 ${ok.length}개`], ["d", "🗡️ 딜러"], ["s", "🛡️ 서포터"], ...[2, 3, 4, 5, 6, 7].map(g => [String(g), RD_G[g].n])];
       el.querySelector(".cx-fl").innerHTML = F.map(([id, n]) => `<button data-f="${id}" class="${crF === id ? "cx-on" : ""}">${n}</button>`).join("");
       el.querySelector(".cx-ls").innerHTML = L.map(t => { const A = RD_A[t], G = RD_G[A.g], J = RD_JOB[A.job], can = ok.includes(t), ki = can ? ok.indexOf(t) : -1;
-        return `<div class="cx-rw ${can ? "cx-ok" : ""} ${crSel === t ? "cx-on" : ""}" data-t="${t}" style="--g:${G.c}"><img data-im="${t}" ${imgOf(t)} alt=""><span class="cx-nm">${A.n}<small>${G.n} · ${J.e} ${J.n} · ${RD_ROLE[A.ro].e}</small></span>
+        return `<div class="cx-rw ${can ? "cx-ok" : ""} ${crSel === t ? "cx-on" : ""}" data-t="${t}" style="--g:${G.c};--g2:${G.c2}"><img data-im="${t}" ${imgOf(t)} alt=""><span class="cx-nm">${A.n}<small>${G.n} · ${J.e} ${J.n} · ${RD_ROLE[A.ro].e}${!can && crMiss(t, H) <= 2 ? ` · <i>🎯 ${crMiss(t, H)}마리만 더!</i>` : ""}</small></span>
           <span class="cx-ig">${RD_RC[t].map(([k, c]) => `<span class="${(H[k] || 0) >= c ? "cx-y" : ""}">${RD_A[k].e}${c > 1 ? `<sub>${c}</sub>` : ""}</span>`).join("")}</span>${ki >= 0 && ki < 9 ? `<span class="cx-k">${ki + 1}</span>` : ""}</div>`; }).join(""); }
     /* 오른쪽: 고른 조합 · 내 마당 4×4 */
     const t = crSel, A = RD_A[t], R0 = RD_RC[t]; if (!A || !R0) return;
@@ -940,6 +968,7 @@ NG.defs.rd = () => {
     const dt = el.querySelector(".cx-dt"); dt.style.setProperty("--g", G.c); const newT = dt.dataset.t !== t; dt.dataset.t = t;
     dt.innerHTML = `<div class="cx-tp"><img data-im="${t}" ${imgOf(t)} alt=""><div><h3>${A.e} ${A.n}</h3><i style="--q:${G.c}">${G.n}</i><i style="--q:${J.c}">${J.e} ${J.n}</i><i style="--q:${RO.c}">${RO.e} ${RO.n}</i></div></div>
       <div class="cx-sk">🌟 ${A.sk.e} <b>${A.sk.n}</b> — ${A.sk.d}<br>💪 ${A.t}${A.job === "s" ? " · 👑 보스 💥 약점 드러내기" : ""}</div>
+      ${crGuide(t, H)}
       <div class="cx-nd">${R0.map(([k, c]) => { const n = crPick.filter(i => S[i] && S[i].k === k).length; return `<span class="${n >= c ? "cx-y" : ""}">${RD_A[k].e} ${RD_A[k].n} ${n}/${c}${(H[k] || 0) < c ? ` <small>(가진 것 ${H[k] || 0})</small>` : ""}</span>`; }).join("")}</div>
       <div class="cx-yd">${S.map((q, i) => { const use = crPick.filter(j => j === i).length, rel = q.k && R0.some(r => r[0] === q.k);
         return `<div data-s="${i}" class="${q.k ? "" : "cx-no"} ${!rel && crMode !== "dest" ? "cx-no" : ""} ${use ? "cx-use" : rel ? "cx-can" : ""} ${i === dst ? "cx-dst" : ""} ${i === crCur && kHint ? "cx-cur" : ""}">${q.k ? `<img data-im="${q.k}" ${imgOf(q.k)} alt=""><b>${q.n > 1 ? "×" + q.n : ""}</b>` : ""}${use ? `<em>✔${use > 1 ? use : ""}</em>` : ""}${i === dst ? "<u>📍</u>" : ""}</div>`; }).join("")}</div>
