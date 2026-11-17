@@ -376,9 +376,51 @@ const RD_CO2S = [RD_CO2,
   "PAAAAAAPPPBBBBBBG",
   "PAAAAAA.H.BBBBBBP",
   "PPPPPPPPPPPPPPPPP"]}];
+/* 👥 5~6명 함께 지키기 (자리 6곳 · 18칸씩) — 길이 자리 사이사이를 파고들어요 */
+const RD_CO6 = {id: "co6", n: "여섯 마을 광장", m: [
+  "PPPPPPPP.PPPPPPPP.PPPPPPPP",
+  "PAAAAAAP.PBBBBBBP.PCCCCCCP",
+  "PAAAAAAP.PBBBBBBP.PCCCCCCP",
+  "PAAAAAAPPPBBBBBBPPPCCCCCCP",
+  "G............H...........P",
+  "PDDDDDDPPPEEEEEEPPPFFFFFFP",
+  "PDDDDDDP.PEEEEEEP.PFFFFFFP",
+  "PDDDDDDP.PEEEEEEP.PFFFFFFP",
+  "PPPPPPPP.PPPPPPPP.PPPPPPPP"]};
+const RD_CO6S = [RD_CO6,
+  {id: "co6t", n: "하늘 문 광장", m: [
+  "PPPPPPPP.PPPPGPPP.PPPPPPPP",
+  "PAAAAAAP.PBBBBBBP.PCCCCCCP",
+  "PAAAAAAP.PBBBBBBP.PCCCCCCP",
+  "PAAAAAAPPPBBBBBBPPPCCCCCCP",
+  "P............H...........P",
+  "PDDDDDDPPPEEEEEEPPPFFFFFFP",
+  "PDDDDDDP.PEEEEEEP.PFFFFFFP",
+  "PDDDDDDP.PEEEEEEP.PFFFFFFP",
+  "PPPPPPPP.PPPPPPPP.PPPPPPPP"]},
+  {id: "co6r", n: "큰 고리 숲", m: [
+  "PPPPPPPPPPPPPPPPPPPPPPPPPP",
+  "PAAAAAA...BBBBBB...CCCCCCP",
+  "PAAAAAA...BBBBBB...CCCCCCP",
+  "PAAAAAA...BBBBBB...CCCCCCP",
+  "P............H...........G",
+  "PDDDDDD...EEEEEE...FFFFFFP",
+  "PDDDDDD...EEEEEE...FFFFFFP",
+  "PDDDDDD...EEEEEE...FFFFFFP",
+  "PPPPPPPPPPPPPPPPPPPPPPPPPP"]},
+  {id: "co6m", n: "거울 성채", m: [
+  "PPPPPPPP.PPPPPPPP.PPPPPPPP",
+  "PAAAAAAP.PBBBBBBP.PCCCCCCP",
+  "PAAAAAAP.PBBBBBBP.PCCCCCCP",
+  "PAAAAAAPPPBBBBBBPPPCCCCCCP",
+  "P............H...........G",
+  "PDDDDDDPPPEEEEEEPPPFFFFFFP",
+  "PDDDDDDP.PEEEEEEP.PFFFFFFP",
+  "PDDDDDDP.PEEEEEEP.PFFFFFFP",
+  "PPPPPPPP.PPPPPPPP.PPPPPPPP"]}];
 function rdParseCo(M, tr, n){
   let m = M.m; if (tr) m = Array.from({length: m[0].length}, (_, x) => m.map(r => r[x]).join(""));
-  const h = m.length, w = m[0].length, P = new Set(), D = [], key = (x, y) => x + "," + y, ZL = "ABCD".slice(0, n), zs = [...ZL].map(() => ({slots: []}));
+  const h = m.length, w = m[0].length, P = new Set(), D = [], key = (x, y) => x + "," + y, ZL = "ABCDEF".slice(0, n), zs = [...ZL].map(() => ({slots: []}));
   let house = null, start = null;
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){ const c = m[y][x];
     if (c === "P" || c === "G"){ P.add(key(x, y)); if (c === "G") start = [x, y]; }
