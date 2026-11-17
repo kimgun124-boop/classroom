@@ -6,6 +6,11 @@
    ⚡ 렉 줄이기: 흐림(backdrop-filter)·큰 그림자·무한 애니메이션은 쓰지 않아요 */
 
 .m-nav{display:none}
+/* 🔄 새로고침 단추 */
+.lg-refresh{right:auto;left:14px}
+.arc-refresh.spin{cursor:wait;opacity:.75}
+.arc-refresh.spin .ic{display:inline-block;animation:arcSpin .8s linear infinite}
+@keyframes arcSpin{to{transform:rotate(360deg)}}
 .arc-topb .ic{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
 
 @media (max-width:700px){
@@ -189,7 +194,8 @@
   #lgNums .arc-num:active{transform:scale(.95)}
   #scrLogin .lg-wrap{gap:16px}
   #scrLogin .fame{position:relative;top:0;border-width:1px;border-radius:22px;box-shadow:none}
-  #scrLogin .arc-teach{position:static;display:block;margin:20px auto 0;border-radius:999px;padding:8px 16px}
+  #scrLogin .arc-teach{position:static;display:inline-block;margin:20px 4px 0;border-radius:999px;padding:8px 16px}
+  #scrLogin #lgTeach{margin-left:calc(50% - 112px)}
   #scrLogin>.arc-sync{position:static;text-align:center;font-size:11px;margin-top:8px}
 
   /* ---------- 비밀번호 패드 ---------- */

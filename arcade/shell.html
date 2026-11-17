@@ -16,6 +16,17 @@
       var u = new URL(location.href); u.searchParams.set("v", j.b); location.replace(u.toString());
     }).catch(function(){});
   }
+  /* 🔄 새로고침 단추: 저장해 둔 예전 파일을 버리고 서버의 최신 오락실을 받아요 */
+  window.arcRefresh = function(btn){
+    if (window.ARC && ARC.busy) return;
+    if (btn){ btn.disabled = true; btn.classList.add("spin"); }
+    var go = function(b){ var u = new URL(location.href); u.searchParams.set("v", (b || B) + "-" + Date.now().toString(36)); location.replace(u.toString()); };
+    var clear = (window.caches && caches.keys) ? caches.keys().then(function(ks){ return Promise.all(ks.filter(function(k){ return /^arcade/.test(k); }).map(function(k){ return caches.delete(k); })); }).catch(function(){}) : Promise.resolve();
+    clear.then(function(){ return fetch("arcade-version.json?_=" + Date.now(), {cache: "no-store"}); })
+      .then(function(r){ return r.ok ? r.json() : null; }).then(function(j){ try { sessionStorage.removeItem(K); } catch(e){} go(j && j.b); })
+      .catch(function(){ go(); });
+    setTimeout(function(){ go(); }, 4000);   // 인터넷이 느려도 4초 뒤엔 새로 불러와요
+  };
   chk();
   document.addEventListener("visibilitychange", function(){ if (!document.hidden) chk(); });
   window.addEventListener("pageshow", function(e){ if (e.persisted) chk(); });
@@ -79,6 +90,7 @@
     <aside id="lgFame"></aside>
   </div>
   <button class="arc-teach" id="lgTeach" title="관리자 화면">🛠️ 관리자</button>
+  <button class="arc-teach arc-refresh lg-refresh" onclick="arcRefresh(this)" title="최신 버전으로 새로고침">🔄 새로고침</button>
   <button class="arc-btn app-inst lg-inst" hidden>📲 앱으로 설치</button>
   <div class="arc-sync" id="lgSync"></div>
   <div class="arc-credit">🕹️ 우리반 오락실 · made by <b>효석쌤</b></div>
@@ -89,7 +101,7 @@
   <header class="arc-top">
     <div class="arc-me" id="hmMe"></div>
     <div class="arc-brand"><h1 class="arc-logo sm"><span class="e">🕹️</span> <span class="g"><span id="hmClass">우리반</span> 오락실</span></h1><div class="arc-online" id="hmOnline"></div></div>
-    <div class="arc-topb"><button class="arc-btn app-inst" hidden title="홈 화면에 오락실 아이콘 만들기"><span class="ic">📲</span><span class="lb"> 앱 설치</span></button><button class="arc-btn" id="hmAdmin" hidden title="관리자"><span class="ic">🛠️</span><span class="lb"> 관리자</span></button><button class="arc-btn p" id="hmFace" title="꾸미기·상점"><span class="ic">👕</span><span class="lb"> 꾸미기·상점</span></button><button class="arc-btn" id="hmOut" title="로그아웃"><span class="ic">🚪</span><span class="lb"> 로그아웃</span></button></div>
+    <div class="arc-topb"><button class="arc-btn app-inst" hidden title="홈 화면에 오락실 아이콘 만들기"><span class="ic">📲</span><span class="lb"> 앱 설치</span></button><button class="arc-btn" id="hmAdmin" hidden title="관리자"><span class="ic">🛠️</span><span class="lb"> 관리자</span></button><button class="arc-btn p" id="hmFace" title="꾸미기·상점"><span class="ic">👕</span><span class="lb"> 꾸미기·상점</span></button><button class="arc-btn arc-refresh" onclick="arcRefresh(this)" title="최신 버전으로 새로고침"><span class="ic">🔄</span><span class="lb"> 새로고침</span></button><button class="arc-btn" id="hmOut" title="로그아웃"><span class="ic">🚪</span><span class="lb"> 로그아웃</span></button></div>
   </header>
   <div class="arc-notice" id="hmNotice" hidden></div>
   <div class="arc-lobby">
