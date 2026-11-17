@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="bb35bf2031">
+<meta name="arc-build" content="a92d363463">
 <script>
 /* 🔄 늘 최신 오락실: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "bb35bf2031", K = "arcade.reloaded";
+  var B = "a92d363463", K = "arcade.reloaded";
   function saving(){ try { return typeof Store !== "undefined" && Store.saving && Store.saving(); } catch(e){ return false; } }
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !saving() && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
@@ -9262,7 +9262,7 @@ const PARTY = {
       if (NG.cur && NG.gid === gid && !$("#ng").hidden && NG.opt && NG.opt.party === "guest" && NG.opt.seed === m.seed && !NG.ended){ this.inSeq = 0; this.needGrid(true); return; }   // 이미 같은 판이면 다시 시작하지 않아요(다시 이어졌을 때)
       if ($("#ng").hidden || !NG.cur){ ARC.game = gid; ARC.enter(); ARC.prep(); }
       this.rxT = performance.now(); this.watch();
-      getAC(); NG.play(gid, m.sids, {party: "guest", idx: m.idx, local: [m.idx], bots: m.bots || [], lv: m.lv, seed: m.seed, mode: m.mode});
+      getAC(); NG.play(gid, m.sids, {party: "guest", idx: m.idx, local: [m.idx], bots: m.bots || [], lv: m.lv, seed: m.seed, mode: m.mode, bl: m.bl});
     }
     else if (m.t === "end"){ this.game && this.game.end(m.w, m.wins, m); }
     else if (m.t === "cont"){ if (typeof CONT !== "undefined") CONT.resume(); this.game && this.game.cont && this.game.cont(); toast("▶ 방장이 이어하기를 눌렀어요! 다시 출동!"); }
@@ -13472,10 +13472,12 @@ NG.defs.qd = () => {
   /* ---------- 🌐 주고받기 ---------- */
   const r1 = v => Math.round(v);
   function snap(){
-    return {g: [phase, stage, r1(camX), pt, r1(team), bossId, goT, lockX != null ? 1 : 0, flashT, AR ? AR.w.join(",") : "", AR ? AR.t : 0, AR ? AR.rd : 0],
+    return {g: [phase, stage, r1(camX), pt, r1(team), bossId, goT, lockX != null ? 1 : 0, flashT, AR ? AR.w.join(",") : "", AR ? AR.t : 0, AR ? AR.rd : 0, BT | 0],
       p: P.map(p => [r1(p.x), r1(p.y), r1(p.z), p.f, p.st, p.t, Math.ceil(p.hp), p.mp | 0, p.lives, p.cls, p.inv > 0 ? 1 : 0, r1(p.score), p.ready ? 1 : 0, p.mv, p.combo, p.mhp | 0, p.pcd | 0]),
-      e: E.map(e => [e.id, e.k, r1(e.x), r1(e.y), r1(e.z), e.f, e.st, e.t, Math.max(0, Math.ceil(e.hp)), e.mhp, e.flash]),
-      q: PR.map(q => [q.id, q.k, r1(q.x), r1(q.y), r1(q.z), q.f, q.big ? 1 : 0]),
+      e: E.map(e => [e.id, e.k, r1(e.x), r1(e.y), r1(e.z), e.f, e.st, e.t, Math.max(0, Math.ceil(e.hp)), e.mhp, e.flash, e.st === "bjump" ? r1(e.jx) : 0, e.st === "bjump" ? r1(e.jy) : 0, e.rage ? 1 : 0]),
+      q: PR.map(q => [q.id, q.k, r1(q.x), r1(q.y), r1(q.z), q.f, q.big ? 1 : 0, Math.round((q.vx || 0)*10)/10]),
+      h: HZ.map(h => h.k === "lane" ? ["l", r1(h.y0), r1(h.y1), h.t, h.T] : h.k === "ring" ? ["r", r1(h.x), r1(h.y), r1(h.r), h.t, h.T, h.sp] : ["m", r1(h.x), r1(h.y), r1(h.r), h.t, h.T]),
+      hn: P.map(p => p.hitN || 0),
       i: IT.map(t => [t.id, t.k, r1(t.x), r1(t.y), r1(t.z)]),
       b: PROPS.map(b => [b.id, b.k, r1(b.x), r1(b.y), b.hp])};
   }
@@ -13492,11 +13494,14 @@ NG.defs.qd = () => {
     if (s.g[9]){ AR = AR || {}; AR.w = String(s.g[9]).split(",").map(Number); AR.t = s.g[10]; AR.rd = s.g[11]; }
     if (Math.abs(camX - s.g[2]) > 300) camX = s.g[2];
     camX += 0; P.forEach((p, i) => { const a = s.p[i]; if (!a) return; p.tx = a[0]; p.ty = a[1]; p.tz = a[2]; if (Math.abs(p.x - a[0]) > 200) { p.x = a[0]; p.y = a[1]; }
-      p.f = a[3]; p.st = a[4]; p.t = a[5]; p.hp = a[6]; p.mp = a[7]; p.lives = a[8]; p.cls = a[9]; p.inv = a[10]; p.score = a[11]; p.ready = !!a[12]; p.mv = a[13]; p.combo = a[14]; p.mhp = a[15]; p.pcd = a[16]; });
+      if (!(i === myIdx && p.pred > 0)) p.f = a[3]; p.st = a[4]; p.t = a[5]; p.hp = a[6]; p.mp = a[7]; p.lives = a[8]; p.cls = a[9]; p.inv = a[10]; p.score = a[11]; p.ready = !!a[12]; p.mv = a[13]; p.combo = a[14]; p.mhp = a[15]; p.pcd = a[16]; });
     const old = new Map(E.map(e => [e.id, e]));
-    E = s.e.map(a => { const e = old.get(a[0]) || {id: a[0], x: a[2], y: a[3], z: a[4]}; Object.assign(e, {k: a[1], tx: a[2], ty: a[3], tz: a[4], f: a[5], st: a[6], t: a[7], hp: a[8], mhp: a[9], flash: a[10]}); return e; });
+    E = s.e.map(a => { const e = old.get(a[0]) || {id: a[0], x: a[2], y: a[3], z: a[4]}; Object.assign(e, {k: a[1], tx: a[2], ty: a[3], tz: a[4], f: a[5], st: a[6], t: a[7], hp: a[8], mhp: a[9], flash: a[10], jx: a[11], jy: a[12], rage: a[13]}); return e; });
+    /* ⚠️ 경고 장판: 방장 시간에 맞추고, 다음 소식이 늦어도 내 화면에서 계속 흘러가요 (끊김 없이) */
+    if (s.h) HZ = s.h.map(a => a[0] === "l" ? {k: "lane", y0: a[1], y1: a[2], t: a[3], T: a[4]} : a[0] === "r" ? {k: "ring", x: a[1], y: a[2], r: a[3], t: a[4], T: a[5], sp: a[6], hit: new Set()} : {k: "met", x: a[1], y: a[2], r: a[3], t: a[4], T: a[5]});
+    if (s.hn) P.forEach((p, i) => { p.hitN = s.hn[i] || 0; }); if (s.g[12] != null) BT = s.g[12];
     const oq = new Map(PR.map(q => [q.id, q]));
-    PR = s.q.map(a => { const q = oq.get(a[0]) || {id: a[0], x: a[2], y: a[3], z: a[4]}; Object.assign(q, {k: a[1], tx: a[2], ty: a[3], tz: a[4], f: a[5], big: a[6]}); return q; });
+    PR = s.q.map(a => { const q = oq.get(a[0]) || {id: a[0], x: a[2], y: a[3], z: a[4]}; Object.assign(q, {k: a[1], tx: a[2], ty: a[3], tz: a[4], f: a[5], big: a[6], vx: a[7] || 0}); return q; });
     IT = s.i.map(a => ({id: a[0], k: a[1], x: a[2], y: a[3], z: a[4]}));
     PROPS = s.b.map(a => ({id: a[0], k: a[1], x: a[2], y: a[3], hp: a[4]}));
     tcx = s.g[2];
@@ -13508,7 +13513,16 @@ NG.defs.qd = () => {
     if (shake > 0) shake *= .86; if (flashT > 0) flashT--; if (banner && --banner.k <= 0) banner = null; if (goT > 0) goT--;
     camX += (tcx - camX)*.35;
     const lerp = o => { if (o.tx == null) return; o.x += (o.tx - o.x)*.45; o.y += (o.ty - o.y)*.45; o.z += (o.tz - o.z)*.5; };
-    P.forEach(lerp); E.forEach(lerp); PR.forEach(lerp);
+    /* 🎮 내 용사는 내 기기에서 바로 움직여요(방장 답을 기다리지 않음) → 온라인에서도 조작이 즉시 반응. 멈추면 방장 자리로 살며시 맞춰요 */
+    const me = P[myIdx];
+    P.forEach(p => { if (p !== me) lerp(p); });
+    if (me && me.tx != null){ const [dx, dy] = QDIR[PARTY.input.d || 0], free = me.st === "idle" || me.st === "walk";
+      if (free && (dx || dy) && phase === "play"){ const sp = QCL[me.cls].spd*(MODE === "arena" ? 1 : QG.stats(me.gg || {}).spm); me.x = clampN(me.x + dx*sp, camX + 30, camX + W - 30); me.y = clampN(me.y + dy*sp*.62, YT, YB); if (dx) me.f = dx; me.mv = 1; me.pred = 10; }
+      else { if (me.pred > 0) me.pred--; const k = !free ? .45 : me.pred > 0 ? .06 : .22; me.x += (me.tx - me.x)*k; me.y += (me.ty - me.y)*k; }
+      me.z += (me.tz - me.z)*.5; if (Math.abs(me.x - me.tx) > 180 || Math.abs(me.y - me.ty) > 120){ me.x = me.tx; me.y = me.ty; } }
+    E.forEach(lerp); PR.forEach(q => { if (q.vx){ q.tx += q.vx; q.x += q.vx; } lerp(q); });   // 화살은 날아가던 대로 이어서
+    HZ.forEach(h => { h.t++; if (h.k === "ring" && h.t > h.T) h.r += h.sp; });
+    if (MODE === "boss" && phase === "play" && BT > 0) BT--;
     upFx();
   }
 
@@ -13819,7 +13833,7 @@ const QPT = {
   duel(sid, won, nHum){ const d = won ? this.FEE*(nHum - 1) : -this.FEE; this.edit(sid, q => { q.pt += d; if (won) q.aw++; else q.al++; }); return d; }
 };
 const QDM = {
-  bots: 1, st: 1, om: "adv", two: false,
+  bots: 1, st: 1, om: "boss", obl: 0, two: false,
   menu(){
     const me = ARC.me, box = partyModal("qd");
     const botRow = (id, max) => `<div class="wb-row"><span>🤖 컴퓨터 동료</span><div class="arc-seg" id="${id}">${Array.from({length: max + 1}, (_, n) => `<button data-v="${n}" class="${n === Math.min(max, this.bots) ? "on" : ""}">${n}명</button>`).join("")}</div></div>`;
@@ -13830,7 +13844,10 @@ const QDM = {
         <div class="qd-bls">${bossGrid}</div><label class="qd-two"><input type="checkbox" id="qdBTwo" ${this.two ? "checked" : ""}> 👫 이 기기에서 친구와 둘이 도전</label></div>
       <div class="wb-sec qd-arena"><h3>⚔️ 결투장 <small>장비 없이 모두 같은 힘 · 3판 2선승 · 참가비 🏅${QPT.FEE} → 이긴 친구가 모두 가져가요</small></h3>
         <div class="arc-row"><button class="arc-btn p" id="qdDuel">👫 이 기기에서 친구와 결투</button><button class="arc-btn" id="qdDuelBot">🤖 컴퓨터와 연습 <small>(포인트 없이)</small></button></div>
-        <div class="wb-row"><span>🌐 온라인 방에서 할 것</span><div class="arc-seg" id="qdOm"><button data-v="adv" class="${this.om === "adv" ? "on" : ""}">🗺️ 모험</button><button data-v="arena" class="${this.om === "arena" ? "on" : ""}">⚔️ 결투</button></div></div></div>
+        </div>
+      <div class="wb-sec qd-on"><h3>🌐 온라인 방 <small>각자 기기로 최대 4명 · 방을 만들기 전에 할 것을 골라요</small></h3>
+        <div class="wb-row"><span>할 것</span><div class="arc-seg" id="qdOm"><button data-v="boss" class="${this.om === "boss" ? "on" : ""}">👑 보스 협동</button><button data-v="arena" class="${this.om === "arena" ? "on" : ""}">⚔️ 결투</button><button data-v="adv" class="${this.om === "adv" ? "on" : ""}">🗺️ 모험</button></div></div>
+        <div class="wb-row" id="qdObRow" ${this.om === "boss" ? "" : "hidden"}><span>👑 보스</span><select id="qdOb" class="qd-ob">${QBL.map((k, l) => `<option value="${l}" ${l === Math.min(this.obl, op) ? "selected" : ""} ${l > op ? "disabled" : ""}>${l + 1}단계 · ${esc(QEN[k].n)}${l > op ? " 🔒" : ""}</option>`).join("")}</select></div></div>
       <button class="arc-btn p qd-shopb" id="qdShop">🛒 용사 상점 <small>무기·갑옷·투구·신발·날개·🐾펫</small></button><div class="qd-intro"><div class="qd-cls">${QCL.map(c => `<span style="--c:${c.c}">${c.e}<b>${c.n}</b><small>✨ ${c.sp}</small></span>`).join("")}</div>
         <p class="arc-small">최대 <b>4명</b>이 힘을 합쳐 <b>${QD_MAX}단계</b>(26개의 땅 × 5단계)를 깨요. 3단계마다 작은 보스, 5단계마다 무시무시한 <b>보스</b>! 31단계부터는 몬스터가 훨씬 세져서 <b>🛒 용사 상점</b>에서 장비를 강화해야 해요.
         <br>⌨️ 이동 <b>방향키</b> · 왼손 <b>A</b> 공격 · <b>S</b> 점프 · <b>D</b> 💨대시 · <b>F</b> ✨필살 · <b>Q</b> 스킬1 · <b>W</b> 스킬2 · <b>E</b> 🐾펫 · 📱 화면 단추도 돼요
@@ -13838,7 +13855,7 @@ const QDM = {
       ${REACH.html("qd", sidOf(me), QCH.map(c => c.n), this.st = Math.min(this.st, Math.floor((REACH.get("qd", sidOf(me)) - 1)/5)*5 + 1))}
       <div class="wb-sec"><h3>🧒 나 혼자 <small>🤖 동료와 함께 · 내 점수가 랭킹에 올라가요</small></h3>${botRow("qdB1", 3)}<button class="arc-btn p" id="qdSolo">▶ 출발!</button></div>
       <div class="wb-sec"><h3>👫 이 기기에서 둘이 <small>1P WASD + Z X C V B N · 대시 왼쪽 Shift · 2P 방향키 + J K L ; ' P · 대시 오른쪽 Shift·Enter</small></h3>${botRow("qdB2", 2)}<button class="arc-btn p" id="qdTwo">🧒 친구 들어오기</button></div>
-      <div class="wb-sec"><h3>🌐 온라인 방 <small>각자 기기로 최대 4명 · ☁️ Firebase 반에서만</small></h3><div id="wbRooms"></div></div>`;
+      <div class="wb-sec"><h3>🌐 온라인 방 목록 <small>☁️ Firebase 반에서만 · 방장이 고른 것(👑 보스 협동 · ⚔️ 결투 · 🗺️ 모험)을 함께 해요</small></h3><div id="wbRooms"></div></div>`;
     const seg = id => { const s = $("#" + id); if (s) s.onclick = e => { const b = e.target.closest("button"); if (!b) return; s.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); this.bots = +b.dataset.v; }; };
     ["qdB1", "qdB2"].forEach(seg); REACH.bind($("#wbBody"), v => { this.st = v; });
     const nb = id => { const b = $(`#${id} .on`); return b ? +b.dataset.v : 0; };
@@ -13851,7 +13868,8 @@ const QDM = {
     $("#qdDuel").onclick = () => { box.hidden = true; ARC.pickRival("qd", opp => { const ok = [me, opp].every(n => QPT.of(sidOf(n)).pt >= QPT.FEE);
       if (!ok) toast(`🏅 포인트가 ${QPT.FEE}보다 적은 친구가 있어서 이번엔 포인트 없이 결투해요 · 👑 보스 도전으로 모아요`); this.start([me, opp], 0, {mode: "arena", stake: ok}); }); };
     $("#qdDuelBot").onclick = () => { box.hidden = true; this.start([me], 1, {mode: "arena"}); };
-    { const s = $("#qdOm"); s.onclick = e => { const b = e.target.closest("button"); if (!b) return; s.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); this.om = b.dataset.v; }; }
+    { const s = $("#qdOm"); s.onclick = e => { const b = e.target.closest("button"); if (!b) return; s.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); this.om = b.dataset.v; $("#qdObRow").hidden = this.om !== "boss"; }; }
+    this.obl = Math.min(this.obl, op); $("#qdOb").onchange = e => { this.obl = +e.target.value; };
     PARTY.renderRooms();
     box.hidden = false;
   },
@@ -13894,8 +13912,9 @@ QDM.result2 = function(R, o){
       rows.push(`<div class="qd-r me"><span class="rk">${QCL[x.cls].e}</span><span class="avf">${avHTMLof(x.sid, {still: true, face: true})}</span><b>${esc(who(noOf_(x.sid)))}</b><span class="sc">${g.gain ? `🏅 +${g.gain}` : ""}</span><small>${R.win ? (g.gain ? (g.old ? "⭐을 더 땄어요!" : "처음 깼어요!") : "이미 딴 ⭐이에요 (더 적게 맞으면 ⭐이 늘어요)") : "다시 도전해 봐요!"} · 지금 🏅 ${QPT.of(x.sid).pt}</small></div>`); });
     title = R.win ? `👑 ${nm} 처치!` : `💫 ${nm}에게 졌어요`;
     sub = R.win ? `<div class="sc qd-stars">${"⭐".repeat(R.stars)}${"☆".repeat(3 - R.stars)}</div><div class="arc-small">맞은 횟수 ${R.hits}번 · ⭐⭐⭐은 거의 안 맞고 이기기</div>` : `<div class="arc-small">💡 빨간 경고가 뜨면 💨대시(D)로 빠지고, 💫 충격파는 🦘점프(S)로 넘어요</div>`;
-    const nx = l + 1 < QBL.length && R.win && o.party !== "guest";
-    btns = go("again", "🔁 다시 도전") + (nx ? go("next", "▶ 다음 보스") : "") + go("menu", "📜 보스 고르기") + go("home", "🏠 홈으로");
+    const nx = l + 1 < QBL.length && R.win && o.party !== "guest";   // 온라인 방장은 다음 보스로 다 같이
+    btns = o.party === "guest" ? `<button class="arc-btn" data-qd="wait">⏳ 방장이 다음 판을 고르길 기다려요</button>` + go("home", "🏠 홈으로")
+      : go("again", "🔁 다시 도전") + (nx ? go("next", "▶ 다음 보스") : "") + (o.party ? "" : go("menu", "📜 보스 고르기")) + go("home", "🏠 홈으로");
     SFX[R.win ? "rec" : "over"]();
   } else {
     const wi = R.wi, wsid = (R.res.concat(R.bots || []).find(x => x.i === wi) || {}).sid, botWin = (R.bots || []).some(b => b.i === wi), stake = R.hum >= 2 && (o.party ? true : !!o.stake);
@@ -13913,7 +13932,7 @@ QDM.result2 = function(R, o){
     if (k === "home"){ PARTY.leave(); NG.close(); }
     else if (k === "menu"){ NG.close(); QDM.menu(); }
     else if (k === "again"){ if (o.party === "host") PARTY.again(); else NG.play("qd", NG.sids, Object.assign({}, o, {seed: 0, cls: null})); }
-    else if (k === "next") NG.play("qd", NG.sids, Object.assign({}, o, {seed: 0, cls: null, bl: R.bl + 1})); };
+    else if (k === "next"){ if (o.party === "host"){ QDM.obl = R.bl + 1; PARTY.again(); } else NG.play("qd", NG.sids, Object.assign({}, o, {seed: 0, cls: null, bl: R.bl + 1})); } };
 };
 (function(){
   const play = ARC.play;
@@ -13931,14 +13950,15 @@ QDM.result2 = function(R, o){
     if (this.role !== "host") return;
     const live = this.connected().map(p => p.no);
     this.members = [ARC.me].concat(this.members.filter(no => no !== ARC.me && live.includes(no))).slice(0, this.MAX);
-    const M = this.members, nb = Math.max(0, Math.min(this.bots, this.MAX - M.length));
+    const M = this.members, nb = QDM.om === "boss" ? 0 : Math.max(0, Math.min(this.bots, this.MAX - M.length));   // 👑 보스는 사람 친구끼리만
     this.started = true; Store.fs.updateDoc(this.ref(this.pid), {st: "play", n: M.length}).catch(() => {});
     const botNos = WB.pickBots(M, nb), sids = M.concat(botNos).map(sidOf), bots = botNos.map((_, i) => M.length + i), seed = Math.floor(Math.random()*1e9) + 1, remote = {};
-    M.forEach((no, i) => { if (i){ const P = this.peers.get(no); if (P){ P.idx = i; P.inN = 0; P.last = {d: 0, b: 0}; remote[i] = no; this.send(P, {t: "start", g: "qd", sids, idx: i, bots, seed, mode: QDM.om}); } } });
+    M.forEach((no, i) => { if (i){ const P = this.peers.get(no); if (P){ P.idx = i; P.inN = 0; P.last = {d: 0, b: 0}; remote[i] = no; this.send(P, {t: "start", g: "qd", sids, idx: i, bots, seed, mode: QDM.om, bl: QDM.obl}); } } });
+    this.startMsg = {t: "start", g: "qd", sids, bots, seed, mode: QDM.om, bl: QDM.obl};
     this.seq = 0; this.lastGv = -1;
     const md = $("#mdWb"); if (md) md.hidden = true;
     if (!again){ ARC.game = "qd"; ARC.enter(); ARC.prep(); }
-    getAC(); NG.play("qd", sids, {party: "host", local: [0], bots, remote, seed, stage: QDM.st - 1, mode: QDM.om});
+    getAC(); NG.play("qd", sids, {party: "host", local: [0], bots, remote, seed, stage: QDM.st - 1, mode: QDM.om, bl: QDM.obl});
   };
   const css = document.createElement("style");
   css.textContent = `.in-room>.qd-intro{display:none}.qd-intro{margin-bottom:10px}.qd-cls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
@@ -13954,6 +13974,7 @@ QDM.result2 = function(R, o){
 .qd-bl{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px;border-radius:12px;border:2px solid #ff6b6b;background:rgba(255,107,107,.12);color:#fff;cursor:pointer;font:inherit}
 .qd-bl b{font:20px "Jua",sans-serif}.qd-bl small{font-size:11px;letter-spacing:-1px}.qd-bl i{font:normal 10.5px "Gowun Dodum",sans-serif;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .qd-bl.done{border-color:#ffd43b;background:rgba(255,212,59,.14)}.qd-bl.lock{opacity:.4;cursor:default;border-color:#495057;background:rgba(255,255,255,.04)}
+.qd-ob{flex:1;min-width:0;padding:8px;border-radius:10px;font:15px "Gowun Dodum",sans-serif;background:#1b1642;color:#fff;border:2px solid #7048e8}
 .qd-two{display:flex;gap:6px;align-items:center;font-size:14px;margin-top:4px}.qd-stars{font-size:40px}
 @media (max-width:560px){.qd-cls{grid-template-columns:repeat(2,1fr)}}`;
   document.head.appendChild(css);
