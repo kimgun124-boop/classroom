@@ -284,6 +284,40 @@ const RD_MAPS = [
   {id: "wave",  n: "파도 계곡", m: ["...........", "PPPPP.PPPPP", "PSSSPSPSSSP", "P.S.PSP.S.P", "PSSSPPPSSSP", "P.S.H...S.P", "PPPPPPPPPPP"]}
 ];
 const RD_RING8 = {id: "ring8", n: "네모 마당", m: ["PPPPPPPP", "PSSSSSSP", "PSSSSSSP", "PSSSSSSP", "PPPPPPPP"]};
+/* 🤝 함께 지키기 광장 (2~4명): 몬스터는 🌀 문 한 곳에서 나와 큰 길 한 바퀴를 돌고,
+   친구마다 자기 자리(A·B·C·D, 18칸씩)에서 같은 길을 함께 지켜요. G = 몬스터 문(길의 시작) */
+const RD_CO4 = {id: "co4", n: "함께 지키기 광장", m: [
+  "PPPPPPPP.PPPPPPPP",
+  "PAAAAAAP.PBBBBBBP",
+  "PAAAAAAP.PBBBBBBP",
+  "PAAAAAAPPPBBBBBBP",
+  "G.......H.......P",
+  "PCCCCCCPPPDDDDDDP",
+  "PCCCCCCP.PDDDDDDP",
+  "PCCCCCCP.PDDDDDDP",
+  "PPPPPPPP.PPPPPPPP"]};
+const RD_CO2 = {id: "co2", n: "함께 지키기 마당", m: [
+  "PPPPPPPP.PPPPPPPP",
+  "PAAAAAAP.PBBBBBBP",
+  "GAAAAAAPPPBBBBBBP",
+  "PAAAAAA.H.BBBBBBP",
+  "PPPPPPPPPPPPPPPPP"]};
+function rdParseCo(M, tr, n){
+  let m = M.m; if (tr) m = Array.from({length: m[0].length}, (_, x) => m.map(r => r[x]).join(""));
+  const h = m.length, w = m[0].length, P = new Set(), D = [], key = (x, y) => x + "," + y, ZL = "ABCD".slice(0, n), zs = [...ZL].map(() => ({slots: []}));
+  let house = null, start = null;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){ const c = m[y][x];
+    if (c === "P" || c === "G"){ P.add(key(x, y)); if (c === "G") start = [x, y]; }
+    else if (c === "H") house = [x, y];
+    else if (ZL.includes(c)) zs[ZL.indexOf(c)].slots.push([x, y]);
+    else D.push([x, y]); }
+  const path = [start]; let prev = null, cur = start;
+  for (let guard = 0; guard < 999; guard++){ const nb = [[0, -1], [1, 0], [0, 1], [-1, 0]].map(([dx, dy]) => [cur[0] + dx, cur[1] + dy]).filter(c => P.has(key(c[0], c[1])) && !(prev && c[0] === prev[0] && c[1] === prev[1]));
+    const nx = nb[0]; if (!nx || (nx[0] === start[0] && nx[1] === start[1])) break; prev = cur; cur = nx; path.push(cur); }
+  const isF = ([x, y]) => { for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) if (P.has(key(x + dx, y + dy))) return true; return false; };
+  zs.forEach(Z => { Z.front = Z.slots.map(isF); const xs = Z.slots.map(c => c[0]), ys = Z.slots.map(c => c[1]); Z.box = [Math.min(...xs), Math.min(...ys), Math.max(...xs) + 1, Math.max(...ys) + 1]; });
+  return {id: M.id, n: M.n, w, h, path, deco: D, house, P, zones: zs, slots: zs.flatMap(Z => Z.slots), front: zs.flatMap(Z => Z.front)};
+}
 function rdParse(M, tr){
   let m = M.m; if (tr) m = Array.from({length: m[0].length}, (_, x) => m.map(r => r[x]).join(""));
   const h = m.length, w = m[0].length, at = (x, y) => (m[y] || "")[x] || " ", P = new Set(), S = [], D = [];

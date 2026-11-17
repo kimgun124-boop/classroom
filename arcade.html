@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="600c6c314a">
+<meta name="arc-build" content="63fe1ec41e">
 <script>
 /* 🔄 늘 최신 오락실: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "600c6c314a", K = "arcade.reloaded";
+  var B = "63fe1ec41e", K = "arcade.reloaded";
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
     if (!idle()) return;
@@ -13118,7 +13118,7 @@ NG.defs.rd = () => {
   const local = party === "guest" ? [O.idx] : (O.local || [0]).slice(0, 2);
   const remote = i => party === "host" && O.remote && O.remote[i] != null;
   const ZS = 18, LIMIT = 100 + 40*(N - 1);
-  let W = 1280, H = 720, land = true, C = 90, BX = 0, BY = 0, COLS = 8, ROWS = 5, GC = 1, TOPH = 70, BOTH = 120, ZO = [], LN = [], CELL = new Map(), MAPI = -1, lastSW = 1280, lastSH = 720, layer = null, layerKey = "";
+  let W = 1280, H = 720, land = true, C = 90, BX = 0, BY = 0, COLS = 8, ROWS = 5, GC = 1, TOPH = 70, BOTH = 120, ZO = [], LN = [], CELL = new Map(), MAPI = -1, lastSW = 1280, lastSH = 720, layer = null, layerKey = "", SH = null;   // SH: 🤝 같이 하기 공동 맵
   let Z, PS, E, PR, FX, MS, wave, waveT, spawnLeft, spawnT, state, overT, score, kills, bossK, eid, gv, speed, banner, sel, drag, ptr, panel, NQ, outbox, aseq, lastAct, sndT, ended, seed, bossTimer, frame;
   const R = (() => { let s = 1; return {seed(v){ s = (v >>> 0) || 1; }, f(){ s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s/4294967296; }}; })();
   const th = () => RD_TH[Math.min(9, Math.floor((Math.max(1, wave) - 1)/10))];
@@ -13162,9 +13162,22 @@ NG.defs.rd = () => {
     if (land){ W = 1280; H = 720; TOPH = 62; BOTH = 112; GC = N === 1 ? 1 : 2; }
     else { W = 720; H = Math.round(Math.max(1120, Math.min(1500, W*sh/Math.max(1, sw)))); TOPH = 70; BOTH = two ? 250 : 220; GC = 1; }
     if (window.VK_ON) BOTH = two && !land ? 120 : 64;   // ⌨️ 화면 키보드가 있으면 아래 단추 대신 금·보석만
-    /* 🗺️ 맵: 사람마다 자기 길(한 바퀴)과 동물 자리 18칸 — 10단계마다 맵 모양이 바뀌어요 */
+    /* 🗺️ 맵: 혼자면 길 한 바퀴와 동물 자리 18칸(10단계마다 모양이 바뀌어요) · 같이 하면 🌀 문 하나 · 큰 길 하나를 친구마다 자기 자리(18칸)에서 함께 지켜요 */
     lastSW = sw; lastSH = sh;
     const ti = Math.min(9, Math.floor((Math.max(1, wave || 1) - 1)/10)); MAPI = ti;
+    if (N >= 2){   // 🤝 같이 하기: 한 길 · 한 문, 친구마다 자기 자리
+      const TP = rdParseCo(N >= 3 ? RD_CO4 : RD_CO2, !land, N); GC = 1; COLS = TP.w; ROWS = TP.h;
+      const aw = W - 16, ah = H - TOPH - BOTH - 44;
+      C = Math.floor(Math.min(112, aw/COLS, ah/ROWS)); BX = Math.round((W - COLS*C)/2); BY = Math.round(TOPH + 34 + (ah - ROWS*C)/2);
+      const path = TP.path.map(([x, y]) => [x + .5, y + .5]);
+      SH = {ox: 0, oy: 0, w: TP.w, h: TP.h, map: TP, path, front: TP.front};
+      LN = []; CELL = new Map(); ZO = [];
+      TP.zones.forEach((Zn, z) => { const [x0, y0, x1, y1] = Zn.box; ZO.push([x0, y0]);
+        const L = {ox: x0, oy: y0, w: x1 - x0, h: y1 - y0, map: TP, path, slots: Zn.slots.map(([x, y]) => [x + .5, y + .5]), front: Zn.front};
+        L.slots.forEach(([x, y], s) => CELL.set(Math.floor(x) + "," + Math.floor(y), {z, i: s})); LN.push(L); });
+      layerKey = ""; panel = null; return;
+    }
+    SH = null;
     const M = N >= 3 ? RD_RING8 : RD_MAPS[ti % RD_MAPS.length], TP = rdParse(M, !land && N === 1);
     if (N >= 3) GC = 2; else if (N === 2) GC = land ? 2 : 1;
     const GR = Math.ceil(N/GC); COLS = GC*TP.w; ROWS = GR*TP.h;
@@ -13191,7 +13204,7 @@ NG.defs.rd = () => {
     const k = NG.k || 1; layer = layer || document.createElement("canvas"); layer.width = Math.ceil(COLS*C*k); layer.height = Math.ceil(ROWS*C*k);
     const t = layer.getContext("2d"); t.setTransform(k, 0, 0, k, 0, 0); t.clearRect(0, 0, layer.width, layer.height);
     const T = th(), ti = Math.min(9, Math.floor((Math.max(1, wave) - 1)/10)), TP = RD_TOP[ti], rr = BSA.rng(7 + ti*13), dep = C*.26;
-    LN.forEach((L, z) => {
+    (SH ? [SH] : LN).forEach((L, z) => {
       const x0 = L.ox*C + 3, y0 = L.oy*C + 3, ww = L.w*C - 6, hh = L.h*C - 6 - dep*.6, col = RD_PC[z], cell = (x, y) => [(L.ox + x)*C, (L.oy + y)*C];
       /* 🏔️ 섬 덩어리 (그림자 → 절벽 옆면 → 윗면) */
       t.fillStyle = "rgba(0,0,0,.3)"; rrect(t, x0 + 6, y0 + dep + 10, ww, hh, C*.4); t.fill();
@@ -13208,7 +13221,7 @@ NG.defs.rd = () => {
         t.strokeStyle = TP.tuft; t.lineWidth = 2; t.lineCap = "round"; t.beginPath(); t.moveTo(x - s2*.6, y - s2*.9); t.lineTo(x, y); t.lineTo(x + s2*.6, y - s2*.9); t.moveTo(x, y); t.lineTo(x, y - s2*1.1); t.stroke(); }
       t.restore();
       t.strokeStyle = "rgba(255,255,255,.5)"; t.lineWidth = 3; t.beginPath(); t.moveTo(x0 + C*.4, y0 + 2); t.lineTo(x0 + ww - C*.4, y0 + 2); t.stroke();
-      if (N > 1){ t.strokeStyle = col; t.lineWidth = 4; t.globalAlpha = .85; rrect(t, x0, y0, ww, hh, C*.4); t.stroke(); t.globalAlpha = 1; }
+      if (N > 1 && !SH){ t.strokeStyle = col; t.lineWidth = 4; t.globalAlpha = .85; rrect(t, x0, y0, ww, hh, C*.4); t.stroke(); t.globalAlpha = 1; }
       /* 🧱 몬스터 길: 두꺼운 테두리 → 길 바닥 → 돌판 */
       const P = L.path.map(([x, y]) => [x*C, y*C]), loop = g2 => { g2.beginPath(); P.forEach(([x, y], i) => i ? g2.lineTo(x, y) : g2.moveTo(x, y)); g2.closePath(); };
       t.lineJoin = "round"; t.lineCap = "round";
@@ -13231,6 +13244,9 @@ NG.defs.rd = () => {
           t.fillStyle = BSA.lg(t, 0, y + C*.4, 0, y + C*.75, [[0, "#ced4da"], [1, "#868e96"]]); t.beginPath(); t.ellipse(x + C*.5, y + C*.6, C*.24, C*.16, 0, 0, 7); t.fill(); RDA.ol(t, 2);
           t.fillStyle = "rgba(255,255,255,.5)"; t.beginPath(); t.ellipse(x + C*.43, y + C*.53, C*.08, C*.04, -.4, 0, 7); t.fill(); }
         else for (let f = 0; f < 4; f++){ const fx = x + C*(.2 + rr()*.6), fy = y + C*(.3 + rr()*.5); t.fillStyle = TP.dot[f % TP.dot.length]; for (let pe = 0; pe < 5; pe++){ t.beginPath(); t.arc(fx + Math.cos(pe*1.26)*C*.045, fy + Math.sin(pe*1.26)*C*.045, C*.035, 0, 7); t.fill(); } t.fillStyle = "#fff3bf"; t.beginPath(); t.arc(fx, fy, C*.025, 0, 7); t.fill(); } });
+      /* 🤝 친구마다 자기 자리: 색깔 마당 */
+      if (SH) LN.forEach((Lz, zz) => { const c = RD_PC[zz], x = Lz.ox*C + C*.05, y = Lz.oy*C + C*.05, w = Lz.w*C - C*.1, h = Lz.h*C - C*.1;
+        t.globalAlpha = .22; t.fillStyle = c; rrect(t, x, y, w, h, C*.3); t.fill(); t.globalAlpha = .9; t.strokeStyle = c; t.lineWidth = 3.5; t.setLineDash([C*.18, C*.1]); t.stroke(); t.setLineDash([]); t.globalAlpha = 1; });
       /* 🪨 동물 자리: 입체 받침돌 (앞줄 ⚔️ 따뜻한 테두리 · 뒷줄 🏹 시원한 테두리) */
       L.map.slots.forEach(([sx, sy], s) => { const [x, y] = cell(sx, sy), fr = L.front[s];
         t.fillStyle = "rgba(0,0,0,.22)"; rrect(t, x + C*.08, y + C*.2, C*.86, C*.8, C*.22); t.fill();
@@ -13288,10 +13304,12 @@ NG.defs.rd = () => {
   }
   /* 몬스터: 0 슬라임 · 1 😈 중간 보스 · 2 👑 보스 · 3 🟡 황금 슬라임(빨라요, 놓치면 도망) · 4 🎁 보물상자(느리고 단단) */
   const KSPD = kind => (kind === 2 ? 1.15 : kind === 1 ? 1.55 : kind === 3 ? 3.4 : kind === 4 ? .9 : 2.05 + Math.min(.6, wave*.012))/60;
-  /* 사람마다 자기 길이 있어서, 몬스터는 길마다 번갈아 나와요 (보스·중간 보스는 길마다 한 마리씩 나눠서) */
+  /* 같이 하기(SH)는 문 하나에서 모두 나와요 (보스는 한 마리, 대신 사람 수만큼 튼튼) */
   let laneRR = 0;
-  function spawn(kind, l){ if (l == null){ if (kind === 1 || kind === 2){ for (let q = 0; q < N; q++) spawn(kind, q); return; } l = laneRR++ % N; }
-    const h = hpAt(wave)*(kind === 2 ? 20*(1 + .5*(N - 1))/N : kind === 1 ? 10*(1 + .3*(N - 1))/N : kind === 3 ? 5 : kind === 4 ? 16 : 1);
+  function spawn(kind, l){ let one = 1;
+    if (SH){ l = 0; if (kind === 1 || kind === 2) one = N; }   // 🤝 같이 하기: 문 하나에서 나오고, 보스는 한 마리(대신 다 같이 튼튼)
+    else if (l == null){ if (kind === 1 || kind === 2){ for (let q = 0; q < N; q++) spawn(kind, q); return; } l = laneRR++ % N; }
+    const h = one*hpAt(wave)*(kind === 2 ? 20*(1 + .5*(N - 1))/N : kind === 1 ? 10*(1 + .3*(N - 1))/N : kind === 3 ? 5 : kind === 4 ? 16 : 1);
     const p0 = posAt(0, l); E.push({id: ++eid, kind, l, d: 0, tr: 0, hp: h, mhp: h, spd: KSPD(kind), slT: 0, slF: 0, stT: 0, x: p0[0], y: p0[1], f: R.f()*60|0}); }
   function setSky(){ const cv = $("#ngCanvas"); cv.style.backgroundImage = (bgURL ? `url(${bgURL}),` : "") + th().sky; cv.style.backgroundColor = "#1c1d52";
     if (bgURL){ cv.style.backgroundSize = `${COLS*C/W*100}% ${ROWS*C/H*100}%, 100% 100%`; cv.style.backgroundPosition = `${W > COLS*C ? BX/(W - COLS*C)*100 : 0}% ${H > ROWS*C ? BY/(H - ROWS*C)*100 : 0}%, 0 0`; cv.style.backgroundRepeat = "no-repeat"; } else { cv.style.backgroundSize = ""; cv.style.backgroundPosition = ""; } }
@@ -13399,7 +13417,7 @@ NG.defs.rd = () => {
       case "buffA": case "buffS": TB.push({z, x: sx, y: sy, ty: S.ty, t: 360}); break;
       case "push": inR.forEach(e => { const b = e.kind === 2 ? .8 : 2.5; e.d = Math.max(0, e.d - b); e.tr = Math.max(0, e.tr - b); }); did = inR.length > 0; break;
       case "storm": { const L = E.slice().sort(() => R.f() - .5).slice(0, 6); L.forEach(e => { hit(e, S.v); if (fxN.r < 14){ fxN.r++; FX.push({ring: 1, x: e.x, y: e.y, t: 16, c: "#a5d8ff", r: .7, k: 1}); } }); did = L.length > 0; break; }
-      case "quake": E.forEach(e => { if (N > 1 && e.l !== z) return; e.stT = Math.max(e.stT, e.kind === 2 ? 25 : 70); hit(e, S.v); }); break;
+      case "quake": E.forEach(e => { if (SH ? (e.x - sx)**2 + (e.y - sy)**2 > 9 : N > 1 && e.l !== z) return; e.stT = Math.max(e.stT, e.kind === 2 ? 25 : 70); hit(e, S.v); }); break;
     }
     if (!did) return;
     popAt(z, i, `${S.e} ${S.n}!`, RD_ROLE[A.ro].c, 1);
@@ -13413,7 +13431,7 @@ NG.defs.rd = () => {
     if (--waveT <= 0){ if (E.some(e => e.kind === 2)){ lose("👑 보스를 시간 안에 못 잡았어요"); return; } startWave(); }
     if (spawnLeft > 0 && --spawnT <= 0){ spawn(0); spawnLeft--; spawnT = 28; }
     const slw = 1 - slowAll(); Z.forEach(p => { if (p.fev > 0) p.fev--; }); if (TB.length) TB = TB.filter(b => --b.t > 0);
-    for (let i = E.length - 1; i >= 0; i--){ const e = E[i]; if (e.kind === 3 && e.tr > plOf(e.l)*1.5){ E.splice(i, 1); msFail("🟡 황금 슬라임이 도망갔어요!"); } }
+    for (let i = E.length - 1; i >= 0; i--){ const e = E[i]; if (e.kind === 3 && e.tr > plOf(e.l)*(SH ? 1 : 1.5)){ E.splice(i, 1); msFail("🟡 황금 슬라임이 도망갔어요!"); } }
     for (const e of E){ if (e.stT > 0){ e.stT--; } else { const v = e.spd*(e.slT > 0 ? 1 - e.slF : 1)*slw; e.d += v; e.tr += v; } if (e.slT > 0 && --e.slT === 0) e.slF = 0; const pp = posAt(e.d, e.l); e.x = pp[0]; e.y = pp[1]; e.f++; }
     attack(false);
     for (let i = E.length - 1; i >= 0; i--){ const e = E[i]; if (e.hp > 0) continue; E.splice(i, 1); kills++; msTick("kill");
@@ -13754,8 +13772,8 @@ const RDM = {
       </div>
       <button class="arc-btn rd-book-btn" id="rdBook">📖 동물 도감 보기 · 동물마다 힘·스킬·배치 요령</button></div>
       <div class="wb-sec"><h3>🧒 혼자 지키기 <small>최고 단계로 랭킹!</small></h3><button class="arc-btn p" id="rdSolo">▶ 시작!</button></div>
-      <div class="wb-sec"><h3>👫 이 기기에서 둘이 <small>한 화면에서 각자 칸을 지켜요 · 같은 점수로 기록</small></h3><button class="arc-btn p" id="rdDuo">👫 친구 들어오기</button></div>
-      <div class="wb-sec"><h3>🌐 온라인 함께 지키기 <small>각자 기기로 최대 4명 · ☁️ Firebase 반에서만</small></h3><div id="wbRooms"></div></div>`;
+      <div class="wb-sec"><h3>👫 이 기기에서 둘이 <small>한 길을 둘이 자기 자리에서 함께 지켜요 · 같은 점수로 기록</small></h3><button class="arc-btn p" id="rdDuo">👫 친구 들어오기</button></div>
+      <div class="wb-sec"><h3>🌐 온라인 함께 지키기 <small>각자 기기로 최대 4명 · 문 하나에서 나오는 몬스터를 다 같이 막아요 · ☁️ Firebase 반에서만</small></h3><div id="wbRooms"></div></div>`;
     $("#rdBook").onclick = () => RDB.open();
     body.querySelectorAll(".rd-gs span").forEach((el, i) => { el.style.cursor = "pointer"; el.title = "도감에서 보기"; el.onclick = () => { RDB.f = "g" + i; RDB.cur = RD_BY[i][0]; RDB.open(); }; });
     $("#rdSolo").onclick = () => { box.hidden = true; ARC.enter(); ARC.prep(); getAC(); NG.play("rd", [sidOf(me)]); };
@@ -14208,6 +14226,40 @@ const RD_MAPS = [
   {id: "wave",  n: "파도 계곡", m: ["...........", "PPPPP.PPPPP", "PSSSPSPSSSP", "P.S.PSP.S.P", "PSSSPPPSSSP", "P.S.H...S.P", "PPPPPPPPPPP"]}
 ];
 const RD_RING8 = {id: "ring8", n: "네모 마당", m: ["PPPPPPPP", "PSSSSSSP", "PSSSSSSP", "PSSSSSSP", "PPPPPPPP"]};
+/* 🤝 함께 지키기 광장 (2~4명): 몬스터는 🌀 문 한 곳에서 나와 큰 길 한 바퀴를 돌고,
+   친구마다 자기 자리(A·B·C·D, 18칸씩)에서 같은 길을 함께 지켜요. G = 몬스터 문(길의 시작) */
+const RD_CO4 = {id: "co4", n: "함께 지키기 광장", m: [
+  "PPPPPPPP.PPPPPPPP",
+  "PAAAAAAP.PBBBBBBP",
+  "PAAAAAAP.PBBBBBBP",
+  "PAAAAAAPPPBBBBBBP",
+  "G.......H.......P",
+  "PCCCCCCPPPDDDDDDP",
+  "PCCCCCCP.PDDDDDDP",
+  "PCCCCCCP.PDDDDDDP",
+  "PPPPPPPP.PPPPPPPP"]};
+const RD_CO2 = {id: "co2", n: "함께 지키기 마당", m: [
+  "PPPPPPPP.PPPPPPPP",
+  "PAAAAAAP.PBBBBBBP",
+  "GAAAAAAPPPBBBBBBP",
+  "PAAAAAA.H.BBBBBBP",
+  "PPPPPPPPPPPPPPPPP"]};
+function rdParseCo(M, tr, n){
+  let m = M.m; if (tr) m = Array.from({length: m[0].length}, (_, x) => m.map(r => r[x]).join(""));
+  const h = m.length, w = m[0].length, P = new Set(), D = [], key = (x, y) => x + "," + y, ZL = "ABCD".slice(0, n), zs = [...ZL].map(() => ({slots: []}));
+  let house = null, start = null;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){ const c = m[y][x];
+    if (c === "P" || c === "G"){ P.add(key(x, y)); if (c === "G") start = [x, y]; }
+    else if (c === "H") house = [x, y];
+    else if (ZL.includes(c)) zs[ZL.indexOf(c)].slots.push([x, y]);
+    else D.push([x, y]); }
+  const path = [start]; let prev = null, cur = start;
+  for (let guard = 0; guard < 999; guard++){ const nb = [[0, -1], [1, 0], [0, 1], [-1, 0]].map(([dx, dy]) => [cur[0] + dx, cur[1] + dy]).filter(c => P.has(key(c[0], c[1])) && !(prev && c[0] === prev[0] && c[1] === prev[1]));
+    const nx = nb[0]; if (!nx || (nx[0] === start[0] && nx[1] === start[1])) break; prev = cur; cur = nx; path.push(cur); }
+  const isF = ([x, y]) => { for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) if (P.has(key(x + dx, y + dy))) return true; return false; };
+  zs.forEach(Z => { Z.front = Z.slots.map(isF); const xs = Z.slots.map(c => c[0]), ys = Z.slots.map(c => c[1]); Z.box = [Math.min(...xs), Math.min(...ys), Math.max(...xs) + 1, Math.max(...ys) + 1]; });
+  return {id: M.id, n: M.n, w, h, path, deco: D, house, P, zones: zs, slots: zs.flatMap(Z => Z.slots), front: zs.flatMap(Z => Z.front)};
+}
 function rdParse(M, tr){
   let m = M.m; if (tr) m = Array.from({length: m[0].length}, (_, x) => m.map(r => r[x]).join(""));
   const h = m.length, w = m[0].length, at = (x, y) => (m[y] || "")[x] || " ", P = new Set(), S = [], D = [];
