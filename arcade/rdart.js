@@ -28,7 +28,17 @@ const RDA = {
     eagle:   {b: "#ffffff", b2: "#e3dfe8", f: "#ffffff", ear: "feather", beak: "#ffc300", hook: 1, brow: 1, body: "#8b5a2b"},
     dragon:  {b: "#38d9a9", b2: "#0ca678", f: "#fff3bf", ear: "horn", horn: "#ffe066", wing: "#20c997", nostril: 1, fang: 1},
     unicorn: {b: "#fff6ff", b2: "#eadcf5", f: "#ffffff", ear: "point", ein: "#ffc9e9", horn: "#ffd43b", maneR: 1, nose: "#ffadd2"},
-    trex:    {b: "#94d82d", b2: "#5c940d", f: "#e9fac8", ear: "spikeBack", teeth: 1, nostril: 1, arms: 1}
+    trex:    {b: "#94d82d", b2: "#5c940d", f: "#e9fac8", ear: "spikeBack", teeth: 1, nostril: 1, arms: 1},
+    /* 💠 초월 · 🔥 불멸 · 🌟 태초 (특별한 색과 날개·뿔) */
+    phoenix: {b: "#ff7a3d", b2: "#e8590c", f: "#ffe8cc", ear: "feather", beak: "#ffd43b", hook: 1, brow: 1, body: "#c92a2a", wing: "#ffa94d"},
+    kirin:   {b: "#ffe8a3", b2: "#f2c14e", f: "#fffbe6", ear: "point", ein: "#ffd6a5", horn: "#ff922b", maneR: 1, nose: "#e8590c", wing: "#fff3bf"},
+    levi:    {b: "#3b5bdb", b2: "#1c3faa", f: "#d0ebff", ear: "horn", horn: "#a5f3fc", spout: 1, smile: "wide", belly: 1},
+    bdragon: {b: "#4c3f73", b2: "#2a2140", f: "#d0bfff", ear: "horn", horn: "#c4b5fd", wing: "#7048e8", nostril: 1, fang: 1},
+    wtiger:  {b: "#f8f9fa", b2: "#dee2e6", f: "#ffffff", ear: "round", ein: "#74c0fc", nose: "#ff8fab", stripe: "#364fc7", snout: "#ffffff", wh: 1, wing: "#a5d8ff"},
+    nine:    {b: "#fff0f6", b2: "#f3d9fa", f: "#ffffff", ear: "point", ein: "#f783ac", nose: "#2b1d3a", cheek: "#ffffff", wh: 0, wing: "#fcc2d7"},
+    gdragon: {b: "#ffd43b", b2: "#f08c00", f: "#fff9db", ear: "horn", horn: "#ffffff", wing: "#ffe066", nostril: 1, fang: 1},
+    pegasus: {b: "#e7f5ff", b2: "#a5d8ff", f: "#ffffff", ear: "point", ein: "#b197fc", horn: "#ffe066", maneR: 1, nose: "#74c0fc", wing: "#ffffff"},
+    titan:   {b: "#7950f2", b2: "#4c2fb0", f: "#e5dbff", ear: "spikeBack", teeth: 1, nostril: 1, arms: 1, wing: "#b197fc"}
   },
   ell(t, x, y, rx, ry, a = 0){ t.beginPath(); t.ellipse(x, y, Math.max(.1, rx), Math.max(.1, ry), a, 0, Math.PI*2); },
   ol(t, w){ t.lineJoin = "round"; t.lineCap = "round"; t.lineWidth = w; t.strokeStyle = this.OL; t.stroke(); },
@@ -126,14 +136,16 @@ const RDA = {
   unitSpr(k, s){ return G2.spr(`rdu2${k}${s}`, s, s, t => {
       // 동물은 받침 위로 살짝 올려요
       const A = RD_A[k], g = A.g, G = RD_G[g], m = s/2, py = s*.88;
-      if (g >= 3){ t.fillStyle = BSA.rg(t, m, s*.5, s*.05, s*.52, [[0, g === 4 ? "rgba(255,170,235,.9)" : "rgba(255,226,120,.9)"], [1, "rgba(255,255,255,0)"]]); t.fillRect(0, 0, s, s);
-        t.save(); t.translate(m, s*.48); t.globalAlpha = .45; t.fillStyle = g === 4 ? "#fff0fa" : "#fff6cc"; for (let i = 0; i < 8; i++){ t.rotate(Math.PI/4); t.beginPath(); t.moveTo(0, 0); t.lineTo(s*.05, -s*.5); t.lineTo(-s*.05, -s*.5); t.closePath(); t.fill(); } t.restore(); t.globalAlpha = 1; }
+      const AU = g >= 5 ? G.c + "e6" : g === 4 ? "rgba(255,170,235,.9)" : "rgba(255,226,120,.9)";
+      if (g >= 3){ t.fillStyle = BSA.rg(t, m, s*.5, s*.05, s*.52, [[0, AU], [1, "rgba(255,255,255,0)"]]); t.fillRect(0, 0, s, s);
+        t.save(); t.translate(m, s*.48); t.globalAlpha = g >= 5 ? .7 : .45; t.fillStyle = g >= 5 ? G.c2 : g === 4 ? "#fff0fa" : "#fff6cc"; for (let i = 0; i < 8; i++){ t.rotate(Math.PI/4); t.beginPath(); t.moveTo(0, 0); t.lineTo(s*.05, -s*.5); t.lineTo(-s*.05, -s*.5); t.closePath(); t.fill(); } t.restore(); t.globalAlpha = 1; }
       this.ell(t, m, py + s*.035, s*.38, s*.085); t.fillStyle = "rgba(0,0,0,.28)"; t.fill();
       const top = g === 0 ? ["#f1d5ad", "#b98a55"] : [G.c2, G.c];
       this.ell(t, m, py, s*.36, s*.085); t.fillStyle = BSA.lg(t, 0, py - s*.085, 0, py + s*.085, [[0, top[0]], [1, top[1]]]); t.fill(); this.ol(t, Math.max(1.2, s*.022));
       this.ell(t, m, py - s*.015, s*.27, s*.045); t.fillStyle = "rgba(255,255,255,.45)"; t.fill();
-      if (g >= 1){ t.fillStyle = g === 4 ? "#ff6b9a" : "#ffd43b"; for (let i = 0; i < g; i++){ this.star(t, m + (i - (g - 1)/2)*s*.1, py + s*.005, s*.04); t.fill(); this.ol(t, 1); } }
-      if (g === 4){ t.lineWidth = s*.04; const cg = t.createConicGradient ? t.createConicGradient(0, m, s*.1) : null;
+      if (g >= 1){ t.fillStyle = g >= 5 ? G.c : g === 4 ? "#ff6b9a" : "#ffd43b"; const ns = Math.min(g, 5); for (let i = 0; i < ns; i++){ this.star(t, m + (i - (ns - 1)/2)*s*.1, py + s*.005, s*.04); t.fill(); this.ol(t, 1); } }
+      if (g >= 5){ t.save(); t.strokeStyle = G.c; t.lineWidth = s*.03; t.shadowColor = G.c; t.shadowBlur = s*.08; for (let k = 0; k < g - 4; k++){ this.ell(t, m, s*.48, s*(.42 + k*.04), s*(.18 + k*.02), -.2 + k*.3); t.stroke(); } t.restore(); }
+      if (g >= 4){ t.lineWidth = s*.04; const cg = t.createConicGradient ? t.createConicGradient(0, m, s*.1) : null;
         if (cg){ ["#ff6b6b", "#ffd43b", "#69db7c", "#4dabf7", "#cc5de8", "#ff6b6b"].forEach((c, i) => cg.addColorStop(i/5, c)); t.strokeStyle = cg; } else t.strokeStyle = "#ffd43b";
         this.ell(t, m, s*.1, s*.2, s*.055); t.stroke(); }
       t.save(); t.translate(s*.04, -s*.02); this.animal(t, k, s*.92, g); t.restore();
@@ -210,7 +222,21 @@ const RD_REL = {
   slow:  {e: "🐢", n: "끈적끈적 길",   d: "몬스터가 10% 느려져요", max: 3},
   gem:   {e: "💎", n: "보석 광산",     d: "보스 💎+2 · 중간 보스 💎+1"},
   bag:   {e: "🎒", n: "큰 가방",       d: "아이템 칸 +2 · 아이템 2개 바로!", max: 2},
-  cheap: {e: "🛠️", n: "대장장이",      d: "강화 비용 -25%", max: 2}
+  cheap: {e: "🛠️", n: "대장장이",      d: "강화 비용 -25%", max: 2},
+  /* 🆕 빌드 유물: 무엇을 고르느냐에 따라 키울 동물·배치가 달라져요 */
+  melee: {e: "🗡️", n: "용사의 검",     d: "⚔️ 근거리 동물 공격 +50%"},
+  ranged:{e: "🎯", n: "명사수 화살통", d: "🏹 원거리 동물 공격 +50%"},
+  support:{e: "🪄", n: "현자의 지팡이", d: "✨ 지원 동물 공격 +80% · 응원 효과 1.5배"},
+  chain: {e: "⛓️", n: "번개 사슬",     d: "공격이 옆 몬스터에게 1번 더 튕겨요", max: 3},
+  burn:  {e: "🔥", n: "불씨 주머니",   d: "맞은 몬스터가 3초 동안 불타요", max: 3},
+  skill: {e: "🌟", n: "기력의 샘",     d: "스킬 기력이 30% 빨리 차요", max: 3},
+  frost: {e: "🧊", n: "서리 발톱",     d: "공격할 때 8% 확률로 몬스터를 얼려요", max: 3},
+  lucky: {e: "🍀", n: "행운의 합치기", d: "합칠 때마다 25% 확률로 금 보너스"},
+  greed: {e: "🤑", n: "욕심쟁이 지갑", d: "몬스터를 잡으면 금 2배", max: 2},
+  glass: {e: "💥", n: "유리 대포",     d: "모든 공격 +70% · 대신 몬스터 한도 -15", max: 2},
+  guard: {e: "🛡️", n: "수호 방패",     d: "몬스터 한도 +25 (더 많이 버텨요)", max: 3},
+  myth:  {e: "🌈", n: "신화의 숨결",   d: "🌈신화 이상 동물 공격 +60%"},
+  sync:  {e: "🤝", n: "찰떡 친구",     d: "같은 동물끼리 붙어 있을 때 힘 2배"}
 };
 const RD_IT = {
   bomb:   {e: "💣", n: "폭탄",       d: "모든 몬스터 체력 -30% (보스 -6%)"},
@@ -281,7 +307,10 @@ const RD_MAPS = [
   {id: "bend",  n: "구불 언덕", m: ["...........", ".PPPPPPPPP.", ".PSSS.SSSP.", "SPSSPPPSSPS", ".PSSPSPSSP.", ".PPPPSPPPP.", ".....H....."]},
   {id: "isle",  n: "쌍둥이 섬", m: [".....H.....", ".PPPP.PPPP.", ".PSSPSPSSP.", ".PSSPSPSSP.", ".PSSPPPSSP.", ".PSS...SSP.", ".PPPPPPPPP."]},
   {id: "cross", n: "십자 광장", m: ["...PPPPP...", ".PPPS.SPPP.", ".PSSS.SSSP.", ".PS.SHS.SP.", ".PSSS.SSSP.", ".PPP...PPP.", "...PPPPP..."]},
-  {id: "wave",  n: "파도 계곡", m: ["...........", "PPPPP.PPPPP", "PSSSPSPSSSP", "P.S.PSP.S.P", "PSSSPPPSSSP", "P.S.H...S.P", "PPPPPPPPPPP"]}
+  {id: "wave",  n: "파도 계곡", m: ["...........", "PPPPP.PPPPP", "PSSSPSPSSSP", "P.S.PSP.S.P", "PSSSPPPSSSP", "P.S.H...S.P", "PPPPPPPPPPP"]},
+  /* 🆕 길이 두 번 휘어 들어와 '목 좋은 자리'가 생기는 맵 — 어디에 누구를 둘지 고민해요 */
+  {id: "maze",  n: "미로 성채", m: ["PPPPP.PPPPP", "PSSSP.PSSSP", "P.S.PPP.S.P", "P.S..H..S.P", "P.S.PPP.S.P", "PSSSP.PSSSP", "PPPPP.PPPPP"]},
+  {id: "crown", n: "왕관 언덕", m: ["..PPPPPPP..", "..PSSSSSP..", "PPP.SHS.PPP", "PSSS...SSSP", "P....S....P", "PSS.....SSP", "PPPPPPPPPPP"]}
 ];
 const RD_RING8 = {id: "ring8", n: "네모 마당", m: ["PPPPPPPP", "PSSSSSSP", "PSSSSSSP", "PSSSSSSP", "PPPPPPPP"]};
 /* 🤝 함께 지키기 광장 (2~4명): 몬스터는 🌀 문 한 곳에서 나와 큰 길 한 바퀴를 돌고,
@@ -399,11 +428,20 @@ const RD_SK = {
   eagle:   {ro: "r", sk: {e: "🌪️", n: "회오리",      d: "어디든 몬스터 6마리에 3배",       mp: 9,  ty: "storm", v: 3}},
   dragon:  {ro: "r", sk: {e: "🐉", n: "용의 숨결",   d: "거리 안 몬스터 모두 6배",         mp: 10, ty: "all", v: 6}},
   unicorn: {ro: "s", sk: {e: "🌈", n: "무지개 축복", d: "옆 친구들 공격 속도 2배 (6초)",   mp: 10, ty: "buffS"}},
-  trex:    {ro: "m", sk: {e: "🦖", n: "대지 진동",   d: "길 위 몬스터 모두 기절 + 4배",    mp: 12, ty: "quake", v: 4}}
+  trex:    {ro: "m", sk: {e: "🦖", n: "대지 진동",   d: "길 위 몬스터 모두 기절 + 4배",    mp: 12, ty: "quake", v: 4}},
+  phoenix: {ro: "r", sk: {e: "🔥", n: "부활의 불꽃", d: "거리 안 몬스터 모두 8배 + 불태우기", mp: 9,  ty: "burn", v: 8}},
+  kirin:   {ro: "s", sk: {e: "✨", n: "신수의 가호", d: "주변 친구 공격 ×2 (8초)",            mp: 10, ty: "buffA2"}},
+  levi:    {ro: "r", sk: {e: "🌊", n: "대해일",      d: "길 위 몬스터 모두 뒤로 + 4배",        mp: 11, ty: "tsunami", v: 4}},
+  bdragon: {ro: "r", sk: {e: "🌑", n: "흑염",        d: "맵 위 몬스터 모두 6배",               mp: 11, ty: "nova", v: 6}},
+  wtiger:  {ro: "m", sk: {e: "⚡", n: "백뢰",        d: "번개가 12마리를 튕기며 5배",           mp: 9,  ty: "chain", v: 5, n2: 12}},
+  nine:    {ro: "r", sk: {e: "🔮", n: "여우 구슬",   d: "구슬 9개가 앞선 몬스터부터 7배",       mp: 9,  ty: "pick", v: 7, n2: 9}},
+  gdragon: {ro: "r", sk: {e: "🌟", n: "천지개벽",    d: "모든 몬스터 10배 + 기절",              mp: 12, ty: "nova", v: 10, stn: 1}},
+  pegasus: {ro: "s", sk: {e: "🌈", n: "하늘의 축복", d: "모든 친구 공격 ×2 · 속도 ×2 (6초)",    mp: 12, ty: "bless"}},
+  titan:   {ro: "m", sk: {e: "🌍", n: "대지 분쇄",   d: "길 위 몬스터 기절 + 12배",             mp: 12, ty: "quake", v: 12}}
 };
 /* 근거리는 길 바로 옆에서만 닿는 대신 더 세게 · 원거리는 멀리서 */
 Object.entries(RD_SK).forEach(([k, v]) => { const A = RD_A[k]; if (!A) return; A.ro = v.ro; A.sk = v.sk;
-  if (v.ro === "m"){ A.r = k === "trex" ? 1.7 : 1.5; A.d = Math.round(A.d*1.5); }
+  if (v.ro === "m"){ A.r = k === "trex" || k === "titan" ? 1.7 : 1.5; A.d = Math.round(A.d*1.5); }
   else if (v.ro === "r") A.r = Math.max(2.6, A.r + .4);
   else A.r = Math.max(2.3, A.r); });
 
