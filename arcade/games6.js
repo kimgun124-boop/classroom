@@ -426,7 +426,10 @@ NG.defs.rd = () => {
   let TB = [];   // 🦁 포효 · 🦄 무지개 축복 (잠깐 동안 옆 친구들 응원)
   function tbAt(z, x, y){ const o = {a: 1, s: 1}; for (const b of TB){ if (b.ty === "bless"){ o.a = Math.max(o.a, 2); o.s = 2; continue; } if (b.z !== z || (b.x - x)**2 + (b.y - y)**2 > 2.3*2.3) continue; if (b.ty === "buffA") o.a = Math.max(o.a, 1.5); else if (b.ty === "buffA2") o.a = Math.max(o.a, 2); else o.s = 2; } return o; }
   /* ✨ 스킬 이펙트 (스킬마다 다른 모양) */
-  function skillFx(S, A, sx, sy, R0, inR, front){ const c = RD_G[A.g].c, add = f => { if (FX.length < 220) FX.push(f); if (party === "host") NQ.push(["x", JSON.stringify(f)]); };
+  /* ⚡ 큰 스킬 그림(폭발·번쩍·기둥·광선)은 한꺼번에 5개까지만 → 동물이 많아도 화면이 버벅이지 않아요 */
+  const bigFx = f => f.nova || f.flash || f.pillar || f.beam || f.ice;
+  const fxOK = f => FX.length < 200 && (!bigFx(f) || FX.reduce((a, o) => a + (bigFx(o) ? 1 : 0), 0) < 5);
+  function skillFx(S, A, sx, sy, R0, inR, front){ const c = RD_G[A.g].c, add = f => { if (!fxOK(f)) return; FX.push(f); if (party === "host" && NQ.length < 40) NQ.push(["x", JSON.stringify(f)]); };
     const ty = S.ty;
     if (ty === "all" || ty === "burn" || ty === "stun") add({nova: 1, x: sx, y: sy, t: 34, c: ty === "burn" ? "#ff922b" : c, r: R0});
     else if (ty === "freeze") { add({nova: 1, x: sx, y: sy, t: 34, c: "#a5d8ff", r: R0}); inR.slice(0, 10).forEach(e => add({ice: 1, x: e.x, y: e.y, t: 40})); }
@@ -526,7 +529,7 @@ NG.defs.rd = () => {
       else if (k === "t"){ if (isMine(e[1])) FX.push({tx: e[2], x: W/2, y: H - BOTH - 26, t: 90, c: "#fff", ui: 1}); }
       else if (k === "p"){ const [x, y] = slotXY(e[1], e[2]); FX.push({tx: e[3], x, y: y - .4, t: e[5] ? 50 : 70, c: e[4], cell: 1, nb: e[5]}); }
       else if (k === "r") FX.push({ring: 1, x: e[1], y: e[2], t: 26, c: e[3], r: 1.4});
-      else if (k === "x"){ try { if (FX.length < 220) FX.push(JSON.parse(e[1])); } catch(er){} }
+      else if (k === "x"){ try { const f = JSON.parse(e[1]); if (fxOK(f)) FX.push(f); } catch(er){} }
       else if (k === "e"){ if (!isMine(e[1])) emShow(e[1], e[2], e[3], e[4]); } }); return; }
     const s = d.s; if (!s) return;
     if (s.w !== wave){ const nt = Math.floor((s.w - 1)/10) !== Math.floor((Math.max(1, wave) - 1)/10); wave = s.w; if (nt){ remap(); layerKey = ""; setSky(); } }
@@ -677,6 +680,7 @@ NG.defs.rd = () => {
     // 🚨 마을이 위험하면 화면 가장자리가 빨갛게
     { const r = E.length/LIMIT; if (r > .55){ const a = Math.min(1, (r - .55)/.35)*(.55 + Math.sin(fr*.18)*.25); g.globalAlpha = a; G2.put(g, sp(`vig${W}x${H}`, W, H, t => { const gr = t.createRadialGradient(W/2, H/2, Math.min(W, H)*.35, W/2, H/2, Math.max(W, H)*.65); gr.addColorStop(0, "rgba(255,0,40,0)"); gr.addColorStop(1, "rgba(255,0,40,.75)"); t.fillStyle = gr; t.fillRect(0, 0, W, H); }), 0, 0); g.globalAlpha = 1; } }
     emDraw(g, fr); drawTop(g, fr); drawBottom(g); bagDraw(g); drawMission(g, fr);
+    if (party === "guest" && performance.now() - (PARTY.rxT || 0) > 2500){ g.fillStyle = "rgba(10,6,30,.55)"; g.fillRect(0, H/2 - 60, W, 120); outlined(g, "📡 방장 화면을 받고 있어요…", W/2, H/2 - 6, 38, "#ffe066"); outlined(g, PARTY.hp && PARTY.hp.relay ? "☁️ 다리(저장소)로 연결 중 · 잠깐만 기다려요" : "자동으로 다시 이어요 · 나가지 말고 기다려요", W/2, H/2 + 36, 22, "#fff"); }
     if (banner && banner.k > 0){ g.globalAlpha = Math.min(1, banner.k/18); outlined(g, banner.t, W/2, BY + ROWS*C*.42, land ? 60 : 50, banner.c || "#fff"); if (banner.s) outlined(g, banner.s, W/2, BY + ROWS*C*.42 + 52, 26, "#ffe066"); g.globalAlpha = 1; }
     pickDraw(g);
   }
@@ -859,7 +863,7 @@ NG.defs.rd = () => {
       else if (!(RDB.isOpen && !party)) for (let i = 0; i < speed; i++) sim();
       if (!party && state === "play" && ++saveT % 180 === 0) saveGame();
       emStep();   // 📖 도감 보는 동안 잠깐 멈춤 (혼자·둘이)
-      if (party === "host" && frame % 4 === 0) PARTY.sendSnap(snap(), NQ.splice(0), gv);
+      if (party === "host" && frame % (N >= 4 || E.length > 120 ? 6 : 4) === 0) PARTY.sendSnap(snap(), NQ.splice(0), gv);   // 사람·몬스터가 많으면 조금 덜 자주(친구 기기가 알아서 부드럽게 이어 그려요)
     },
     draw, down, move, up,
     key(code, d, e){
@@ -938,17 +942,26 @@ const RDM = {
   NG.close = function(){ try { if (this.gid === "rd" && this.cur && this.cur.save) this.cur.save(); } catch(e){} if (typeof RDB !== "undefined" && RDB.isOpen) RDB.close(); return close.apply(this, arguments); };
   const again = NG.again;
   NG.again = function(){ if (this.gid === "rd"){ if (this.opt.party){ if (this.opt.party === "host") PARTY.again(); return; } RDS.del(this.sids); return this.play("rd", this.sids, Object.assign({}, this.opt, {seed: 0, resume: 0})); } return again.call(this); };
-  PARTY.CFG.rd = {max: 6, bots: 0, min: 2};
+  PARTY.CFG.rd = {max: 6, bots: 0, min: 2, relay: 1};
   const start = PARTY.start;
   PARTY.start = function(again){
     if (this.gid !== "rd") return start.call(this, again);
     if (this.role !== "host") return;
+    /* 🔌 아직 연결 중인 친구가 있으면 최대 10초 기다려요 (그 사이 다리로 이어질 수도 있어요) → 아무도 빠지지 않게 */
+    const pend = () => [...this.peers.values()].filter(P => !P.open).length;
+    if (!again && pend() && !this.waitT0){ this.waitT0 = Date.now(); toast(`🔌 연결 중인 친구 ${pend()}명을 기다렸다가 시작해요…`);
+      const tick = () => { if (this.role !== "host" || this.started){ this.waitT0 = 0; return; } if (!pend() || Date.now() - this.waitT0 > 10000){ this.waitT0 = 0; this.waitT = 0; PARTY.start(); } else this.waitT = setTimeout(tick, 400); };
+      this.waitT = setTimeout(tick, 400); return; }
+    if (this.waitT0 && !again) return;
     const live = this.connected().map(p => p.no);
     this.members = [ARC.me].concat(this.members.filter(no => no !== ARC.me && live.includes(no))).slice(0, this.MAX);
     const M = this.members; if (M.length < 2){ toast("친구가 1명 이상 들어와야 시작할 수 있어요"); this.renderRooms(); return; }
     this.started = true; Store.fs.updateDoc(this.ref(this.pid), {st: "play", n: M.length}).catch(() => {});
     const sids = M.map(sidOf), seed = Math.floor(Math.random()*1e9) + 1, remote = {};
+    this.startMsg = {t: "start", g: "rd", sids, seed};
     M.forEach((no, i) => { if (i){ const P = this.peers.get(no); if (P){ P.idx = i; P.inN = 0; P.last = {}; remote[i] = no; this.send(P, {t: "start", g: "rd", sids, idx: i, seed}); } } });
+    /* 시작 쪽지를 놓친 친구가 없게 2초마다 3번 더 보내요 (이미 같은 판이면 친구 기기는 그대로 둬요) */
+    [2000, 4000, 7000].forEach(ms => setTimeout(() => { if (this.role !== "host" || !this.startMsg || this.startMsg.seed !== seed) return; M.forEach((no, i) => { const P = i && this.peers.get(no); if (P) this.send(P, {t: "start", g: "rd", sids, idx: i, seed}); }); }, ms));
     this.seq = 0; this.lastGv = -1; const md = $("#mdWb"); if (md) md.hidden = true;
     if (!again){ ARC.game = "rd"; ARC.enter(); ARC.prep(); }
     getAC(); NG.play("rd", sids, {party: "host", local: [0], remote, seed});

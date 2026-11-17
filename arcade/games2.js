@@ -580,7 +580,7 @@ async function wbLoss(gid, l){ const R = Store.recs[gid] = Store.recs[gid] || {}
    ===================================================================== */
 const PARTY = {
   role: null, pid: null, host: null, peers: new Map(), un: [], game: null, gridFn: null, input: {d: 0, b: 0}, inT: 0, inSig: "",
-  rooms: [], unRooms: null, inN: 0, lastB: 0, bots: 0, lv: 1, seq: 0, inSeq: 0, lastGv: -1, ngT: 0, beat: 0, conT: 0, members: [], started: false, myIdx: 0, startMsg: null,
+  rooms: [], unRooms: null, inN: 0, rxT: 0, wdT: 0, rly: null, waitT: 0, lastB: 0, bots: 0, lv: 1, seq: 0, inSeq: 0, lastGv: -1, ngT: 0, beat: 0, conT: 0, members: [], started: false, myIdx: 0, startMsg: null,
   gid: "wb", CFG: {wb: {max: 6, bots: 1, min: 2}, bs: {max: 4, bots: 0, min: 2}},
   get MAX(){ return this.CFG[this.gid].max; },
   use(gid){ if (this.role && this.gid !== gid) this.leave(); this.gid = gid; },
@@ -648,19 +648,20 @@ const PARTY = {
     } catch(e){ console.error(e); toast("⚠️ 방을 만들지 못했어요. 인터넷을 확인해 주세요."); this.leave(); this.renderRooms(); }
   },
   async onPeerDoc(type, id, d){
-    if (this.role !== "host") return;
+    if (this.role !== "host" || id === "_relay") return;
     const no = +id;
-    if (type === "removed"){ this.drop(no); return; }
+    if (type === "removed"){ if (!this.started) this.drop(no); return; }
     let P = this.peers.get(no);
+    if (d.st === "relay" && this.CFG[this.gid].relay){ this.relayPeer(no, d); return; }
     if (!P && d.st === "knock"){
       if (this.started || this.members.length + this.peers.size - this.connected().length >= this.MAX){ Store.fs.updateDoc(this.ref(this.pid, "peers", id), {st: "full"}).catch(() => {}); return; }
       const pc = new RTCPeerConnection({iceServers: this.ice()});
       P = {no, pc, u: pc.createDataChannel("u", {ordered: false, maxRetransmits: 0}), r: pc.createDataChannel("r"), last: {d: 0, b: 0}, open: false, idx: -1};
       this.peers.set(no, P); this.wirePeer(P);
-      pc.onconnectionstatechange = () => { const s = pc.connectionState; if (s === "failed" || s === "closed") this.drop(no); else if (s === "disconnected") setTimeout(() => { if (pc.connectionState === "disconnected") this.drop(no); }, 5000); };
+      pc.onconnectionstatechange = () => { const s = pc.connectionState; if (s === "failed" || s === "closed") this.drop(no, P); else if (s === "disconnected") setTimeout(() => { if (pc.connectionState === "disconnected") this.drop(no, P); }, 5000); };
       try { await pc.setLocalDescription(await pc.createOffer()); await this.gather(pc);
         await Store.fs.updateDoc(this.ref(this.pid, "peers", id), {st: "offer", offer: this.sd(pc.localDescription)}); }
-      catch(e){ console.warn(e); this.drop(no); }
+      catch(e){ console.warn(e); this.drop(no, P); }
       return;
     }
     if (P && d.answer && !P.pc.remoteDescription){ try { await P.pc.setRemoteDescription(d.answer); } catch(e){ console.warn(e); this.drop(no); } }
@@ -674,17 +675,17 @@ const PARTY = {
     const onMsg = e => { let m; try { m = JSON.parse(e.data); } catch(er){ return; }
       if (m.t === "in"){ if ((m.n || 0) > (P.inN || 0)){ P.inN = m.n; P.last = m; } }
       else if (m.t === "ng"){ if (this.gridFn) this.send(P, this.gridFn()); }
-      else if (m.t === "bye") this.drop(P.no); };
+      else if (m.t === "bye") this.drop(P.no, P); };
     P.r.onmessage = onMsg; P.u.onmessage = onMsg;
-    P.r.onclose = () => this.drop(P.no);
+    P.r.onclose = () => this.drop(P.no, P);
   },
   connected(){ return [...this.peers.values()].filter(p => p.open && p.r.readyState === "open"); },
-  drop(no){
-    const P = this.peers.get(no); if (!P) return; this.peers.delete(no);
+  drop(no, P0){
+    const P = this.peers.get(no); if (!P || (P0 && P !== P0)) return; this.peers.delete(no);
     try { P.pc.close(); } catch(e) {}
     if (!this.started){ this.members = this.members.filter(x => x !== no); this.lobbyMsg(); this.renderRooms(); }
     else if (P.idx >= 0){ toast(`🔌 ${who(no)} 연결이 끊겨서 🤖 컴퓨터가 대신해요`); if (this.game) this.game.dropIdx(P.idx); }
-    if (this.pid) Store.fs.deleteDoc(this.ref(this.pid, "peers", String(no))).catch(() => {});
+    if (this.pid && !(this.started && this.CFG[this.gid].relay)) Store.fs.deleteDoc(this.ref(this.pid, "peers", String(no))).catch(() => {});
   },
   send(P, m){ try { const ch = m.t === "s" ? P.u : P.r; if (ch.readyState === "open") ch.send(typeof m === "string" ? m : JSON.stringify(m)); } catch(e) {} },
   sendAll(m){ const s = JSON.stringify(m); this.connected().forEach(P => { try { (m.t === "s" ? P.u : P.r).send(s); } catch(e) {} }); },
@@ -721,11 +722,63 @@ const PARTY = {
   again(){ this.start(true); },
   attach(game, gridFn){ this.game = game; this.gridFn = gridFn; this.seq = 0; this.inSeq = 0; this.lastGv = -1; this.input = {d: 0, b: this.input.b || 0}; },
   readInputs(IN){ this.peers.forEach(P => { if (P.idx >= 0 && IN[P.idx]){ const open = P.r.readyState === "open"; IN[P.idx].d = open ? P.last.d : 0; IN[P.idx].b = P.last.b; } }); },
+  /* 📡 화면 정보: 크면(몬스터가 많으면) 꼭 도착하는 통로로, 친구 기기가 밀려 있으면 이번 장면은 건너뛰어요(다음 장면이 최신이라 괜찮아요) */
   sendSnap(s, ev, gv){
     if (gv !== this.lastGv && this.gridFn){ this.lastGv = gv; this.sendAll(this.gridFn()); }
     if (ev.length) this.sendAll({t: "ev", ev});
-    this.sendAll({t: "s", n: ++this.seq, s});
+    const str = JSON.stringify({t: "s", n: ++this.seq, s}), big = str.length > 900;
+    this.connected().forEach(P => { const ch = P.relay ? P.r : big ? P.r : P.u; if (!ch || ch.readyState !== "open" || ch.bufferedAmount > 48000) return; try { ch.send(str); } catch(e) {} });
   },
+  /* ======== ☁️ 다리(릴레이): 기기끼리 바로 못 이으면(학교 와이파이 등) Firebase 저장소를 거쳐 주고받아요 ======== */
+  relayPeer(no, d){
+    let P = this.peers.get(no);
+    if (P && !P.relay){ this.peers.delete(no); const pc = P.pc; setTimeout(() => { try { pc.close(); } catch(e) {} }, 0); P = null; }
+    if (!P){
+      const ch = {readyState: "open", bufferedAmount: 0, send: str => this.rlyPut(no, str)};
+      P = {no, relay: true, open: true, r: ch, u: ch, last: {}, inN: 0, idx: -1, ngK: 0}; this.peers.set(no, P);
+      if (this.started){ const i = this.members.indexOf(no); if (i <= 0){ this.rlyPut(no, '{"t":"full"}'); this.peers.delete(no); return; }
+        P.idx = i; if (this.startMsg) this.rlyPut(no, JSON.stringify(Object.assign({}, this.startMsg, {idx: i}))); this.lastGv = -1; toast(`☁️ ${who(no)} 기기는 다리(저장소)로 이어졌어요`); }
+      else { if (!this.members.includes(no)){ if (this.members.length >= this.MAX){ this.rlyPut(no, '{"t":"full"}'); this.peers.delete(no); return; } this.members.push(no); } this.lobbyMsg(); this.renderRooms(); }
+      this.rlyStart();
+    }
+    if (d.in){ try { const m = JSON.parse(d.in); if ((m.n || 0) > (P.inN || 0)){ P.inN = m.n; P.last = m; } } catch(e) {} }
+    if ((d.ng || 0) > P.ngK){ P.ngK = d.ng; if (this.gridFn) this.rlyPut(no, JSON.stringify(this.gridFn())); }
+    if (d.bye) this.drop(no);
+  },
+  rlyPut(no, str){ const R = this.rly || (this.rly = {log: [], k: 0, s: "", n: 0, dirty: false, t: 0}); R.dirty = true;
+    if (str.startsWith('{"t":"s"')){ R.s = str; R.n++; return; }
+    if (str.startsWith('{"t":"ev"')){ try { const ev = JSON.parse(str).ev.filter(e => !["x", "s", "r"].includes(e[0])); if (!ev.length) return; str = JSON.stringify({t: "ev", ev}); } catch(e){ return; } }   // 다리로는 반짝이·소리는 빼고 꼭 필요한 알림만
+    const t = (str.match(/^\{"t":"(\w+)"/) || [])[1];
+    if (t === "grid" || t === "lobby") R.log = R.log.filter(e => !(e.t === t && e.to.length === 1 && e.to[0] === no));   // 판·대기실은 최신 것만
+    const last = R.log[R.log.length - 1];
+    if (last && last.m === str && !last.sent) last.to.push(no); else R.log.push({k: ++R.k, to: [no], m: str, t});
+    const now = Date.now(); R.log = R.log.filter(e => !e.sent || now - e.sent < 8000).slice(-80); },
+  rlyStart(){ if (this.rly && this.rly.timer) return; this.rlyPut(-1, '{"t":"hi"}');
+    this.rly.timer = setInterval(() => this.rlyFlush(), 900); },
+  rlyFlush(){ const R = this.rly; if (!R || !R.dirty || !this.pid || this.role !== "host" || R.busy) return; R.dirty = false; R.busy = true;
+    const now = Date.now(); R.log.forEach(e => { if (!e.sent) e.sent = now; });
+    Store.fs.setDoc(this.ref(this.pid, "peers", "_relay"), {at: Date.now(), n: R.n, s: R.s, log: JSON.stringify(R.log.map(e => [e.k, e.to, e.m]))}).catch(e => { console.warn(e); R.dirty = true; }).finally(() => { R.busy = false; }); },
+  rlyStop(){ if (this.rly){ clearInterval(this.rly.timer); this.rly = null; } },
+  /* 친구 쪽: 다리로 들어가기 */
+  relayJoin(){
+    if (this.role !== "guest" || (this.hp && this.hp.relay) || !this.pid) return;
+    const old = this.hp; if (old){ try { old.pc.close(); } catch(e) {} }
+    const fs = Store.fs, me = ARC.me, myRef = this.ref(this.pid, "peers", String(me)), H = this.hp = {relay: true, k: 0, n: -1, out: null, ng: 0, outT: 0};
+    const flush = () => { if (this.hp !== H || !H.out) return; const o = H.out; H.out = null; H.outT = Date.now(); fs.setDoc(myRef, Object.assign({no: me, st: "relay", at: Date.now()}, o), {merge: true}).catch(() => {}); };
+    const ch = {readyState: "open", bufferedAmount: 0, send: str => { if (this.hp !== H) return; const m = JSON.parse(str); H.out = H.out || {};
+      if (m.t === "in") H.out.in = str; else if (m.t === "ng") H.out.ng = ++H.ng; else if (m.t === "bye") H.out.bye = 1;
+      const wait = Math.max(0, 700 - (Date.now() - H.outT)); clearTimeout(H.ft); H.ft = setTimeout(flush, m.t === "bye" ? 0 : wait); }};
+    H.u = H.r = ch;
+    fs.setDoc(myRef, {no: me, st: "relay", at: Date.now()}).catch(() => {});
+    this.un.push(fs.onSnapshot(this.ref(this.pid, "peers", "_relay"), s => { if (this.hp !== H || !s.exists()) return; const d = s.data(); let L = [];
+      try { L = JSON.parse(d.log || "[]"); } catch(e) {}
+      L.forEach(([k, to, m]) => { if (k > H.k){ H.k = k; if (to.includes(me)) try { this.onHost(JSON.parse(m)); } catch(e) {} } });
+      if (d.s && d.n !== H.n){ H.n = d.n; try { this.onHost(JSON.parse(d.s)); } catch(e) {} } }, () => {}));
+    clearTimeout(this.conT); this.renderRooms(); toast("☁️ 와이파이 직접 연결이 안 돼서 다리(저장소)로 이어요. 조금 느려도 함께할 수 있어요!");
+  },
+  canRelay(){ return !!(this.CFG[this.gid] && this.CFG[this.gid].relay); },
+  /* 연결이 끊기면: 다리로 다시 이어요 (다리를 못 쓰는 게임만 나가요) */
+  lost(msg){ if (this.role !== "guest") return; if (this.canRelay() && !(this.hp && this.hp.relay)) this.relayJoin(); else if (!this.canRelay()) this.hostGone(msg); },
 
   /* ---------- 친구 ---------- */
   async join(pid, host){
@@ -737,25 +790,28 @@ const PARTY = {
       this.un.push(fs.onSnapshot(myRef, s => this.onMyDoc(s.exists() ? s.data() : null), () => {}));
       this.un.push(fs.onSnapshot(this.ref(pid), s => { const d = s.exists() ? s.data() : null; if (this.role !== "guest") return;
         if (!d || d.st === "closed"){ this.hostGone("방장이 방을 닫았어요"); } }, () => {}));
-      clearTimeout(this.conT); this.conT = setTimeout(() => { if (this.role === "guest" && !this.on()) this.hostGone("🔌 방장 기기와 연결되지 않았어요. 같은 와이파이인지 확인하고 다시 해 보세요."); }, 20000);
+      clearTimeout(this.conT); this.conT = setTimeout(() => { if (this.role === "guest" && !this.on()){ if (this.canRelay()) this.relayJoin(); else this.hostGone("🔌 방장 기기와 연결되지 않았어요. 같은 와이파이인지 확인하고 다시 해 보세요."); } }, this.canRelay() ? 7000 : 20000);
     } catch(e){ console.error(e); toast("⚠️ 방에 들어가지 못했어요"); this.leave(); this.renderRooms(); }
   },
   async onMyDoc(d){
     if (this.role !== "guest") return;
     if (!d){ return; }
     if (d.st === "full"){ this.hostGone("방이 꽉 찼거나 이미 시작했어요"); return; }
+    if (this.hp && this.hp.relay) return;
     if (d.offer && !this.hp){
       const pc = new RTCPeerConnection({iceServers: this.ice()}), H = this.hp = {pc, u: null, r: null};
       pc.ondatachannel = e => { const ch = e.channel; if (ch.label === "u") H.u = ch; else H.r = ch;
         ch.onmessage = ev => { let m; try { m = JSON.parse(ev.data); } catch(er){ return; } this.onHost(m); };
-        ch.onopen = () => { this.renderRooms(); }; ch.onclose = () => { if (this.role === "guest") this.hostGone("🔌 방장 기기와 연결이 끊겼어요"); }; };
-      pc.onconnectionstatechange = () => { const s = pc.connectionState; if (s === "failed") this.hostGone("🔌 방장 기기와 연결이 끊겼어요"); else if (s === "disconnected") setTimeout(() => { if (pc.connectionState === "disconnected") this.hostGone("🔌 방장 기기와 연결이 끊겼어요"); }, 5000); };
+        ch.onopen = () => { this.renderRooms(); }; ch.onclose = () => { if (this.role === "guest" && this.hp === H) this.lost("🔌 방장 기기와 연결이 끊겼어요"); }; };
+      pc.onconnectionstatechange = () => { if (this.hp !== H) return; const s = pc.connectionState; if (s === "failed") this.lost("🔌 방장 기기와 연결이 끊겼어요"); else if (s === "disconnected") setTimeout(() => { if (this.hp === H && pc.connectionState === "disconnected") this.lost("🔌 방장 기기와 연결이 끊겼어요"); }, 4000); };
       try { await pc.setRemoteDescription(d.offer); await pc.setLocalDescription(await pc.createAnswer()); await this.gather(pc);
         await Store.fs.updateDoc(this.ref(this.pid, "peers", String(ARC.me)), {st: "answer", answer: this.sd(pc.localDescription)}); }
-      catch(e){ console.warn(e); this.hostGone("🔌 연결하지 못했어요"); }
+      catch(e){ console.warn(e); this.lost("🔌 연결하지 못했어요"); }
     }
   },
   onHost(m){
+    this.rxT = performance.now();
+    if (m.t === "hi") return;
     if (m.t === "s"){ if (m.n > this.inSeq || m.n < this.inSeq - 500){ this.inSeq = m.n; this.game && this.game.apply({s: m.s}); } }
     else if (m.t === "ev"){ this.game && this.game.apply({ev: m.ev}); }
     else if (m.t === "grid"){ this.game && this.game.apply({grid: m}); }
@@ -763,7 +819,9 @@ const PARTY = {
     else if (m.t === "start"){
       clearTimeout(this.conT); const md = $("#mdWb"); if (md) md.hidden = true; this.myIdx = m.idx; this.inSeq = 0;
       const gid = m.g || "wb";
+      if (NG.cur && NG.gid === gid && !$("#ng").hidden && NG.opt && NG.opt.party === "guest" && NG.opt.seed === m.seed && !NG.ended){ this.inSeq = 0; this.needGrid(true); return; }   // 이미 같은 판이면 다시 시작하지 않아요(다시 이어졌을 때)
       if ($("#ng").hidden || !NG.cur){ ARC.game = gid; ARC.enter(); ARC.prep(); }
+      this.rxT = performance.now(); this.watch();
       getAC(); NG.play(gid, m.sids, {party: "guest", idx: m.idx, local: [m.idx], bots: m.bots || [], lv: m.lv, seed: m.seed});
     }
     else if (m.t === "end"){ this.game && this.game.end(m.w, m.wins, m); }
@@ -777,7 +835,11 @@ const PARTY = {
     if (sig !== this.inSig || now - this.inT > 90){ this.inSig = sig; this.inT = now; try { H.u.send(JSON.stringify({t: "in", n: ++this.inN || (this.inN = 1), d: this.input.d, b: this.input.b})); } catch(e) {}
       if (this.input.b !== this.lastB && H.r && H.r.readyState === "open"){ this.lastB = this.input.b; try { H.r.send(JSON.stringify({t: "in", n: ++this.inN, d: this.input.d, b: this.input.b})); } catch(e) {} } }
   },
-  needGrid(){ const now = performance.now(); if (now - this.ngT < 400) return; this.ngT = now; const H = this.hp; if (H && H.r && H.r.readyState === "open") try { H.r.send('{"t":"ng"}'); } catch(e) {} },
+  needGrid(force){ const now = performance.now(); if (!force && now - this.ngT < 400) return; this.ngT = now; const H = this.hp; if (H && H.r && H.r.readyState === "open") try { H.r.send('{"t":"ng"}'); } catch(e) {} },
+  /* 👀 친구 기기 지킴이: 방장 화면이 3초 넘게 안 오면 판을 다시 달라고 하고, 8초면 다리(저장소)로 바꿔 이어요 → 화면이 안 나오는 일이 없게 */
+  watch(){ clearInterval(this.wdT); this.wdT = setInterval(() => { if (this.role !== "guest" || $("#ng").hidden){ clearInterval(this.wdT); return; }
+    const gap = performance.now() - this.rxT; if (gap > 3000) this.needGrid(true);
+    if (gap > 8000 && this.canRelay() && !(this.hp && this.hp.relay)) this.relayJoin(); }, 1000); },
   hostGone(msg){
     if (this.role !== "guest") return;
     const playing = NG.cur && NG.gid === this.gid && !$("#ng").hidden;
@@ -788,16 +850,16 @@ const PARTY = {
   /* ---------- 나가기 ---------- */
   leave(){
     const role = this.role; if (!role){ this.unwatchRooms(); return; }
-    this.role = null; clearInterval(this.beat); clearTimeout(this.conT);
+    this.role = null; clearInterval(this.beat); clearTimeout(this.conT); clearInterval(this.wdT); clearTimeout(this.waitT); this.waitT = 0; this.rlyStop();
     this.un.forEach(f => { try { f(); } catch(e) {} }); this.un = [];
     const fs = Store.fs, pid = this.pid;
     if (role === "host"){
       this.sendAll({t: "bye"}); const ps = [...this.peers.values()]; this.peers.clear();
       setTimeout(() => ps.forEach(P => { try { P.pc.close(); } catch(e) {} }), 300);
-      if (pid && fs){ ps.forEach(P => fs.deleteDoc(this.ref(pid, "peers", String(P.no))).catch(() => {})); fs.deleteDoc(this.ref(pid)).catch(() => {}); }
+      if (pid && fs){ ps.forEach(P => fs.deleteDoc(this.ref(pid, "peers", String(P.no))).catch(() => {})); fs.deleteDoc(this.ref(pid, "peers", "_relay")).catch(() => {}); fs.deleteDoc(this.ref(pid)).catch(() => {}); }
     } else {
       const H = this.hp; this.hp = null;
-      if (H){ try { H.r && H.r.readyState === "open" && H.r.send('{"t":"bye"}'); } catch(e) {} setTimeout(() => { try { H.pc.close(); } catch(e) {} }, 300); }
+      if (H && !H.relay){ try { H.r && H.r.readyState === "open" && H.r.send('{"t":"bye"}'); } catch(e) {} setTimeout(() => { try { H.pc.close(); } catch(e) {} }, 300); }
       if (pid && fs) fs.deleteDoc(this.ref(pid, "peers", String(ARC.me))).catch(() => {});
     }
     this.pid = null; this.game = null; this.gridFn = null; this.members = []; this.started = false; this.unwatchRooms();

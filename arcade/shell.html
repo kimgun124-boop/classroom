@@ -7,7 +7,7 @@
 /* 🔄 늘 최신 오락실: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
   var B = "{{BUILD}}", K = "arcade.reloaded";
-  function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
+  function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
     if (!idle()) return;
     fetch("arcade-version.json?_=" + Date.now(), {cache: "no-store"}).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
