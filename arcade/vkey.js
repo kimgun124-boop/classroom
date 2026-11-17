@@ -36,7 +36,7 @@ const VK = {
       bs: two ? [{c: 0, d: {l: "KeyA", r: "KeyD", u: "KeyW", diag: 1}, b: [["KeyF", "🫧", "쏘기", 0, 0, 1], ["KeyG", "⤴️", "점프"], ["KeyH", "💣", ""]]}, {c: 1, d: {l: "ArrowLeft", r: "ArrowRight", u: "ArrowUp", diag: 1}, b: [["KeyK", "🫧", "쏘기", 0, 0, 1], ["KeyL", "⤴️", "점프"], ["KeyO", "💣", ""]]}]
               : [{d: {l: "ArrowLeft", r: "ArrowRight", u: "ArrowUp", diag: 1}}, {b: [["KeyZ", "🫧", "쏘기", 1], ["KeyX", "⤴️", "점프", 1], ["KeyC", "💣", "폭탄"]]}],
       qd: two ? [{c: 0, d: Object.assign({diag: 1}, P1), b: [["KeyF", "⚔️", "공격"], ["KeyG", "🦘", "점프"], ["KeyH", "✨", "스킬"]]}, {c: 1, d: Object.assign({diag: 1}, P2), b: [["KeyJ", "⚔️", "공격"], ["KeyK", "🦘", "점프"], ["KeyL", "✨", "스킬"]]}]
-              : [{d: Object.assign({diag: 1}, A)}, {b: [["KeyF", "⚔️", "공격", 1], ["KeyG", "🦘", "점프", 1], ["KeyH", "✨", "스킬"]]}],
+              : [{d: Object.assign({diag: 1}, A)}, {b: [["KeyA", "⚔️", "공격", 1], ["KeyS", "🦘", "점프", 1], ["KeyD", "💨", "대시", 1], ["KeyF", "✨", "필살"], ["KeyQ", "🌀", "스킬1"], ["KeyW", "🌊", "스킬2"]]}],
       sk: two ? [{c: 0, d: Object.assign({diag: 1}, P1), b: [["KeyF", "⚡", "스킬"], ["KeyG", "💣", "폭탄"]]}, {c: 1, d: Object.assign({diag: 1}, P2), b: [["Enter", "⚡", "스킬"], ["Period", "💣", "폭탄"]]}]
               : [{d: Object.assign({diag: 1}, A)}, {b: [["KeyF", "⚡", "스킬", 1], ["KeyG", "💣", "폭탄", 1]]}]
     };

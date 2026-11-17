@@ -838,7 +838,7 @@ const PARTY = {
       if (NG.cur && NG.gid === gid && !$("#ng").hidden && NG.opt && NG.opt.party === "guest" && NG.opt.seed === m.seed && !NG.ended){ this.inSeq = 0; this.needGrid(true); return; }   // 이미 같은 판이면 다시 시작하지 않아요(다시 이어졌을 때)
       if ($("#ng").hidden || !NG.cur){ ARC.game = gid; ARC.enter(); ARC.prep(); }
       this.rxT = performance.now(); this.watch();
-      getAC(); NG.play(gid, m.sids, {party: "guest", idx: m.idx, local: [m.idx], bots: m.bots || [], lv: m.lv, seed: m.seed});
+      getAC(); NG.play(gid, m.sids, {party: "guest", idx: m.idx, local: [m.idx], bots: m.bots || [], lv: m.lv, seed: m.seed, mode: m.mode});
     }
     else if (m.t === "end"){ this.game && this.game.end(m.w, m.wins, m); }
     else if (m.t === "cont"){ if (typeof CONT !== "undefined") CONT.resume(); this.game && this.game.cont && this.game.cont(); toast("▶ 방장이 이어하기를 눌렀어요! 다시 출동!"); }
