@@ -418,7 +418,59 @@ RDA.portal = function(t, x, y, s){ for (let i = 0; i < 4; i++){ this.ell(t, x, y
 const RD_GSPEC = {   // K: 위 줄 마당 수 · top: 위 줄 길 높이 · bot: 아래 줄 길 높이 · bb: 아래 줄 마당 자리 (L 가로 화면 · P 세로 화면)
   L: {1: {K: 1, top: [0]}, 2: {K: 1, top: [0], bot: [12], bb: [1]}, 3: {K: 3, top: [0, 5, 0]}, 4: {K: 4, top: [0, 5, 0, 5]}, 5: {K: 5, top: [0, 5, 0, 5, 0]}, 6: {K: 3, top: [0, 5, 0], bot: [12, 7, 12], bb: [1, 1, 1]}},
   P: {1: {K: 1, top: [0]}, 2: {K: 1, top: [0], bot: [12], bb: [1]}, 3: {K: 3, top: [0, 5, 0]}, 4: {K: 3, top: [0, 5, 0], bot: [12, 7, 12], bb: [1, 0, 0]}, 5: {K: 3, top: [0, 5, 0], bot: [12, 7, 12], bb: [1, 1, 0]}, 6: {K: 3, top: [0, 5, 0], bot: [12, 7, 12], bb: [1, 1, 1]}}};
+/* =====================================================================
+   🤝 같이 하기 맵 (2026.11.18) — "한 문에서 나와도 모두가 때리는 길"
+   · 친구 마당(4×4)을 바둑판처럼 놓고, 마당 사이사이 골목이 모두 길이에요 → 마당마다 네 면이 다 길(앞줄 12칸 · 뒷줄 4칸)
+   · 몬스터는 한 문에서 나와 ① 세로 골목을 지그재그로 모두 지나고 ② 가로 골목을 지그재그로 모두 지나요
+     → 가운데 골목은 양쪽 두 친구가 함께 때리고, 골목이 만나는 네거리는 네 친구가 모두 닿는 '명당'
+   · 한 바퀴에 모든 친구 마당을 두 번씩 지나요 → 누구도 할 일이 없지 않아요
+   · 10단계마다 시작 모서리·방향이 바뀌어요 (뒤집기·거울)
+   ===================================================================== */
+function rdGenCoop(N, v, land){
+  /* 가로 화면 모양으로 만들고, 세로 화면은 그대로 '눕혀요'(x↔y) — 방장·친구 기기의 화면 방향이 달라도 길 순서·칸 번호·앞줄/뒷줄이 똑같아요 */
+  const G = {2: [1, 2], 3: [1, 3], 4: [2, 2], 5: [2, 3], 6: [2, 3]}[N];
+  const R = G[0], K = G[1], mg = R === 1 ? 1 : 0, w = 5*K + 1 + 2*mg, h = 5*R + 1 + 2*mg;
+  const pts = [], add = (x, y) => { const l = pts[pts.length - 1]; if (!l || l[0] !== x || l[1] !== y) pts.push([x, y]); };
+  const line = (x0, y0, x1, y1) => { const sx = Math.sign(x1 - x0), sy = Math.sign(y1 - y0); let x = x0, y = y0; add(x, y); while (x !== x1 || y !== y1){ x += sx; y += sy; add(x, y); } };
+  /* ① 세로 골목 지그재그 */
+  let x = 0, y = 0; add(0, 0);
+  for (let c = 0; c <= K; c++){ const ty = c % 2 ? 0 : 5*R; line(x, y, 5*c, y); x = 5*c; line(x, y, x, ty); y = ty; }
+  /* ② 가로 골목 지그재그 (끝난 쪽에서) */
+  const rows = []; for (let r = 0; r <= R; r++) rows.push(5*r); if (y !== 0) rows.reverse();
+  rows.forEach((ry, i) => { line(x, y, x, ry); y = ry; const tx = x === 0 ? 5*K : 0; line(x, y, tx, y); x = tx; });
+  /* 처음 자리(0,0)로 돌아와 고리를 닫아요 */
+  if (x !== 0) line(x, y, 0, y); if (y !== 0) line(0, y, 0, 1);
+  if (pts.length > 1){ const l = pts[pts.length - 1]; if (l[0] === 0 && l[1] === 0) pts.pop(); }
+  /* 모양 바꾸기: 0 그대로 · 1 거꾸로 · 2 좌우 거울 · 3 상하 거울+거꾸로 */
+  v = v % 4; const W0 = 5*K + 1, H0 = 5*R + 1;
+  const T = ([px, py]) => { if (v === 2) px = W0 - 1 - px; if (v === 3) py = H0 - 1 - py; return [px + mg, py + mg]; };
+  let path = pts.map(T); if (v === 1 || v === 3) path.reverse();
+  const key = (a, b) => a + "," + b, P = new Set(path.map(([a, b]) => key(a, b)));
+  const blocks = []; for (let r = 0; r < R; r++) for (let c = 0; c < K; c++) blocks.push([1 + 5*c + mg, 1 + 5*r + mg]);
+  const isF = ([a, b]) => { for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) if (P.has(key(a + dx, b + dy))) return true; return false; };
+  let zones = blocks.map(([bx, by]) => { const slots = []; for (let yy = 0; yy < 4; yy++) for (let xx = 0; xx < 4; xx++) slots.push([bx + xx, by + yy]);
+    return {slots, box: [bx, by, bx + 4, by + 4], front: slots.map(isF)}; });
+  /* 사람 수보다 칸이 많으면(5명) 가장자리 빈 마당 하나는 🏡 마을 공원으로 */
+  let spare = [];
+  if (zones.length > N){ const cxm = w/2, cym = h/2; const ord = zones.map((Z, i) => [i, Math.hypot(Z.box[0] + 2 - cxm, Z.box[1] + 2 - cym)]).sort((a, b) => b[1] - a[1]);
+    const drop = new Set(ord.slice(0, zones.length - N).map(q => q[0])); spare = zones.filter((_, i) => drop.has(i)); zones = zones.filter((_, i) => !drop.has(i)); }
+  zones.sort((a, b) => a.box[1] - b.box[1] || a.box[0] - b.box[0]);
+  zones.forEach(Z => { Z.door = 0; });
+  const used = new Set([...P, ...zones.flatMap(Z => Z.slots.map(([a, b]) => key(a, b)))]);
+  let house = null;
+  if (spare.length){ const b = spare[0].box; house = [b[0] + 1, b[1] + 2]; }
+  else { let bd = 1e9; for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) if (!used.has(key(xx, yy))){ const d = (xx - w/2 + .5)**2 + (yy - h/2 + .5)**2; if (d < bd){ bd = d; house = [xx, yy]; } } }
+  const D = []; for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) if (!used.has(key(xx, yy)) && !(house && house[0] === xx && house[1] === yy)) D.push([xx, yy]);
+  /* 🌀 문은 한가운데 네거리(가장 많은 친구 마당이 닿는 곳)에 — 나오자마자 모두가 함께 때려요 */
+  const near = ([a, b]) => zones.reduce((n, Z) => n + (Z.slots.some(([sx, sy]) => Math.abs(sx - a) <= 1 && Math.abs(sy - b) <= 1) ? 1 : 0), 0);
+  let door = 0, best = -1; path.forEach((q, i) => { const sc = near(q)*100 - Math.hypot(q[0] - w/2 + .5, q[1] - h/2 + .5); if (sc > best){ best = sc; door = i; } });
+  if (!land){ const t = ([a, b]) => [b, a]; path = path.map(t); zones.forEach(Z => { Z.slots = Z.slots.map(t); Z.box = [Z.box[1], Z.box[0], Z.box[3], Z.box[2]]; });
+    const D2 = D.map(t), hs = house ? t(house) : null, P2 = new Set(path.map(([a, b]) => key(a, b)));
+    return {id: `c${N}v${v}P`, n: N, w: h, h: w, path, deco: D2, house: hs, P: P2, zones, slots: zones.flatMap(Z => Z.slots), front: zones.flatMap(Z => Z.front), doors: [door], coop: 1}; }
+  return {id: `c${N}v${v}L`, n: N, w, h, path, deco: D, house, P, zones, slots: zones.flatMap(Z => Z.slots), front: zones.flatMap(Z => Z.front), doors: [door], coop: 1};
+}
 function rdGen(N, v, land){
+  if (N >= 2 && N <= 6) return rdGenCoop(N, v, land);
   N = Math.max(1, Math.min(6, N)); v = v % (N === 1 ? 4 : 3);
   const S = RD_GSPEC[land ? "L" : "P"][N], K = S.K, two = !!S.bot, ring = N === 1 && v === 3, mg = N === 1 ? 1 : 0;
   const W0 = ring ? 6 : 5*K + 1, H0 = ring ? 6 : two ? 13 : 8;

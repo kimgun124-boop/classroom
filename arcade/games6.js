@@ -340,7 +340,7 @@ NG.defs.rd = () => {
   /* 30단계부터는 조금 덜 가파르게 (예전엔 40단계에서 다 막혔어요) — 대신 🎁 유물·🎒 아이템으로 강해져요 */
   /* 🏔️ 1000단계까지: 처음엔 가파르게, 갈수록 완만하게 — 대신 💰 금도 단계마다 늘고 ⬆️ 강화는 끝없이 올라가요 */
   const hpAt = w => 15*Math.pow(1.19, Math.min(w, 30) - 1)*Math.pow(1.16, Math.min(30, Math.max(0, w - 30)))*Math.pow(1.09, Math.min(90, Math.max(0, w - 60)))
-    *Math.pow(1.05, Math.min(150, Math.max(0, w - 150)))*Math.pow(1.036, Math.min(200, Math.max(0, w - 300)))*Math.pow(1.042, Math.max(0, w - 500))*(1 + .25*(N - 1));
+    *Math.pow(1.05, Math.min(150, Math.max(0, w - 150)))*Math.pow(1.036, Math.min(200, Math.max(0, w - 300)))*Math.pow(1.042, Math.max(0, w - 500))*(1 + .55*(N - 1));   // 🤝 (2026.11.18) 같이 하면 모두가 모든 몬스터를 때리니까 사람마다 +55% (예전 +25%)
   /* 💪 (2026.11.18) 150단계부터 몬스터가 훨씬 빨리 세져요 — 예전엔 300단계 뒤 ×1.02씩이라 금(×1.025)·강화가 더 빨라서 400단계부터 너무 쉬웠어요.
      이제 150~300 ×1.05 · 300~500 ×1.036 · 500~ ×1.042 → 태초만으로는 버티기 어렵고 🌌 창세 · ♾️ 영원 조합과 강화·유물을 잘 써야 해요 */
   const gmul = () => Math.pow(1.025, Math.max(0, wave - 60));
@@ -1419,7 +1419,7 @@ NG.defs.rd = () => {
   let saveT = 0; const onHide = () => { if (NG.cur === self) saveGame(); };
   const self = {
     get W(){ return W; }, get H(){ return H; }, maxSteps: 2, maxPx: party === "guest" ? 1.15e6 : 1.5e6, full: true, layout, save: saveGame,
-    get dbg(){ return {Z, E, wave, waveT, state, score, kills, BARS, N, LIMIT, gv, PR, FX}; },
+    get dbg(){ return {Z, E, wave, waveT, state, score, kills, BARS, N, LIMIT, gv, PR, FX, dz: DMGZ}; },
     cheat(o){ if (o.rel){ Z.forEach(p => Object.assign(p.rel, o.rel)); gv++; } if (o.it) Z.forEach(p => { p.it = o.it.slice(); }); if (o.pick) Z.forEach((p, z) => offerRel(z)); if (o.gold != null) Z.forEach(p => p.gold = o.gold); if (o.gems != null) Z.forEach(p => p.gems = o.gems); if (o.wave != null){ wave = o.wave - 1; startWave(); } if (o.put){ placeK(o.z || 0, o.put); } if (o.clear) E = []; },
     init(){
       document.body.classList.remove("rd-cr-on");
@@ -1763,7 +1763,7 @@ const RDB = {
         <div><h4>✨ 지원은 가운데</h4>개구리는 몬스터를 느리게, 유니콘은 옆 친구들의 힘을 올려 줘요. <b>센 친구들 사이</b>에 두면 효과가 커요.</div>
         <div><h4>🔀 합치기 · 🧪 조합</h4>⚪ 일반·🔵 희귀는 같은 동물 3마리를 합쳐요(R 키 / Q 키 모두). 🟣 영웅부터는 <b>🧪 조합표</b>대로 재료를 모아 원하는 동물을 골라 만들어요. 다음에 만들 동물의 재료는 팔지 말고 남겨 두세요!</div>
         <div><h4>🗡️ 딜러 · 🛡️ 서포터</h4>🗡️ 딜러는 세게 때려서 쓰러뜨리고, 🛡️ 서포터(🐭🐸🐧🐼🐳🦁🦄🦌🐋천마)는 느리게·멈추게·응원해요. <b>20단계부터 👑 보스는 단단해서 피해 -50%</b>! 서포터가 보스를 때리면 4초 동안 <b>💥 약점</b>이 드러나 모두 +40%로 때려요. 서포터 1~2마리를 꼭 길 옆에 두어요.</div>
-        <div><h4>🌀 문이 친구마다</h4>같이 하면 몬스터 문이 친구 마당마다 하나씩 생겨요. 몬스터는 자기 문에서 나와 큰 길을 한 바퀴 돌아요 → 모두가 함께 때리고, 내 문 앞은 내가 먼저 지켜요!</div>
+        <div><h4>🤝 같이 하기 맵</h4>친구 마당이 바둑판처럼 놓이고 <b>마당 사이 골목이 모두 길</b>이에요. 몬스터는 한가운데 🌀 문에서 나와 세로 골목 → 가로 골목을 지그재그로 돌며 <b>모든 마당을 두 번씩</b> 지나가요. 가운데 골목은 양쪽 친구가 함께, 골목이 만나는 <b>네거리 옆 모서리 칸은 여러 길에 닿는 명당</b>! 친구 마당과 붙은 자리에 ✨ 지원 동물을 두면 💞 친구 응원으로 둘 다 세져요.</div>
         <div><h4>⌨️ 키보드로 하기</h4>Space 뽑기 · Q 모두 합치기 · C 조합 · 1~4 강화 · E 행운 · T/Y 고급 뽑기 · 5~9 아이템 · F 속도 · B 도감 · P 잠깐 멈춤(혼자·둘이)<br><b>고른 동물</b>: 방향키/WASD 칸 고르기 · Tab 다음 동물 · R 합치기(영웅부터는 조합) · X 팔기 · Shift+X 모두 팔기 · G 옮기기(집기→놓기) · Esc 닫기<br><small>📱 손가락: 동물을 톡 누르면 아래(가로 화면은 옆)에 큰 단추 줄이 떠요 · 끌어서 옮겨도 돼요</small></div>
         <div><h4>🌟 스킬 고르기</h4>👑 보스가 나오기 전엔 <b>한 마리를 세게</b> 때리는 스킬(저격·필살 냥펀치·연속 찌르기)을, 몬스터가 쌓이면 <b>여러 마리를 멈추는</b> 스킬(얼음 폭풍·지진 쿵·해일)을 가진 친구를 앞에 두어요.</div>
         <div><h4>🗺️ 4×4 마당</h4>내 마당은 16칸(4×4)! 길에 붙은 가장자리 = ⚔️ 앞줄, 안쪽 = 🏹 뒷줄이에요. 10단계마다 길 모양이 바뀌니 근거리 친구가 "⚠️ 길에서 멀어요"가 되면 옮겨 주세요.</div></div>`;
