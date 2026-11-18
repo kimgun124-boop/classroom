@@ -1394,6 +1394,9 @@ const RDM = {
 /* ⭐ 대표 게임: 홈에서 크게, 금빛 테두리 */
 .arc-game.g-rd{background:linear-gradient(135deg,#ff9f43 0%,#ff6b9a 45%,#845ef7 100%) !important;border:3px solid #ffe066 !important;box-shadow:0 0 0 3px rgba(255,224,102,.25),0 10px 28px rgba(255,159,67,.35) !important}
 .arc-game.g-rd .ag-tag{background:#ffe066 !important;color:#1b1233 !important;font-weight:700}
+.arc-game.g-qd{background:linear-gradient(135deg,#e03131 0%,#862e9c 50%,#1c1240 100%) !important;border:3px solid #ffe066 !important;box-shadow:0 0 0 3px rgba(255,224,102,.25),0 10px 28px rgba(201,42,42,.35) !important}
+.arc-game.g-qd .ag-tag{background:#ffe066 !important;color:#1b1233 !important;font-weight:700}
+@media (min-width:760px){.arc-game.g-qd{grid-column:span 2}.arc-game.g-qd .ag-nm{font-size:30px}.arc-game.g-qd .ag-ic{font-size:52px}}
 @media (min-width:760px){.arc-game.g-rd{grid-column:span 2}.arc-game.g-rd .ag-nm{font-size:30px}.arc-game.g-rd .ag-ic{font-size:52px}}`;
   document.head.appendChild(css);
 })();

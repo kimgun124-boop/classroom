@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="c26e3955c5">
+<meta name="arc-build" content="4652bad28c">
 <script>
 /* 🔄 늘 최신 오락실: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "c26e3955c5", K = "arcade.reloaded";
+  var B = "4652bad28c", K = "arcade.reloaded";
   function saving(){ try { return typeof Store !== "undefined" && Store.saving && Store.saving(); } catch(e){ return false; } }
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !saving() && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
@@ -2070,25 +2070,29 @@ body.arc-lite .rh-song{transition:none}
   #hmGames .arc-game .ag-top i{color:#8f87b8;font:12px "Gowun Dodum",sans-serif}
   #hmGames .arc-game .ag-top span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #hmGames .arc-game .ag-my{order:4;padding:0;font-size:12px;color:#9fd3ff}
-  #hmGames .arc-game:not(.g-rd) .ag-my:not(:has(b)){display:none}
+  #hmGames .arc-game:not(.g-rd):not(.g-qd) .ag-my:not(:has(b)){display:none}
   #hmGames .arc-game .ag-play{position:absolute;right:12px;top:50%;bottom:auto;margin-top:-19px;font-size:0;width:38px;height:38px;padding:0;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.1);color:#fff;box-shadow:none}
   #hmGames .arc-game .ag-play::before{content:"▶";font-size:14px;margin-left:2px}
   #hmGames .arc-game.duel .ag-play{background:rgba(255,107,170,.18);color:#ffb3d4}
   #hmGames .arc-game .ag-off{font-size:13px;border-radius:18px}
 
   /* ⭐ 대표 게임 (크게) */
-  #hmGames .arc-game.g-rd{padding:16px 16px 16px 96px;min-height:0;gap:4px;margin-bottom:6px;border-radius:24px;
+  #hmGames .arc-game:is(.g-rd,.g-qd){padding:16px 16px 16px 96px;min-height:0;gap:4px;margin-bottom:6px;border-radius:24px;
     border:0 !important;background:linear-gradient(135deg,#ff9f43 0%,#ff6b9a 48%,#845ef7 100%) !important;box-shadow:0 10px 30px rgba(255,107,154,.28) !important}
-  #hmGames .arc-game.g-rd:active{background:linear-gradient(135deg,#ff9f43 0%,#ff6b9a 48%,#845ef7 100%) !important;transform:scale(.985)}
-  #hmGames .arc-game.g-rd .ag-ic{left:16px;top:52px;margin-top:0;width:66px;height:66px;border-radius:20px;font-size:38px;background:rgba(255,255,255,.22);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
-  #hmGames .arc-game.g-rd .ag-tag{order:0;margin:0 0 6px -80px;font:12px "Jua",sans-serif;background:rgba(255,255,255,.92) !important;color:#5b2a86 !important;padding:4px 10px;border-radius:999px;font-weight:400}
-  #hmGames .arc-game.g-rd .ag-nm{font-size:23px;white-space:normal;text-shadow:0 2px 0 rgba(0,0,0,.12)}
-  #hmGames .arc-game.g-rd .ag-ds{order:2;display:-webkit-box;-webkit-line-clamp:2;font-size:13px;line-height:1.4;color:rgba(255,255,255,.92);min-height:36px}
-  #hmGames .arc-game.g-rd .ag-top{order:5;align-self:stretch;margin:10px 0 0 -80px;max-width:none;padding:9px 12px;border-radius:12px;background:rgba(40,10,60,.22);color:#fff;font-size:13.5px}
-  #hmGames .arc-game.g-rd .ag-top i{color:rgba(255,255,255,.85)}
-  #hmGames .arc-game.g-rd .ag-my{order:6;display:block;margin:8px 0 0 -80px;color:rgba(255,255,255,.9);min-height:38px;line-height:38px;padding-right:110px}
-  #hmGames .arc-game.g-rd .ag-play{top:auto;bottom:16px;margin:0;width:auto;height:38px;padding:0 18px;border-radius:999px;background:#fff;color:#7a2f8f;font:16px "Jua",sans-serif;box-shadow:0 4px 12px rgba(60,10,80,.25)}
-  #hmGames .arc-game.g-rd .ag-play::before{display:none}
+  #hmGames .arc-game:is(.g-rd,.g-qd):active{background:linear-gradient(135deg,#ff9f43 0%,#ff6b9a 48%,#845ef7 100%) !important;transform:scale(.985)}
+  #hmGames .arc-game:is(.g-rd,.g-qd) .ag-ic{left:16px;top:52px;margin-top:0;width:66px;height:66px;border-radius:20px;font-size:38px;background:rgba(255,255,255,.22);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
+  #hmGames .arc-game:is(.g-rd,.g-qd) .ag-tag{order:0;margin:0 0 6px -80px;font:12px "Jua",sans-serif;background:rgba(255,255,255,.92) !important;color:#5b2a86 !important;padding:4px 10px;border-radius:999px;font-weight:400}
+  #hmGames .arc-game:is(.g-rd,.g-qd) .ag-nm{font-size:23px;white-space:normal;text-shadow:0 2px 0 rgba(0,0,0,.12)}
+  #hmGames .arc-game:is(.g-rd,.g-qd) .ag-ds{order:2;display:-webkit-box;-webkit-line-clamp:2;font-size:13px;line-height:1.4;color:rgba(255,255,255,.92);min-height:36px}
+  #hmGames .arc-game:is(.g-rd,.g-qd) .ag-top{order:5;align-self:stretch;margin:10px 0 0 -80px;max-width:none;padding:9px 12px;border-radius:12px;background:rgba(40,10,60,.22);color:#fff;font-size:13.5px}
+  #hmGames .arc-game:is(.g-rd,.g-qd) .ag-top i{color:rgba(255,255,255,.85)}
+  #hmGames .arc-game:is(.g-rd,.g-qd) .ag-my{order:6;display:block;margin:8px 0 0 -80px;color:rgba(255,255,255,.9);min-height:38px;line-height:38px;padding-right:110px}
+  #hmGames .arc-game:is(.g-rd,.g-qd) .ag-play{top:auto;bottom:16px;margin:0;width:auto;height:38px;padding:0 18px;border-radius:999px;background:#fff;color:#7a2f8f;font:16px "Jua",sans-serif;box-shadow:0 4px 12px rgba(60,10,80,.25)}
+  #hmGames .arc-game:is(.g-rd,.g-qd) .ag-play::before{display:none}
+
+  #hmGames .arc-game.g-qd,#hmGames .arc-game.g-qd:active{background:linear-gradient(135deg,#c92a2a 0%,#862e9c 50%,#1c1240 100%) !important;box-shadow:0 10px 30px rgba(201,42,42,.3) !important}
+  #hmGames .arc-game.g-qd .ag-tag{color:#862e2e !important}
+  #hmGames .arc-game.g-qd .ag-play{color:#862e2e}
 
   /* 만든 사람 표시: 목록 맨 아래에 조용히 */
   #scrHome>.arc-credit,#scrLogin>.arc-credit{position:static;transform:none;display:block;width:max-content;max-width:100%;margin:22px auto 0;font-size:12px;background:none;border:0;color:#7f77a8;padding:0}
@@ -2983,6 +2987,7 @@ function parseCfg(t){
    ===================================================================== */
 const GAMES = [
   {id: "rd", e: "🐾", n: "동물 랜덤 디펜스", kind: "score", tag: "⭐ 대표 게임 · 🤝 최대 6명 협동", d: "동물을 뽑고 3마리 합쳐 더 세게! 1000단계 · 차원 보스 · 친구와 함께 지켜요"},
+  {id: "qd", e: "👹", n: "불가능한 보스 잡기", kind: "score", tag: "⭐ 대표 게임 · 👑 보스 100단계", d: "빨간 경고를 피해 무시무시한 보스 100단계에 도전! 🛒 장비·🐾펫·🎨 꾸미기 · 많이 이기면 ✨오로라"},
   {id: "fl", e: "🐤", n: "얼굴 날기",   kind: "score", d: "연필 사이를 날아요 · 아이템과 맵 6단계"},
   {id: "tr", e: "🚂", n: "얼굴 기차",   kind: "score", d: "친구들을 태워 기차를 길게!"},
   {id: "st", e: "🪜", n: "얼굴 계단",   kind: "score", d: "방향을 바꿔 가며 끝없이 올라가요"},
@@ -2997,7 +3002,6 @@ const GAMES = [
   {id: "pp", e: "🏓", n: "얼굴 탁구",   kind: "duel",  d: "둘이서 탁구 대결"},
   {id: "wb", e: "💦", n: "물풍선 대작전", kind: "duel", multi: 1, d: "미로에서 물풍선 펑! 최대 6명"},
   {id: "bs", e: "🫧", n: "버블 특공대", kind: "score", d: "로봇을 거품에 가둬 날려 보내요"},
-  {id: "qd", e: "👹", n: "불가능한 보스 잡기", kind: "score", tag: "👑 보스 100단계 · ⚔️ 결투 6명", d: "빨간 경고를 피해 무시무시한 보스 100단계에 도전! 🛒 장비·🐾펫·🎨 꾸미기 · 많이 이기면 ✨오로라"},
   {id: "sk", e: "🌥️", n: "하늘 무사단", kind: "score", tag: "🤝 최대 4명 · 협동 점수전", d: "구름 위 슈팅! 30단계 · 6가지 하늘 · 스킬 · 보스"},
   {id: "bp", e: "🧩", n: "블록 퍼즐",   kind: "score", d: "조각을 끌어 놓고 줄을 채우면 펑!"},
   {id: "fm", e: "🍑", n: "과일 합치기", kind: "score", d: "같은 과일끼리 합쳐 수박까지!"},
@@ -15824,6 +15828,9 @@ const RDM = {
 /* ⭐ 대표 게임: 홈에서 크게, 금빛 테두리 */
 .arc-game.g-rd{background:linear-gradient(135deg,#ff9f43 0%,#ff6b9a 45%,#845ef7 100%) !important;border:3px solid #ffe066 !important;box-shadow:0 0 0 3px rgba(255,224,102,.25),0 10px 28px rgba(255,159,67,.35) !important}
 .arc-game.g-rd .ag-tag{background:#ffe066 !important;color:#1b1233 !important;font-weight:700}
+.arc-game.g-qd{background:linear-gradient(135deg,#e03131 0%,#862e9c 50%,#1c1240 100%) !important;border:3px solid #ffe066 !important;box-shadow:0 0 0 3px rgba(255,224,102,.25),0 10px 28px rgba(201,42,42,.35) !important}
+.arc-game.g-qd .ag-tag{background:#ffe066 !important;color:#1b1233 !important;font-weight:700}
+@media (min-width:760px){.arc-game.g-qd{grid-column:span 2}.arc-game.g-qd .ag-nm{font-size:30px}.arc-game.g-qd .ag-ic{font-size:52px}}
 @media (min-width:760px){.arc-game.g-rd{grid-column:span 2}.arc-game.g-rd .ag-nm{font-size:30px}.arc-game.g-rd .ag-ic{font-size:52px}}`;
   document.head.appendChild(css);
 })();

@@ -81,25 +81,29 @@
   #hmGames .arc-game .ag-top i{color:#8f87b8;font:12px "Gowun Dodum",sans-serif}
   #hmGames .arc-game .ag-top span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #hmGames .arc-game .ag-my{order:4;padding:0;font-size:12px;color:#9fd3ff}
-  #hmGames .arc-game:not(.g-rd) .ag-my:not(:has(b)){display:none}
+  #hmGames .arc-game:not(.g-rd):not(.g-qd) .ag-my:not(:has(b)){display:none}
   #hmGames .arc-game .ag-play{position:absolute;right:12px;top:50%;bottom:auto;margin-top:-19px;font-size:0;width:38px;height:38px;padding:0;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.1);color:#fff;box-shadow:none}
   #hmGames .arc-game .ag-play::before{content:"▶";font-size:14px;margin-left:2px}
   #hmGames .arc-game.duel .ag-play{background:rgba(255,107,170,.18);color:#ffb3d4}
   #hmGames .arc-game .ag-off{font-size:13px;border-radius:18px}
 
   /* ⭐ 대표 게임 (크게) */
-  #hmGames .arc-game.g-rd{padding:16px 16px 16px 96px;min-height:0;gap:4px;margin-bottom:6px;border-radius:24px;
+  #hmGames .arc-game:is(.g-rd,.g-qd){padding:16px 16px 16px 96px;min-height:0;gap:4px;margin-bottom:6px;border-radius:24px;
     border:0 !important;background:linear-gradient(135deg,#ff9f43 0%,#ff6b9a 48%,#845ef7 100%) !important;box-shadow:0 10px 30px rgba(255,107,154,.28) !important}
-  #hmGames .arc-game.g-rd:active{background:linear-gradient(135deg,#ff9f43 0%,#ff6b9a 48%,#845ef7 100%) !important;transform:scale(.985)}
-  #hmGames .arc-game.g-rd .ag-ic{left:16px;top:52px;margin-top:0;width:66px;height:66px;border-radius:20px;font-size:38px;background:rgba(255,255,255,.22);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
-  #hmGames .arc-game.g-rd .ag-tag{order:0;margin:0 0 6px -80px;font:12px "Jua",sans-serif;background:rgba(255,255,255,.92) !important;color:#5b2a86 !important;padding:4px 10px;border-radius:999px;font-weight:400}
-  #hmGames .arc-game.g-rd .ag-nm{font-size:23px;white-space:normal;text-shadow:0 2px 0 rgba(0,0,0,.12)}
-  #hmGames .arc-game.g-rd .ag-ds{order:2;display:-webkit-box;-webkit-line-clamp:2;font-size:13px;line-height:1.4;color:rgba(255,255,255,.92);min-height:36px}
-  #hmGames .arc-game.g-rd .ag-top{order:5;align-self:stretch;margin:10px 0 0 -80px;max-width:none;padding:9px 12px;border-radius:12px;background:rgba(40,10,60,.22);color:#fff;font-size:13.5px}
-  #hmGames .arc-game.g-rd .ag-top i{color:rgba(255,255,255,.85)}
-  #hmGames .arc-game.g-rd .ag-my{order:6;display:block;margin:8px 0 0 -80px;color:rgba(255,255,255,.9);min-height:38px;line-height:38px;padding-right:110px}
-  #hmGames .arc-game.g-rd .ag-play{top:auto;bottom:16px;margin:0;width:auto;height:38px;padding:0 18px;border-radius:999px;background:#fff;color:#7a2f8f;font:16px "Jua",sans-serif;box-shadow:0 4px 12px rgba(60,10,80,.25)}
-  #hmGames .arc-game.g-rd .ag-play::before{display:none}
+  #hmGames .arc-game:is(.g-rd,.g-qd):active{background:linear-gradient(135deg,#ff9f43 0%,#ff6b9a 48%,#845ef7 100%) !important;transform:scale(.985)}
+  #hmGames .arc-game:is(.g-rd,.g-qd) .ag-ic{left:16px;top:52px;margin-top:0;width:66px;height:66px;border-radius:20px;font-size:38px;background:rgba(255,255,255,.22);box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}
+  #hmGames .arc-game:is(.g-rd,.g-qd) .ag-tag{order:0;margin:0 0 6px -80px;font:12px "Jua",sans-serif;background:rgba(255,255,255,.92) !important;color:#5b2a86 !important;padding:4px 10px;border-radius:999px;font-weight:400}
+  #hmGames .arc-game:is(.g-rd,.g-qd) .ag-nm{font-size:23px;white-space:normal;text-shadow:0 2px 0 rgba(0,0,0,.12)}
+  #hmGames .arc-game:is(.g-rd,.g-qd) .ag-ds{order:2;display:-webkit-box;-webkit-line-clamp:2;font-size:13px;line-height:1.4;color:rgba(255,255,255,.92);min-height:36px}
+  #hmGames .arc-game:is(.g-rd,.g-qd) .ag-top{order:5;align-self:stretch;margin:10px 0 0 -80px;max-width:none;padding:9px 12px;border-radius:12px;background:rgba(40,10,60,.22);color:#fff;font-size:13.5px}
+  #hmGames .arc-game:is(.g-rd,.g-qd) .ag-top i{color:rgba(255,255,255,.85)}
+  #hmGames .arc-game:is(.g-rd,.g-qd) .ag-my{order:6;display:block;margin:8px 0 0 -80px;color:rgba(255,255,255,.9);min-height:38px;line-height:38px;padding-right:110px}
+  #hmGames .arc-game:is(.g-rd,.g-qd) .ag-play{top:auto;bottom:16px;margin:0;width:auto;height:38px;padding:0 18px;border-radius:999px;background:#fff;color:#7a2f8f;font:16px "Jua",sans-serif;box-shadow:0 4px 12px rgba(60,10,80,.25)}
+  #hmGames .arc-game:is(.g-rd,.g-qd) .ag-play::before{display:none}
+
+  #hmGames .arc-game.g-qd,#hmGames .arc-game.g-qd:active{background:linear-gradient(135deg,#c92a2a 0%,#862e9c 50%,#1c1240 100%) !important;box-shadow:0 10px 30px rgba(201,42,42,.3) !important}
+  #hmGames .arc-game.g-qd .ag-tag{color:#862e2e !important}
+  #hmGames .arc-game.g-qd .ag-play{color:#862e2e}
 
   /* 만든 사람 표시: 목록 맨 아래에 조용히 */
   #scrHome>.arc-credit,#scrLogin>.arc-credit{position:static;transform:none;display:block;width:max-content;max-width:100%;margin:22px auto 0;font-size:12px;background:none;border:0;color:#7f77a8;padding:0}
