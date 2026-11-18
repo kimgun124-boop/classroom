@@ -38,7 +38,13 @@ const RDA = {
     nine:    {b: "#fff0f6", b2: "#f3d9fa", f: "#ffffff", ear: "point", ein: "#f783ac", nose: "#2b1d3a", cheek: "#ffffff", wh: 0, wing: "#fcc2d7"},
     gdragon: {b: "#ffd43b", b2: "#f08c00", f: "#fff9db", ear: "horn", horn: "#ffffff", wing: "#ffe066", nostril: 1, fang: 1},
     pegasus: {b: "#e7f5ff", b2: "#a5d8ff", f: "#ffffff", ear: "point", ein: "#b197fc", horn: "#ffe066", maneR: 1, nose: "#74c0fc", wing: "#ffffff"},
-    titan:   {b: "#7950f2", b2: "#4c2fb0", f: "#e5dbff", ear: "spikeBack", teeth: 1, nostril: 1, arms: 1, wing: "#b197fc"}
+    titan:   {b: "#7950f2", b2: "#4c2fb0", f: "#e5dbff", ear: "spikeBack", teeth: 1, nostril: 1, arms: 1, wing: "#b197fc"},
+    /* 🌌 창세 · ♾️ 영원 (2026.11.18) */
+    cosmos:  {b: "#4c3fb0", b2: "#211a6b", f: "#d0bfff", ear: "none", spout: 1, smile: "wide", belly: 1, wing: "#9775fa"},
+    suzaku:  {b: "#ff5c5c", b2: "#c92a2a", f: "#ffe3e3", ear: "feather", beak: "#ffd43b", hook: 1, brow: 1, body: "#ff922b", wing: "#ff8787"},
+    genbu:   {b: "#37b24d", b2: "#1b6e2e", f: "#d3f9d8", ear: "bump", nostril: 1, arms: 1, wing: "#a9e34b"},
+    eternal: {b: "#f8f9fa", b2: "#b5bdc6", f: "#ffffff", ear: "horn", horn: "#a3e635", wing: "#d9f99d", nostril: 1, fang: 1},
+    yggdra:  {b: "#d8f5a2", b2: "#82c91e", f: "#f4fce3", ear: "point", ein: "#c0eb75", horn: "#a3e635", maneR: 1, nose: "#5c940d", wing: "#e9fac8"}
   },
   ell(t, x, y, rx, ry, a = 0){ t.beginPath(); t.ellipse(x, y, Math.max(.1, rx), Math.max(.1, ry), a, 0, Math.PI*2); },
   ol(t, w){ t.lineJoin = "round"; t.lineCap = "round"; t.lineWidth = w; t.strokeStyle = this.OL; t.stroke(); },
@@ -187,7 +193,7 @@ const RDA = {
   },
 
   /* ---------- 탄 ---------- */
-  SHOT: {dragon: "fire", lion: "fire", trex: "fire", penguin: "ice", whale: "water", frog: "water", eagle: "feather", owl: "feather", chick: "feather", unicorn: "rainbow", cat: "heart", rabbit: "heart"},
+  SHOT: {cosmos: "water", suzaku: "fire", eternal: "rainbow", yggdra: "rainbow", dragon: "fire", lion: "fire", trex: "fire", penguin: "ice", whale: "water", frog: "water", eagle: "feather", owl: "feather", chick: "feather", unicorn: "rainbow", cat: "heart", rabbit: "heart"},
   shotSpr(k, g){ const ty = this.SHOT[k] || "star", c = RD_G[g].c, s = 26 + g*4;
     return G2.spr(`rds${ty}${g}`, s, s, t => { const m = s/2;
       t.fillStyle = BSA.rg(t, m, m, 1, m, [[0, "rgba(255,255,255,.9)"], [.4, ty === "fire" ? "rgba(255,146,43,.55)" : ty === "ice" ? "rgba(153,233,242,.55)" : ty === "water" ? "rgba(116,192,252,.55)" : c + "88"], [1, "rgba(255,255,255,0)"]]); t.fillRect(0, 0, s, s);
@@ -253,7 +259,8 @@ const RD_MS = {
   chest: {e: "🎁", t: () => "보물상자 몬스터 잡기"},
   merge: {e: "🔀", t: n => `이번 단계에 합치기 ${n}번`},
   sum:   {e: "🎲", t: n => `이번 단계에 뽑기 ${n}번`},
-  kill:  {e: "⚔️", t: n => `이번 단계에 몬스터 ${n}마리 잡기`}
+  kill:  {e: "⚔️", t: n => `이번 단계에 몬스터 ${n}마리 잡기`},
+  mk:    {e: "🧪", t: (n, x) => x && RD_A[x] ? `이번 단계에 ${RD_A[x].e} ${RD_A[x].n} 만들기` : "조합하기"}   // 🆕 머리 쓰기: 정해진 동물 조합
 };
 
 /* 🎨 맵마다 다른 입체 소품 (네 귀퉁이) */
@@ -329,11 +336,16 @@ const RD_SK = {
   nine:    {ro: "r", sk: {e: "🔮", n: "여우 구슬",   d: "구슬 9개가 앞선 몬스터부터 7배",       mp: 9,  ty: "pick", v: 7, n2: 9}},
   gdragon: {ro: "r", sk: {e: "🌟", n: "천지개벽",    d: "모든 몬스터 10배 + 기절",              mp: 12, ty: "nova", v: 10, stn: 1}},
   pegasus: {ro: "s", sk: {e: "🌈", n: "하늘의 축복", d: "모든 친구 공격 ×2 · 속도 ×2 (6초)",    mp: 12, ty: "bless"}},
-  titan:   {ro: "m", sk: {e: "🌍", n: "대지 분쇄",   d: "길 위 몬스터 기절 + 12배",             mp: 12, ty: "quake", v: 12}}
+  titan:   {ro: "m", sk: {e: "🌍", n: "대지 분쇄",   d: "길 위 몬스터 기절 + 12배",             mp: 12, ty: "quake", v: 12}},
+  cosmos:  {ro: "r", sk: {e: "🌌", n: "은하 해일",   d: "길 위 몬스터 모두 뒤로 + 14배",         mp: 11, ty: "tsunami", v: 14}},
+  suzaku:  {ro: "r", sk: {e: "🔥", n: "남쪽 불꽃",   d: "거리 안 몬스터 모두 18배 + 불태우기",   mp: 9,  ty: "burn", v: 18}},
+  genbu:   {ro: "m", sk: {e: "🐢", n: "북쪽 방패",   d: "길 위 몬스터 기절 + 16배",             mp: 11, ty: "quake", v: 16}},
+  eternal: {ro: "r", sk: {e: "🌠", n: "영원의 별비", d: "모든 몬스터 30배 + 기절",              mp: 12, ty: "nova", v: 30, stn: 1}},
+  yggdra:  {ro: "s", sk: {e: "🌳", n: "세계수 축복", d: "모든 친구 공격 ×2 · 속도 ×2 (6초)",    mp: 10, ty: "bless"}}
 };
 /* 근거리는 길 바로 옆에서만 닿는 대신 더 세게 · 원거리는 멀리서 */
 Object.entries(RD_SK).forEach(([k, v]) => { const A = RD_A[k]; if (!A) return; A.ro = v.ro; A.sk = v.sk;
-  if (v.ro === "m"){ A.r = k === "trex" || k === "titan" ? 1.7 : 1.5; A.d = Math.round(A.d*1.5); }
+  if (v.ro === "m"){ A.r = k === "trex" || k === "titan" || k === "genbu" ? 1.7 : 1.5; A.d = Math.round(A.d*1.5); }
   else if (v.ro === "r") A.r = Math.max(2.6, A.r + .4);
   else A.r = Math.max(2.3, A.r); });
 
@@ -364,12 +376,18 @@ const RD_RC = {
   nine:    [["fox", 3], ["unicorn", 1], ["phoenix", 1]],
   gdragon: [["bdragon", 1], ["dragon", 2], ["phoenix", 2]],
   pegasus: [["kirin", 1], ["unicorn", 2], ["nine", 1]],
-  titan:   [["trex", 2], ["wtiger", 1], ["levi", 1]]
+  titan:   [["trex", 2], ["wtiger", 1], ["levi", 1]],
+  /* 🌌 창세 (태초 1마리 + 아래 등급 재료) · ♾️ 영원 (창세 + 태초) */
+  cosmos:  [["gdragon", 1], ["levi", 2], ["whale", 2]],
+  suzaku:  [["gdragon", 1], ["phoenix", 2], ["nine", 1]],
+  genbu:   [["titan", 1], ["pegasus", 1], ["trex", 2]],
+  eternal: [["cosmos", 1], ["suzaku", 1], ["gdragon", 2]],
+  yggdra:  [["genbu", 1], ["pegasus", 2], ["kirin", 2]]
 };
 const RD_RCK = Object.keys(RD_RC);
 /* ⚔️ 딜러 · 🛡️ 서포터 — 👑 보스는 단단해서(20단계부터 받는 피해 -50%) 🛡️ 서포터가 먼저 때려 '💥 약점'을 드러내야 딜러가 세게(+40%) 때려요 */
 const RD_JOB = {d: {e: "🗡️", n: "딜러", c: "#ff8787", t: "몬스터를 세게 때려 쓰러뜨려요"}, s: {e: "🛡️", n: "서포터", c: "#63e6be", t: "느리게·멈추게·응원 + 👑 보스 약점 드러내기"}};
-["mouse", "frog", "penguin", "panda", "whale", "lion", "unicorn", "kirin", "levi", "pegasus"].forEach(k => { if (RD_A[k]) RD_A[k].job = "s"; });
+["mouse", "frog", "penguin", "panda", "whale", "lion", "unicorn", "kirin", "levi", "pegasus", "genbu", "yggdra"].forEach(k => { if (RD_A[k]) RD_A[k].job = "s"; });
 RD_K.forEach(k => { if (!RD_A[k].job) RD_A[k].job = "d"; });
 /* 이 동물이 재료로 쓰이는 조합들 */
 const RD_USE = {}; RD_RCK.forEach(t => RD_RC[t].forEach(([k]) => (RD_USE[k] = RD_USE[k] || []).push(t)));
