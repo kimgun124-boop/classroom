@@ -109,7 +109,8 @@ const NG = {
     this.last = performance.now(); this.acc = 0; this.frame = 0; this.drawnEnd = false;
     const loop = now => { this.raf = requestAnimationFrame(loop); this.acc = Math.min(100, this.acc + now - this.last); this.last = now;
       // 🛡️ 한 장면에서 오류가 나도 화면은 계속 그려요 (예전엔 오류 하나에 그 기기 화면만 멈춰 보였어요)
-      try { while (this.acc >= 1000/60){ this.acc -= 1000/60; if (!this.ended && !this.paused){ this.frame++; cur.step && cur.step(); } } } catch(e){ this.acc = 0; this.oops(e, "step"); }
+      // 🐢 (2026.11.18) 기기가 잠깐 버벅여도 한 장면에 계산을 몰아서 하지 않아요(최대 3번) — 예전엔 최대 6번 몰아 해서 더 버벅이고 손가락 반응이 늦어지는 악순환이 있었어요
+      try { let n = 0; const mx = cur.maxSteps || 3; while (this.acc >= 1000/60){ if (n++ >= mx){ this.acc = 0; break; } this.acc -= 1000/60; if (!this.ended && !this.paused){ this.frame++; cur.step && cur.step(); } } } catch(e){ this.acc = 0; this.oops(e, "step"); }
       if (cur.netAd && opt.net) NET.tick(cur.netAd);
       // ⚡ 게임이 끝나 결과 창(흐림 효과)이 떠 있으면 뒤 그림은 멈춰 둬요 — 매 장면 다시 그리면 흐림 계산이 아주 무거워요
       if (cur.draw && !(this.ended && this.drawnEnd)){ const g = this.g; try { g.setTransform(this.k, 0, 0, this.k, 0, 0); cur.draw(g); } catch(e){ try { g.restore(); } catch(_){} this.oops(e, "draw"); } if (this.ended) this.drawnEnd = true; }
