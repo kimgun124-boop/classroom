@@ -30,7 +30,7 @@ const QG = (() => {
   /* 🔨 강화 (+1 ~ +15): 코인을 내고 두근두근 도전! 실패해도 장비는 그대로 (코인만 써요) */
   const EMAX = 15, ecost = n => 60*(n + 1)*(n + 2)/2, echance = n => Math.max(.3, 1 - n*.05);
   function kid(sid){ return (walletOf(sid).qd) || {}; }
-  function of(sid, clsId){ const q = kid(sid), g = Object.assign({wpn: 0, arm: 0, helm: 0, boot: 0, wing: 0}, q[clsId] || {}); g.e = Object.assign({}, (q[clsId] || {}).e || {}); g.pet = q.pet || null; return g; }
+  function of(sid, clsId){ const q = kid(sid), g = Object.assign({wpn: 0, arm: 0, helm: 0, boot: 0, wing: 0}, q[clsId] || {}); g.e = Object.assign({}, (q[clsId] || {}).e || {}); g.pet = q.pet || null; g.look = (q.look || {})[clsId] || null; return g; }
   function botGear(stage){ const r = rec(stage), b = Math.floor(r/5), x = r % 5, g = {pet: null, e: {wpn: Math.floor(stage/12)}}; SLOTS.forEach((s, i) => g[s.k] = Math.min(MAX, b + (i < x ? 1 : 0))); return g; }
   const power = g => SLOTS.reduce((a, s) => a + (g[s.k] || 0) + Math.floor(((g.e || {})[s.k] || 0)/3), 0);   // ⭐: 단계 + 강화 3마다 1
   function stats(g){
@@ -44,7 +44,7 @@ const QG = (() => {
       : slot === "boot" ? `이동 +${Math.round((s.spm - 1)*100)}% · 대시 대기 ${(s.dcd/60).toFixed(2)}초` : `모든 능력 조금 ↑ · 회복 · 높이 점프`; }
   /* 🎨 장비에 따라 바뀌는 영웅 모습 (갑옷 색 · 장식 색 · 무기 빛) */
   function def(clsId, g){
-    const base = WDEF[clsId], E = g && g.e || {}; if (!g || !power(g)) return {d: base, sig: ""};
+    const base = WDEF[clsId], E = g && g.e || {}, LK = g && g.look || null; if (!g || (!power(g) && !LK)) return {d: base, sig: ""};
     const d = JSON.parse(JSON.stringify(base));
     /* ⚔️ 무기: 단계마다 모양이 바뀌어요 (검 → 큰칼 → 언월도 / 창 → 미늘창 → 언월도 · 활·부채는 빛깔) */
     const W = g.wpn || 0, WT = {kn: ["sword", "sword", "dao", "guandao"], ln: ["spear", "spear", "halberd", "guandao"], ar: ["bow", "bow", "bow", "bow"], wz: ["fan", "fan", "fan", "fan"]}[clsId];
@@ -62,7 +62,9 @@ const QG = (() => {
     if (Hh){ d.trim = TIER[Hh].c; d.plume = TIER[Hh].c; d.band = TIER[Hh].c;
       d.helm = clsId === "wz" ? (Hh >= 10 ? "crown" : Hh >= 7 ? "general" : "scholar") : Hh >= 10 ? "crown" : Hh >= 7 ? "horned" : Hh >= 4 ? "general" : clsId === "ar" ? "band" : "soldier"; }
     if (g.wing) d.sash = TIER[g.wing].c;
-    return {d, sig: `${A}.${Hh}.${W}.${g.wing || 0}.${(E.wpn || 0) >= 10 ? 1 : 0}`};
+    /* 🎨 내가 꾸민 색 (머리·피부·망토·장식) */
+    if (LK){ if (LK.hair) d.hair = LK.hair; if (LK.skin) d.skin = LK.skin; if (LK.cape) d.cape = LK.cape; if (LK.acc){ d.plume = LK.acc; d.band = LK.acc; d.sash = LK.acc; } }
+    return {d, sig: `${A}.${Hh}.${W}.${g.wing || 0}.${(E.wpn || 0) >= 10 ? 1 : 0}${LK ? "." + [LK.hair, LK.skin, LK.cape, LK.acc].join("") : ""}`};
   }
   /* 🪽 날개 그림 (단계마다 색·크기) */
   const WCACHE = new Map();
@@ -83,6 +85,33 @@ const QG = (() => {
     c = document.createElement("canvas"); c.width = Math.ceil(64*k); c.height = Math.ceil(64*k); const g = c.getContext("2d"); g.scale(k, k);
     const gr = g.createRadialGradient(32, 34, 4, 32, 34, 30); gr.addColorStop(0, P.c + "aa"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.beginPath(); g.arc(32, 34, 30, 0, 7); g.fill();
     g.font = `40px ${typeof EMOJI !== "undefined" ? EMOJI : "sans-serif"}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(P.e, 32, 35); c.w = 64; c.h = 64; PCACHE.set(key, c); return c; }
+
+  /* ✨ 오로라: 👑 보스 ⭐(모은 별) + ⚔️ 결투 승리×3 = 오로라 점수 → 🌟 20 · 🌌 60 · 🌈 150 */
+  const AURA = [null, {n: "황금빛", e: "🌟", need: 20}, {n: "오로라", e: "🌌", need: 60}, {n: "무지개 오로라", e: "🌈", need: 150}];
+  const AC = new Map();
+  function auraPts(sid){ const q = walletOf(sid).qdp || {}; const st = Object.values(q.bs || {}).reduce((a, b) => a + (b || 0), 0); return st + (q.aw || 0)*3; }
+  function auraMax(sid){ const p = auraPts(sid); return p >= 150 ? 3 : p >= 60 ? 2 : p >= 20 ? 1 : 0; }
+  function auraOf(sid){ const w = (Store.kids || {})[sid] || {}, key = w.qdp, c = AC.get(sid); if (c && c.k === key && c.q === w.qd) return c.v;   // ⚡ 지갑이 바뀔 때만 다시 계산
+    const mx = auraMax(sid), ch = (w.qd || {}).aura, v = ch == null ? mx : Math.min(mx, ch); AC.set(sid, {k: key, q: w.qd, v}); return v; }
+  const ASC = new Map();
+  function auraSpr(t){ const k = NG.k || 1, key = t + "|" + k; let c = ASC.get(key); if (c) return c;
+    const w = 260, h = 300; c = document.createElement("canvas"); c.width = Math.ceil(w*k); c.height = Math.ceil(h*k); const g = c.getContext("2d"); g.scale(k, k);
+    const cols = t === 1 ? ["#ffe066", "#ffd43b", "#fab005"] : t === 2 ? ["#63e6be", "#74c0fc", "#b197fc"] : ["#ff8787", "#ffd43b", "#69db7c", "#74c0fc", "#da77f2"];
+    const gr = g.createRadialGradient(w/2, h*.55, 10, w/2, h*.55, w*.55); gr.addColorStop(0, cols[0] + "88"); gr.addColorStop(.6, cols[1] + "33"); gr.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = gr; g.beginPath(); g.ellipse(w/2, h*.55, w*.5, h*.48, 0, 0, 7); g.fill();
+    // 일렁이는 오로라 띠 (망토·날개 주변)
+    cols.forEach((cc, i) => { g.strokeStyle = cc; g.globalAlpha = .55; g.lineWidth = 10 - i; g.lineCap = "round"; const off = (i - (cols.length - 1)/2)*18;
+      g.beginPath(); g.moveTo(w/2 - 70 + off*.3, h*.9); g.bezierCurveTo(w/2 - 120 + off, h*.55, w/2 - 30 + off, h*.3, w/2 + off*.4, h*.08); g.stroke();
+      g.beginPath(); g.moveTo(w/2 + 70 - off*.3, h*.9); g.bezierCurveTo(w/2 + 120 - off, h*.55, w/2 + 30 - off, h*.3, w/2 - off*.4, h*.08); g.stroke(); });
+    g.globalAlpha = 1;
+    if (t >= 2) for (let i = 0; i < 14; i++){ const a = i/14*Math.PI*2, r = 95 + (i % 3)*14; g.fillStyle = cols[i % cols.length]; g.beginPath(); g.arc(w/2 + Math.cos(a)*r*.75, h*.55 + Math.sin(a)*r, 3 + (i % 2)*2, 0, 7); g.fill(); }
+    c.w = w; c.h = h; ASC.set(key, c); return c; }
+  const LOOK = {hair: ["#141022", "#3b2a20", "#7c4a1e", "#c08a50", "#e8590c", "#f1f3f5", "#4c6ef5", "#d6336c"],
+    skin: ["#f3cfae", "#f6d7bb", "#e8b48f", "#c98b62", "#8d5a3b"],
+    cape: ["", "#c92a2a", "#1864ab", "#2b8a3e", "#5f3dc4", "#e67700", "#212529", "#f8f9fa", "#d6336c", "#0ca678"],
+    acc:  ["", "#ffd43b", "#ff6b6b", "#74c0fc", "#69db7c", "#da77f2", "#ffffff", "#ff922b"]};
+  async function setLook(sid, clsId, k, v){ await Store.kidTx(sid, w => { const q = JSON.parse(JSON.stringify(w.qd || {})); q.look = Object.assign({}, q.look || {}); q.look[clsId] = Object.assign({}, q.look[clsId] || {}); if (v) q.look[clsId][k] = v; else delete q.look[clsId][k]; w.qd = q; return w; }); }
+  async function setAura(sid, v){ await Store.kidTx(sid, w => { const q = JSON.parse(JSON.stringify(w.qd || {})); q.aura = v; w.qd = q; return w; }); }
 
   /* ---------- 사고 끼기 ---------- */
   async function buy(sid, clsId, slot){
@@ -161,6 +190,13 @@ const QG = (() => {
 @keyframes qgPop{0%{transform:scale(.6)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
 @keyframes qgShake{0%,100%{transform:none}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
 @media (max-width:700px){.qg-it{grid-template-columns:44px 1fr;}.qg-it .qg-buy{grid-column:span 1}.qg-ic{width:44px;height:44px}}
+.qg-sub{margin-top:-4px}.qg-sub button{font-size:14px;padding:6px 12px}
+.qg-lk{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);border-radius:16px;padding:10px 12px}
+.qg-lk>b{display:block;font:16px "Jua",sans-serif;font-weight:400;margin-bottom:6px}.qg-lk>div{display:flex;flex-wrap:wrap;gap:7px}
+.qg-sw{width:34px;height:34px;border-radius:50%;border:3px solid rgba(255,255,255,.25);background:var(--s);cursor:pointer;color:#fff;font-size:14px}
+.qg-sw.on{border-color:#ffe066;box-shadow:0 0 0 3px rgba(255,224,102,.35)}
+.qg-au{font:14px "Jua",sans-serif;border:2px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;border-radius:999px;padding:6px 12px;cursor:pointer}
+.qg-au.on{background:linear-gradient(135deg,#63e6be,#b197fc);border-color:#fff}.qg-au:disabled{opacity:.45;cursor:default}
 .qg-msg{min-height:20px;margin-top:10px;text-align:center;font-size:14px;color:#ffa8a8}
 .qg-rec{margin-top:12px;font-size:12.5px;color:#b9b0dd;line-height:1.6;background:rgba(0,0,0,.2);border-radius:14px;padding:8px 12px}
 .qg-rec b{color:#ffe066;font-weight:400;font-family:"Jua",sans-serif}
@@ -168,7 +204,7 @@ const QG = (() => {
 .qd-shopb small{font:13px "Gowun Dodum",sans-serif;opacity:.8}`; document.head.appendChild(st); },
     paint(){
       const el = $("#qgShop"); if (!el) return; const sid = this.sid, w = walletOf(sid), T = this.tab;
-      const tabs = QCL.map((C, i) => `<button data-tab="${i}" class="${T === i ? "on" : ""}">${C.e} ${C.n}</button>`).join("") + `<button data-tab="4" class="${T === 4 ? "on" : ""}">🐾 펫</button>`;
+      const tabs = QCL.map((C, i) => `<button data-tab="${i}" class="${T === i ? "on" : ""}">${C.e} ${C.n}</button>`).join("") + `<button data-tab="4" class="${T === 4 ? "on" : ""}">🐾 펫</button><button data-tab="5" class="${T === 5 ? "on" : ""}">🎨 꾸미기</button>`;
       let main;
       if (T < 4){ const C = QCL[T], g = of(sid, C.id), pw = power(g);
         const rows = SLOTS.map(s => { const t = g[s.k] || 0, nx = t + 1, max = t >= MAX, cost = price(nx), en = g.e[s.k] || 0, ec = ecost(en), emax = en >= EMAX;
@@ -181,6 +217,14 @@ const QG = (() => {
           <small>${g.pet ? `🐾 ${PETS.find(p => p.id === g.pet).e} ${PETS.find(p => p.id === g.pet).n} 데려가는 중` : "🐾 펫 없음 (펫 탭에서 데려와요)"}<br>✨ ${C.sp} · 🌀 ${QSK[C.id][0].n} · 🌊 ${QSK[C.id][1].n}${C.reach ? "<br>💪 근거리 영웅: 공격력 ×1.45" : ""}</small></div>
           <div><div class="qg-list">${rows}</div><div class="qg-rec">🗺️ 지금 <b>${reach}단계</b>까지 왔어요 · 이 단계 추천 장비 <b>⭐${nextRec}</b>${pw < nextRec ? " — 강화하면 훨씬 쉬워져요!" : " — 충분해요! 💪"}<br>
           🆙 바꾸기: 더 좋은 장비로 · 🔨 강화: 코인으로 +1씩 (실패해도 장비는 그대로)<br>추천: 30단계 ⭐${rec(29)} · 50단계 ⭐${rec(49)} · 80단계 ⭐${rec(79)} · 100단계 ⭐${rec(99)} · ${QD_MAX}단계 ⭐${rec(QD_MAX - 1)}</div></div></div>`;
+      } else if (T === 5){
+        const ci = this.lc || 0, C = QCL[ci], q = kid(sid), L0 = (q.look || {})[C.id] || {}, am = auraMax(sid), ap = auraPts(sid), cur = auraOf(sid);
+        const sw = (k, arr, lab) => `<div class="qg-lk"><b>${lab}</b><div>${arr.map(c => `<button class="qg-sw${(L0[k] || "") === c ? " on" : ""}" data-lk="${k}" data-v="${c}" style="--s:${c || "transparent"}">${c ? "" : "✕"}</button>`).join("")}</div></div>`;
+        main = `<div class="qg-tabs qg-sub">${QCL.map((c, i) => `<button data-lc="${i}" class="${ci === i ? "on" : ""}">${c.e} ${c.n}</button>`).join("")}</div>
+          <div class="qg-main"><div class="qg-hero"><canvas id="qgCv" width="400" height="440"></canvas><b>${C.e} ${C.n}</b><small>🎨 색은 공짜! 마음껏 바꿔요</small></div>
+          <div><div class="qg-list">${sw("hair", LOOK.hair, "💇 머리")}${sw("skin", LOOK.skin, "🙂 피부")}${sw("cape", LOOK.cape, "🧣 망토")}${sw("acc", LOOK.acc, "🎀 장식·깃털")}
+          <div class="qg-lk"><b>✨ 오로라</b><div>${AURA.map((A, i) => `<button class="qg-au${cur === i ? " on" : ""}" data-au="${i}" ${i > am ? "disabled" : ""}>${A ? `${A.e} ${A.n}${i > am ? ` 🔒${A.need}` : ""}` : "없음"}</button>`).join("")}</div></div></div>
+          <div class="qg-rec">✨ 오로라 점수 <b>${ap}</b> = 👑 보스 ⭐ + ⚔️ 결투 승리×3 · 🌟 20 · 🌌 60 · 🌈 150점이면 등 뒤에 오로라가 생겨요!</div></div></div>`;
       } else {
         const q = kid(sid), own = q.pets || {};
         main = `<div class="qg-list">${PETS.map(P => { const has = !!own[P.id], on = q.pet === P.id;
@@ -188,18 +232,22 @@ const QG = (() => {
             ${on ? `<button class="qg-buy on" data-petoff="1">✔ 데려가는 중</button>` : has ? `<button class="qg-buy eq" data-pet="${P.id}">데려가기</button>` : `<button class="qg-buy" data-pet="${P.id}" ${(w.coins || 0) < P.price || this.busy ? "disabled" : ""}>🪙 ${P.price.toLocaleString()}<small>입양하기</small></button>`}</div>`; }).join("")}</div>
           <div class="qg-rec">🐾 펫은 한 번 데려오면 <b>모든 영웅</b>이 함께 다녀요 · 한 번에 한 마리</div>`;
       }
-      el.innerHTML = `<div class="qg-box${this.flash ? " qg-" + this.flash : ""}"><div class="qg-hd"><h2>🛒 용사 상점<small>${esc(who(noOf_(sid)))} · 영웅마다 장비가 따로예요</small></h2><span class="qg-coin">🪙 ${(w.coins || 0).toLocaleString()}</span><button class="qg-x" data-x>✕</button></div>
+      el.innerHTML = `<div class="qg-box${this.flash ? " qg-" + this.flash : ""}"><div class="qg-hd"><h2>🛒 보스 잡기 상점<small>${esc(who(noOf_(sid)))} · 영웅마다 장비가 따로예요</small></h2><span class="qg-coin">🪙 ${(w.coins || 0).toLocaleString()}</span><button class="qg-x" data-x>✕</button></div>
         <div class="qg-tabs">${tabs}</div>${main}<div class="qg-msg" id="qgMsg">${this.msg || ""}</div></div>`;
-      if (T < 4) this.hero(T); this.flash = "";
+      if (T < 4) this.hero(T); else if (T === 5) this.hero(this.lc || 0); this.flash = "";
     },
     hero(ci){ const cv = $("#qgCv"); if (!cv || typeof WAR === "undefined") return; const C = QCL[ci], g = of(this.sid, C.id), D = def(C.id, g), t = cv.getContext("2d"); t.clearRect(0, 0, 400, 440);
-      try { if (g.wing){ const ws = wingSpr(g.wing); t.drawImage(ws, 200 - ws.w*1.25, 150 - ws.h*.9, ws.w*2.5, ws.h*2.5); }
+      try { const at = auraOf(this.sid); if (at){ const as = auraSpr(at); t.save(); t.globalCompositeOperation = "lighter"; t.globalAlpha = .75; t.drawImage(as, 200 - as.w*.8, 250 - as.h*.8, as.w*1.6, as.h*1.6); t.restore(); }
+        if (g.wing){ const ws = wingSpr(g.wing); t.drawImage(ws, 200 - ws.w*1.25, 150 - ws.h*.9, ws.w*2.5, ws.h*2.5); }
         const hc = WAR.spr("hq" + ci + D.sig, "war", D.d, "idle0", 1.9); t.drawImage(hc, 200 - hc.ax, 420 - hc.ay, hc.w, hc.h);
         if (g.pet){ const ps = petSpr(g.pet); t.drawImage(ps, 290, 150, 100, 100); } } catch(e){ console.warn(e); } },
     async click(e){
       const b = e.target.closest("button"); if (!b || b.disabled) { if (e.target === $("#qgShop")) this.close(); return; }
       if (b.dataset.x != null){ this.close(); return; }
       if (b.dataset.tab != null){ this.tab = +b.dataset.tab; this.msg = ""; this.paint(); return; }
+      if (b.dataset.lc != null){ this.lc = +b.dataset.lc; this.paint(); return; }
+      if (b.dataset.lk){ try { await setLook(this.sid, QCL[this.lc || 0].id, b.dataset.lk, b.dataset.v); this.msg = "🎨 바꿨어요!"; } catch(err){ this.msg = "😢 " + (err.message || err); } this.paint(); return; }
+      if (b.dataset.au != null){ try { await setAura(this.sid, +b.dataset.au); this.msg = "✨ 오로라를 바꿨어요!"; } catch(err){ this.msg = "😢 " + (err.message || err); } this.paint(); return; }
       const sid = this.sid; this.busy = true; this.msg = "";
       try {
         if (b.dataset.en){ const C = QCL[this.tab], r = await enhance(sid, C.id, b.dataset.en); this.flash = r > 0 ? "ok" : "no";
@@ -212,5 +260,5 @@ const QG = (() => {
     }
   };
   setTimeout(() => UI.css(), 0);
-  return {EMAX, ecost, echance, enhance, MAX, SLOTS, TIER, PETS, price, rec, SD, ED, of, botGear, power, stats, def, wingSpr, petSpr, nameOf, buy, buyPet, UI};
+  return {AURA, auraOf, auraMax, auraPts, auraSpr, LOOK, EMAX, ecost, echance, enhance, MAX, SLOTS, TIER, PETS, price, rec, SD, ED, of, botGear, power, stats, def, wingSpr, petSpr, nameOf, buy, buyPet, UI};
 })();

@@ -370,7 +370,11 @@ QCH.forEach((C, c) => { for (let k = 0; k < 5; k++){
 const QD_MAX = QST.length;
 /* 👑 보스 도전 (2026.11.17): 졸개 없이 보스와 1:1 — 바닥에 뜨는 빨간 경고를 보고 피하는 '컨트롤' 싸움.
    덜 맞을수록 ⭐이 많고, ⭐마다 🏅 용사 포인트 → ⚔️ 결투장에서 친구와 겨뤄요 */
-const QBL = ["orc", "rider", "yeti", "korc", "lrider", "drag"].concat(QBOSS.map(b => b[0]), ["kdrag"]);
+const QBL0 = ["orc", "rider", "yeti", "korc", "lrider", "drag"].concat(QBOSS.map(b => b[0]), ["kdrag"]);
+/* 👑 보스 100단계: 27 보스가 Ⅱ·Ⅲ·Ⅳ로 더 세져서 다시 나와요 (마지막 100단계는 황금 응룡 Ⅳ) */
+const QBL = Array.from({length: 100}, (_, l) => l === 99 ? "kdrag" : QBL0[l % QBL0.length]);
+const qbTier = l => Math.floor(l/QBL0.length);
+const qbName = l => QEN[QBL[l]].n + ["", " Ⅱ", " Ⅲ", " Ⅳ"][Math.min(3, qbTier(l))];
 const qblStage = l => { const k = QBL[l]; if (k === "kdrag") return QD_MAX - 1; const c = QCH.findIndex(C => C.boss === k); return c >= 0 ? c*5 + 4 : (l*5 + 4) % QD_MAX; };
 /* ⚔️ 결투장: 친구 용사도 '맞을 수 있는 상대'로 (그림은 용사 그대로) */
 QEN.pvp = {n: "용사", hp: 1, spd: 0, dmg: 0, reach: 0, sc: 0, px: 3, wind: 1, art: {}};
@@ -675,29 +679,31 @@ NG.defs.qd = () => {
     return true;
   }
   function checkOver(){ if (MODE === "arena") return; if (!P.some(p => p.st !== "out")) finish(false); }
-  const edm = () => MODE === "boss" ? 1 + BLV*.045 : QG.ED(stage);
+  const edm = () => MODE === "boss" ? (1.15 + BLV*.05)*(1 + qbTier(BLV)*.1) : QG.ED(stage);   // 👹 단계마다 더 아프게
   /* =========================== 👑 보스 도전 =========================== */
   const hitsNow = () => HUM.reduce((a, i) => a + (P[i].hitN || 0), 0);
   function starsNow(){ const h = hitsNow(), n = Math.max(1, HUM.length); return h <= 2*n ? 3 : h <= 6*n ? 2 : 1; }   // ⭐⭐⭐: 거의 안 맞고 이기기
   function startBoss(){
     camX = 0; lockX = 0; segI = 99; waveQ = []; E = []; PR = []; IT = []; FX = []; PROPS = []; HZ = []; pend = []; bossId = 0; goT = 0; stageT = 0;
-    BT = 60*(100 + Math.min(80, BLV*3));
-    P.forEach((p, i) => { applyGear(p); if (p.gs){ p.gs = Object.assign({}, p.gs, {dm: Math.min(2.5, p.gs.dm), hpm: Math.min(2.5, p.gs.hpm)}); p.mhp = Math.round(QCL[p.cls].hp*p.gs.hpm); }   // 🛒 장비는 조금만 (실력 싸움!)
+    BT = 60*(110 + Math.min(130, BLV*2));
+    const cap = 2.5 + BLV*.045;   // 🛒 장비 효과 한도: 높은 보스일수록 장비가 더 중요해요 (100단계 ×7)
+    P.forEach((p, i) => { applyGear(p); if (p.gs){ p.gs = Object.assign({}, p.gs, {dm: Math.min(cap, p.gs.dm), hpm: Math.min(cap*.9, p.gs.hpm)}); p.mhp = Math.round(QCL[p.cls].hp*p.gs.hpm); }
       Object.assign(p, {x: 180 + i*50, y: YT + 50 + i*50, z: 0, vz: 0, f: 1, st: "idle", t: 0, inv: 120, hp: p.mhp, lives: 1, hitN: 0}); });
     phase = "play";
-    const b = spawn(QBL[BLV], 1, W*.74); b.y = (YT + YB)/2; bossId = b.id; b.cd = 90; b.sk = 150; b.pc = 0;
-    say(`👑 보스 도전 ${BLV + 1}단계`, `${QEN[QBL[BLV]].n} · 빨간 경고를 보고 피해요!`, 170); sfx("boss"); quake(8);
+    const b = spawn(QBL[BLV], 1, W*.74); b.y = (YT + YB)/2; bossId = b.id; b.cd = 90; b.sk = 150; b.pc = 0; b.nm = qbName(BLV);
+    say(`👹 보스 ${BLV + 1}단계`, `${qbName(BLV)} · 빨간 경고를 보고 피해요!`, 170); sfx("boss"); quake(8);
   }
   /* 보스 기술: 자기 기술(뛰어 찍기·돌진·불·눈덩이) + ☄️ 떨어지는 돌 · 💫 충격파(점프로 넘어요) · ⚡ 줄 번개(빈 줄로 피해요) */
   function bossPat(e, D, tg){
     if (e.st === "cast"){ if (e.t > 36){ e.st = "walk"; e.t = 0; } return true; }
     if (e.st !== "walk" && e.st !== "idle") return false;
+    if (e.rage === 1 && BLV >= 27 && e.hp < e.mhp*.25){ e.rage = 2; e.sk = Math.min(e.sk, 30); sfx("roar"); quake(12); say("", `🔥 ${e.nm || D.n} 최후의 분노! 더 빨라져요`, 110); flashT = 18; flashC = "#ff922b"; }
     if (!e.rage && e.hp < e.mhp*.5){ e.rage = 1; e.sk = Math.min(e.sk, 40); sfx("roar"); quake(10); say("", `😡 ${D.n}이(가) 화났어요! 기술이 빨라져요`, 110); flashT = 16; flashC = "#ff6b6b"; }
     if (e.sk > 0) return false;
     const c = (e.pc = (e.pc || 0) + 1) % (BLV < 2 ? 2 : 3);
     if (c === 1) return false;   // 보스 자기 기술 (아래 원래 코드)
-    e.st = "cast"; e.t = 0; e.sk = (e.rage ? 150 : 220) - Math.min(70, BLV*3); sfx("roar");
-    const lv = BLV + (e.rage ? 3 : 0);
+    e.st = "cast"; e.t = 0; e.sk = (e.rage === 2 ? 115 : e.rage ? 150 : 220) - Math.min(75, BLV*1.5); sfx("roar");
+    const lv = Math.min(24, Math.floor(BLV/2) + (e.rage ? 3 : 0));   // 경고 시간은 짧아져도 꼭 피할 수 있게 (최소 0.67초)
     if (c === 2 && BLV >= 2 && (e.pc >> 1) % 2){ // ⚡ 줄 번개
       const n = 4, hgt = (YB - YT + 30)/n, safe = Math.floor(rand()*n), safe2 = lv < 6 ? (safe + 2) % n : -1;
       for (let k = 0; k < n; k++) if (k !== safe && k !== safe2) HZ.push({k: "lane", y0: YT - 15 + k*hgt, y1: YT - 15 + (k + 1)*hgt, t: 0, T: Math.max(42, 66 - lv*2), dmg: 13});
@@ -806,7 +812,7 @@ NG.defs.qd = () => {
   /* ---------- 적 ---------- */
   function spawn(k, side, x){
     const D = QEN[k], e = {id: uid++, k, x: x != null ? x : side < 0 ? camX - 90 : camX + W + 90, y: YT + 20 + rand()*(YB - YT - 40), z: 0, vz: 0, f: side < 0 ? 1 : -1, st: "walk", t: 0,
-      hp: Math.round(MODE === "boss" ? D.hp*(1.35 + .45*(HUM.length - 1))*(1 + BLV*.03) : D.hp*(D.boss ? bmult*(QST[stage].mini ? .6 : 1)*QG.SD(stage)*.85 : emult*QG.SD(stage))), cd: 40 + rand()*60, yo: rr(-14, 14), kx: 0, flash: 0, inv: 0, ag: 0, tg: -1, ph: 0, sk: 220 + rand()*120};
+      hp: Math.round(MODE === "boss" ? D.hp*(1.5 + .45*(HUM.length - 1))*(1 + BLV*.045)*(1 + qbTier(BLV)*.2) : D.hp*(D.boss ? bmult*(QST[stage].mini ? .6 : 1)*QG.SD(stage)*.85 : emult*QG.SD(stage))), cd: 40 + rand()*60, yo: rr(-14, 14), kx: 0, flash: 0, inv: 0, ag: 0, tg: -1, ph: 0, sk: 220 + rand()*120};
     e.mhp = e.hp; E.push(e); return e;
   }
   function target(e){ let tg = null, best = 1e9; P.forEach(p => { if (!alive(p)) return; const d = Math.abs(p.x - e.x) + Math.abs(p.y - e.y)*1.5 + (p.i === e.tg ? -120 : 0); if (d < best){ best = d; tg = p; } }); return tg; }
@@ -1111,6 +1117,9 @@ NG.defs.qd = () => {
     if (blink) g.globalAlpha = .45;
     if (p.st === "spc" && lastSt[p.i] !== "spc") cutIn(p); lastSt[p.i] = p.st;
     gearOf(p); const gd = p.gd || {d: WDEF[QCL[p.cls].id], sig: ""}, gg = p.gg || {};
+    // ✨ 오로라: 👑 보스 ⭐·⚔️ 결투 승리를 많이 모은 친구 (등 뒤에서 일렁여요)
+    if (!isBot(p.i) && p.st !== "dead" && p.st !== "out"){ const at = QG.auraOf(p.sid); if (at){ const as = QG.auraSpr(at), pu = 1 + Math.sin(NG.frame*.06 + p.i)*.06, sc = HSC*1.0*pu;
+      g.save(); g.globalCompositeOperation = "lighter"; g.globalAlpha = (.38 + .16*Math.sin(NG.frame*.09 + p.i))*Math.min(1, g.globalAlpha); g.translate(Math.round(sx), Math.round(sy - p.z - 120*HSC)); g.scale(sc*(p.f || 1), sc); g.drawImage(as, -as.w/2, -as.h/2, as.w, as.h); g.restore(); } }
     // 🪽 날개 (등 뒤) — 장비 단계마다 색·크기
     if (gg.wing && p.st !== "dead" && p.st !== "down"){ const ws = QG.wingSpr(gg.wing), fl = 1 + Math.sin(NG.frame*.22 + p.i)*.1, sc = HSC*1.15;
       g.save(); g.translate(Math.round(sx - p.f*8), Math.round(sy - p.z - 150*HSC)); g.scale(sc, sc*fl); g.drawImage(ws, -ws.w/2, -ws.h*.62, ws.w, ws.h); g.restore(); }
@@ -1225,9 +1234,14 @@ NG.defs.qd = () => {
       here.forEach((p, k) => { const fx = x - (here.length - 1)*28 + k*56; faceAt(g, p.sid, fx, 625 + 28, 24, p.ready ? "#69db7c" : "#fff"); if (p.ready) outlined(g, "✔", fx + 18, 625 + 10, 22, "#69db7c"); }); });
   }
   /* 화면 위 칸 그림 (한 번만 그려 붙여요) */
-  const hudCard = (c, w, me) => G2.spr(`qdc${c}${w}${me ? 1 : 0}`, w, 84, t => { const g2 = t.createLinearGradient(0, 0, 0, 84); g2.addColorStop(0, me ? "rgba(70,52,10,.88)" : "rgba(34,24,80,.86)"); g2.addColorStop(1, me ? "rgba(40,28,6,.82)" : "rgba(14,10,40,.8)");
-    t.fillStyle = g2; rrect(t, 0, 0, w, 84, 16); t.fill(); t.strokeStyle = me ? "#ffe066" : c; t.lineWidth = 2.5; rrect(t, 1.25, 1.25, w - 2.5, 81.5, 15); t.stroke();
-    t.fillStyle = "rgba(255,255,255,.1)"; rrect(t, 6, 4, w - 12, 18, 9); t.fill(); });
+  /* 🪪 위쪽 친구 칸: 반투명 유리 카드 + 직업 색 줄 (한 번만 그려 붙여요) */
+  const hudCard = (c, w, me) => G2.spr(`qdc2${c}${w}${me ? 1 : 0}`, w, 84, t => {
+    t.fillStyle = "rgba(0,0,0,.28)"; rrect(t, 2, 5, w - 2, 79, 18); t.fill();
+    const g2 = t.createLinearGradient(0, 0, 0, 84); g2.addColorStop(0, me ? "rgba(58,42,12,.92)" : "rgba(28,22,62,.9)"); g2.addColorStop(1, me ? "rgba(30,20,4,.9)" : "rgba(14,10,36,.9)");
+    t.fillStyle = g2; rrect(t, 0, 0, w, 80, 18); t.fill();
+    t.fillStyle = c; rrect(t, 0, 0, 7, 80, 4); t.fill();
+    t.strokeStyle = me ? "#ffe066" : "rgba(255,255,255,.18)"; t.lineWidth = me ? 2.5 : 1.5; rrect(t, 1, 1, w - 2, 78, 17); t.stroke();
+    t.fillStyle = "rgba(255,255,255,.07)"; rrect(t, 9, 3, w - 14, 30, 14); t.fill(); });
   const stPill = () => G2.spr("qdpill", 560, 44, t => { const g2 = t.createLinearGradient(0, 0, 0, 44); g2.addColorStop(0, "rgba(34,24,80,.88)"); g2.addColorStop(1, "rgba(14,10,40,.84)"); t.fillStyle = g2; rrect(t, 0, 0, 560, 44, 22); t.fill();
     t.strokeStyle = "rgba(255,224,102,.7)"; t.lineWidth = 2; rrect(t, 1, 1, 558, 42, 21); t.stroke(); });
   const plate = () => G2.spr("qdplate", 900, 190, t => { const g2 = t.createLinearGradient(0, 0, 900, 0); g2.addColorStop(0, "rgba(15,10,40,0)"); g2.addColorStop(.2, "rgba(15,10,40,.75)"); g2.addColorStop(.8, "rgba(15,10,40,.75)"); g2.addColorStop(1, "rgba(15,10,40,0)");
@@ -1237,19 +1251,21 @@ NG.defs.qd = () => {
     const n = P.length, pw = Math.min(310, (W - 20)/n);
     P.forEach((p, i) => { const x = 10 + i*pw, y = 8, C = QCL[p.cls], me = party ? i === myIdx : local.includes(i);
       g.drawImage(hudCard(C.c, Math.round(pw - 8), me), x, y, Math.round(pw - 8), 84);
-      faceAt(g, p.sid, x + 38, y + 42, 28, C.c, p.st === "out" || p.st === "dead");
-      outlined(g, `${i + 1}P ${C.e} ${nameOf(noOf_(p.sid)) || "선생님"}${isBot(i) ? " 🤖" : ""}`, x + 74, y + 18, 19, me ? "#ffe066" : "#fff", undefined, "left");
-      const hr = p.hp/mhpOf(p); bar(g, x + 74, y + 34, pw - 96, 14, hr, hr > .35 ? "#51cf66" : "#ff6b6b");
-      bar(g, x + 74, y + 54, pw - 96, 8, p.mp/100, p.mp >= 100 ? ((NG.frame >> 3) % 2 ? "#ffd43b" : "#74c0fc") : "#4dabf7");
+      faceAt(g, p.sid, x + 40, y + 40, 27, C.c, p.st === "out" || p.st === "dead");
+      const at = isBot(i) ? 0 : QG.auraOf(p.sid);
+      outlined(g, `${i + 1}P ${C.e} ${nameOf(noOf_(p.sid)) || "선생님"}${isBot(i) ? " 🤖" : ""}${at ? " " + ["", "🌟", "🌌", "🌈"][at] : ""}`, x + 76, y + 18, 18, me ? "#ffe066" : "#fff", undefined, "left");
+      const hr = p.hp/mhpOf(p); bar(g, x + 76, y + 33, pw - 98, 15, hr, hr > .5 ? "#51cf66" : hr > .25 ? "#fcc419" : "#ff6b6b");
+      if (pw > 200) outlined(g, `${Math.max(0, Math.ceil(p.hp))}/${mhpOf(p)}`, x + pw - 26, y + 41, 12, "#fff", undefined, "right");
+      bar(g, x + 76, y + 53, pw - 98, 7, p.mp/100, p.mp >= 100 ? ((NG.frame >> 3) % 2 ? "#ffd43b" : "#74c0fc") : "#4dabf7");
       outlined(g, p.st === "out" ? "💤 쉬는 중" : `${"❤️".repeat(Math.max(0, p.lives))} ${Math.round(p.score)}점`, x + 74, y + 74, 15, "#fff", undefined, "left");
       if (p.mp >= 100 && alive(p)) outlined(g, "✨OK", x + pw - 40, y + 56, 15, "#ffd43b"); });
     if (phase !== "sel" && MODE !== "adv"){ const px = W/2 - 280, py = 98; g.drawImage(stPill(), px, py, 560, 44);
-      if (MODE === "boss"){ outlined(g, `👑 보스 도전 ${BLV + 1}/${QBL.length}`, px + 18, py + 22, 18, "#ffe066", undefined, "left"); const st = phase === "play" ? starsNow() : 3;
+      if (MODE === "boss"){ outlined(g, `👹 보스 ${BLV + 1}/${QBL.length}단계`, px + 18, py + 22, 18, "#ffe066", undefined, "left"); const st = phase === "play" ? starsNow() : 3;
         outlined(g, `${"⭐".repeat(st)}${"☆".repeat(3 - st)}`, px + 300, py + 22, 18, "#fff"); outlined(g, `⏱️ ${Math.ceil(Math.max(0, BT)/60)}초`, px + 540, py + 22, 18, BT < 60*15 ? "#ff6b6b" : "#fff", undefined, "right"); }
       else if (AR){ outlined(g, `⚔️ 결투장 ROUND ${AR.rd}`, px + 18, py + 22, 18, "#ffe066", undefined, "left"); outlined(g, P.map((p, i) => `${i + 1}P ${"★".repeat(AR.w[i]) || "·"}`).join("  "), px + 300, py + 22, 17, "#fff");
         outlined(g, `⏱️ ${Math.ceil(Math.max(0, AR.t)/60)}초`, px + 540, py + 22, 18, AR.t < 60*10 ? "#ff6b6b" : "#fff", undefined, "right"); }
       const b = bossId && E.find(e => e.id === bossId);
-      if (b && b.st !== "die"){ const D = QEN[b.k]; g.fillStyle = "rgba(15,10,40,.6)"; rrect(g, 200, 150, W - 400, 40, 20); g.fill(); outlined(g, `👑 ${D.n}${b.rage ? " 😡" : ""}`, 222, 170, 20, "#ffd43b", undefined, "left"); bar(g, 470, 161, W - 690, 18, b.hp/b.mhp, b.rage ? "#ff2d2d" : "#fa5252"); }
+      if (b && b.st !== "die"){ const D = QEN[b.k]; g.fillStyle = "rgba(15,10,40,.6)"; rrect(g, 200, 150, W - 400, 40, 20); g.fill(); outlined(g, `👑 ${b.nm || D.n}${b.rage === 2 ? " 🔥" : b.rage ? " 😡" : ""}`, 222, 170, 20, "#ffd43b", undefined, "left"); bar(g, 470, 161, W - 690, 18, b.hp/b.mhp, b.rage ? "#ff2d2d" : "#fa5252"); }
     }
     if (phase !== "sel" && MODE === "adv"){
       { const S = QST[stage], px = W/2 - 280, py = 98; g.drawImage(stPill(), px, py, 560, 44);
@@ -1306,8 +1322,8 @@ NG.defs.qd = () => {
       if (used){ d ? keys.add(code) : keys.delete(code); }
       return used;
     },
-    hud(){ if (MODE !== "adv" && phase !== "sel") return MODE === "boss" ? `👑 보스 도전 ${BLV + 1}단계 · ${QEN[QBL[BLV]].n}` : `⚔️ 결투장${AR ? ` · ROUND ${AR.rd}` : ""}${party ? " · 🌐 온라인" : ""}`;
-      return `🛡️ 용사 대모험 · ${phase === "sel" ? "용사 고르기" : `STAGE ${stage + 1}/${QD_MAX} · ${QST[stage].n}`} · 팀 ${Math.round(team)}점${party ? " · 🌐 온라인" : ""}`; },
+    hud(){ if (MODE !== "adv" && phase !== "sel") return MODE === "boss" ? `👹 불가능한 보스 잡기 · ${BLV + 1}단계 · ${qbName(BLV)}` : `⚔️ 결투장${AR ? ` · ROUND ${AR.rd}` : ""}${party ? " · 🌐 온라인" : ""}`;
+      return `👹 불가능한 보스 잡기 · 🗺️ 모험 · ${phase === "sel" ? "용사 고르기" : `STAGE ${stage + 1}/${QD_MAX} · ${QST[stage].n}`} · 팀 ${Math.round(team)}점${party ? " · 🌐 온라인" : ""}`; },
     apply, dropIdx(i){ if (!(O.bots = O.bots || []).includes(i)) O.bots.push(i); },
     end(w, res){ if (ended) return; ended = true; results = res; QDM.result(res, O); },
     /* ▶ 이어하기: 모두 다시 일어나서 지금 스테이지 그대로 */
@@ -1357,19 +1373,19 @@ const QDM = {
     const botRow = (id, max) => `<div class="wb-row"><span>🤖 컴퓨터 동료</span><div class="arc-seg" id="${id}">${Array.from({length: max + 1}, (_, n) => `<button data-v="${n}" class="${n === Math.min(max, this.bots) ? "on" : ""}">${n}명</button>`).join("")}</div></div>`;
     const qp = QPT.of(sidOf(me)), op = QPT.open(sidOf(me));
     if (this.bsel == null || this.bsel > op) this.bsel = op;   // 고른 보스 (처음엔 지금 도전할 수 있는 가장 높은 보스)
-    const bossGrid = QBL.map((k, l) => { const st = qp.bs[l] || 0, lock = l > op; return `<button class="qd-bl${lock ? " lock" : ""}${st ? " done" : ""}${l === this.bsel ? " sel" : ""}" data-bl="${l}" ${lock ? "disabled" : ""} title="${esc(QEN[k].n)}"><b>${lock ? "🔒" : l + 1}</b><small>${lock ? "" : "⭐".repeat(st) + "☆".repeat(3 - st)}</small><i>${esc(QEN[k].n)}</i></button>`; }).join("");
+    const bossGrid = QBL.map((k, l) => { const st = qp.bs[l] || 0, lock = l > op; return `<button class="qd-bl${lock ? " lock" : ""}${st ? " done" : ""}${l === this.bsel ? " sel" : ""}" data-bl="${l}" ${lock ? "disabled" : ""} title="${esc(qbName(l))}" style="--t:${["#ff6b6b","#4dabf7","#b197fc","#ffd43b"][qbTier(l)]}"><b>${lock ? "🔒" : l + 1}</b><small>${lock ? "" : "⭐".repeat(st) + "☆".repeat(3 - st)}</small></button>`; }).join("");
     $("#wbBody").innerHTML = `<div class="qd-pt">🏅 용사 포인트 <b>${qp.pt}</b><small>⚔️ 결투 ${qp.aw}승 ${qp.al}패</small></div>
-      <div class="wb-sec qd-boss"><h3>👑 보스 도전 <small>졸개 없이 보스와 한판! 바닥의 <b style="color:#ff6b6b">빨간 경고</b>를 보고 💨대시·🦘점프로 피해요 · 덜 맞을수록 ⭐ · ⭐마다 🏅 포인트</small></h3>
+      <div class="wb-sec qd-boss"><h3>👹 불가능한 보스 잡기 · 100단계 <small>졸개 없이 보스와 한판! 바닥의 <b style="color:#ff6b6b">빨간 경고</b>를 보고 💨대시·🦘점프로 피해요 · 덜 맞을수록 ⭐ · ⭐마다 🏅 포인트</small></h3>
         <div class="qd-bls">${bossGrid}</div>
-        <div class="qd-bgo"><span id="qdBName">👑 ${this.bsel + 1}단계 · ${esc(QEN[QBL[this.bsel]].n)}</span><button class="arc-btn p" id="qdBSolo">▶ 🧒 혼자 도전</button><button class="arc-btn" id="qdBTwoB">👫 이 기기에서 둘이 도전</button></div>
+        <div class="qd-bgo"><span id="qdBName">👑 ${this.bsel + 1}단계 · ${esc(qbName(this.bsel))}</span><button class="arc-btn p" id="qdBSolo">▶ 🧒 혼자 도전</button><button class="arc-btn" id="qdBTwoB">👫 이 기기에서 둘이 도전</button></div>
         <p class="arc-small qd-bh">보스를 눌러 고르고 → ▶ 혼자 도전! · 온라인으로 같이 하려면 아래 🌐 온라인 방에서 '👑 보스 협동'</p></div>
       <div class="wb-sec qd-arena"><h3>⚔️ 결투장 <small>장비 없이 모두 같은 힘 · 3판 2선승 · 참가비 🏅${QPT.FEE} → 이긴 친구가 모두 가져가요 · 🌐 온라인 방에서 '⚔️ 결투'로 최대 6명!</small></h3>
         <div class="arc-row"><button class="arc-btn p" id="qdDuel">👫 이 기기에서 친구와 결투</button><button class="arc-btn" id="qdDuelBot">🤖 컴퓨터와 연습 <small>(포인트 없이)</small></button></div>
         </div>
       <div class="wb-sec qd-on"><h3>🌐 온라인 방 <small>각자 기기로 · ⚔️ 결투는 최대 <b>6명</b> 난투 · 👑 보스 협동·🗺️ 모험은 4명 · 방을 만들기 전에 할 것을 골라요</small></h3>
         <div class="wb-row"><span>할 것</span><div class="arc-seg" id="qdOm"><button data-v="boss" class="${this.om === "boss" ? "on" : ""}">👑 보스 협동</button><button data-v="arena" class="${this.om === "arena" ? "on" : ""}">⚔️ 결투</button><button data-v="adv" class="${this.om === "adv" ? "on" : ""}">🗺️ 모험</button></div></div>
-        <div class="wb-row" id="qdObRow" ${this.om === "boss" ? "" : "hidden"}><span>👑 보스</span><select id="qdOb" class="qd-ob">${QBL.map((k, l) => `<option value="${l}" ${l === Math.min(this.obl, op) ? "selected" : ""} ${l > op ? "disabled" : ""}>${l + 1}단계 · ${esc(QEN[k].n)}${l > op ? " 🔒" : ""}</option>`).join("")}</select></div></div>
-      <button class="arc-btn p qd-shopb" id="qdShop">🛒 용사 상점 <small>무기·갑옷·투구·신발·날개·🐾펫</small></button><div class="qd-intro"><div class="qd-cls">${QCL.map(c => `<span style="--c:${c.c}">${c.e}<b>${c.n}</b><small>✨ ${c.sp}</small></span>`).join("")}</div>
+        <div class="wb-row" id="qdObRow" ${this.om === "boss" ? "" : "hidden"}><span>👑 보스</span><select id="qdOb" class="qd-ob">${QBL.map((k, l) => `<option value="${l}" ${l === Math.min(this.obl, op) ? "selected" : ""} ${l > op ? "disabled" : ""}>${l + 1}단계 · ${esc(qbName(l))}${l > op ? " 🔒" : ""}</option>`).join("")}</select></div></div>
+      <button class="arc-btn p qd-shopb" id="qdShop">🛒 보스 잡기 상점 <small>무기·갑옷·투구·신발·날개·🐾펫·🎨 꾸미기·✨오로라</small></button><div class="qd-intro"><div class="qd-cls">${QCL.map(c => `<span style="--c:${c.c}">${c.e}<b>${c.n}</b><small>✨ ${c.sp}</small></span>`).join("")}</div>
         <p class="arc-small">최대 <b>4명</b>이 힘을 합쳐 <b>${QD_MAX}단계</b>(26개의 땅 × 5단계)를 깨요. 3단계마다 작은 보스, 5단계마다 무시무시한 <b>보스</b>! 31단계부터는 몬스터가 훨씬 세져서 <b>🛒 용사 상점</b>에서 장비를 강화해야 해요.
         <br>⌨️ 이동 <b>방향키</b> · 왼손 <b>A</b> 공격 · <b>S</b> 점프 · <b>D</b> 💨대시 · <b>F</b> ✨필살 · <b>Q</b> 스킬1 · <b>W</b> 스킬2 · <b>E</b> 🐾펫 · 📱 화면 단추도 돼요
         <br><small>직업마다 스킬 둘: 검객 삼연참·검기 / 창장수 회전창·돌진 / 궁장 삼연발·폭탄 화살 / 책사 낙뢰·치유의 바람</small></p></div>
@@ -1386,7 +1402,7 @@ const QDM = {
     const bg = $("#wbBody").querySelector(".qd-bls");
     bg.onclick = e => { const b = e.target.closest("[data-bl]"); if (!b || b.disabled) return; const l = +b.dataset.bl;
       if (this.bsel === l && e.detail >= 2){ box.hidden = true; this.start([me], 0, {mode: "boss", bl: l}); return; }   // 두 번 누르면 바로 혼자 출발
-      this.bsel = l; bg.querySelectorAll(".qd-bl").forEach(x => x.classList.toggle("sel", x === b)); $("#qdBName").textContent = `👑 ${l + 1}단계 · ${QEN[QBL[l]].n}`; };
+      this.bsel = l; bg.querySelectorAll(".qd-bl").forEach(x => x.classList.toggle("sel", x === b)); $("#qdBName").textContent = `👑 ${l + 1}단계 · ${qbName(l)}`; };
     $("#qdBSolo").onclick = () => { box.hidden = true; this.start([me], 0, {mode: "boss", bl: this.bsel}); };
     $("#qdBTwoB").onclick = () => { box.hidden = true; ARC.pickRival("qd", opp => this.start([me, opp], 0, {mode: "boss", bl: this.bsel})); };
     $("#qdDuel").onclick = () => { box.hidden = true; ARC.pickRival("qd", opp => { const ok = [me, opp].every(n => QPT.of(sidOf(n)).pt >= QPT.FEE);
@@ -1431,7 +1447,7 @@ QDM.result2 = function(R, o){
   const rows = [], go = (k, t) => `<button class="arc-btn${k === "next" || k === "again" ? " p" : ""}" data-qd="${k}">${t}</button>`;
   let title, sub = "", btns = "";
   if (R.mode === "boss"){
-    const l = R.bl, nm = QEN[QBL[l]].n;
+    const l = R.bl, nm = qbName(l);
     R.res.forEach(x => { if (!mine.includes(x.i)) return; const g = R.win ? QPT.boss(x.sid, l, R.stars) : {gain: 0}; try { qdSave(x.sid, Math.round(x.sc)); } catch(e){}
       rows.push(`<div class="qd-r me"><span class="rk">${QCL[x.cls].e}</span><span class="avf">${avHTMLof(x.sid, {still: true, face: true})}</span><b>${esc(who(noOf_(x.sid)))}</b><span class="sc">${g.gain ? `🏅 +${g.gain}` : ""}</span><small>${R.win ? (g.gain ? (g.old ? "⭐을 더 땄어요!" : "처음 깼어요!") : "이미 딴 ⭐이에요 (더 적게 맞으면 ⭐이 늘어요)") : "다시 도전해 봐요!"} · 지금 🏅 ${QPT.of(x.sid).pt}</small></div>`); });
     title = R.win ? `👑 ${nm} 처치!` : `💫 ${nm}에게 졌어요`;
@@ -1499,7 +1515,8 @@ QDM.result2 = function(R, o){
 .qd-bl.sel{background:rgba(255,212,59,.25);border-color:#ffd43b;box-shadow:0 0 0 3px rgba(255,212,59,.35)}
 .qd-bgo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0 2px}.qd-bgo span{flex:1;min-width:160px;font:17px "Jua",sans-serif;color:#ffe066}
 .qd-bgo .arc-btn{padding:10px 16px}.qd-bh{margin:4px 0 0;opacity:.8}
-.qd-bls{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px;margin:6px 0}
+.qd-bls{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:5px;margin:6px 0;max-height:262px;overflow-y:auto;padding:4px 4px 4px 2px;overscroll-behavior:contain}
+.qd-bls .qd-bl{border-color:var(--t,#ff6b6b);padding:5px 2px}.qd-bls .qd-bl b{font-size:17px}.qd-bls .qd-bl.lock{opacity:.45}
 .qd-bl{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px;border-radius:12px;border:2px solid #ff6b6b;background:rgba(255,107,107,.12);color:#fff;cursor:pointer;font:inherit}
 .qd-bl b{font:20px "Jua",sans-serif}.qd-bl small{font-size:11px;letter-spacing:-1px}.qd-bl i{font:normal 10.5px "Gowun Dodum",sans-serif;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .qd-bl.done{border-color:#ffd43b;background:rgba(255,212,59,.14)}.qd-bl.lock{opacity:.4;cursor:default;border-color:#495057;background:rgba(255,255,255,.04)}
