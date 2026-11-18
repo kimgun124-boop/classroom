@@ -621,7 +621,7 @@ const PARTY = {
     }
     if (this.role === "guest"){
       const M = this.members.length ? this.members : [this.host, ARC.me];
-      box.innerHTML = `<div class="wb-wait">${this.on() ? `✅ <b>${esc(who(this.host))}</b>의 방에 들어왔어요! 방장이 시작하길 기다려요…` : `🔌 <b>${esc(who(this.host))}</b>의 방에 연결하는 중…`}</div>
+      box.innerHTML = `<div class="wb-wait">${this.rjBack ? `🔁 <b>${esc(who(this.host))}</b>의 판으로 다시 들어가는 중… 곧 내 마당이 보여요!` : this.on() ? `✅ <b>${esc(who(this.host))}</b>의 방에 들어왔어요! 방장이 시작하길 기다려요…` : `🔌 <b>${esc(who(this.host))}</b>의 방에 연결하는 중…`}</div>
         <div class="wb-slots">${M.map((no, i) => `<div class="wb-slot on">${face(no)}<b>${i === 0 ? "👑 " : ""}${esc(who(no))}</b></div>`).join("")}${this.bots ? `<div class="wb-slot bot"><span class="f">🤖</span><b>컴퓨터 ×${this.bots}</b></div>` : ""}</div>
         <div class="arc-row"><button class="arc-btn" id="wbPLeave">✕ 나가기</button></div>`;
       $("#wbPLeave").onclick = () => { this.leave(); this.renderRooms(); };
@@ -629,10 +629,15 @@ const PARTY = {
     }
     this.watchRooms();
     const L = this.rooms.filter(r => r.host !== ARC.me);
-    box.innerHTML = `<button class="arc-btn p" id="wbPNew">🏠 방 만들기 <small>친구들이 들어오면 시작!</small></button>
+    /* 🔁 튕겼던 판이 아직 하는 중이면 맨 위에 '다시 들어가기' */
+    if (this.canRejoin() && this.rjGet() && (!this.rjT || Date.now() - this.rjT > 5000)){ this.rjT = Date.now(); this.rjCheck().then(r => { if (!this.role && $("#wbRooms") && (r ? r.pid : "") !== (this.rjShown || "")) this.renderRooms(); }); }
+    const rj = this.canRejoin() && this.rjRoom && this.rjRoom.g === this.gid ? this.rjRoom : null; this.rjShown = rj ? rj.pid : "";
+    box.innerHTML = `${rj ? `<button class="arc-btn p wb-rejoin" id="wbPBack">🔁 하던 판으로 다시 들어가기 <small>${esc(who(rj.host))}의 방 · 아직 하는 중 · 내 동물·금 그대로!</small></button>` : ""}<button class="arc-btn ${rj ? "" : "p"}" id="wbPNew">🏠 방 만들기 <small>친구들이 들어오면 시작!</small></button>
       <div class="wb-rooms">${L.length ? L.map(r => `<button class="wb-room" data-pid="${esc(r.id)}" data-h="${+r.host}" ${(r.n || 1) >= this.MAX ? "disabled" : ""}>${face(r.host)}<b>${esc(who(r.host))}의 방</b><small>${r.n || 1}/${this.MAX}명 · 들어가기 ▶</small></button>`).join("")
         : `<p class="arc-small">아직 열린 방이 없어요. 먼저 방을 만들어 친구를 불러 봐요! 📣</p>`}</div>`;
     $("#wbPNew").onclick = () => this.create();
+    if ($("#wbPBack")) $("#wbPBack").onclick = () => { this.rjBack = true; this.join(rj.pid, rj.host); };
+    if (rj && this.rjScrolled !== rj.pid){ this.rjScrolled = rj.pid; try { $("#wbPBack").scrollIntoView({block: "center", behavior: "smooth"}); } catch(e) {} }
     box.querySelector(".wb-rooms").onclick = e => { const b = e.target.closest("[data-pid]"); if (b && !b.disabled) this.join(b.dataset.pid, +b.dataset.h); };
   },
   on(){ return this.role === "guest" ? !!(this.hp && this.hp.r && this.hp.r.readyState === "open") : true; },
@@ -645,7 +650,7 @@ const PARTY = {
       const r = fs.doc(this.col()); this.pid = r.id; const now = Date.now();
       await fs.setDoc(r, {host: ARC.me, g: this.gid, st: "open", n: 1, at: now, t0: now});
       this.un.push(fs.onSnapshot(this.col(this.pid, "peers"), qs => qs.docChanges().forEach(ch => this.onPeerDoc(ch.type, ch.doc.id, ch.doc.data())), e => console.warn(e)));
-      this.beat = setInterval(() => { if (this.role === "host" && !this.started) fs.updateDoc(this.ref(this.pid), {at: Date.now(), n: this.members.length}).catch(() => {}); }, 25000);
+      this.beat = setInterval(() => { if (this.role === "host" && (!this.started || this.canRejoin())) fs.updateDoc(this.ref(this.pid), {at: Date.now(), n: this.members.length}).catch(() => {}); }, 25000);   // 🔁 다시 들어오기 되는 게임은 하는 중에도 '방장 살아 있어요' 표시
     } catch(e){ console.error(e); toast("⚠️ 방을 만들지 못했어요. 인터넷을 확인해 주세요."); this.leave(); this.renderRooms(); }
   },
   async onPeerDoc(type, id, d){
@@ -654,10 +659,13 @@ const PARTY = {
     if (type === "removed"){ if (!this.started) this.drop(no); return; }
     let P = this.peers.get(no);
     if (d.st === "relay" && this.CFG[this.gid].relay){ this.relayPeer(no, d); return; }
+    /* 🔁 튕긴 친구가 다시 문을 두드리면: 예전 연결은 조용히 정리하고 새로 이어요 (그 친구 동물·금은 그대로) */
+    const back = this.started && this.canRejoin() && this.members.indexOf(no) > 0;
+    if (P && d.st === "knock" && back && P.kAt !== d.at){ this.peers.delete(no); const pc0 = P.pc; setTimeout(() => { try { pc0 && pc0.close(); } catch(e) {} }, 0); P = null; }
     if (!P && d.st === "knock"){
-      if (this.started || this.members.length + this.peers.size - this.connected().length >= this.MAX){ Store.fs.updateDoc(this.ref(this.pid, "peers", id), {st: "full"}).catch(() => {}); return; }
+      if ((this.started && !back) || (!this.started && this.members.length + this.peers.size - this.connected().length >= this.MAX)){ Store.fs.updateDoc(this.ref(this.pid, "peers", id), {st: "full"}).catch(() => {}); return; }
       const pc = new RTCPeerConnection({iceServers: this.ice()});
-      P = {no, pc, u: pc.createDataChannel("u", {ordered: false, maxRetransmits: 0}), r: pc.createDataChannel("r"), last: {d: 0, b: 0}, open: false, idx: -1};
+      P = {no, pc, u: pc.createDataChannel("u", {ordered: false, maxRetransmits: 0}), r: pc.createDataChannel("r"), last: {d: 0, b: 0}, open: false, idx: -1, kAt: d.at};
       this.peers.set(no, P); this.wirePeer(P);
       pc.onconnectionstatechange = () => { const s = pc.connectionState; if (s === "failed" || s === "closed") this.drop(no, P); else if (s === "disconnected") setTimeout(() => { if (pc.connectionState === "disconnected") this.drop(no, P); }, 5000); };
       try { await pc.setLocalDescription(await pc.createOffer()); await this.gather(pc);
@@ -671,6 +679,8 @@ const PARTY = {
     const onOpen = () => { if (P.r.readyState !== "open" || P.open) return; P.open = true;
       if (!this.members.includes(P.no)){ if (this.started || this.members.length >= this.MAX){ this.send(P, {t: "full"}); return; } this.members.push(P.no); }
       try { tone(660, 990, .1, "triangle", .1); } catch(e) {}
+      if (this.started && this.startMsg && this.canRejoin()){ const i = this.members.indexOf(P.no);
+        if (i > 0){ P.idx = i; P.inN = 0; P.last = {}; this.send(P, Object.assign({}, this.startMsg, {idx: i})); this.lastGv = -1; toast(`🔁 ${who(P.no)} 다시 들어왔어요! 동물·금은 그대로예요`); return; } }
       this.lobbyMsg(); this.renderRooms(); };
     P.r.onopen = onOpen; P.u.onopen = onOpen;
     const onMsg = e => { let m; try { m = JSON.parse(e.data); } catch(er){ return; }
@@ -685,7 +695,7 @@ const PARTY = {
     const P = this.peers.get(no); if (!P || (P0 && P !== P0)) return; this.peers.delete(no);
     try { P.pc.close(); } catch(e) {}
     if (!this.started){ this.members = this.members.filter(x => x !== no); this.lobbyMsg(); this.renderRooms(); }
-    else if (P.idx >= 0){ toast(`🔌 ${who(no)} 연결이 끊겨서 🤖 컴퓨터가 대신해요`); if (this.game) this.game.dropIdx(P.idx); }
+    else if (P.idx >= 0){ toast(this.canRejoin() ? `🔌 ${who(no)} 연결이 끊겼어요 · 다시 들어오면 그대로 이어요 (동물은 계속 싸워요)` : `🔌 ${who(no)} 연결이 끊겨서 🤖 컴퓨터가 대신해요`); if (this.game) this.game.dropIdx(P.idx); }
     if (this.pid && !(this.started && this.CFG[this.gid].relay)) Store.fs.deleteDoc(this.ref(this.pid, "peers", String(no))).catch(() => {});
   },
   send(P, m){ try { const ch = m.t === "s" ? P.u : P.r; if (ch.readyState === "open") ch.send(typeof m === "string" ? m : JSON.stringify(m)); } catch(e) {} },
@@ -800,6 +810,17 @@ const PARTY = {
     clearTimeout(this.conT); this.renderRooms(); toast("☁️ 와이파이 직접 연결이 안 돼서 다리(저장소)로 이어요. 조금 느려도 함께할 수 있어요!");
   },
   canRelay(){ return !!(this.CFG[this.gid] && this.CFG[this.gid].relay); },
+  canRejoin(){ return !!(this.CFG[this.gid] && this.CFG[this.gid].rejoin); },
+  /* 🔁 다시 들어오기 쪽지 (이 기기에만): 어느 방·어느 게임에 있었는지 — 튕기거나 새로고침해도 돌아갈 수 있게 */
+  RJ: "arcade.rejoin",
+  rjGet(){ try { const r = JSON.parse(localStorage.getItem(this.RJ) || "null"); return r && r.me === ARC.me && r.cid === Store.cid && Date.now() - r.at < 3*3600e3 ? r : null; } catch(e){ return null; } },
+  rjSet(g){ try { localStorage.setItem(this.RJ, JSON.stringify({pid: this.pid, host: this.host, g, me: ARC.me, cid: Store.cid, at: Date.now()})); } catch(e) {} },
+  rjClear(){ try { localStorage.removeItem(this.RJ); } catch(e) {} this.rjRoom = null; },
+  /* 그 방이 아직 하는 중인지 한 번만 살펴봐요 (계속 지켜보지 않아서 가벼워요) */
+  async rjCheck(){ const r = this.rjGet(); if (!r || !this.ok()) return null;
+    try { const s = await Store.fs.getDoc(this.ref(r.pid)); const d = s.exists() ? s.data() : null;
+      if (!d || d.st !== "play" || Date.now() - (d.at || 0) > 100000 || (d.m && !d.m.includes(ARC.me))){ this.rjClear(); return null; }
+      this.rjRoom = Object.assign({}, r, {n: d.n || 0}); return this.rjRoom; } catch(e){ return null; } },
   /* 연결이 끊기면: 다리로 다시 이어요 (다리를 못 쓰는 게임만 나가요) */
   lost(msg){ if (this.role !== "guest") return; if (this.canRelay() && !(this.hp && this.hp.relay)) this.relayJoin(); else if (!this.canRelay()) this.hostGone(msg); },
 
@@ -847,9 +868,11 @@ const PARTY = {
       if (NG.cur && NG.gid === gid && !$("#ng").hidden && NG.opt && NG.opt.party === "guest" && NG.opt.seed === m.seed && !NG.ended){ this.inSeq = 0; this.needGrid(true); return; }   // 이미 같은 판이면 다시 시작하지 않아요(다시 이어졌을 때)
       if ($("#ng").hidden || !NG.cur){ ARC.game = gid; ARC.enter(); ARC.prep(); }
       this.rxT = performance.now(); this.watch();
+      if (this.canRejoin()) this.rjSet(gid);
       getAC(); NG.play(gid, m.sids, {party: "guest", idx: m.idx, local: [m.idx], bots: m.bots || [], lv: m.lv, seed: m.seed, mode: m.mode, bl: m.bl});
+      setTimeout(() => this.needGrid(true), 250);   // 판(동물 자리)을 바로 받아요 — 다시 들어왔을 때 빈 마당이 안 보이게
     }
-    else if (m.t === "end"){ this.game && this.game.end(m.w, m.wins, m); }
+    else if (m.t === "end"){ this.rjClear(); this.game && this.game.end(m.w, m.wins, m); }
     else if (m.t === "cont"){ if (typeof CONT !== "undefined") CONT.resume(); this.game && this.game.cont && this.game.cont(); toast("▶ 방장이 이어하기를 눌렀어요! 다시 출동!"); }
     else if (m.t === "full"){ this.hostGone("방이 꽉 찼거나 이미 시작했어요"); }
     else if (m.t === "bye"){ this.hostGone("방장이 방을 나갔어요"); }
@@ -872,7 +895,7 @@ const PARTY = {
     const live = this.hp && !this.hp.relay && this.hp.r && this.hp.r.readyState === "open" && (!this.hp.pc || this.hp.pc.connectionState === "connected");
     if (gap > (live ? 15000 : 8000) && this.canRelay() && !(this.hp && this.hp.relay)){ this.relayJoin(); this.joinT = now; } }, 1000); },
   hostGone(msg){
-    if (this.role !== "guest") return;
+    if (this.role !== "guest") return; this.rjClear();
     const playing = NG.cur && NG.gid === this.gid && !$("#ng").hidden;
     this.leave(); toast(msg);
     if (playing) NG.close(); else this.renderRooms();
@@ -881,6 +904,7 @@ const PARTY = {
   /* ---------- 나가기 ---------- */
   leave(){
     const role = this.role; if (!role){ this.unwatchRooms(); return; }
+    if (role === "guest" && !(NG.cur && NG.gid === this.gid && NG.opt && NG.opt.party === "guest" && !NG.ended)) this.rjClear();
     this.role = null; clearInterval(this.beat); clearTimeout(this.conT); clearInterval(this.wdT); clearTimeout(this.waitT); this.waitT = 0; this.rlyStop();
     this.un.forEach(f => { try { f(); } catch(e) {} }); this.un = [];
     const fs = Store.fs, pid = this.pid;
@@ -893,7 +917,7 @@ const PARTY = {
       if (H && !H.relay){ try { H.r && H.r.readyState === "open" && H.r.send('{"t":"bye"}'); } catch(e) {} setTimeout(() => { try { H.pc.close(); } catch(e) {} }, 300); }
       if (pid && fs) fs.deleteDoc(this.ref(pid, "peers", String(ARC.me))).catch(() => {});
     }
-    this.pid = null; this.game = null; this.gridFn = null; this.members = []; this.started = false; this.unwatchRooms();
+    this.pid = null; this.game = null; this.gridFn = null; this.members = []; this.started = false; this.rjBack = false; this.unwatchRooms();
   }
 };
 /* 물풍선은 자기 시작 메뉴 · 온라인 방(여러 명)을 써요 */

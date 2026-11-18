@@ -843,7 +843,7 @@ NG.defs.rd = () => {
     speed = s.sp || 1; waveT = s.wt; state = s.st; score = s.sc; kills = s.kl; bossK = s.bk; if (s.lm) LIMIT = s.lm;
     MS = s.M ? {k: s.M[0], n: s.M[1], p: s.M[2], st: s.M[3], x: s.M[4] || undefined} : null;
     s.P.forEach((a, z) => { const p = Z[z]; if (!p) return; p.gold = a[0]; p.gems = a[1]; p.up = [a[2], a[3], a[4], a[12] || 0]; p.sum = a[5];
-      if (a[7] != null){ p.rel = {}; String(a[7]).split(",").filter(Boolean).forEach(x => { const [k, v] = x.split(":"); p.rel[k] = +v; }); p.it = String(a[8] || "").split(",").filter(Boolean); p.pick = a[9] ? String(a[9]).split(",") : null; p.clv = a[10] || 0; p.fev = a[11] || 0; } p.pkn = a[13] || 0; p.hd = a[14] || 0; p.md = a[15] || 0; if (z === myIdx){ const ack = a[6]; outbox = outbox.filter(o => o[0] > ack); } });
+      if (a[7] != null){ p.rel = {}; String(a[7]).split(",").filter(Boolean).forEach(x => { const [k, v] = x.split(":"); p.rel[k] = +v; }); p.it = String(a[8] || "").split(",").filter(Boolean); p.pick = a[9] ? String(a[9]).split(",") : null; p.clv = a[10] || 0; p.fev = a[11] || 0; } p.pkn = a[13] || 0; p.hd = a[14] || 0; p.md = a[15] || 0; if (z === myIdx){ const ack = a[6]; if (aseq < ack){ outbox.forEach((o, j) => { o[0] = ack + 1 + j; }); aseq = ack + outbox.length; } outbox = outbox.filter(o => o[0] > ack); } });   /* 🔁 다시 들어오면 행동 번호를 방장이 받은 다음부터 이어요 (예전엔 첫 행동들이 무시됐어요) */
     const old = new Map(E.map(e => [e.id, e]));
     E = decE(s.E).map(a => { const o = old.get(a[0]), d0 = a[2]/100, kind = a[1];
       const e = o || {id: a[0], kind, l: a[5] || 0, d: d0, tr: d0, spd: KSPD(kind), f: a[0]*7, x: 0, y: 0};
@@ -1540,6 +1540,13 @@ const RDM = {
       if (!res) RDS.del(sids); ARC.enter(); ARC.prep(); getAC(); NG.play("rd", sids, {local: [0, 1], resume: res ? 1 : 0}); }); };
     PARTY.renderRooms(); box.hidden = false;
   },
+  async rejoinPill(){ const old = $("#rdBack"); if (old) old.remove();
+    if (PARTY.role || !$("#ng").hidden) return; const r0 = PARTY.rjGet(); if (!r0 || r0.g !== "rd") return;
+    const r = await PARTY.rjCheck(); if (!r || PARTY.role || !$("#ng").hidden || $("#scrHome").hidden) return;
+    const el = document.createElement("button"); el.id = "rdBack"; el.className = "rd-back";
+    el.innerHTML = `<span>🔁</span><b>동물 랜덤 디펜스로 다시 들어가기</b><small>${esc(who(r.host))}의 방 · 아직 하는 중 · 내 동물·금 그대로!</small>`;
+    el.onclick = () => { el.remove(); ARC.play("rd"); setTimeout(() => { if (!PARTY.role){ PARTY.rjBack = true; PARTY.join(r.pid, r.host); } }, 50); };
+    document.body.appendChild(el); setTimeout(() => el.remove(), 120000); },
   guestOver(score, wave, kills){
     const sid = sidOf(ARC.me), res = saveRec("rd", sid, score || 0); (res.isNew ? SFX.rec : SFX.over)();
     $("#ngOver").innerHTML = `${res.isNew ? NG.conf(90) : ""}<div class="ng-box"><span class="avb">${avHTMLof(sid)}</span><h3>${res.isNew ? "🎉 새 기록!" : "🐾 함께 지키기 끝!"}</h3><div class="sc">${(score || 0).toLocaleString()}점</div>
@@ -1561,7 +1568,7 @@ const RDM = {
   NG.close = function(){ document.body.classList.remove("rd-cr-on"); try { if (this.gid === "rd" && this.cur && this.cur.save) this.cur.save(); } catch(e){} if (typeof RDB !== "undefined" && RDB.isOpen) RDB.close(); return close.apply(this, arguments); };
   const again = NG.again;
   NG.again = function(){ if (this.gid === "rd"){ if (this.opt.party){ if (this.opt.party === "host") PARTY.again(); return; } RDS.del(this.sids); return this.play("rd", this.sids, Object.assign({}, this.opt, {seed: 0, resume: 0})); } return again.call(this); };
-  PARTY.CFG.rd = {max: 6, bots: 0, min: 2, relay: 1};
+  PARTY.CFG.rd = {max: 6, bots: 0, min: 2, relay: 1, rejoin: 1};
   const start = PARTY.start;
   PARTY.start = function(again){
     if (this.gid !== "rd") return start.call(this, again);
@@ -1575,7 +1582,7 @@ const RDM = {
     const live = this.connected().map(p => p.no);
     this.members = [ARC.me].concat(this.members.filter(no => no !== ARC.me && live.includes(no))).slice(0, this.MAX);
     const M = this.members; if (M.length < 2){ toast("친구가 1명 이상 들어와야 시작할 수 있어요"); this.renderRooms(); return; }
-    this.started = true; Store.fs.updateDoc(this.ref(this.pid), {st: "play", n: M.length}).catch(() => {});
+    this.started = true; Store.fs.updateDoc(this.ref(this.pid), {st: "play", n: M.length, m: M, at: Date.now()}).catch(() => {});
     const sids = M.map(sidOf), seed = Math.floor(Math.random()*1e9) + 1, remote = {};
     this.startMsg = {t: "start", g: "rd", sids, seed};
     M.forEach((no, i) => { if (i){ const P = this.peers.get(no); if (P){ P.idx = i; P.inN = 0; P.last = {}; remote[i] = no; this.send(P, {t: "start", g: "rd", sids, idx: i, seed}); } } });
@@ -1586,11 +1593,18 @@ const RDM = {
     getAC(); NG.play("rd", sids, {party: "host", local: [0], remote, seed});
   };
   if (typeof COOP !== "undefined" && !COOP.G.includes("rd")) COOP.G.unshift("rd");
+  /* 🔁 홈에 오면: 튕겼던 랜덤 디펜스 판이 아직 하는 중인지 한 번 살펴보고, 그렇다면 '다시 들어가기' 띠를 보여 줘요 */
+  const home = ARC.home;
+  ARC.home = function(){ const r = home.apply(this, arguments); setTimeout(() => RDM.rejoinPill(), 600); return r; };
   const css = document.createElement("style");
   css.textContent = `.in-room>.rd-intro{display:none}.rd-gs{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
 .rd-gs span{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border-radius:12px;border:2px solid var(--c);background:rgba(255,255,255,.06)}
 .rd-resume{display:block;width:100%;margin-bottom:8px;font-size:20px !important}.rd-resume small{opacity:.8;font-size:13px}
-.rd-gs b{font:15px "Jua",sans-serif;color:var(--c)}.rd-gs em{font-style:normal;font-size:18px;letter-spacing:-2px;white-space:nowrap}
+.rd-gs b{font:15px "Jua",sans-serif;color:var(--c)}
+.wb-rejoin{display:block;width:100%;margin-bottom:8px;font-size:19px !important;animation:rdBackPulse 1.4s ease-in-out infinite alternate}.wb-rejoin small{display:block;opacity:.85;font-size:13px}
+.rd-back{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:900;display:grid;grid-template-columns:auto 1fr;column-gap:10px;align-items:center;text-align:left;width:min(480px,92vw);border:3px solid #ffe066;border-radius:20px;padding:10px 18px;background:linear-gradient(135deg,#ff9f43,#ff6b9a 50%,#845ef7);color:#fff;font-family:"Jua",sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.35);cursor:pointer;animation:rdBackPulse 1.4s ease-in-out infinite alternate}
+.rd-back span{grid-row:span 2;font-size:30px}.rd-back b{font-weight:400;font-size:18px}.rd-back small{font-size:13px;opacity:.9}
+@keyframes rdBackPulse{to{box-shadow:0 0 0 6px rgba(255,224,102,.35),0 10px 30px rgba(0,0,0,.35)}}.rd-gs em{font-style:normal;font-size:18px;letter-spacing:-2px;white-space:nowrap}
 @media (max-width:560px){.rd-gs em{font-size:14px}}
 /* ⭐ 대표 게임: 홈에서 크게, 금빛 테두리 */
 .arc-game.g-rd{background:linear-gradient(135deg,#ff9f43 0%,#ff6b9a 45%,#845ef7 100%) !important;border:3px solid #ffe066 !important;box-shadow:0 0 0 3px rgba(255,224,102,.25),0 10px 28px rgba(255,159,67,.35) !important}
