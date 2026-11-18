@@ -1375,12 +1375,20 @@ NG.defs.rd = () => {
     else if (cmd === "pause"){ if (!party){ pauseU = !pauseU; playS("warn"); } }
     else { const [a, v, v2] = cmd.split(":");
       if (a === "tk") act(z, ["tk", +v, v2]);
+      else if (a === "selk" || a === "sellk"){ const S = Z[z].s; let i = -1, nb = 9; S.forEach((q, j) => { if (q.k === v && q.n < nb){ nb = q.n; i = j; } });   /* 팔 때는 가장 적게 모인 칸부터 */
+        if (i < 0){ playS("no"); } else if (a === "selk"){ sel = {z, i}; grab = null; selSig = ""; playS("warn"); } else { act(z, ["sel", i]); if (sel && sel.i === i && S[i].n <= 1) sel = null; } }
       else if (a === "up") act(z, ["up", +v]);
       else if (a === "lk") act(z, ["luck", +v]);
       else if (a === "crx" && RD_RC[v]){ RDB.close(); crSel = v; if (!crOpen) crToggle(z); else crPickSel(v); }
       else if (a === "pin" && RD_RC[v]){ pin = pin === v ? null : v; savePin(); playS("warn"); RDB.isOpen && RDB.render(); } }
     dockTick(true); }
-  function dockTick(force){ const L = []; if (crOpen){ const e = $("#rdCr .rd-dock"); if (e) L.push([e, crZ]); } if (RDB.isOpen){ const e = $("#mdRdBook .rd-dock"); if (e) L.push([e, local[0]]); }
+  /* 📖 도감에서 고른 동물: 내 마당에 몇 마리 · 👆 고르기 · 💰 팔기 · 📥 대기 줄에 있으면 데려오기 */
+  function ownHTML(k){ const z = local[0], p = Z[z], A = RD_A[k]; if (!p || !A) return ""; const n = p.s.reduce((a, q) => a + (q.k === k ? q.n : 0), 0), v = RD_G[A.g].sell, tj = (p.tr || []).findIndex(o => o && o.k === k);
+    return `<span>🐾 내 마당에 <b>${n}마리</b></span>${n ? `<button class="sel" data-dk="selk:${k}">👆 판에서 고르기</button><button data-dk="sellk:${k}">💰 1마리 팔기 +${rdN(v)}</button>` : ""}${tj >= 0 ? `<button class="tk" data-dk="tk:${tj}:${k}">📥 대기 줄에서 데려오기</button>` : ""}`; }
+  let ownSig = "";
+  function ownTick(){ const e = $("#mdRdBook [data-own]"); if (!e) return; const k = e.dataset.own, p = Z[local[0]]; if (!p) return;
+    const sg = k + "|" + p.s.map(q => q.k === k ? q.n : 0).join("") + "|" + trS(p); if (sg === ownSig && e.dataset.sg === sg) return; ownSig = sg; e.dataset.sg = sg; e.innerHTML = ownHTML(k); }
+  function dockTick(force){ if (RDB.isOpen) ownTick(); const L = []; if (crOpen){ const e = $("#rdCr .rd-dock"); if (e) L.push([e, crZ]); } if (RDB.isOpen){ const e = $("#mdRdBook .rd-dock"); if (e) L.push([e, local[0]]); }
     L.forEach(([el, z]) => { const w = el.dataset.w, sig = dockSig(z, w); if (!force && el._sig === sig) return; el._sig = sig; el.innerHTML = dockHTML(z, w); }); }
   /* 📌 목표 조합: 고른 동물의 재료가 몇 마리 모였는지 화면 아래 왼쪽에 늘 보여요 (누르면 조합 창) · 목표가 없으면 🧪 조합 미션 동물 */
   function pinTick(){ const D = $("#ngDom"); if (!D) return; let el = $("#rdPin");
@@ -1406,6 +1414,7 @@ NG.defs.rd = () => {
   function selTick(){ const D = $("#ngDom"); if (!D) return; let el = $("#rdSel");
     const q = sel && Z[sel.z] && Z[sel.z].s[sel.i];
     if (!q || !q.k || state !== "play" || crOpen){ if (el && !el.hidden){ el.hidden = true; selSig = ""; } return; }
+    if (RDB.isOpen && RDB.tab === "a" && RDB.cur !== q.k && isMine(sel.z)) RDB.pickK(q.k);   /* 📖 도감을 연 채로 판의 동물을 누르면 도감도 그 동물로 */
     const A = RD_A[q.k], G = RD_G[A.g], RO = RD_ROLE[A.ro], fr0 = isFront(sel.z, sel.i), v = G.sell, canM = q.n >= 3 && A.g < RD_MG, hi = A.g >= RD_MG;
     const atk = rdN(A.d*upMul(sel.z, A.g)*relMul(sel.z, A, null)*(A.ro === "r" && !fr0 ? 1.25 : 1)*(BUF && BUF[sel.z] ? BUF[sel.z][sel.i] : 1)), cv = $("#ngCanvas"), r = cv.getBoundingClientRect(), s0 = r.height/H0();
     const HB = RD_HBI[A.hb], tH = TERR(sel.z, sel.i), okH = tH === A.hb, mine = isMine(sel.z);
@@ -1421,7 +1430,7 @@ NG.defs.rd = () => {
     el.classList.toggle("side", side);
     if (side){ const right = spR >= 150 || spR >= spL, w = Math.min(250, (right ? spR : spL) - 14); el.style.width = Math.round(w) + "px"; el.style.left = Math.round(right ? bR + 7 + w/2 : bL - 7 - w/2) + "px";
       el.style.bottom = Math.round(innerHeight - r.bottom + BOTH*s0 + 6) + "px"; el.style.maxHeight = Math.round((H - BOTH - TOPH - 10)*s0) + "px"; }
-    else { el.style.width = ""; el.style.maxHeight = ""; el.style.left = Math.round(r.left + r.width/2) + "px"; el.style.bottom = Math.round(innerHeight - r.bottom + BOTH*s0 + 6) + "px"; }
+    else { el.style.width = document.body.classList.contains("rdb-split") ? Math.round(Math.min(620, r.width - 8)) + "px" : ""; el.style.maxHeight = ""; el.style.left = Math.round(r.left + r.width/2) + "px"; el.style.bottom = Math.round(innerHeight - r.bottom + BOTH*s0 + 6) + "px"; }
     el.style.setProperty("--g", G.c);
     el.innerHTML = `<div class="rs-hd"><img data-im="${q.k}" ${RDB.img(q.k)} alt=""><div class="rs-tx"><b>${A.e} ${A.n}${q.n > 1 ? ` <em>×${q.n}</em>` : ""}</b><small><i style="--c:${G.c}">${G.n}</i> ${RO.e} ${RO.n} · 💪 ${atk} · 🌟 ${A.sk.e} ${A.sk.n}</small><span class="rs-tip ${A.ro === "m" && !fr0 ? "bad" : ""}">${grab ? "✋ 옮길 칸을 눌러요 (같은 동물 칸이면 자리 바꾸기)" : tip}</span><span class="rs-tip ${okH ? "" : "bad"}">${hTip}</span></div>
       <button class="rs-x" data-sa="x" title="닫기">✕${kb("Esc")}</button></div>
@@ -1581,7 +1590,7 @@ NG.defs.rd = () => {
       (window.requestIdleCallback || setTimeout)(run, {timeout: 300});
     },
     slotPt(z, i){ const [x, y] = slotXY(z, i); return [cx(x), cy(y)]; },   // (시험·도우미) 칸 가운데 판 좌표
-    dockClick, rdInfo(){ const z = local[0]; return {rc: rrCost(z), tw: trayW(z), wave, gold: Z[z].gold, gems: Z[z].gems, H: haveOf(z), pin, yh: yardH(z), N}; },
+    dockClick, ownHTML, rdInfo(){ const z = local[0]; return {rc: rrCost(z), tw: trayW(z), wave, gold: Z[z].gold, gems: Z[z].gems, H: haveOf(z), pin, yh: yardH(z), N}; },
     /* 🧪 (시험·도우미) 빠른 계산 · 행동 · 땅 */
     T: {sim: () => sim(), act: (z, a) => doAct(z, a), terr: (z, i) => TERR(z, i), front: (z, i) => isFront(z, i), hbc: () => HBC, trayW, buf: () => BUF, crList, upCost, rrCost, bestTk, set hpk(v){ HPK = v; }, set nrm(v){ NRM = v; }, set rmp(v){ RMP = v; }, E: () => E, LIMIT: () => LIMIT, get state(){ return state; }, get wave(){ return wave; }},
     apply, dropIdx(i){ /* 나간 친구 자리의 동물은 그대로 싸워요 */ },
@@ -1840,6 +1849,10 @@ const RDB = {
 .rd-book-btn{width:100%;margin:2px 0 6px}
 @media (max-width:560px){.rd-cards{grid-template-columns:1fr}}
 /* 📖 게임 중 도감 (2026.11.18): 게임을 가리지 않고 옆에 펼쳐요 — 보면서 뽑기·조합·강화 다 해요 */
+body.rdb-split{--rdbw:min(600px,48vw);--rdbh:0px}
+@media (orientation:landscape) and (max-height:520px){body.rdb-split{--rdbw:min(440px,44vw)}}
+@media (orientation:portrait) and (max-width:820px){body.rdb-split{--rdbw:0px;--rdbh:52vh}}
+body.rdb-split #ngStage{margin-right:var(--rdbw);margin-bottom:var(--rdbh)}
 #mdRdBook.rdb-live{background:transparent!important;pointer-events:none;padding:0;justify-content:flex-end;align-items:stretch;z-index:470}
 #mdRdBook.rdb-live>.arc-card{pointer-events:auto;width:min(600px,52vw);max-width:none;max-height:none;height:100%;margin:0;border-radius:24px 0 0 24px;display:flex;flex-direction:column;padding:12px 14px 10px;box-shadow:-10px 0 40px rgba(0,0,0,.45)}
 #mdRdBook.rdb-live #rdbBody{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column}
@@ -1851,8 +1864,11 @@ const RDB = {
 #mdRdBook.rdb-live .rdb-top h2{font-size:20px}#mdRdBook.rdb-live .rdb-tabs button,#mdRdBook.rdb-live .rdb-fl button{font-size:13.5px;padding:5px 11px}
 .rdb-dock{position:sticky;bottom:-10px;margin:auto -14px -10px;padding:8px 14px 10px;background:linear-gradient(180deg,rgba(33,26,82,.0),#211a52 22%)}
 .rdb-dock .dk-sub{background:#2d2566}.rdb-dock .dk-tip{color:#c5b8ff}
-@media (orientation:portrait) and (max-width:820px){#mdRdBook.rdb-live{align-items:flex-end}#mdRdBook.rdb-live>.arc-card{width:100vw;height:64vh;border-radius:24px 24px 0 0}}
-@media (orientation:landscape) and (max-height:520px){#mdRdBook.rdb-live>.arc-card{width:min(560px,60vw);padding:8px 10px 8px}#mdRdBook.rdb-live .rdb-grid{max-height:46vh}}
+#mdRdBook.rdb-live>.arc-card{width:var(--rdbw,min(600px,48vw))}
+@media (orientation:portrait) and (max-width:820px){#mdRdBook.rdb-live{align-items:flex-end}#mdRdBook.rdb-live>.arc-card{width:100vw;height:var(--rdbh,52vh);border-radius:24px 24px 0 0}#mdRdBook.rdb-live .rdb-grid{max-height:22vh}}
+@media (orientation:landscape) and (max-height:520px){#mdRdBook.rdb-live>.arc-card{padding:8px 10px 8px}#mdRdBook.rdb-live .rdb-grid{max-height:40vh}}
+.rdb-own{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}.rdb-own b{color:#ffe066}
+.rdb-own button{border:0;border-radius:999px;padding:6px 12px;font:14px "Jua",sans-serif;cursor:pointer;background:#ffd43b;color:#5c3d00;box-shadow:0 2px 0 #f08c00}.rdb-own button.sel{background:#b197fc;color:#1b1233;box-shadow:0 2px 0 #7048e8}.rdb-own button.tk{background:#8ce99a;color:#0b3d1b;box-shadow:0 2px 0 #2f9e44}
 @media (max-height:520px),(max-width:640px){#mdRdBook.rdb-live .rdb-tabs,#mdRdBook.rdb-live .rdb-fl{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}#mdRdBook.rdb-live .rdb-tabs button,#mdRdBook.rdb-live .rdb-fl button{flex:none;font-size:12.5px;padding:4px 10px}
   #mdRdBook.rdb-live .rdb-top{margin-bottom:5px;flex-wrap:nowrap;padding-right:44px}#mdRdBook.rdb-live .rdb-top h2{font-size:16px;white-space:nowrap}#mdRdBook.rdb-live .rdb-fl{margin-bottom:6px}
   #mdRdBook.rdb-live .arc-x{width:34px;height:34px;font-size:20px;top:6px;right:6px}.rdb-dock .dk-tip{display:none}.rdb-dock .dk-b{padding:6px 9px;font-size:13.5px}.rdb-dock .dk-m{font-size:13px}}
@@ -1878,11 +1894,15 @@ const RDB = {
       m.addEventListener("pointerdown", e => { if (e.target === m) this.close(); });
       ["pointerdown", "pointerup", "touchstart", "touchend", "mousedown"].forEach(ev => m.addEventListener(ev, e => e.stopPropagation(), {passive: true}));
       m.addEventListener("click", e => { const dk = e.target.closest("[data-dk]"); if (dk){ if (this.live()) NG.cur.dockClick(dk.dataset.dk); return; } const b = e.target.closest("[data-t],[data-f],[data-k]"); if (!b) return; if (b.dataset.k && !b.dataset.t && !b.dataset.f){ if (this.tab !== "a"){ this.tab = "a"; this.f = "all"; this.cur = b.dataset.k; this.render(); return; } this.pickK(b.dataset.k); return; } if (b.dataset.t) this.tab = b.dataset.t; if (b.dataset.f) this.f = b.dataset.f; this.render(); }); }
-    if (k){ this.tab = "a"; this.cur = k; } this.isOpen = true; m.classList.toggle("rdb-live", this.live()); m.hidden = false; this.render(); },
+    if (k){ this.tab = "a"; this.cur = k; } this.isOpen = true; m.classList.toggle("rdb-live", this.live()); m.hidden = false; this.split(this.live()); this.render(); },
+  /* ✂️ (2026.11.19) 게임 중 도감 = 화면 나누기: 게임판을 도감 옆(세로 화면은 위)으로 줄여서 모두 보여요
+     → 동물 누르기·팔기·옮기기·대기 줄·합치기·아이템·유물 고르기·속도까지 도감을 연 채로 원래처럼 다 돼요 */
+  split(on){ if (document.body.classList.contains("rdb-split") === !!on) return; document.body.classList.toggle("rdb-split", !!on);
+    requestAnimationFrame(() => { try { NG.cur && NG.fit(); } catch(_){} }); },
   pickK(k){ if (!RD_A[k] || k === this.cur) return; this.cur = k; const m = $("#mdRdBook");
     m.querySelectorAll(".rdb-c.on").forEach(el => el.classList.remove("on")); const c = m.querySelector(`.rdb-c[data-k="${k}"]`); if (c) c.classList.add("on");
     const d = m.querySelector(".rdb-d"); if (d) d.outerHTML = this.detail(k); },
-  close(){ const m = $("#mdRdBook"); if (m) m.hidden = true; this.isOpen = false; },
+  close(){ const m = $("#mdRdBook"); if (m) m.hidden = true; this.isOpen = false; this.split(false); },
   how(k){ const A = RD_A[k], g = A.g, n = RD_BY[g].length, I = this.live() ? NG.cur.rdInfo() : null, HB = RD_HBI[A.hb];
     const L = [], fw = (p0) => { for (let w = 1; w <= 1000; w++) if (rdTrayP(w)[g] >= p0) return w; return 0; };
     if (g <= 7){ const now = I ? rdTrayP(I.wave)[g]/n : 0, w1 = fw(g === 0 ? 0 : 2);
@@ -1957,6 +1977,7 @@ const RDB = {
     const bar = (n, v, t, c) => `<div class="rdb-bar"><b>${n}</b><span><em style="width:${Math.round(Math.min(1, v)*100)}%;--bc:${c}"></em></span><small>${t}</small></div>`;
     const nx = A.g < RD_MAXG ? `${RD_G[A.g + 1].n} ${RD_BY[A.g + 1].map(q => RD_A[q].e).join("")}` : "가장 높은 등급!";
     return `<div class="rdb-d" style="--c:${G.c}"><div class="rdb-hd"><img data-im="${k}" ${this.img(k)} alt=""><div><h3>${A.e} ${A.n}</h3><span class="rdb-chip" style="--c:${G.c}">${G.n}</span><span class="rdb-chip" style="--c:${RO.c}">${RO.e} ${RO.n}</span><span class="rdb-chip" style="--c:${RD_JOB[A.job].c}">${RD_JOB[A.job].e} ${RD_JOB[A.job].n}</span><span class="rdb-chip" style="--c:${RD_HBI[A.hb].c}">${RD_HBI[A.hb].e} ${RD_HBI[A.hb].n}</span></div></div>
+      ${this.live() ? `<div class="rdb-own" data-own="${k}">${NG.cur.ownHTML(k)}</div>` : ""}
       <div class="rdb-box rdb-how"><h4>📥 이렇게 얻어요</h4>${this.how(k)}</div>
       ${bar("💪 힘", pw, `${A.d}`, "#ff8787")}${bar("⚡ 빠르기", 28/A.cd, `${(60/A.cd).toFixed(1)}번/초`, "#ffd43b")}${bar("📏 거리", A.r/5.6, `${A.r}칸`, "#74c0fc")}
       <div class="rdb-box"><h4>✨ 특기</h4>${this.tags(A).map(([e, t]) => `${e} ${t}`).join("<br>")}</div>
