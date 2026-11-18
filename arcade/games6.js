@@ -500,8 +500,25 @@ NG.defs.rd = () => {
   const colSpr = (c, m) => sp("col" + c + m, 24, 128, t => { const gr = t.createLinearGradient(0, 0, 0, 128); gr.addColorStop(0, "rgba(255,255,255,0)"); gr.addColorStop(m, c); gr.addColorStop(1, "#fff"); t.fillStyle = gr; t.fillRect(0, 0, 24, 128); });
   const ringSpr = c => sp("ring" + c, 96, 96, t => { t.strokeStyle = c; t.lineWidth = 5; t.beginPath(); t.arc(48, 48, 44, 0, 7); t.stroke(); t.globalAlpha = .25; t.fillStyle = c; t.fill(); });
   /* 그림 글자 + 숫자를 한 장으로 (테두리 글씨에 그림 글자가 섞이면 숫자가 깨지는 기기가 있어요) */
-  function lbl(parts, fs, col = "#fff"){ const key = parts.join("¦") + fs + col; const ws = parts.map(p => /^\p{Extended_Pictographic}/u.test(p) ? fs*1.2 : rdMeasure(p, fs) + 6), w = ws.reduce((a, b) => a + b, 0) + 6, h = fs + 12;
+  /* ⚡ (2026.11.18) 같은 글씨는 크기 재기부터 건너뛰어요 (예전엔 매 장면 40번씩 글자 폭을 쟀어요) */
+  function lbl(parts, fs, col = "#fff"){ const key = parts.join("¦") + fs + col; { const c0 = G2.cache.get("rdlb" + key); if (c0 && (NG.k || 1) === G2.ck){ c0._u = NG.frame; return c0; } } const ws = parts.map(p => /^\p{Extended_Pictographic}/u.test(p) ? fs*1.2 : rdMeasure(p, fs) + 6), w = ws.reduce((a, b) => a + b, 0) + 6, h = fs + 12;
     return sp("lb" + key, w, h, t => { let x = 3; parts.forEach((p, i) => { if (/^\p{Extended_Pictographic}/u.test(p)) G2.emo(t, p, x + fs*.6, h/2, fs); else outlinedRaw(t, p, x + 3, h/2 + 1, fs, col, undefined, "left"); x += ws[i]; }); }); }
+  /* ⚡ 조각 글씨 (2026.11.18): 👾 몬스터 수 · 💰 금 · 🤝 다 같이 · 미션 진행처럼 숫자가 쉴 새 없이 바뀌는 글씨는
+     숫자 한 글자·글 조각을 한 번씩만 그려 두고 이어 붙여요 → 숫자가 바뀔 때마다 새 그림(글자 테두리)을 만들던 버벅임이 없어요
+     (4배속에서 이런 그림이 1초에 수십 장 새로 만들어져서 태블릿에서 한 장에 10ms 넘게 멈칫했어요) */
+  const DLW = new Map();
+  const dlW = (p, fs) => { const k = p + "|" + fs; let w = DLW.get(k); if (w == null){ RD_MC.font = `${fs}px "Jua",sans-serif`; w = RD_MC.measureText(p).width; DLW.set(k, w); } return w; };
+  function dlbl(parts, fs, col = "#fff", chars){ const h = fs + 12, pad = Math.max(4, fs*.18), items = []; let x = 3;
+    parts.forEach(p => { if (!p) return;
+      if (/^\p{Extended_Pictographic}/u.test(p)){ items.push([sp(`dle${p}${fs}`, fs*1.2, h, t => G2.emo(t, p, fs*.6, h/2, fs)), x]); x += fs*1.2; return; }
+      x += 3; (chars ? Array.from(p) : p.split(/(\d)/)).filter(Boolean).forEach(ch => { if (ch === " "){ x += dlW(" ", fs); return; } const w = dlW(ch, fs); items.push([sp(`dlt${ch}${fs}${col}`, w + pad + 2, h, t => outlinedRaw(t, ch, pad/2 + 1, h/2 + 1, fs, col, undefined, "left")), x - pad/2 - 1]); x += w; }); x += 3; });
+    return {dyn: 1, w: x + 3, h, draw(g, x0, y0){ const k = NG.k || 1; for (const [c, ox] of items) g.drawImage(c, Math.round((x0 + ox)*k)/k, Math.round(y0*k)/k, c.w, c.h); }}; }
+  /* ⚡ 반짝 글씨(스킬 외침·뽑기·+금): 처음 보는 글씨는 이번 장면엔 글자 조각으로 이어 붙이고, 한 장짜리 그림은 쉴 때 만들어 둬요
+     → 4배속에서 새 스킬 이름이 처음 뜰 때마다 멈칫하던 것(한 장에 5~10ms)을 없애요 */
+  const FXQ = new Set();
+  function lblFX(parts, fs, col){ const key = parts.join("¦") + fs + col, c0 = G2.cache.get("rdlb" + key); if (c0 && (NG.k || 1) === G2.ck){ c0._u = NG.frame; return c0; }
+    if (!FXQ.has(key)){ FXQ.add(key); (window.requestIdleCallback || setTimeout)(() => { FXQ.delete(key); if (NG.cur === self) lbl(parts, fs, col); }, {timeout: 1500}); }
+    return dlbl(parts, fs, col, true); }
   function btnSpr(w, h, c1, c2, parts, fs, off){ return sp(`bt${w}${h}${c1}${parts.join("¦")}${fs}${off ? 1 : 0}`, w, h + 6, t => {
     t.fillStyle = "rgba(0,0,0,.35)"; rrect(t, 0, 6, w, h, 16); t.fill();
     t.fillStyle = off ? "#495057" : BSA.lg(t, 0, 0, 0, h, [[0, c1], [1, c2]]); rrect(t, 0, 0, w, h, 16); t.fill();
@@ -938,13 +955,17 @@ NG.defs.rd = () => {
     if (ty === "pillar") return C*C*(4.6*4.6 + 1.4*3.4);
     if (ty === "col") return f.c === RD_G[3].c || f.c === RD_G[4].c ? W*H*.4 : 0;
     return 0; }
+  let rdPx = (() => { try { return +localStorage.getItem("arcade.rdpx") || 1.5e6; } catch(e){ return 1.5e6; } })();
   /* 🎚️ 기기가 버거워하면(장면 사이가 길어지면) 큰 효과를 저절로 줄이고, 여유가 생기면 다시 늘려요 */
-  let fxQ = 1, fxLast = 0, fxAvg = 16.7;
+  let fxQ = 1, fxLast = 0, fxAvg = 16.7, slowF = 0;
+  /* 🐢 (2026.11.18) 효과를 줄여도 계속 버거우면(3초 넘게 초당 40장 아래) 그리는 점 수를 30% 줄여요 — 한 번 멈칫하고 그 뒤로 부드럽게.
+     이 기기에 기억해 두고 다음 판부터는 처음부터 가볍게 시작해요 (최소 60만 점까지) */
   function fxTune(){ const now = performance.now(), dt = now - fxLast; fxLast = now; if (dt <= 0 || dt > 200) return;
-    fxAvg += (dt - fxAvg)*.1; if (fxAvg > 19.5) fxQ = Math.max(.08, fxQ*.92); else if (fxAvg < 17.5) fxQ = Math.min(1, fxQ*1.01 + .002); }
+    fxAvg += (dt - fxAvg)*.1; if (fxAvg > 19.5) fxQ = Math.max(.08, fxQ*.92); else if (fxAvg < 17.5) fxQ = Math.min(1, fxQ*1.01 + .002);
+    if (fxAvg > 25 && fxQ < .25){ slowF += dt; if (slowF > 3000 && rdPx > 6.1e5){ slowF = 0; rdPx = Math.max(6e5, Math.round(rdPx*.7)); try { localStorage.setItem("arcade.rdpx", String(rdPx)); } catch(e) {} NG.fit(); layerKey = ""; uV = ""; } } else slowF = Math.max(0, slowF - dt*2); }
   function trimFX(){
     if (FX.length < 3) return;
-    const n = {}, keep = [], budget = W*H*1.1*fxQ*(speed >= 4 ? .6 : speed >= 2 ? .8 : 1)*(PERF.lite ? .5 : 1); let used = 0;
+    const n = {}, keep = [], budget = W*H*1.1*fxQ*(speed >= 4 ? .45 : speed >= 2 ? .75 : 1)*(PERF.lite ? .5 : 1); let used = 0;
     for (let i = FX.length - 1; i >= 0; i--){ const f = FX[i];   // 새것부터 남겨요
       const ty = f.flash ? "flash" : f.nova ? ((f.r || 2) >= 1.5 ? "novaB" : "novaS") : f.ring ? ((f.r || 1) >= 1.5 ? "ringB" : "ring") : (f.bolt || f.beam) ? "line" : f.pillar ? "pillar" : f.ice ? "ice"
         : f.tx ? (f.ui ? "" : f.sm ? "txs" : (f.cell && !f.nb && f.t > 40 && !/^\+/.test(f.tx)) ? "col" : "tx") : "";
@@ -1011,7 +1032,7 @@ NG.defs.rd = () => {
         g.globalAlpha = a*.8; g.drawImage(colSpr(f.c, .7), bx - bw/2, by0 - C*1.6, bw, C*1.6);
         if (f.c === RD_G[3].c || f.c === RD_G[4].c){ g.globalAlpha = a*.35; g.fillStyle = f.c === RD_G[4].c ? "#ffd6f5" : "#fff3bf"; g.fillRect(0, 0, W, H); }
         g.globalAlpha = 1; }
-      if (f.tx){ g.globalAlpha = Math.min(1, f.t/18); const x = f.cell ? cx(f.x) : f.x, y = (f.cell ? cy(f.y) : f.y) - (f.ui ? 0 : (70 - f.t)*.5); G2.put(g, lbl(splitE(f.tx), f.sm ? 14 : f.ui ? 22 : 18, f.c), x - lbl(splitE(f.tx), f.sm ? 14 : f.ui ? 22 : 18, f.c).w/2, y - 14); g.globalAlpha = 1; } }
+      if (f.tx){ g.globalAlpha = Math.min(1, f.t/18); const x = f.cell ? cx(f.x) : f.x, y = (f.cell ? cy(f.y) : f.y) - (f.ui ? 0 : (70 - f.t)*.5); const fl = f.L || (f.L = splitE(f.tx)), tl = lblFX(fl, f.sm ? 14 : f.ui ? 22 : 18, f.c); G2.put(g, tl, x - tl.w/2, y - 14); g.globalAlpha = 1; } }
     // 친구 이름표
     if (N > 1) for (let z = 0; z < N; z++){ const [ox, oy] = ZO[z]; faceAt(g, SIDS[z], cx(ox) + 14, cy(oy) + 14, 13, RD_PC[z]); }
     // 🔥 응원 깃발: 내 칸 테두리가 활활
@@ -1026,38 +1047,49 @@ NG.defs.rd = () => {
     emDraw(g, fr); drawTop(g, fr); drawBottom(g); bagDraw(g); drawMission(g, fr);
     if (party === "guest" && performance.now() - (PARTY.rxT || 0) > 2500){ g.fillStyle = "rgba(10,6,30,.55)"; g.fillRect(0, H/2 - 60, W, 120); outlined(g, "📡 방장 화면을 받고 있어요…", W/2, H/2 - 6, 38, "#ffe066"); outlined(g, PARTY.hp && PARTY.hp.relay ? "☁️ 다리(저장소)로 연결 중 · 잠깐만 기다려요" : "자동으로 다시 이어요 · 나가지 말고 기다려요", W/2, H/2 + 36, 22, "#fff"); }
     if (banner && banner.k > 0){ /* 👀 (2026.11.18) 큰 알림이 판 한가운데 동물을 가렸어요 → 위쪽에 작은 띠로 (반투명 바탕) */
-      const by0 = TOPH + 40, bh = banner.s ? 74 : 46; g.globalAlpha = Math.min(1, banner.k/18)*.92; g.fillStyle = "rgba(15,10,40,.62)"; const bw = Math.min(W*.9, Math.max(rdMeasure(banner.t, land ? 34 : 30), banner.s ? rdMeasure(banner.s, 19) : 0) + 70); rrect(g, W/2 - bw/2, by0, bw, bh, 18); g.fill(); g.globalAlpha = Math.min(1, banner.k/18);
-      outlined(g, banner.t, W/2, by0 + 24, land ? 34 : 30, banner.c || "#fff"); if (banner.s) outlined(g, banner.s, W/2, by0 + 56, 19, "#ffe066"); g.globalAlpha = 1; }
+      const by0 = TOPH + 40, bh = banner.s ? 74 : 46; g.globalAlpha = Math.min(1, banner.k/18)*.92; g.fillStyle = "rgba(15,10,40,.62)"; const bw = Math.min(W*.9, Math.max(dlW(banner.t, land ? 34 : 30), banner.s ? dlW(banner.s, 19) : 0) + 70); rrect(g, W/2 - bw/2, by0, bw, bh, 18); g.fill(); g.globalAlpha = Math.min(1, banner.k/18);
+      { const t1 = lblFX(splitE(banner.t), land ? 34 : 30, banner.c || "#fff"); G2.put(g, t1, W/2 - t1.w/2, by0 + 24 - t1.h/2); }
+      if (banner.s){ const t2 = lblFX(splitE(banner.s), 19, "#ffe066"); G2.put(g, t2, W/2 - t2.w/2, by0 + 56 - t2.h/2); } g.globalAlpha = 1; }
     pickDraw(g);
     if (pauseU && !party){ G2.put(g, sp(`rdpz${W}`, 360, 64, t => { t.fillStyle = "rgba(15,10,40,.82)"; rrect(t, 0, 0, 360, 64, 22); t.fill(); outlinedRaw(t, "⏸️ 잠깐 멈춤 · P / ▶️ 계속", 180, 33, 26, "#ffe066"); }), W/2 - 180, TOPH + 46); }
   }
-  let uL = null, uV = "";
-  function unitsLayer(k){
-    const key = `${gv}|${layerKey}|${k}`; if (key === uV && uL) return; uV = key;
-    uL = uL || document.createElement("canvas"); const w = Math.ceil(COLS*C*k), h = Math.ceil(ROWS*C*k); if (uL.width !== w || uL.height !== h){ uL.width = w; uL.height = h; }
-    const t = uL.getContext("2d"); t.setTransform(1, 0, 0, 1, 0, 0); t.clearRect(0, 0, w, h); t.setTransform(k, 0, 0, k, 0, 0);
+  let uL = null, uV = "", uGv = -1, uZ = [];
+  /* ⚡ (2026.11.18) 동물 그림판: 바뀐 친구 마당만 다시 그려요 — 예전엔 누구 한 명이 뽑기만 해도 6명 마당(최대 96칸)을 전부 다시 그려서
+     4배속·여럿이 할 때 1초에 여러 번 멈칫했어요 */
+  function zoneSig(z){ let s0 = isMine(z) ? "m" : ""; const S = Z[z].s, sy = SYN && SYN[z]; for (let i = 0; i < S.length; i++){ const q = S[i]; s0 += q.k ? q.k + q.n : "-"; if (sy && sy[i]) s0 += sy[i]; s0 += ","; } return s0; }
+  function zoneRect(z){ let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9; for (let i = 0; i < ZS; i++){ const [x, y] = slotXY(z, i); x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); } return [(x0 - .5)*C, (y0 - .5)*C, (x1 - x0 + 1)*C, (y1 - y0 + 1)*C]; }
+  function drawZoneUnits(t, z){
     const us = Math.round(C*.62);
-    for (let z = 0; z < N; z++) Z[z].s.forEach((q, i) => { if (!q.k) return; const [x, y] = slotXY(z, i), n = q.n, s = Math.round(C*(n === 1 ? .94 : n === 2 ? .7 : .62)), spr = unitSpr(q.k, s);
+    Z[z].s.forEach((q, i) => { if (!q.k) return; const [x, y] = slotXY(z, i), n = q.n, s = Math.round(C*(n === 1 ? .94 : n === 2 ? .7 : .62)), spr = unitSpr(q.k, s);
       if (n >= 3 && RD_A[q.k].g < RD_MG && isMine(z)){ t.globalAlpha = .5; t.fillStyle = RD_G[RD_A[q.k].g + 1].c; rrect(t, (x - .46)*C, (y - .46)*C, C*.92, C*.92, C*.18); t.fill(); t.globalAlpha = 1; }
       for (let u = 0; u < n; u++){ const o = UOFF[n - 1][u]; t.drawImage(spr, Math.round((x + o[0])*C - s/2), Math.round((y + o[1])*C - s/2), s, s); }
       if (n >= 2){ const l = lbl([`×${n}`], 13, n >= 3 ? "#ffe066" : "#fff"); t.drawImage(l, (x + .48)*C - 30, (y + .5)*C - 22, l.w, l.h); }
       const sy = SYN && SYN[z] && SYN[z][i]; if (sy){ const l = lbl([sy], 12, "#fff"); t.drawImage(l, (x - .48)*C, (y - .5)*C, l.w, l.h); }
       const A = RD_A[q.k], RO = RD_ROLE[A.ro || "r"], bs = Math.round(C*.26);   // ⚔️🏹✨ 역할 표시
       t.drawImage(sp(`rb${A.ro}${bs}`, bs, bs, b => { b.fillStyle = RO.c; b.beginPath(); b.arc(bs/2, bs/2, bs/2 - 1, 0, 7); b.fill(); b.strokeStyle = "#fff"; b.lineWidth = 2; b.stroke(); G2.emo(b, RO.e, bs/2, bs/2 + 1, bs*.62); }), (x - .47)*C, (y - .47)*C, bs, bs);
-      if (A.ro === "m" && !isFront(z, i)){ const l = lbl(["⚠️", "길에서 멀어요"], 11, "#ffe066"); t.drawImage(l, x*C - l.w/2, (y + .2)*C, l.w, l.h); } });
+      if (A.ro === "m" && !isFront(z, i)){ const l = lbl(["⚠️", "길에서 멀어요"], 11, "#ffe066"); t.drawImage(l, x*C - l.w/2, (y + .2)*C, l.w, l.h); } }); }
+  function unitsLayer(k){
+    const base = `${layerKey}|${k}|${COLS}|${ROWS}|${C}`;
+    if (base !== uV || !uL){ uV = base; uZ = []; uGv = -1;
+      uL = uL || document.createElement("canvas"); const w = Math.ceil(COLS*C*k), h = Math.ceil(ROWS*C*k); if (uL.width !== w || uL.height !== h){ uL.width = w; uL.height = h; }
+      const t = uL.getContext("2d"); t.setTransform(1, 0, 0, 1, 0, 0); t.clearRect(0, 0, w, h); }
+    if (gv === uGv) return; uGv = gv;
+    const t = uL.getContext("2d"); t.setTransform(k, 0, 0, k, 0, 0);
+    for (let z = 0; z < N; z++){ const sg = zoneSig(z); if (uZ[z] === sg) continue; uZ[z] = sg;
+      const [rx, ry, rw, rh] = zoneRect(z); t.save(); t.beginPath(); t.rect(rx, ry, rw, rh); t.clip(); t.clearRect(rx, ry, rw, rh); drawZoneUnits(t, z); t.restore(); }
   }
   /* 🎯 미션 · 내 유물 · 다음 보스 (위 막대 아래 한 줄) */
   function drawMission(g, fr){
     const y = TOPH + 2, parts = [];
     if (MS){ const D = RD_MS[MS.k], done = MS.st === 1, fail = MS.st === 2, prog = ["merge", "sum", "kill"].includes(MS.k) ? ` ${Math.min(MS.p, MS.n)}/${MS.n}` : MS.k === "keep" ? ` (지금 ${E.length})` : "";
-      parts.push({l: lbl([done ? "✅" : fail ? "❌" : D.e, `미션: ${D.t(MS.n, MS.x)}${prog}`, ...(done ? [] : ["→", "🎒"])], 15, done ? "#8ce99a" : fail ? "#ffa8a8" : "#fff"), c: done ? "rgba(43,138,62,.75)" : fail ? "rgba(120,30,30,.7)" : "rgba(15,10,40,.72)"}); }
+      parts.push({l: (prog ? dlbl : lbl)([done ? "✅" : fail ? "❌" : D.e, `미션: ${D.t(MS.n, MS.x)}${prog}`, ...(done ? [] : ["→", "🎒"])], 15, done ? "#8ce99a" : fail ? "#ffa8a8" : "#fff"), c: done ? "rgba(43,138,62,.75)" : fail ? "rgba(120,30,30,.7)" : "rgba(15,10,40,.72)"}); }
     else if (wave % 10 === 0) parts.push({l: lbl(["👑", "보스를 잡으면 🎁 유물 상자!"], 15, "#ffe066"), c: "rgba(90,20,40,.78)"});
     if (wave % 10) parts.push({l: lbl(["👑", `보스까지 ${10 - wave % 10}단계`], 14, "#ffd8a8"), c: "rgba(15,10,40,.6)"});
     parts.push({l: lbl(["🌀", `${dimOf(wave)}차원`, `· ${wave}/${RD_END}`], 14, "#e5dbff"), c: "rgba(60,20,90,.7)"});
     if (N >= 3) parts.push({l: lbl(["🎌", TEAM > 1 ? `역할 분담 +${Math.round((TEAM - 1)*100)}%` : "역할 분담: 친구마다 ⚔️🏹✨ 주력을 나눠요"], 14, TEAM > 1 ? "#8ce99a" : "#ced4da"), c: "rgba(15,10,40,.6)"});
     const rel = Object.entries(Z[local[0]].rel || {}); if (rel.length) parts.push({l: lbl(rel.flatMap(([k, v]) => [RD_REL[k].e, v > 1 ? `${v}` : ""]).filter(Boolean), 14, "#ffe066"), c: "rgba(15,10,40,.6)"});
     /* 🤝 같이 할 때: 이번 단계에 다 같이 잡은 수 + 친구마다 함께 때린 몫 (색 막대) */
-    if (N > 1){ const tl = lbl(["🤝", `다 같이 ${teamK}마리`], 14, "#fff"); parts.unshift({l: tl, c: "rgba(30,90,60,.78)", team: 1, w: tl.w + 150}); }
+    if (N > 1){ const tl = dlbl(["🤝", `다 같이 ${teamK}마리`], 14, "#fff"); parts.unshift({l: tl, c: "rgba(30,90,60,.78)", team: 1, w: tl.w + 150}); }
     let tw = parts.reduce((a, q) => a + (q.w || q.l.w) + 22, -8), x = W/2 - tw/2;
     if (x < LPAD*.2){ const keep = []; let w2 = -8; for (const q of parts){ if (w2 + (q.w || q.l.w) + 22 > W - 20) break; keep.push(q); w2 += (q.w || q.l.w) + 22; } parts.length = 0; parts.push(...keep); tw = w2; x = W/2 - tw/2; }
     parts.forEach(q => { const qw = q.w || q.l.w; g.fillStyle = q.c; rrect(g, x, y, qw + 14, q.l.h + 2, 12); g.fill(); G2.put(g, q.l, x + 7, y + 1);
@@ -1073,9 +1105,9 @@ NG.defs.rd = () => {
     const n = E.length, r = Math.min(1, n/LIMIT); let bw = Math.min(380, W*.36), bx = W/2 - bw/2; if (bx < bL0){ bx = bL0; bw = Math.max(110, Math.min(bw, tR - bx)); }
     const by = TOPH/2 - 10;
     g.fillStyle = "rgba(0,0,0,.4)"; rrect(g, bx, by, bw, 20, 10); g.fill(); g.fillStyle = r > .8 ? (fr % 20 < 10 ? "#ff6b6b" : "#c92a2a") : r > .55 ? "#fcc419" : "#51cf66"; rrect(g, bx, by, Math.max(20, bw*r), 20, 10); g.fill();
-    G2.put(g, lbl(["👾", `${n} / ${LIMIT}`], 16), W/2 - lbl(["👾", `${n} / ${LIMIT}`], 16).w/2, by - 3);
+    { const l = dlbl(["👾", `${n} / ${LIMIT}`], 16); G2.put(g, l, W/2 - l.w/2, by - 3); }
     const boss = E.find(e => e.kind === 2), sec = Math.ceil(Math.max(0, waveT)/60);
-    const tl = lbl([boss ? "⏰" : "⏱️", `${sec}초`], 20, boss && sec < 15 ? "#ff6b6b" : "#fff"); G2.put(g, tl, W - (party !== "guest" ? 192 : 100) - tl.w, 14);
+    const tl = dlbl([boss ? "⏰" : "⏱️", `${sec}초`], 20, boss && sec < 15 ? "#ff6b6b" : "#fff"); G2.put(g, tl, W - (party !== "guest" ? 192 : 100) - tl.w, 14);
     { const b = BARS.find(q => q.id === "book"); if (b) G2.put(g, btnSpr(b.w, b.h, "#63e6be", "#0ca678", ["📖", "도감"], 16), b.x, b.y); }
     if (land) G2.put(g, lbl([th().n.split(" ")[0], th().n.split(" ").slice(1).join(" ")], 16, "#d0bfff"), LPAD + 122, 16);
     { const b = BARS.find(q => q.id === "spd"); if (b) G2.put(g, btnSpr(b.w, b.h, speed === 4 ? "#ff6b6b" : speed > 1 ? "#ff922b" : "#748ffc", speed === 4 ? "#c92a2a" : speed > 1 ? "#e8590c" : "#4c6ef5", ["⏩", `×${speed}`], 17), b.x, b.y); }
@@ -1100,8 +1132,8 @@ NG.defs.rd = () => {
       else if (b.id === "bag"){ g.fillStyle = "rgba(255,255,255,.06)"; rrect(g, b.x, b.y, b.w, b.h, 14); g.fill(); g.strokeStyle = "rgba(255,212,59,.6)"; g.lineWidth = 2; g.setLineDash([6, 5]); g.stroke(); g.setLineDash([]);
         G2.put(g, lbl(["🎒", `가방 ${p.it.length}/${bagN(b.z)}`], 13, "#ffe066"), b.x + 6, b.y - 18); }
       else if (b.id === "info"){ g.fillStyle = "rgba(255,255,255,.08)"; rrect(g, b.x, b.y, b.w, b.h, 14); g.fill(); g.strokeStyle = col; g.lineWidth = 3; g.stroke();
-        if (b.wide){ const l1 = lbl(["💰", rdN(p.gold), "💎", String(p.gems), "🎲", `뽑기 ${rdN(sumCost(b.z))}`, "⬆️", `Lv ${p.up.join("·")}`], 22, "#ffe066"); G2.put(g, l1, b.x + 12, b.y + b.h/2 - l1.h/2); }
-        else { const f1 = Math.min(26, Math.floor(b.w*.2)); G2.put(g, lbl(["💰", rdN(p.gold)], f1, "#ffe066"), b.x + 8, b.y + b.h*.5 - f1 - 10); G2.put(g, lbl(["💎", String(p.gems)], Math.min(22, f1), "#e5dbff"), b.x + 8, b.y + b.h*.5 + 2); }
+        if (b.wide){ const l1 = dlbl(["💰", rdN(p.gold), "💎", String(p.gems), "🎲", `뽑기 ${rdN(sumCost(b.z))}`, "⬆️", `Lv ${p.up.join("·")}`], 22, "#ffe066"); G2.put(g, l1, b.x + 12, b.y + b.h/2 - l1.h/2); }
+        else { const f1 = Math.min(26, Math.floor(b.w*.2)); G2.put(g, dlbl(["💰", rdN(p.gold)], f1, "#ffe066"), b.x + 8, b.y + b.h*.5 - f1 - 10); G2.put(g, dlbl(["💎", String(p.gems)], Math.min(22, f1), "#e5dbff"), b.x + 8, b.y + b.h*.5 + 2); }
         if (local.length >= 2 || N > 1) faceAt(g, SIDS[b.z], b.x + b.w - 4, b.y + 4, 14, col); } });
     /* ⌨️ 단추마다 자판 글자 (키보드가 있는 기기) */
     if (kHint || window.VK_ON) BARS.forEach(b => { if (b.z < 0 || b.z !== local[0]) return; const two = local.length >= 2, key = {sum: "Space", all: "Q", cr: "C", up: "1~4", luck: "E", bag: "5~9"}[b.id]; if (!key) return;
@@ -1418,7 +1450,7 @@ NG.defs.rd = () => {
   }
   let saveT = 0; const onHide = () => { if (NG.cur === self) saveGame(); };
   const self = {
-    get W(){ return W; }, get H(){ return H; }, maxSteps: 2, maxPx: party === "guest" ? 1.15e6 : 1.5e6, full: true, layout, save: saveGame,
+    get W(){ return W; }, get H(){ return H; }, maxSteps: 2, get maxPx(){ return Math.min(rdPx, party === "guest" ? 1.15e6 : 1.5e6); }, full: true, layout, save: saveGame,
     get dbg(){ return {Z, E, wave, waveT, state, score, kills, BARS, N, LIMIT, gv, PR, FX, dz: DMGZ}; },
     cheat(o){ if (o.rel){ Z.forEach(p => Object.assign(p.rel, o.rel)); gv++; } if (o.it) Z.forEach(p => { p.it = o.it.slice(); }); if (o.pick) Z.forEach((p, z) => offerRel(z)); if (o.gold != null) Z.forEach(p => p.gold = o.gold); if (o.gems != null) Z.forEach(p => p.gems = o.gems); if (o.wave != null){ wave = o.wave - 1; startWave(); } if (o.put){ placeK(o.z || 0, o.put); } if (o.clear) E = []; },
     init(){

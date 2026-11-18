@@ -12,13 +12,13 @@ const G2 = {
     const k = NG.k || 1; if (k !== this.ck){ this.cache.clear(); this.ck = k; }
     let c = this.cache.get(key);
     if (c){ c._u = NG.frame; return c; }
-    { if (this.cache.size > 600){ [...this.cache].sort((a, b) => (a[1]._u || 0) - (b[1]._u || 0)).slice(0, 200).forEach(([k2]) => this.cache.delete(k2)); }   // ⚡ 다 지우지 않고 한동안 안 쓴 그림만 (한꺼번에 다시 그리느라 멈칫하지 않게)
+    { if (this.cache.size > 700 && NG.frame - (this.evF || 0) > 30){ this.evF = NG.frame; const f0 = NG.frame; let n = 0; for (const [k2, v] of this.cache){ if (f0 - (v._u || 0) > 240){ this.cache.delete(k2); if (++n >= 150) break; } } if (this.cache.size > 900){ let m = 0; for (const k2 of this.cache.keys()){ this.cache.delete(k2); if (++m >= 150) break; } } }   // ⚡ (2026.11.18) 정렬 없이 4초 넘게 안 쓴 그림부터 조금씩만 지워요   // ⚡ 다 지우지 않고 한동안 안 쓴 그림만 (한꺼번에 다시 그리느라 멈칫하지 않게)
       c = document.createElement("canvas"); c.width = Math.max(1, Math.ceil(w*k)); c.height = Math.max(1, Math.ceil(h*k));
       const t = c.getContext("2d"); t.scale(k, k); fn(t, w, h); c.w = w; c.h = h; c._u = NG.frame; this.cache.set(key, c); }
     return c;
   },
   /* 화면 점에 딱 맞춰 붙이기 (흐려짐 없이) */
-  put(g, c, x, y, w = c.w, h = c.h){ const k = NG.k || 1; g.drawImage(c, Math.round(x*k)/k, Math.round(y*k)/k, w, h); },
+  put(g, c, x, y, w = c.w, h = c.h){ if (c.dyn) return c.draw(g, x, y); const k = NG.k || 1; g.drawImage(c, Math.round(x*k)/k, Math.round(y*k)/k, w, h); },   // c.dyn: 조각 글씨(숫자가 자주 바뀌는 글씨)
   /* ⚡ 움직이지 않는 배경은 캔버스 뒤 그림(CSS)으로 한 번만 깔아요 — 매 장면 화면 전체를 다시 칠하지 않고 지우기만 해서 훨씬 가벼워요 */
   bgId: null, bgReady: false, bgUrl: "",
   bg(g, key, w, h, fn){
