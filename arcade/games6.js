@@ -1,5 +1,5 @@
 /* =====================================================================
-   🐾 동물 랜덤 디펜스 — 동물 친구를 뽑고, 같은 친구 3마리를 합쳐 더 센 동물로!
+   🐾 동물 랜덤 디펜스 — 1초마다 오는 동물로 덱을 짜고(📥 대기 줄), 🌳🌊☁️ 자기 땅에 두고, 합치고 조합해서 더 센 동물로!
    - 빙글빙글 도는 길을 따라 오는 몬스터를 동물들이 막아요. 몬스터가 너무 많이 쌓이면 끝!
    - 1000단계 (100단계마다 🌀 차원 · 10단계마다 맵이 바뀌고 👑 보스, 5단계마다 😈 중간 보스)
    - 등급 5개: ⚪ 일반 → 🔵 희귀 → 🟣 영웅 → 🟡 전설 → 🌈 신화 · 동물 18종
@@ -8,16 +8,16 @@
       친구 기기는 손가락(뽑기·합치기…)만 보내고, 공격 모습은 자기 기기에서 그려요.
    ===================================================================== */
 const RD_G = [
-  {n: "일반", c: "#adb5bd", c2: "#e9ecef", sell: 8},
-  {n: "희귀", c: "#4dabf7", c2: "#d0ebff", sell: 25},
-  {n: "영웅", c: "#9775fa", c2: "#e5dbff", sell: 70},
-  {n: "전설", c: "#fcc419", c2: "#fff3bf", sell: 180},
-  {n: "신화", c: "#ff6b9a", c2: "#ffe3ec", sell: 450},
-  {n: "초월", c: "#22d3ee", c2: "#cffafe", sell: 1100},
-  {n: "불멸", c: "#f97316", c2: "#ffedd5", sell: 2600},
-  {n: "태초", c: "#fde047", c2: "#fefce8", sell: 6000},
-  {n: "창세", c: "#c084fc", c2: "#f3e8ff", sell: 15000},   // 🆕 (2026.11.18) 태초 위 — 조합으로만
-  {n: "영원", c: "#a3e635", c2: "#f7fee7", sell: 40000}
+  {n: "일반", c: "#adb5bd", c2: "#e9ecef", sell: 2},     // 💰 (2026.11.18 대기 줄) 동물이 공짜로 오니까 팔아도 조금만
+  {n: "희귀", c: "#4dabf7", c2: "#d0ebff", sell: 6},
+  {n: "영웅", c: "#9775fa", c2: "#e5dbff", sell: 20},
+  {n: "전설", c: "#fcc419", c2: "#fff3bf", sell: 60},
+  {n: "신화", c: "#ff6b9a", c2: "#ffe3ec", sell: 160},
+  {n: "초월", c: "#22d3ee", c2: "#cffafe", sell: 420},
+  {n: "불멸", c: "#f97316", c2: "#ffedd5", sell: 1000},
+  {n: "태초", c: "#fde047", c2: "#fefce8", sell: 2500},
+  {n: "창세", c: "#c084fc", c2: "#f3e8ff", sell: 6000},   // 🆕 (2026.11.18) 태초 위 — 조합으로만
+  {n: "영원", c: "#a3e635", c2: "#f7fee7", sell: 15000}
 ];
 const RD_MAXG = RD_G.length - 1;
 const RD_UPN = ["일반·희귀", "영웅·전설", "신화", "초월 이상"];   // ⬆️ 강화 4갈래
@@ -36,6 +36,7 @@ const RD_A = {
   frog:    {e: "🐸", n: "개구리",   g: 0, d: 6,    cd: 48, r: 2.2, sl: .3, t: "느리게"},
   dog:     {e: "🐶", n: "강아지",   g: 1, d: 28,   cd: 28, r: 2.3, t: "빠른 공격"},
   cat:     {e: "🐱", n: "고양이",   g: 1, d: 50,   cd: 54, r: 2.4, cr: .25, t: "치명타 냥!"},
+  parrot:  {e: "🦜", n: "앵무새",   g: 1, d: 22,   cd: 36, r: 2.4, mt: 2, t: "두 마리 콕콕"},
   penguin: {e: "🐧", n: "펭귄",     g: 1, d: 20,   cd: 50, r: 2.3, sp: .7, sl: .45, t: "얼음 느리게"},
   hedgehog:{e: "🦔", n: "고슴도치", g: 1, d: 26,   cd: 54, r: 2.0, sp: 1.0, t: "가시 펑"},
   fox:     {e: "🦊", n: "여우",     g: 2, d: 72,   cd: 40, r: 2.6, mt: 3, t: "3마리 동시"},
@@ -49,6 +50,7 @@ const RD_A = {
   dragon:  {e: "🐲", n: "용",       g: 4, d: 1400, cd: 50, r: 3.3, sp: 1.9, t: "불꽃 숨결"},
   unicorn: {e: "🦄", n: "유니콘",   g: 4, d: 900,  cd: 34, r: 3.0, mt: 4, bf: .25, t: "옆 친구 힘 UP"},
   trex:    {e: "🦖", n: "티라노",   g: 4, d: 2600, cd: 80, r: 2.5, sp: 1.3, st: .15, t: "쿵쿵 짓밟기"},
+  shark:   {e: "🦈", n: "상어",     g: 4, d: 1700, cd: 42, r: 2.4, cr: .25, t: "피 냄새 · 한입"},
   /* 💠 초월 */
   phoenix: {e: "🐦", n: "불사조",       g: 5, d: 5200,  cd: 44, r: 3.6, sp: 1.6, burn: .25, t: "불꽃 날개 · 불태우기"},
   kirin:   {e: "🦌", n: "기린 신수",    g: 5, d: 2800,  cd: 30, r: 3.2, mt: 5, bf: .4, t: "옆 친구 힘 +40%"},
@@ -57,19 +59,34 @@ const RD_A = {
   bdragon: {e: "🐉", n: "흑룡",         g: 6, d: 16000, cd: 50, r: 3.8, sp: 2.2, t: "흑염 · 맵 전체"},
   wtiger:  {e: "🐅", n: "백호",         g: 6, d: 11000, cd: 22, r: 2.8, cr: .35, chain: 3, t: "번개가 튕겨요"},
   nine:    {e: "🦊", n: "구미호",       g: 6, d: 9000,  cd: 34, r: 3.6, mt: 9, t: "구슬 9개"},
+  squid:   {e: "🦑", n: "대왕 오징어",  g: 6, d: 10000, cd: 40, r: 3.6, mt: 4, sl: .45, t: "먹물 · 다리 넷"},
   /* 🌟 태초 */
   gdragon: {e: "🌟", n: "황룡",         g: 7, d: 52000, cd: 52, r: 4.2, sp: 2.4, burn: .3, t: "천지개벽"},
   pegasus: {e: "🦄", n: "천마",         g: 7, d: 20000, cd: 26, r: 3.6, mt: 6, bf: .6, t: "모두에게 축복"},
   titan:   {e: "🦕", n: "거신 티라노",  g: 7, d: 70000, cd: 70, r: 2.8, sp: 1.8, st: .25, t: "대지 분쇄"},
+  kraken:  {e: "🐙", n: "크라켄",       g: 7, d: 60000, cd: 54, r: 2.8, sp: 1.9, sl: .5, t: "바다 괴물 · 휘감기"},
   /* 🌌 창세 (2026.11.18 · 태초 위) */
   cosmos:  {e: "🌌", n: "은하 고래",    g: 8, d: 170000, cd: 56, r: 4.4, sp: 2.6, sl: .5, t: "은하 물결 · 느리게"},
   suzaku:  {e: "🔥", n: "주작",         g: 8, d: 140000, cd: 30, r: 3.9, mt: 3, burn: .35, t: "불꽃 날개 3갈래"},
   genbu:   {e: "🐢", n: "현무",         g: 8, d: 90000,  cd: 58, r: 2.6, sp: 2.0, st: .3, t: "등껍질 방패 · 기절"},
   /* ♾️ 영원 */
   eternal: {e: "🌠", n: "영원룡",       g: 9, d: 700000, cd: 50, r: 4.8, sp: 3.0, burn: .4, t: "별을 삼키는 용"},
-  yggdra:  {e: "🌳", n: "세계수 사슴",  g: 9, d: 260000, cd: 28, r: 4.0, mt: 8, bf: 1.0, t: "옆 친구 힘 +100%"}
+  yggdra:  {e: "🌳", n: "세계수 사슴",  g: 9, d: 260000, cd: 28, r: 4.0, mt: 8, bf: 1.0, t: "옆 친구 힘 +100%"},
+  seaking: {e: "🔱", n: "바다 용왕",    g: 9, d: 520000, cd: 46, r: 4.6, sp: 2.8, sl: .6, t: "바다를 다스리는 왕"}
 };
 const RD_K = Object.keys(RD_A), RD_BY = RD_G.map((_, g) => RD_K.filter(k => RD_A[k].g === g));
+/* 🌍 사는 곳 (2026.11.18): 🌳 육지 · 🌊 바다 · ☁️ 하늘 — 자기 땅 칸에 두면 힘이 세지고, 같은 곳 친구가 모이면 무리 효과! */
+const RD_HBI = {l: {e: "🌳", n: "육지", c: "#69db7c", c2: "#2b8a3e", t: "튼튼한 힘 — 공격력이 크게 올라요"}, s: {e: "🌊", n: "바다", c: "#4dabf7", c2: "#1864ab", t: "물결 — 때리면 몬스터가 느려져요"}, a: {e: "☁️", n: "하늘", c: "#e5dbff", c2: "#7048e8", t: "바람 — 공격이 빨라지고 멀리 닿아요"}};
+const RD_HB = {};
+"mouse rabbit dog cat hedgehog fox panda lion tiger unicorn trex kirin wtiger nine titan genbu yggdra".split(" ").forEach(k => RD_HB[k] = "l");
+"frog penguin croc whale shark levi squid kraken cosmos seaking".split(" ").forEach(k => RD_HB[k] = "s");
+"chick parrot owl eagle dragon phoenix bdragon gdragon pegasus suzaku eternal".split(" ").forEach(k => RD_HB[k] = "a");
+RD_K.forEach(k => { RD_A[k].hb = RD_HB[k] || "l"; });
+/* 🎚️ 무리 효과: 내 마당에서 '자기 땅 칸'에 선 같은 곳 동물이 3·6·9칸이면 */
+const RD_SET = {l: {d: [1, 1.2, 1.45, 1.8]}, s: {d: [1, 1.1, 1.2, 1.35], sl: [0, .15, .25, .4]}, a: {s: [1, 1.15, 1.3, 1.5], r: [0, .3, .6, 1]}};
+const rdSetT = n => n >= 9 ? 3 : n >= 6 ? 2 : n >= 3 ? 1 : 0;
+/* 🗺️ 맵마다 힘이 센 곳 (10단계마다 바뀌어요) · 마왕성은 모두 조금씩 */
+const RD_REG = ["a", "l", "s", "l", "a", "s", "a", "l", "s", "*"];
 /* 맵 10곳 (10단계마다) */
 const RD_TH = [
   {n: "🌼 꽃밭",     sky: "linear-gradient(#74c0fc,#c5f6fa 60%,#d3f9d8)", gr: ["#8ce99a", "#69db7c"], pa: ["#f2d398", "#d9b072"], sl: ["#69db7c", "#2b8a3e"], ey: "#1b1233", deco: "🌼🌷🌸🦋"},
@@ -90,6 +107,11 @@ const RD_PC = ["#ff922b", "#4dabf7", "#51cf66", "#f783ac", "#fcc419", "#9775fa"]
 /* 큰 수는 만·억·조·경·해로 줄여서 보여 줘요 (1000단계까지 가면 숫자가 아주 커져요) */
 const rdN = v => { v = Math.floor(v || 0); if (v < 1e5) return String(v); for (const [d, u] of [[1e20, "해"], [1e16, "경"], [1e12, "조"], [1e8, "억"], [1e4, "만"]]) if (v >= d){ const q = v/d; return (q >= 100 ? Math.floor(q) : (Math.floor(q*10)/10)) + u; } return String(v); };
 const RD_END = 1000;   // 🏆 1000단계 보스를 잡으면 정복!
+/* 📥 대기 줄 등급 무게 (단계 w · 행운 up): [일반, 희귀, 영웅, 전설, 신화, 초월, 불멸, 태초] — 창세·영원은 조합으로만 */
+function rdTrayW(w, up = 1){ w = Math.max(1, w);
+  return [Math.max(8, 100 - w*.9), Math.max(18, 10 + Math.min(w, 80)*.9 - Math.max(0, w - 200)*.12)*up, Math.min(60, Math.max(0, w - 3)*.6)*up, Math.min(45, Math.max(0, w - 10)*.3)*up,
+    Math.min(30, Math.max(0, w - 25)*.1)*up, Math.min(20, Math.max(0, w - 50)*.04)*up, Math.min(12, Math.max(0, w - 90)*.02)*up, Math.min(6, Math.max(0, w - 150)*.01)*up]; }
+const rdTrayP = (w, up) => { const W = rdTrayW(w, up), t = W.reduce((a, b) => a + b, 0); return W.map(v => v/t*100); };
 
 const RD_EMO = ["👍", "😂", "😍", "😱", "🔥", "👏", "❤️", "😭", "🙏", "🎉", "여기 도와줘!", "보스 온다!", "고마워!", "합치자!", "잘했어!", "조심해!", "내가 막을게!", "금 모으자!"];
 (() => { const st = document.createElement("style"); st.textContent = `
@@ -128,6 +150,9 @@ const RD_EMO = ["👍", "😂", "😍", "😱", "🔥", "👏", "❤️", "😭"
 .rd-sel .rs-bt .rs-sell{background:linear-gradient(180deg,#ffe066,#fab005);color:#5c3d00;box-shadow:0 4px 0 #e67700}
 .rd-sel .rs-bt .on{background:#ffd43b;box-shadow:0 4px 0 #f08c00}
 .rd-sel kbd{position:absolute;top:-7px;right:-3px;font:11px "Jua",sans-serif;background:#ffd43b;color:#3b2a00;border-radius:6px;padding:0 5px;box-shadow:0 1px 0 rgba(0,0,0,.3)}
+.rd-sel .rs-gv{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:7px;font-size:12.5px;color:#ffd8a8}
+.rd-sel .rs-gv button{border:2px solid var(--c);border-radius:999px;background:rgba(255,255,255,.1);color:#fff;font:13px "Jua",sans-serif;padding:4px 10px;cursor:pointer}
+.rd-sel .rs-gv button.fit{background:var(--c);color:#1b1233}.rd-sel .rs-gv button small{opacity:.8;font-size:11px}
 .rd-sel.side{overflow:auto;scrollbar-width:none}.rd-sel.side .rs-bt{flex-direction:column;gap:6px}.rd-sel.side .rs-bt button{flex:none;min-height:42px;flex-direction:row;gap:6px;padding:7px 8px}
 .rd-sel.side .rs-hd{flex-wrap:wrap}
 @media (max-height:520px){.rd-sel.side{padding:6px}.rd-sel.side .rs-tx small{display:none}.rd-sel.side .rs-hd{margin-bottom:4px;gap:5px}.rd-sel.side .rs-hd img{width:28px;height:28px}.rd-sel.side .rs-tx b{font-size:14px}.rd-sel.side .rs-tip{font-size:10.5px}.rd-sel.side .rs-x{width:28px;height:28px;font-size:13px}
@@ -157,8 +182,7 @@ const RD_EMO = ["👍", "😂", "😍", "😱", "🔥", "👏", "❤️", "😭"
 .rd-cr .cx-pin.on{background:#ffd43b;color:#5c3d00}
 .rd-cr .cx-ms,.rd-cr .cx-pn{position:absolute;left:8px;top:-9px;font-weight:400;font-size:10.5px;background:#ff922b;color:#fff;border-radius:999px;padding:0 7px}
 .rd-cr .cx-pn{left:auto;right:96px;background:#ffd43b;color:#5c3d00}
-.rd-cr .fm-pk,.rd-cr .cx-pkl{cursor:pointer;background:#fff3bf;border-radius:8px;padding:1px 6px;color:#e67700!important}
-.rd-cr .fm-pk:active,.rd-cr .cx-pkl:active{background:#ffd43b}
+.rd-dock .dk-tk{box-shadow:0 3px 0 var(--g,#d0bfff),inset 0 0 0 2px var(--g,#d0bfff);color:#2b1d5c}.rd-dock .dk-tk small{margin-right:2px}.rd-dock .dk-tl{align-self:center;font-size:18px}
 .rd-cr.cx-mb .rd-dock{margin-top:5px}.rd-cr.cx-mb .rd-dock small{display:inline}.rd-cr.cx-mb .rd-dock .dk-tip{display:none}.rd-cr.cx-mb .rd-dock .dk-b{padding:7px 10px;font-size:13.5px}.rd-cr.cx-mb .rd-dock .dk-m{font-size:13px;padding:0 9px}.rd-cr.cx-mb .rd-dock .dk-m b{font-size:15px}
 /* 📌 목표 조합 (화면 아래 왼쪽) */
 .rd-pin{position:fixed;z-index:455;display:flex;align-items:center;gap:5px;max-width:min(560px,92vw);border:0;border-radius:16px;padding:5px 10px;background:rgba(20,14,48,.86);color:#fff;font:14px "Jua",sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.35);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -339,7 +363,9 @@ NG.defs.rd = () => {
   const dimOf = w => Math.floor((Math.max(1, w) - 1)/100) + 1;   // 🌀 100단계마다 한 차원씩 (10차원 = 1000단계)
   /* 30단계부터는 조금 덜 가파르게 (예전엔 40단계에서 다 막혔어요) — 대신 🎁 유물·🎒 아이템으로 강해져요 */
   /* 🏔️ 1000단계까지: 처음엔 가파르게, 갈수록 완만하게 — 대신 💰 금도 단계마다 늘고 ⬆️ 강화는 끝없이 올라가요 */
-  const hpAt = w => 15*Math.pow(1.19, Math.min(w, 30) - 1)*Math.pow(1.16, Math.min(30, Math.max(0, w - 30)))*Math.pow(1.09, Math.min(90, Math.max(0, w - 60)))
+  /* 💪 (2026.11.18 대기 줄) 동물이 공짜로 1초마다 오니까 몬스터 체력 ×10 — 시험 봇: 아무렇게나 두면 30~40단계, 땅·무리·조합을 잘 짜면 60~70단계에서 보스에게 막혀요 */
+  let HPK = 10;
+  const hpAt = w => HPK*15*Math.pow(1.19, Math.min(w, 30) - 1)*Math.pow(1.16, Math.min(30, Math.max(0, w - 30)))*Math.pow(1.09, Math.min(90, Math.max(0, w - 60)))
     *Math.pow(1.05, Math.min(150, Math.max(0, w - 150)))*Math.pow(1.036, Math.min(200, Math.max(0, w - 300)))*Math.pow(1.042, Math.max(0, w - 500))*(1 + .55*(N - 1));   // 🤝 (2026.11.18) 같이 하면 모두가 모든 몬스터를 때리니까 사람마다 +55% (예전 +25%)
   /* 💪 (2026.11.18) 150단계부터 몬스터가 훨씬 빨리 세져요 — 예전엔 300단계 뒤 ×1.02씩이라 금(×1.025)·강화가 더 빨라서 400단계부터 너무 쉬웠어요.
      이제 150~300 ×1.05 · 300~500 ×1.036 · 500~ ×1.042 → 태초만으로는 버티기 어렵고 🌌 창세 · ♾️ 영원 조합과 강화·유물을 잘 써야 해요 */
@@ -352,7 +378,9 @@ NG.defs.rd = () => {
   const slowAll = () => Math.min(.3, Z.reduce((a, p) => a + ((p.rel && p.rel.slow) || 0), 0)*.1);
   const relMul = (z, A, e) => (1 + .04*(PK(z).atk || 0))*(1 + .3*RL(z, "atk"))*(A.g < 2 ? 1 + .6*RL(z, "low") : 1)*(A.g >= 3 ? 1 + .4*RL(z, "top") : 1)*(A.g >= 4 ? 1 + .6*RL(z, "myth") : 1)*(Z[z].fev > 0 ? 2 : 1)*(e && (e.kind === 1 || e.kind === 2) ? 1 + .6*RL(z, "boss") : 1)
     *(A.ro === "m" ? 1 + .5*RL(z, "melee") : A.ro === "r" ? 1 + .5*RL(z, "ranged") : 1 + .8*RL(z, "support"))*(1 + .7*RL(z, "glass"))
-    *(e && e.tt === 1 ? (A.ro === "r" ? .5 : 1.2) : 1)*(e && e.tt === 3 ? (A.ro === "s" ? 1.8 : .6) : 1);   // 🛡️ 단단한 몬스터는 원거리 반감·근거리 +20% · 👻 유령은 지원 동물이 잘 잡아요
+    *(e && e.tt === 1 ? (A.ro === "r" ? .5 : 1.2) : 1)*(e && e.tt === 3 ? (A.ro === "s" ? 1.8 : .6) : 1)
+    /* 🌍 땅마다 잘 잡는 몬스터: ☁️ 하늘 → 🦇 날개 ×1.5 · 🌳 육지 → 🛡️ 단단함 ×1.3 · 🌊 바다 → 💨 질주·💚 재생 ×1.5 */
+    *(e && e.tt === 2 && A.hb === "a" ? 1.5 : 1)*(e && e.tt === 1 && A.hb === "l" ? 1.3 : 1)*(e && (e.tt === 6 || e.tt === 5) && A.hb === "s" ? 1.5 : 1);   // 🛡️ 단단한 몬스터는 원거리 반감·근거리 +20% · 👻 유령은 지원 동물이 잘 잡아요
   const rndItem = () => RD_IK[Math.floor(R.f()*RD_IK.length)];
   function giveItem(z, k){ const p = Z[z]; if (!p) return false; if (p.it.length >= bagN(z)){ toastZ(z, `🎒 가방이 꽉 차서 ${RD_IT[k].e}${RD_IT[k].n}을(를) 못 담았어요`); return false; } p.it.push(k); gv++; return true; }
   function relPick(){ const L = RD_RK.slice(), out = []; while (out.length < 3 && L.length){ out.push(L.splice(Math.floor(R.f()*L.length), 1)[0]); } return out; }
@@ -405,7 +433,7 @@ NG.defs.rd = () => {
       TP.zones.forEach((Zn, z) => { const [x0, y0, x1, y1] = Zn.box; ZO.push([x0, y0]);
         const L = {ox: x0, oy: y0, w: x1 - x0, h: y1 - y0, map: TP, path, slots: Zn.slots.map(([x, y]) => [x + .5, y + .5]), front: Zn.front};
         L.slots.forEach(([x, y], s) => CELL.set(Math.floor(x) + "," + Math.floor(y), {z, i: s})); LN.push(L); });
-      layerKey = ""; panel = null; }
+      calcTerr(); bufV = -1; layerKey = ""; panel = null; }
   }
   const plOf = l => (LN[l] || LN[0]).path.length;
   function posAt(d, l){ const P = (LN[l || 0] || LN[0]).path, n = P.length; d = ((d % n) + n) % n; const i = Math.floor(d), f = d - i, a = P[i], b = P[(i + 1) % n]; return [a[0] + (b[0] - a[0])*f, a[1] + (b[1] - a[1])*f]; }
@@ -475,13 +503,17 @@ NG.defs.rd = () => {
           const tx = x + w/2 - tw/2, ty = y - fs*.75; t.fillStyle = "rgba(0,0,0,.3)"; rrect(t, tx + 2, ty + 3, tw, fs*1.5, fs*.7); t.fill(); t.fillStyle = c; rrect(t, tx, ty, tw, fs*1.5, fs*.7); t.fill();
           t.strokeStyle = "rgba(255,255,255,.8)"; t.lineWidth = 2; t.stroke(); t.fillStyle = "#1a1b3a"; t.textAlign = "center"; t.textBaseline = "middle"; t.fillText(nm, x + w/2, ty + fs*.78); } });
       /* 🪨 동물 자리: 입체 받침돌 (앞줄 ⚔️ 따뜻한 테두리 · 뒷줄 🏹 시원한 테두리) */
-      L.map.slots.forEach(([sx, sy], s) => { const [x, y] = cell(sx, sy), fr = L.front[s];
+      /* 🌍 (2026.11.18) 칸마다 땅 색: 🌳 육지 초록 · 🌊 바다 파랑 · ☁️ 하늘 보라 (테두리: ⚔️ 앞줄 빨강 · 🏹 뒷줄 흰색) */
+      const TC = {l: ["#d3f9d8", "#69db7c", "#2b8a3e"], s: ["#d0ebff", "#4dabf7", "#1864ab"], a: ["#f8f0fc", "#d0bfff", "#7048e8"]};
+      L.map.slots.forEach(([sx, sy], s) => { const [x, y] = cell(sx, sy), fr = L.front[s], tr = TERR(Math.floor(s/ZS), s % ZS), tc = TC[tr];
         t.fillStyle = "rgba(0,0,0,.22)"; rrect(t, x + C*.08, y + C*.2, C*.86, C*.8, C*.22); t.fill();
-        t.fillStyle = TP.slot[2]; rrect(t, x + C*.06, y + C*.14, C*.88, C*.8, C*.22); t.fill();
+        t.fillStyle = tc[2]; rrect(t, x + C*.06, y + C*.14, C*.88, C*.8, C*.22); t.fill();
         t.fillStyle = BSA.lg(t, 0, y + C*.03, 0, y + C*.83, [[0, TP.slot[0]], [1, TP.slot[1]]]); rrect(t, x + C*.06, y + C*.03, C*.88, C*.8, C*.22); t.fill();
-        t.strokeStyle = fr ? "rgba(255,135,135,.85)" : "rgba(116,192,252,.85)"; t.lineWidth = 2.5; rrect(t, x + C*.08, y + C*.05, C*.84, C*.76, C*.2); t.stroke();
+        t.globalAlpha = .72; t.fillStyle = BSA.lg(t, 0, y + C*.03, 0, y + C*.83, [[0, tc[0]], [1, tc[1]]]); rrect(t, x + C*.06, y + C*.03, C*.88, C*.8, C*.22); t.fill(); t.globalAlpha = 1;
+        if (tr === "s"){ t.strokeStyle = "rgba(255,255,255,.45)"; t.lineWidth = 2; for (let w0 = 0; w0 < 2; w0++){ const yy = y + C*(.3 + w0*.28); t.beginPath(); for (let k0 = 0; k0 <= 6; k0++){ const xx = x + C*(.16 + k0*.115); k0 ? t.lineTo(xx, yy + (k0 % 2 ? -C*.04 : C*.04)) : t.moveTo(xx, yy); } t.stroke(); } }
+        t.strokeStyle = fr ? "rgba(255,120,120,.95)" : "rgba(255,255,255,.85)"; t.lineWidth = fr ? 3 : 2.5; rrect(t, x + C*.08, y + C*.05, C*.84, C*.76, C*.2); t.stroke();
         t.strokeStyle = "rgba(255,255,255,.6)"; t.lineWidth = 2; t.beginPath(); t.moveTo(x + C*.24, y + C*.07); t.lineTo(x + C*.76, y + C*.07); t.stroke();
-        t.globalAlpha = .28; G2.emo(t, fr ? "⚔️" : "🏹", x + C*.5, y + C*.45, C*.34); t.globalAlpha = 1; });
+        t.globalAlpha = .42; G2.emo(t, RD_HBI[tr].e, x + C*.5, y + C*.45, C*.4); t.globalAlpha = .5; G2.emo(t, fr ? "⚔️" : "🏹", x + C*.2, y + C*.2, C*.18); t.globalAlpha = 1; });
       /* 🏡 지켜야 하는 동물 마을 · 👾 몬스터 문 */
       if (L.map.house){ const [x, y] = cell(L.map.house[0], L.map.house[1]); RDA.house(t, x + C*.5, y + C*.55, C*1.0, ti); }
       /* 🌀 몬스터 문: 친구 마당마다 하나씩 (같은 색 고리) */
@@ -526,7 +558,7 @@ NG.defs.rd = () => {
     const l = lbl(parts, fs); t.globalAlpha = off ? .6 : 1; t.drawImage(l, w/2 - l.w/2, h/2 - l.h/2, l.w, l.h); }); }
 
   /* ---------- 시작 · 단계 ---------- */
-  function mkZone(){ return {s: Array.from({length: ZS}, () => ({k: null, n: 0, cd: [0, 0, 0], hit: 0})), gold: 140, gems: 0, up: [0, 0, 0, 0], sum: 0, ack: 0, rel: {}, it: ["bomb"], pick: null, clv: 0, fev: 0}; }
+  function mkZone(){ return {s: Array.from({length: ZS}, () => ({k: null, n: 0, cd: [0, 0, 0], hit: 0})), gold: 60, gems: 0, up: [0, 0, 0, 0], sum: 0, ack: 0, rel: {}, it: ["bomb"], pick: null, clv: 0, fev: 0, tr: [], trT: 30, trV: 0, rrn: 0}; }
   /* 🎯 단계 미션: 보스가 아닌 단계마다 하나 */
   function newMission(){
     if (wave % 10 === 0){ MS = null; return; }
@@ -535,7 +567,7 @@ NG.defs.rd = () => {
     /* 🧪 (2026.11.18) 머리 쓰기 미션: 정해진 동물을 조합으로 만들기 — 단계가 오를수록 더 높은 등급 */
     if (k === "mk"){ const gm = wave < 15 ? 2 : wave < 60 ? 3 : wave < 150 ? 4 : wave < 300 ? 5 : 6, L = RD_RCK.filter(t => RD_A[t].g <= gm && RD_A[t].g >= Math.max(2, gm - 1));
       MS = {k, n: 1, p: 0, st: 0, x: L[Math.floor(R.f()*L.length)]}; return; }
-    const n = k === "keep" ? Math.max(12, Math.round(LIMIT*.25)) : k === "merge" ? 1 + (wave > 25 ? 1 : 0) : k === "sum" ? 4 + Math.floor(R.f()*3) : k === "kill" ? Math.round(25*(1 + .6*(N - 1))) : 1;
+    const n = k === "keep" ? Math.max(12, Math.round(LIMIT*.25)) : k === "merge" ? 1 + (wave > 25 ? 1 : 0) : k === "sum" ? 6 + Math.floor(R.f()*4) : k === "kill" ? Math.round(25*(1 + .6*(N - 1))) : 1;
     MS = {k, n, p: 0, st: 0};   // st: 0 진행 · 1 성공 · 2 실패
     if (k === "gold") spawn(3, wave % N); if (k === "chest") spawn(4, wave % N);
   }
@@ -549,9 +581,9 @@ NG.defs.rd = () => {
     let msOk = false; if (MS && !MS.st){ if (MS.k === "keep" && E.length <= MS.n){ msWin(true); msOk = true; } else msFail(); }
     wave++; const boss = wave % 10 === 0, mini = !boss && wave % 5 === 0;
     waveT = boss ? 60*60 : 20*60; spawnLeft = boss ? 0 : Math.round((30 + Math.min(14, wave*.3))*(1 + .6*(N - 1))); spawnT = 0; spawnI = N === 1 ? 28 : Math.max(6, Math.floor(waveT*.8/Math.max(1, spawnLeft)));
-    if (wave > 1) Z.forEach((p, z) => { p.gold += (10 + Math.floor(wave*1.5))*gmul(); const b = RL(z, "bank"); if (b) p.gold += 30*b + Math.min(60*b, Math.floor(p.gold*.05*b)); });
+    if (wave > 1) Z.forEach((p, z) => { p.gold += (8 + Math.floor(wave*1.2))*gmul(); const b = RL(z, "bank"); if (b) p.gold += 30*b + Math.min(60*b, Math.floor(p.gold*.05*b)); });
     if (boss){ spawn(2); bossTimer = waveT; banner = wave === RD_END ? {t: "🏆 1000단계 마지막 보스!", s: "모두 힘을 모아요! 잡으면 정복!", k: 200, c: "#fde047"} : wave % 100 === 0 ? {t: `🌀 ${dimOf(wave)}차원 대왕 보스!`, s: "아주 튼튼해요 · 잡으면 💎 보석 듬뿍!", k: 170, c: "#e599f7"} : {t: `👑 ${wave}단계 보스!`, s: "60초 안에 꼭 잡아요!", k: 150, c: "#ff6b6b"}; sfx("boss"); }
-    else { if (mini) spawn(1); banner = {t: `🏁 ${wave}단계`, s: wave % 100 === 1 && wave > 1 ? `🌀 ${dimOf(wave)}차원 돌입! 몬스터가 더 세져요` : wave % 10 === 1 ? th().n + "에 왔어요!" : mini ? "😈 중간 보스가 섞여 있어요" : "", k: wave % 100 === 1 && wave > 1 ? 170 : 110, c: wave % 100 === 1 && wave > 1 ? "#e599f7" : undefined}; sfx("wave"); }
+    else { if (mini) spawn(1); banner = {t: `🏁 ${wave}단계`, s: wave % 100 === 1 && wave > 1 ? `🌀 ${dimOf(wave)}차원 돌입! 몬스터가 더 세져요` : wave % 10 === 1 ? `${th().n}에 왔어요! ${REG() === "*" ? "모든 동물 +15%" : `${RD_HBI[REG()].e} ${RD_HBI[REG()].n} 동물 +30%`}` : mini ? "😈 중간 보스가 섞여 있어요" : "", k: wave % 100 === 1 && wave > 1 ? 170 : 110, c: wave % 100 === 1 && wave > 1 ? "#e599f7" : undefined}; sfx("wave"); }
     remap(); if (wave % 10 === 1){ layerKey = ""; setSky(); }
     newMission(); if (MS && !banner.s) banner.s = `${RD_MS[MS.k].e} 미션: ${RD_MS[MS.k].t(MS.n, MS.x)}`;
     if (msOk) banner.s = "🎯 지난 미션 성공! 🎒 아이템을 받았어요";
@@ -582,18 +614,45 @@ NG.defs.rd = () => {
   /* ---------- 동물 뽑기 · 합치기 · 팔기 · 옮기기 · 강화 · 행운 ---------- */
   function placeK(z, k, pref, force){ const S = Z[z].s; let i = force && pref != null && S[pref] && (!S[pref].k || (S[pref].k === k && S[pref].n < 3)) ? pref : S.findIndex(q => q.k === k && q.n < 3); if (i < 0 && pref != null && !S[pref].k) i = pref; if (i < 0) i = S.findIndex(q => !q.k); if (i < 0) return -1;
     const q = S[i]; if (isMine(z)) RDB.see(k); if (!q.k){ q.k = k; q.n = 0; } q.cd[q.n] = 10 + q.n*7; q.n++; q.hit = 12; gv++; return i; }
-  const sumCost = z => 20 + Math.min(50, Math.floor(Z[z].sum/2));   // 뽑을수록 조금씩 비싸지다가 70에서 멈춰요 (뒤 단계에서 금이 바닥나지 않게)
-  /* 🎯 골라 뽑기 (2026.11.18): 필요한 ⚪ 일반 동물을 바로! 대신 뽑기의 3배 + 쓸 때마다 조금씩 비싸져요 (최대 +400) */
-  const pickCost = z => Math.round(sumCost(z)*3 + 8*Math.min(50, Z[z].pkn || 0));
-  function rollG(z){ const r = R.f(), d = z == null ? 0 : RL(z, "dice"), lk = z == null ? 0 : (PK(z).luck || 0);
-    let g = r < .015*(1 + d)*(1 + .1*lk) ? 2 : r < .15*(1 + .5*d)*(1 + .06*lk) ? 1 : 0;
-    if (z != null && Z[z].minG) g = Math.max(g, Z[z].minG);   // 👑 희귀 이상 소환권
-    if (z != null && Z[z].clv > 0){ Z[z].clv--; g = Math.max(1, g); } return g; }
   function pick(g){ const L = RD_BY[g]; return L[Math.floor(R.f()*L.length)]; }
-  /* 💰 고급 뽑기 (금으로): 🟣 영웅 이상 · 🌈 신화 이상 — 합치는 시간을 줄이는 대신 금을 많이 써요. 쓸수록 조금씩 비싸져요 */
-  const heroCost = z => Math.min(700, 260 + 20*(Z[z].hd || 0)), mythCost = z => Math.min(6000, 2600 + 250*(Z[z].md || 0));
-  const HERO_P = [[2, .85], [3, .135], [4, .015]], MYTH_P = [[4, .91], [5, .08], [6, .01]];   // (2026.11.18) 확률을 낮췄어요   // [등급, 확률] 영웅·전설·신화 / 신화·초월·불멸
-  function rollP(T){ let r = R.f(); for (const [g, pr] of T){ if ((r -= pr) < 0) return g; } return T[0][0]; }
+  /* 🔀 같은 곳 동물 3마리를 합치면 같은 곳(🌳🌊☁️) 동물이 나와요 */
+  function pickH(g, h){ const L = RD_BY[g].filter(k => RD_A[k].hb === h); return L.length ? L[Math.floor(R.f()*L.length)] : pick(g); }
+  /* =====================================================================
+     📥 대기 줄 (2026.11.18) — 뽑기 대신! 1초마다 랜덤 동물이 한 마리씩 와요 (5칸 · 꽉 차면 가장 오래 기다린 동물이 떠나요)
+     · 눌러서 데려오면 공짜 → 어떤 동물을 데려올지 '고르는' 게임 (덱 짜기)
+     · 단계가 오를수록 높은 등급이 와요: 처음엔 ⚪ 일반 · 30단계쯤 🟡 전설 · 100단계쯤 🌈 신화 · 200단계쯤 💠 초월
+     · 🔄 새 줄: 금을 내고 5마리를 모두 새로 (단계마다 조금씩 비싸져요)
+     ===================================================================== */
+  const TRN = 5, TRF = 60;
+  function trayW(z, w){ const d = z == null ? 0 : RL(z, "dice"), lk = z == null ? 0 : (PK(z).luck || 0); return rdTrayW(w == null ? wave : w, (1 + .35*d)*(1 + .05*lk)); }
+  function trayRoll(z){ const W0 = trayW(z), tot = W0.reduce((a, b) => a + b, 0); let r = R.f()*tot, g = 0; for (; g < W0.length - 1; g++) if ((r -= W0[g]) < 0) break;
+    const p = Z[z]; if (p.minG && R.f() < .35) g = Math.max(g, p.minG); if (p.clv > 0){ p.clv--; g = Math.max(1, g); } return pick(g); }
+  const trOld = p => { if (!p.tr || p.tr.length < TRN || p.tr.some(o => !o)) return -1; let j = 0; p.tr.forEach((o, i) => { if (o.t < p.tr[j].t) j = i; }); return j; };
+  function trayTick(){ for (const p of Z){ if (!p.tr) p.tr = []; if (--p.trT > 0) continue; p.trT = TRF; const z = Z.indexOf(p);
+    let j = -1; for (let i = 0; i < TRN; i++) if (!p.tr[i]){ j = i; break; } if (j < 0) j = trOld(p);
+    p.tr[j] = {k: trayRoll(z), t: frame}; p.trV = (p.trV || 0) + 1; } }
+  const trS = p => (p.tr || []).slice(0, TRN).map(o => o ? o.k : "").join(",");
+  /* ⌨️ Space: 대기 줄에서 가장 좋은 동물 (높은 등급 → 내 땅에 맞는 동물 → 같은 동물이 있는 칸) */
+  function bestTk(z){ const p = Z[z], S = p.s; let b = -1, bs = -1e9; (p.tr || []).forEach((o, i) => { if (!o) return; const A = RD_A[o.k];
+    const sc = A.g*10 + (S.some((q, j) => !q.k && TERR(z, j) === A.hb) ? 4 : 0) + (S.some(q => q.k === o.k && q.n < 3) ? 3 : 0) - (o.t > -1e8 ? 0 : 0); if (sc > bs){ bs = sc; b = i; } }); return b; }
+  const rrCost = z => Math.round((15 + Math.min(wave, 80)*2)*gmul()*(1 - .25*RL(z, "cheap")));
+  /* 🌍 칸마다 땅 (🌳 육지 · 🌊 바다 · ☁️ 하늘)
+     · 혼자: 안쪽(🏹 뒷줄) = ☁️ 하늘, 길 옆(⚔️ 앞줄)은 위쪽 🌳 육지 · 아래쪽 🌊 바다
+     · 둘이: 1P 마당 = 🌳 육지 · 2P 마당 = 반은 ☁️ 하늘, 반은 🌊 바다
+     · 셋 이상: 친구마다 마당 하나가 한 땅 (1P 🌳 · 2P 🌊 · 3P ☁️ …) → 서로 다른 동물이 필요해서 🎁 주고받으며 이야기해요 */
+  let TE = [];
+  function calcTerr(){ TE = LN.map((L, z) => { const n = L.slots.length;
+    if (N === 1){ const fr = L.slots.map((_, i) => i).filter(i => L.front[i]), nl = Math.ceil(fr.length*.6); return L.slots.map((_, i) => !L.front[i] ? "a" : fr.indexOf(i) < nl ? "l" : "s"); }
+    if (N === 2) return L.slots.map((_, i) => z === 0 ? "l" : i < n/2 ? "a" : "s");
+    return L.slots.map(() => ["l", "s", "a"][z % 3]); }); }
+  const TERR = (z, i) => (TE[z] && TE[z][i]) || "l";
+  const yardH = z => [...new Set(TE[z] || [])];
+  const thI = () => Math.floor((Math.max(1, wave) - 1)/10) % 10;
+  const REG = () => RD_REG[thI()];
+  /* 새 동물 자리: 같은 동물 칸(3마리 아래) → 자기 땅 빈칸(근거리는 길 옆, 원거리는 안쪽이면 더 좋아요) → 아무 빈칸 */
+  function placeH(z, k){ const S = Z[z].s, A = RD_A[k]; let i = S.findIndex((q, j) => q.k === k && q.n < 3 && TERR(z, j) === A.hb); if (i < 0) i = S.findIndex(q => q.k === k && q.n < 3); if (i >= 0) return placeK(z, k, i, true);
+    let best = -1, bs = -1; S.forEach((q, j) => { if (q.k) return; const sc = (TERR(z, j) === A.hb ? 4 : 0) + (A.ro === "m" ? (isFront(z, j) ? 2 : 0) : A.ro === "r" ? (isFront(z, j) ? 0 : 1) : 0); if (sc > bs){ bs = sc; best = j; } });
+    return best < 0 ? -1 : placeK(z, k, best, true); }
   function doAct(z, a){
     const p = Z[z]; if (!p) return;
     if (a[0] === "emo"){ emote(z, a[1] | 0, a[2]/100, a[3]/100); return; }
@@ -602,14 +661,17 @@ NG.defs.rd = () => {
       return; }
     if (state !== "play") return;
     const S = p.s, ty = a[0];
-    if (ty === "sum"){ const c = sumCost(z); if (p.gold < c){ toastZ(z, "💰 금이 모자라요"); return; }
-      if (!S.some(q => !q.k) && !S.some(q => q.k && q.n < 3)){ toastZ(z, "🈵 자리가 꽉 찼어요! 합치거나 팔아요"); return; }
-      const g = rollG(z), k = pick(g), i = placeK(z, k); if (i < 0){ toastZ(z, "🈵 자리가 꽉 찼어요! 합치거나 팔아요"); return; }
-      p.gold -= c; p.sum++; msTick("sum"); sfx(g >= 2 ? "big" : "sum", z); popAt(z, i, `${RD_A[k].e} ${RD_A[k].n}${g ? "!" : ""}`, RD_G[g].c); }
-    else if (ty === "pk"){ const k = a[1], A = RD_A[k]; if (!A || A.g !== 0) return; const c = pickCost(z);
-      if (p.gold < c){ toastZ(z, `💰 금이 모자라요 (🎯 골라 뽑기 ${rdN(c)})`); return; }
-      const i = placeK(z, k); if (i < 0){ toastZ(z, "🈵 자리가 꽉 찼어요! 합치거나 팔아요"); return; }
-      p.gold -= c; p.pkn = (p.pkn || 0) + 1; sfx("sum", z); popAt(z, i, `🎯 ${A.e} ${A.n}`, "#ffe066"); }
+    if (ty === "tk"){ let j = a[1] | 0; const want = a[2];   // 📥 대기 줄에서 데려오기 (보낸 동물 이름으로 확인 → 그 사이 줄이 바뀌어도 맞는 동물을)
+      if (!p.tr || !p.tr[j] || (want && p.tr[j].k !== want)){ j = p.tr ? p.tr.findIndex(o => o && (!want || o.k === want)) : -1; if (j < 0){ toastZ(z, "💨 놓쳤어요! 다음 동물을 기다려요"); return; } }
+      const k = p.tr[j].k, i = placeH(z, k); if (i < 0){ toastZ(z, N > 1 ? "🈵 자리가 꽉 찼어요! 합치기·팔기·🎁 친구에게" : "🈵 자리가 꽉 찼어요! 합치거나 팔아요"); return; }
+      p.tr[j] = null; p.trV = (p.trV || 0) + 1; p.sum++; msTick("sum"); const g = RD_A[k].g; sfx(g >= 2 ? "big" : "sum", z); popAt(z, i, `${RD_A[k].e} ${RD_A[k].n}${g ? "!" : ""}`, RD_G[g].c);
+      if (RD_A[k].hb !== TERR(z, i)) toastZ(z, `${RD_HBI[RD_A[k].hb].e} ${RD_HBI[RD_A[k].hb].n} 동물이에요 → ${RD_HBI[RD_A[k].hb].e} 칸으로 옮기면 더 세져요${N > 1 && !yardH(z).includes(RD_A[k].hb) ? " · 🎁 친구에게 줘도 좋아요" : ""}`); }
+    else if (ty === "rr"){ const c = rrCost(z); if (p.gold < c){ toastZ(z, `💰 금이 모자라요 (🔄 새 줄 ${rdN(c)})`); return; }
+      p.gold -= c; p.rrn = (p.rrn || 0) + 1; for (let i = 0; i < TRN; i++) p.tr[i] = {k: trayRoll(z), t: frame - TRN + i}; p.trT = TRF; p.trV = (p.trV || 0) + 1; sfx("sum", z); }
+    else if (ty === "give"){ const i = a[1] | 0, z2 = a[2] | 0, q = S[i]; if (!q || !q.k || z2 === z || !Z[z2]) return;   // 🎁 친구에게 한 마리 보내기
+      const k = q.k, j = placeH(z2, k); if (j < 0){ toastZ(z, "🈵 친구 마당이 꽉 찼어요"); return; }
+      q.n--; if (!q.n){ q.k = null; q.cd = [0, 0, 0]; q.mp = 0; } gv++; sfx("sum", z); sfx("big", z2); const nm = nameOf(noOf_(SIDS[z])), nm2 = nameOf(noOf_(SIDS[z2]));
+      popAt(z2, j, `🎁 ${RD_A[k].e} ${RD_A[k].n}`, RD_PC[z]); toastZ(z2, `🎁 ${nm}이(가) ${RD_A[k].e} ${RD_A[k].n}을(를) 보냈어요!`); toastZ(z, `🎁 ${RD_A[k].e} ${RD_A[k].n} → ${nm2}에게 보냈어요`); }
     else if (ty === "mrg"){ const i = a[1], q = S[i]; if (!q || q.n < 3) return; if (RD_A[q.k].g >= RD_MG){ toastZ(z, "🧪 영웅부터는 조합으로 올려요! (C 키 · 🧪 조합)"); return; } mergeAt(z, i); }
     else if (ty === "all"){ let n = 0; for (let loop = 0; loop < 40; loop++){ const i = S.findIndex(q => q.k && q.n >= 3 && RD_A[q.k].g < RD_MG); if (i < 0) break; mergeAt(z, i, true); n++; }
       if (!n) toastZ(z, "🔀 3마리 모인 동물이 없어요"); else sfx("merge", z); }
@@ -620,15 +682,10 @@ NG.defs.rd = () => {
     else if (ty === "up"){ const g = a[1] | 0; if (g < 0 || g > 3) return; while (p.up.length < 4) p.up.push(0); const c = upCost(z, g); if (p.gold < c){ toastZ(z, "💰 금이 모자라요"); return; } p.gold -= c; p.up[g]++; sfx("up", z); toastZ(z, `⬆️ ${RD_UPN[g]} 공격력 Lv.${p.up[g]}!`); gv++; }
     else if (ty === "rel"){ if (p.pick) takeRel(z, a[1] | 0); }
     else if (ty === "it"){ const i = a[1] | 0, k = p.it[i]; if (!k) return; p.it.splice(i, 1); gv++; useItem(z, k); }
-    else if (ty === "luck" && (a[1] === 2 || a[1] === 3)){ const my = a[1] === 3, c = my ? mythCost(z) : heroCost(z);
-      if (p.gold < c){ toastZ(z, `💰 금이 모자라요 (${rdN(c)} 필요)`); return; }
-      const g = rollP(my ? MYTH_P : HERO_P), k = pick(g), i = placeK(z, k); if (i < 0){ toastZ(z, "🈵 자리가 꽉 찼어요! 합치거나 팔아요"); return; }
-      p.gold -= c; if (my) p.md = (p.md || 0) + 1; else p.hd = (p.hd || 0) + 1; gv++;
-      sfx("big", z); popAt(z, i, `${g > (my ? 4 : 2) ? "🎉 대박! " : "✨ "}${RD_A[k].e} ${RD_A[k].n}!`, RD_G[g].c); if (g > (my ? 4 : 2)) toastZ(z, `🎉 ${RD_G[g].n} 등급이 나왔어요!`); }
     else if (ty === "luck"){ const big = a[1] === 1, c = big ? 4 : 1; if (p.gems < c){ toastZ(z, "💎 보석이 모자라요 (보스를 잡으면 생겨요)"); return; }
       const r = R.f(), g = big ? (r < .25 ? 4 : 3) : (r < .1 ? 3 : r < .62 ? 2 : -1);
       if (g < 0){ p.gems -= c; sfx("fail", z); toastZ(z, "😅 꽝! 다음엔 꼭!"); return; }
-      const k = pick(g), i = placeK(z, k); if (i < 0){ toastZ(z, "🈵 자리가 꽉 찼어요"); return; } p.gems -= c; sfx("big", z); popAt(z, i, `✨ ${RD_A[k].e} ${RD_A[k].n}!`, RD_G[g].c); }
+      const k = pick(g), i = placeH(z, k); if (i < 0){ toastZ(z, "🈵 자리가 꽉 찼어요"); return; } p.gems -= c; sfx("big", z); popAt(z, i, `✨ ${RD_A[k].e} ${RD_A[k].n}!`, RD_G[g].c); }
   }
   function useItem(z, k){
     const T = RD_IT[k]; sfx("big", z);
@@ -640,10 +697,10 @@ NG.defs.rd = () => {
     else if (k === "fever") Z[z].fev = 15*60;
     banner = {t: `${T.e} ${T.n}!`, s: T.d, k: 80, c: "#ffe066"}; if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]);
   }
-  function mergeAt(z, i, quiet){ const S = Z[z].s, q = S[i]; let g = RD_A[q.k].g; q.k = null; q.n = 0; gv++; msTick("merge");
+  function mergeAt(z, i, quiet){ const S = Z[z].s, q = S[i]; let g = RD_A[q.k].g; const hb = RD_A[q.k].hb; q.k = null; q.n = 0; gv++; msTick("merge");
     if (g + 2 <= RD_MG && RL(z, "merge") && R.f() < .15*RL(z, "merge")){ g++; toastZ(z, "🔀 합치기 달인! 두 등급 껑충!"); }
     if (RL(z, "lucky") && R.f() < .25){ Z[z].gold += (60 + wave*3)*gmul(); toastZ(z, "🍀 행운의 합치기! 금 보너스"); }
-    const k = pick(g + 1), j = placeK(z, k, i); if (!quiet) sfx(g + 1 >= 3 ? "big" : "merge", z); else if (g + 1 >= 3) sfx("big", z);
+    const k = pickH(g + 1, hb), j = placeK(z, k, i); if (!quiet) sfx(g + 1 >= 3 ? "big" : "merge", z); else if (g + 1 >= 3) sfx("big", z);
     popAt(z, j, `${RD_A[k].e} ${RD_A[k].n}${g + 1 >= 3 ? "!!" : "!"}`, RD_G[g + 1].c); fxRing(z, j, RD_G[g + 1].c);
     if (g + 1 >= 5){ banner = {t: `${RD_G[g + 1].n} 등급 탄생!`, s: `${RD_A[k].e} ${RD_A[k].n} — ${RD_A[k].sk ? RD_A[k].sk.n : RD_A[k].t}`, k: 120, c: RD_G[g + 1].c}; if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); const [x, y] = slotXY(z, j); FX.push({nova: 1, x, y, t: 50, c: RD_G[g + 1].c}); } }
   /* 🧪 조합: 정해진 재료 동물로 원하는 동물을 골라 만들어요 (rdart.js RD_RC) */
@@ -679,7 +736,8 @@ NG.defs.rd = () => {
     const G = RD_A[t].g; sfx(G >= 3 ? "big" : "merge", z); popAt(z, j, `🧪 ${RD_A[t].e} ${RD_A[t].n}${G >= 3 ? "!!" : "!"}`, RD_G[G].c); fxRing(z, j, RD_G[G].c);
     if (G >= 4){ banner = {t: `🧪 ${RD_G[G].n} 조합 성공!`, s: `${RD_A[t].e} ${RD_A[t].n} — ${RD_A[t].sk ? RD_A[t].sk.n : RD_A[t].t}`, k: 120, c: RD_G[G].c}; if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); if (j >= 0){ const [x, y] = slotXY(z, j); FX.push({nova: 1, x, y, t: 50, c: RD_G[G].c}); } } }
   /* ⬆️ 강화는 끝이 없어요: Lv25까지는 차근차근, 그 뒤로는 한 번 올릴 때마다 ×1.075 (값도 ×1.07씩) */
-  const upCost = (z, g) => { const L = Z[z].up[g] || 0; return Math.round([24, 70, 190, 450][g]*(L < 25 ? L + 1 : 26*Math.pow(1.065, L - 25))*(1 - .25*RL(z, "cheap"))); };   // (2026.11.18) 강화 20%쯤 싸게
+  /* ⬆️ (2026.11.18 대기 줄) 강화는 '가끔' 쓰는 큰 결심: 값이 레벨마다 ×1.15씩 비싸져요 → 금은 🔄 새 줄과 강화 중에 골라 써요 */
+  const upCost = (z, g) => { const L = Z[z].up[g] || 0; return Math.round([60, 180, 480, 1100][g]*(L + 1)*Math.pow(1.15, Math.min(L, 40))*Math.pow(1.06, Math.max(0, L - 40))*(1 - .25*RL(z, "cheap"))); };
   const upTier = g => g < 2 ? 0 : g < 4 ? 1 : g < 5 ? 2 : 3;   // ⬆️ 강화 4갈래: 일반·희귀 / 영웅·전설 / 신화 / 초월 이상(초월·불멸·태초·창세·영원)
   const upMul = (z, g) => { const L = Z[z].up[upTier(g)] || 0; return (1 + .3*Math.min(25, L)*(g >= 5 ? 1.3 : 1))*Math.pow(1.075, Math.max(0, L - 25)); };
   function toastZ(z, s){ if (isMine(z)){ for (let i = FX.length - 1; i >= 0; i--) if (FX[i].ui && FX[i].z === z) FX.splice(i, 1); } if (isMine(z)) FX.push({tx: s, x: W/2, y: H - BOTH - 26, t: 90, c: "#fff", ui: 1, z}); else if (party === "host" && remote(z)) NQ.push(["t", z, s]); }
@@ -705,22 +763,30 @@ NG.defs.rd = () => {
     /* 🎌 역할 분담 (3명 이상): 친구마다 주력(가장 많은 역할)이 달라 ⚔️🏹✨ 셋이 다 있으면 모두 +20%, 5명 이상이 역할마다 2명씩 맡으면 +40% */
     TEAM = 1; if (N >= 3){ const cnt = {m: 0, r: 0, s: 0}; Z.forEach(p => { const c = {m: 0, r: 0, s: 0}; p.s.forEach(q => { if (q.k) c[RD_A[q.k].ro] += q.n; }); const top = Object.keys(c).sort((a, b) => c[b] - c[a])[0]; if (c[top] > 0) cnt[top]++; });
       if (cnt.m && cnt.r && cnt.s) TEAM = N >= 5 && cnt.m >= 2 && cnt.r >= 2 && cnt.s >= 2 ? 1.4 : 1.2; if (TEAM > 1) B.forEach(r => r.forEach((v, i) => r[i] = v*TEAM)); }
-    SYN = SY; return B; };
+    habMap(B); SYN = SY; return B; };
+  /* 🌍 땅 효과: 자기 땅 칸 ×1.35 (다른 땅 ×0.8) · 🗺️ 이 맵에서 센 곳 ×1.3 · 같은 곳 무리 3·6·9칸 (🌳 공격 · 🌊 느리게 · ☁️ 빠르고 멀리) */
+  let HBS = null, HBR = null, HBL = null, HBC = [];
+  function habMap(B){ HBS = Z.map(p => p.s.map(() => 1)); HBR = Z.map(p => p.s.map(() => 0)); HBL = Z.map(p => p.s.map(() => 0)); HBC = Z.map(() => ({l: 0, s: 0, a: 0}));
+    const reg = REG();
+    Z.forEach((p, z) => p.s.forEach((q, i) => { if (q.k && RD_A[q.k].hb === TERR(z, i)) HBC[z][RD_A[q.k].hb]++; }));
+    Z.forEach((p, z) => p.s.forEach((q, i) => { if (!q.k) return; const h = RD_A[q.k].hb, ok = h === TERR(z, i), T = ok ? rdSetT(HBC[z][h]) : 0, S = RD_SET[h];
+      let m = (ok ? 1.35 : .8)*(reg === "*" ? 1.15 : reg === h ? 1.3 : 1); if (S.d) m *= S.d[T];
+      B[z][i] *= m; if (S.s) HBS[z][i] = S.s[T]; if (S.r) HBR[z][i] = S.r[T]; if (S.sl) HBL[z][i] = S.sl[T]; })); }
   let TEAM = 1;
   let SYN = null;
   let BUF = null, bufV = -1;
   const fxN = {t: 0, r: 0};   // ⚡ 한꺼번에 너무 많은 반짝이를 그리지 않게 세어요
   function attack(viz){
     fxN.t = FX.reduce((a, f) => a + (f.sm ? 1 : 0), 0); fxN.r = FX.reduce((a, f) => a + (f.k ? 1 : 0), 0);
-    if (bufV !== gv){ BUF = buffMap(); bufV = gv; }
+    const bk = gv*16 + thI(); if (bufV !== bk){ BUF = buffMap(); bufV = bk; }
     for (let z = 0; z < Z.length; z++){ const p = Z[z];
       const pk = PK(z), rB = .5*RL(z, "rng"), crB = .1*RL(z, "crit") + .015*(pk.crit || 0), cdM0 = 1/((1 + .15*RL(z, "spd"))*(1 + .03*(pk.spd || 0)));
-      for (let i = 0; i < ZS; i++){ const q = p.s[i]; if (!q.k) continue; const A = RD_A[q.k], [sx, sy] = slotXY(z, i), r2 = (A.r + rB)*(A.r + rB);
-        const tb = tbAt(z, sx, sy), cdM = cdM0/tb.s, pm = (A.ro === "r" && !isFront(z, i) ? 1.25 : 1)*tb.a;   // 🏹 원거리는 뒷줄에서 +25% · 🦁🦄 스킬 응원
+      for (let i = 0; i < ZS; i++){ const q = p.s[i]; if (!q.k) continue; const A = RD_A[q.k], [sx, sy] = slotXY(z, i), rr0 = A.r + rB + HBR[z][i], r2 = rr0*rr0, hl = HBL[z][i];
+        const tb = tbAt(z, sx, sy), cdM = cdM0/tb.s/HBS[z][i], pm = (A.ro === "r" && !isFront(z, i) ? 1.25 : 1)*tb.a;   // 🏹 원거리는 뒷줄에서 +25% · 🦁🦄 스킬 응원
         for (let u = 0; u < q.n; u++){ if (--q.cd[u] > 0) continue;
           // 가장 앞서가는 몬스터부터
           let tg = [], best = -1; const mt = A.mt || 1;
-          for (const e of E){ const dx = e.x - sx, dy = e.y - sy; if (dx*dx + dy*dy > r2) continue; if (e.tt === 2 && A.ro === "m") continue;   // 🦇 나는 몬스터는 근거리가 못 닿아요
+          for (const e of E){ const dx = e.x - sx, dy = e.y - sy; if (dx*dx + dy*dy > r2) continue; if (e.tt === 2 && A.ro === "m" && A.hb !== "a") continue;   // 🦇 나는 몬스터는 근거리가 못 닿아요
             if (mt === 1){ if (e.tr > best){ best = e.tr; tg[0] = e; } } else tg.push(e); }
           if (!tg.length){ q.cd[u] = 6; continue; }
           if (mt > 1) tg = tg.sort((a, b) => b.tr - a.tr).slice(0, mt);
@@ -729,7 +795,8 @@ NG.defs.rd = () => {
           const ox = sx + UOFF[q.n - 1][u][0], oy = sy + UOFF[q.n - 1][u][1];
           tg.forEach(e => { PR.push({x0: ox, y0: oy, e, x1: e.x, y1: e.y, t: 0, T: 8, g: A.g, k: q.k}); if (viz) return;
             const cc = (A.cr || 0) + crB, cr = cc > 0 && R.f() < cc, dm = A.d*upMul(z, A.g)*(BUF ? BUF[z][i] : 1)*(cr ? 3 : 1)*relMul(z, A, e)*pm;
-            hitE(e, dm, A, z); if (cr && fxN.t < 6){ fxN.t++; FX.push({tx: "치명타!", x: e.x, y: e.y - .35, t: 34, c: "#ff6b6b", cell: 1, sm: 1}); }
+            hitE(e, dm, A, z); if (hl && R.f() < hl){ e.slT = Math.max(e.slT, 60); e.slF = Math.max(e.slF, .35); }   // 🌊 바다 무리: 맞으면 느려져요
+            if (cr && fxN.t < 6){ fxN.t++; FX.push({tx: "치명타!", x: e.x, y: e.y - .35, t: 34, c: "#ff6b6b", cell: 1, sm: 1}); }
             if (A.sp){ for (const o of E){ if (o !== e && (o.x - e.x)**2 + (o.y - e.y)**2 < A.sp*A.sp) hitE(o, dm*.6, A, z); } }
             const ch = (A.chain || 0) + RL(z, "chain"); if (ch){ let from = e; const hitS = new Set([e]); for (let c = 0; c < ch; c++){ const nx = E.find(o => !hitS.has(o) && (o.x - from.x)**2 + (o.y - from.y)**2 < 2.2); if (!nx) break; hitS.add(nx); hitE(nx, dm*.6, A, z); if (fxN.r < 14){ fxN.r++; FX.push({bolt: 1, x: from.x, y: from.y, x2: nx.x, y2: nx.y, t: 10, c: "#a5d8ff"}); } from = nx; } } });
           if (A.sp && fxN.r < 14){ fxN.r++; const e = tg[0]; FX.push({ring: 1, x: e.x, y: e.y, t: 16, c: RD_G[A.g].c, r: A.sp, k: 1}); }
@@ -753,7 +820,7 @@ NG.defs.rd = () => {
     else if (ty === "push") add({nova: 1, x: sx, y: sy, t: 34, c: "#4dabf7", r: R0});
   }
   function cast(z, i, A, sx, sy, pm){
-    const S = A.sk, p = Z[z], base = A.d*upMul(z, A.g)*(BUF ? BUF[z][i] : 1)*pm, R0 = A.r + .5*RL(z, "rng") + .4;
+    const S = A.sk, p = Z[z], base = A.d*upMul(z, A.g)*(BUF ? BUF[z][i] : 1)*pm, R0 = A.r + .5*RL(z, "rng") + .4 + (HBR ? HBR[z][i] : 0);
     const near = e => (e.x - sx)**2 + (e.y - sy)**2 <= R0*R0, hit = (e, m) => { hitE(e, base*m*relMul(z, A, e), A); },
       inR = E.filter(near), front = inR.reduce((b, e) => !b || e.tr > b.tr ? e : b, null);
     let did = true;
@@ -800,18 +867,19 @@ NG.defs.rd = () => {
     if (state !== "play") return;
     if (--waveT <= 0){ if (E.some(e => e.kind === 2)){ lose("👑 보스를 시간 안에 못 잡았어요"); return; } startWave(); }
     if (spawnLeft > 0 && --spawnT <= 0){ spawn(0); spawnLeft--; spawnT = spawnI; }
+    trayTick();
     const slw = 1 - slowAll(); Z.forEach(p => { if (p.fev > 0) p.fev--; }); if (TB.length) TB = TB.filter(b => --b.t > 0);
     for (let i = E.length - 1; i >= 0; i--){ const e = E[i]; if (e.kind === 3 && e.tr > plOf(e.l)*(N > 1 ? 1 : 1.5)){ E.splice(i, 1); msFail("🟡 황금 슬라임이 도망갔어요!"); } }
     for (const e of E){ if (e.exT > 0) e.exT--; if (e.bnT > 0){ e.bnT--; e.hp -= e.bnD; } else if (e.tt === 5 && e.hp < e.mhp) e.hp = Math.min(e.mhp, e.hp + e.mhp*.0006); if (e.stT > 0){ e.stT--; } else { const v = e.spd*(e.slT > 0 ? 1 - e.slF : 1)*slw; e.d += v; e.tr += v; } if (e.slT > 0 && --e.slT === 0) e.slF = 0; const pp = posAt(e.d, e.l); e.x = pp[0]; e.y = pp[1]; e.f++; }
     attack(false);
     for (let i = E.length - 1; i >= 0; i--){ const e = E[i]; if (e.hp > 0) continue; E.splice(i, 1); kills++; teamK++; msTick("kill");
-      const gd = Math.floor((e.kind === 2 ? 120 : e.kind === 1 ? 35 : e.kind === 3 ? 60 + wave*3 : e.kind === 4 ? 40 : 2 + Math.floor(wave/10))*gmul()); Z.forEach((p, z) => p.gold += gd*(1 + RL(z, "greed")));
+      const gd = Math.floor((e.kind === 2 ? 120 : e.kind === 1 ? 35 : e.kind === 3 ? 60 + wave*3 : e.kind === 4 ? 40 : 1 + Math.floor(wave/15))*gmul()); Z.forEach((p, z) => p.gold += gd*(1 + RL(z, "greed")));
       if (e.kind === 3 || e.kind === 4){ boom(e.x, e.y, 1); if (MS && !MS.st && MS.k === (e.kind === 3 ? "gold" : "chest")) msWin(); else { Z.forEach((p, z) => giveItem(z, rndItem())); } continue; }
-      if (e.kind){ const gm = e.kind === 2 ? 2 : 1, more = E.some(o => o.kind === e.kind); if (!more) Z.forEach(p => p.gems += gm); bossK += e.kind === 2 && !more ? 1 : 0; sfx("kboss"); banner = {t: e.kind === 2 ? "🎉 보스 처치!" : "😈 중간 보스 처치!", s: `💎 보석 +${gm} · 💰 +${gd}`, k: 120, c: "#ffe066"};
+      if (e.kind){ const gm = e.kind === 2 ? 1 : 0, more = E.some(o => o.kind === e.kind); if (!more) Z.forEach(p => p.gems += gm); bossK += e.kind === 2 && !more ? 1 : 0; sfx("kboss"); banner = {t: e.kind === 2 ? "🎉 보스 처치!" : "😈 중간 보스 처치!", s: `${gm ? `💎 보석 +${gm} · ` : ""}💰 +${gd}`, k: 120, c: "#ffe066"};
         if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); boom(e.x, e.y, 1);
         const lastBoss = e.kind === 2 && !E.some(o => o.kind === 2);
         if (lastBoss && waveT > 180) waveT = 180;
-        if (lastBoss && wave % 100 === 0){ Z.forEach(p => p.gems += 5); banner = {t: wave === RD_END ? "🏆 1000단계 정복!!" : `🌀 ${dimOf(wave)}차원 돌파!`, s: wave === RD_END ? "전설의 동물 마을 수호대!" : `💎 보석 +5 · 🎁 유물 상자 · 다음은 ${dimOf(wave) + 1}차원!`, k: 220, c: "#fde047"}; if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); sfx("big");
+        if (lastBoss && wave % 100 === 0){ Z.forEach(p => p.gems += 3); banner = {t: wave === RD_END ? "🏆 1000단계 정복!!" : `🌀 ${dimOf(wave)}차원 돌파!`, s: wave === RD_END ? "전설의 동물 마을 수호대!" : `💎 보석 +3 · 🎁 유물 상자 · 다음은 ${dimOf(wave) + 1}차원!`, k: 220, c: "#fde047"}; if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); sfx("big");
           if (wave >= RD_END){ score += 500000; state = "over"; overT = 260; if (party === "host") NQ.push(["b", banner.t, banner.s, 999, banner.c]); return; } }
         Z.forEach((p, z) => { if (e.kind === 1 && N > 1 && E.some(o => o.kind === 1)) return; p.gems += RL(z, "gem")*(e.kind === 2 ? 2 : 1); if (e.kind === 2){ if (lastBoss) offerRel(z); } else giveItem(z, rndItem()); });
         if (more) banner = {t: e.kind === 2 ? "👑 보스 하나 처치!" : "😈 중간 보스 하나 처치!", s: "다른 길의 보스도 잡아요!", k: 80, c: "#ffe066"};
@@ -834,7 +902,7 @@ NG.defs.rd = () => {
   /* ---------- 🌐 친구 기기 ---------- */
   function gridMsg(){ return {t: "grid", gv, z: Z.map(p => p.s.map(q => q.k ? RD_K.indexOf(q.k)*4 + q.n : -1))}; }
   function snap(){ return {sp: speed, w: wave, wt: waveT, st: state, sc: score, kl: kills, bk: bossK, gv, lm: LIMIT, dz: DMGZ.map(v => Math.round(v || 0)), tk: teamK,
-    P: Z.map(p => [Math.floor(p.gold), p.gems, p.up[0], p.up[1], p.up[2], p.sum, p.ack, Object.entries(p.rel).map(a => a.join(":")).join(","), p.it.join(","), p.pick ? p.pick.join(",") : "", p.clv, p.fev, p.up[3] || 0, p.pkn || 0, p.hd || 0, p.md || 0]),
+    P: Z.map(p => [Math.floor(p.gold), p.gems, p.up[0], p.up[1], p.up[2], p.sum, p.ack, Object.entries(p.rel).map(a => a.join(":")).join(","), p.it.join(","), p.pick ? p.pick.join(",") : "", p.clv, p.fev, p.up[3] || 0, p.rrn || 0, 0, 0, trS(p), p.trT, trOld(p)]),
     M: MS ? [MS.k, MS.n, MS.p, MS.st, MS.x || ""] : null,
     E: encE()}; }
   /* 📦 몬스터 목록을 짧은 글자로 (2026.11.18): "번호차,종류,거리,체력%,상태,길,특성,방패;…" · 끝의 0은 빼요 → 예전보다 40%쯤 작아서 느린 와이파이에서도 덜 밀려요 */
@@ -860,7 +928,8 @@ NG.defs.rd = () => {
     speed = s.sp || 1; waveT = s.wt; state = s.st; score = s.sc; kills = s.kl; bossK = s.bk; if (s.lm) LIMIT = s.lm;
     MS = s.M ? {k: s.M[0], n: s.M[1], p: s.M[2], st: s.M[3], x: s.M[4] || undefined} : null;
     s.P.forEach((a, z) => { const p = Z[z]; if (!p) return; p.gold = a[0]; p.gems = a[1]; p.up = [a[2], a[3], a[4], a[12] || 0]; p.sum = a[5];
-      if (a[7] != null){ p.rel = {}; String(a[7]).split(",").filter(Boolean).forEach(x => { const [k, v] = x.split(":"); p.rel[k] = +v; }); p.it = String(a[8] || "").split(",").filter(Boolean); p.pick = a[9] ? String(a[9]).split(",") : null; p.clv = a[10] || 0; p.fev = a[11] || 0; } p.pkn = a[13] || 0; p.hd = a[14] || 0; p.md = a[15] || 0; if (z === myIdx){ const ack = a[6]; if (aseq < ack){ outbox.forEach((o, j) => { o[0] = ack + 1 + j; }); aseq = ack + outbox.length; } outbox = outbox.filter(o => o[0] > ack); } });   /* 🔁 다시 들어오면 행동 번호를 방장이 받은 다음부터 이어요 (예전엔 첫 행동들이 무시됐어요) */
+      if (a[7] != null){ p.rel = {}; String(a[7]).split(",").filter(Boolean).forEach(x => { const [k, v] = x.split(":"); p.rel[k] = +v; }); p.it = String(a[8] || "").split(",").filter(Boolean); p.pick = a[9] ? String(a[9]).split(",") : null; p.clv = a[10] || 0; p.fev = a[11] || 0; } p.rrn = a[13] || 0;
+      if (a[16] != null){ const ks = String(a[16]).split(","), od = a[18]; p.tr = ks.map((k, i) => RD_A[k] ? {k, t: i === od ? -1 : i} : null); p.trT = a[17] || 0; }   /* 📥 대기 줄 (od = 곧 떠날 동물) */ if (z === myIdx){ const ack = a[6]; if (aseq < ack){ outbox.forEach((o, j) => { o[0] = ack + 1 + j; }); aseq = ack + outbox.length; } outbox = outbox.filter(o => o[0] > ack); } });   /* 🔁 다시 들어오면 행동 번호를 방장이 받은 다음부터 이어요 (예전엔 첫 행동들이 무시됐어요) */
     const old = new Map(E.map(e => [e.id, e]));
     E = decE(s.E).map(a => { const o = old.get(a[0]), d0 = a[2]/100, kind = a[1];
       const e = o || {id: a[0], kind, l: a[5] || 0, d: d0, tr: d0, spd: KSPD(kind), f: a[0]*7, x: 0, y: 0};
@@ -870,10 +939,11 @@ NG.defs.rd = () => {
   function guestStep(){
     frame++;
     for (const e of E){ if (!e.stn){ const v = e.spd*(e.sl ? .6 : 1)*speed; e.d += v; e.tr = (e.tr || 0) + v; } const pp = posAt(e.d, e.l); e.x = pp[0]; e.y = pp[1]; e.f++; }
+    if (state === "play") Z.forEach(p => { if (p.trT > 1) p.trT = Math.max(1, p.trT - speed); });
     attack(true); emStep();
     if (outbox.length && frame % 6 === 0) PARTY.sendIn({sd: seed, a: outbox}, true);
   }
-  function act(z, a){ if (party === "guest"){ outbox.push([++aseq, ...a]); if (frame % 6 !== 0) PARTY.sendIn({sd: seed, a: outbox}, true); if (a[0] === "sum") playS("sum"); return; } doAct(z, a); }
+  function act(z, a){ if (party === "guest"){ outbox.push([++aseq, ...a]); if (frame % 6 !== 0) PARTY.sendIn({sd: seed, a: outbox}, true); if (a[0] === "tk"){ playS("sum"); const p = Z[z], j = a[1]; if (p.tr && p.tr[j] && p.tr[j].k === a[2]) p.tr[j] = null; } return; } doAct(z, a); }   // 친구 기기: 누른 카드는 바로 지워 보여요
 
   /* ---------- 💬 이모티콘 · 말풍선 (같이 할 때: 빈 땅을 누르면 골라서 그 자리에 붙여요 → 친구 화면에도 떠요) ---------- */
   let EM = [], emPick = null;   // emPick: {x, y} 붙일 자리 (판 칸 단위)
@@ -909,13 +979,19 @@ NG.defs.rd = () => {
     local.forEach((z, si) => {
       const x0 = two ? (land ? si*W/2 : 0) : 0, w = two && land ? W/2 : W, y0 = two && !land ? H - BOTH + si*BOTH/2 : H - BOTH, h = two && !land ? BOTH/2 : BOTH;
       const pad = 10, rows = !land && !two ? 2 : 1;
-      if (rows === 1){ const bw = (w - pad*2 - 8*7)/8, bh = h - 30;
+      /* 📥 대기 줄: 카드 5장 + 🔄 새 줄 (카드는 제자리 — 새 동물이 와도 다른 카드가 밀리지 않아요) */
+      const tray = (x, y, tw, th) => { L.push({id: "trb", z, x, y, w: tw, h: th, info: 1}); const rw = Math.min(tw*.16, th*.95), cw = (tw - rw - 6*5 - 8)/TRN;
+        for (let i = 0; i < TRN; i++) L.push({id: "tk", z, i, x: x + 4 + i*(cw + 6), y: y + 3, w: cw, h: th - 6});
+        L.push({id: "rr", z, x: x + tw - rw - 4, y: y + 3, w: rw, h: th - 6}); };
+      if (rows === 1){ const bw = (w - pad*2 - 8*6)/8, bh = h - 30;
         let x = x0 + pad; const yy = y0 + 22;
         const add = (id, ww, extra) => { L.push(Object.assign({id, z, x, y: yy, w: ww, h: bh}, extra || {})); x += ww + 8; };
-        add("sum", bw*1.6); add("all", bw*.95); add("cr", bw*.95); add("up", bw*.95); add("luck", bw*.95); add("bag", bw*1.45, {info: 1, bag: 1}); add("info", bw*1.1, {info: 1}); }
-      else { const bh = (h - 44)/2, bw = (w - pad*2 - 16)/3;
-        L.push({id: "sum", z, x: x0 + pad, y: y0 + 30, w: bw*1.25, h: bh}); L.push({id: "all", z, x: x0 + pad + bw*1.25 + 8, y: y0 + 30, w: bw*.85, h: bh}); L.push({id: "bag", z, x: x0 + pad + bw*2.1 + 16, y: y0 + 30, w: bw*.9, h: bh, info: 1, bag: 1});
-        const b2 = (w - pad*2 - 24)/4; [["up"], ["cr"], ["luck"], ["info", {info: 1}]].forEach(([id, ex], j) => L.push(Object.assign({id, z, x: x0 + pad + j*(b2 + 8), y: y0 + 38 + bh, w: b2, h: bh}, ex || {}))); }
+        tray(x, yy, bw*(two && land ? 3.3 : 2.9), bh); x += bw*(two && land ? 3.3 : 2.9) + 8;
+        add("all", bw*.8); add("cr", bw*.85); add("up", bw*.8); add("luck", bw*.7); add("bag", bw*(two && land ? .8 : 1.1), {info: 1, bag: 1}); add("info", bw*(two && land ? .75 : .85), {info: 1}); }
+      else { const bh = (h - 44)/2;
+        tray(x0 + pad, y0 + 30, w - pad*2, bh);
+        const F = [["all", 1], ["cr", 1], ["up", 1], ["luck", .85], ["bag", 1.4, {info: 1, bag: 1}], ["info", 1.05, {info: 1}]], u = (w - pad*2 - 8*(F.length - 1))/F.reduce((a, f) => a + f[1], 0);
+        let x = x0 + pad; F.forEach(([id, f, ex]) => { L.push(Object.assign({id, z, x, y: y0 + 38 + bh, w: u*f, h: bh}, ex || {})); x += u*f + 8; }); }
     });
     L.push({id: "spd", z: -1, x: W - 92, y: 8, w: 84, h: TOPH - 18});   // ⏩ 속도: 같이 할 때도 누구나 (×1 → ×2 → ×4)
     L.push({id: "book", z: -1, x: W - 184, y: 8, w: 84, h: TOPH - 18});
@@ -923,7 +999,7 @@ NG.defs.rd = () => {
   }
   let BARS = [];
   function panelBtns(){ if (!panel) return []; const b = BARS.find(q => q.id === panel.id && q.z === panel.z); if (!b) return [];
-    const n = panel.id === "up" ? 4 : 4, w = Math.min(360, W - 20), h = 60, x = Math.max(10, Math.min(W - w - 10, b.x + b.w/2 - w/2)), y0 = Math.min(b.y, H - BOTH) - 10 - n*(h + 8);
+    const n = panel.id === "up" ? 4 : 2, w = Math.min(360, W - 20), h = 60, x = Math.max(10, Math.min(W - w - 10, b.x + b.w/2 - w/2)), y0 = Math.min(b.y, H - BOTH) - 10 - n*(h + 8);
     return Array.from({length: n}, (_, i) => ({id: panel.id, i, z: panel.z, x, y: y0 + i*(h + 8), w, h})); }
   function selBtns(){ return []; }   // (2026.11.18) 합치기·팔기는 화면 아래 '고른 동물' 단추 줄(DOM)로 옮겼어요 — 판 위에 떠서 다른 동물을 가리던 문제
   function selBtnsOld(){ if (!sel) return []; const q = Z[sel.z].s[sel.i]; if (!q.k) return []; const [x, y] = slotXY(sel.z, sel.i), px = cx(x), py = cy(y) - C*.62;
@@ -933,7 +1009,8 @@ NG.defs.rd = () => {
   const inR = (b, x, y) => x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h + 6;
   function slotAt(x, y){ const c = Math.floor((x - BX)/C), r = Math.floor((y - BY)/C), h = CELL.get(c + "," + r); return h ? {z: h.z, i: h.i} : null; }
   function press(b){
-    if (b.id === "sum") act(b.z, ["sum"]);
+    if (b.id === "tk"){ const o = Z[b.z].tr && Z[b.z].tr[b.i]; if (o) act(b.z, ["tk", b.i, o.k]); else playS("no"); }
+    else if (b.id === "rr") act(b.z, ["rr"]);
     else if (b.id === "all") act(b.z, ["all"]);
     else if (b.id === "cr") crToggle(b.z);
     else if (b.id === "up" || b.id === "luck"){ if (b.i != null){ act(b.z, b.id === "up" ? ["up", b.i] : ["luck", b.i]); } else panel = panel && panel.id === b.id && panel.z === b.z ? null : {id: b.id, z: b.z}; }
@@ -990,8 +1067,8 @@ NG.defs.rd = () => {
     for (let z = 0; z < N; z++){ if (!isMine(z)) continue; Z[z].s.forEach((q, i) => { if (!q.k || q.mp == null) return; const A = RD_A[q.k], r = Math.min(1, q.mp/A.sk.mp), [x, y] = slotXY(z, i), bw = C*.62, bx = cx(x) - bw/2, by = cy(y) + C*.4;
       g.fillStyle = "rgba(0,0,0,.5)"; g.fillRect(bx, by, bw, 5); g.fillStyle = r > .85 ? (fr % 12 < 6 ? "#fff3bf" : "#fcc419") : "#4dabf7"; g.fillRect(bx, by, bw*r, 5); }); }
     // 끌어서 옮길 때: 이 동물에게 좋은 자리 반짝
-    if (drag && drag.on){ const q0 = Z[drag.z].s[drag.i]; if (q0.k){ const ro = RD_A[q0.k].ro; LN[drag.z].slots.forEach(([x, y], s) => { const good = ro === "m" ? isFront(drag.z, s) : ro === "r" ? !isFront(drag.z, s) : true;
-      if (!good) return; g.globalAlpha = .4 + Math.sin(fr*.2)*.15; g.fillStyle = RD_ROLE[ro].c; rrect(g, cx(x - .45), cy(y - .45), C*.9, C*.9, C*.2); g.fill(); g.globalAlpha = 1; }); } }
+    if (drag && drag.on){ const q0 = Z[drag.z].s[drag.i]; if (q0.k){ const A0 = RD_A[q0.k], ro = A0.ro; LN[drag.z].slots.forEach(([x, y], s) => { const hb = TERR(drag.z, s) === A0.hb, good = ro === "m" ? isFront(drag.z, s) : ro === "r" ? !isFront(drag.z, s) : true;
+      if (!hb && !good) return; g.globalAlpha = (hb && good ? .5 : .28) + Math.sin(fr*.2)*.15; g.fillStyle = hb ? RD_HBI[A0.hb].c : RD_ROLE[ro].c; rrect(g, cx(x - .45), cy(y - .45), C*.9, C*.9, C*.2); g.fill(); if (hb && good){ g.strokeStyle = "#fff"; g.lineWidth = 3; g.stroke(); } g.globalAlpha = 1; }); } }
     if (grab && LN[grab.z]){ const [x, y] = slotXY(grab.z, grab.i); g.strokeStyle = "#ffd43b"; g.lineWidth = 4; g.setLineDash([8, 6]); rrect(g, cx(x - .47), cy(y - .47), C*.94, C*.94, C*.18); g.stroke(); g.setLineDash([]); outlined(g, "✋ G로 놓기", cx(x), cy(y) - C*.56, 14, "#ffe066"); }
     if (sel){ const [x, y] = slotXY(sel.z, sel.i), q = Z[sel.z].s[sel.i]; g.strokeStyle = "#fff"; g.lineWidth = 4; rrect(g, cx(x - .47), cy(y - .47), C*.94, C*.94, C*.18); g.stroke();
       if (q.k){ g.globalAlpha = .14; g.fillStyle = "#fff"; g.beginPath(); g.arc(cx(x), cy(y), (RD_A[q.k].r + .5*RL(sel.z, "rng"))*C, 0, 7); g.fill(); g.globalAlpha = .6; g.strokeStyle = "#fff"; g.lineWidth = 2; g.stroke(); g.globalAlpha = 1; } }
@@ -1067,7 +1144,9 @@ NG.defs.rd = () => {
       const sy = SYN && SYN[z] && SYN[z][i]; if (sy){ const l = lbl([sy], 12, "#fff"); t.drawImage(l, (x - .48)*C, (y - .5)*C, l.w, l.h); }
       const A = RD_A[q.k], RO = RD_ROLE[A.ro || "r"], bs = Math.round(C*.26);   // ⚔️🏹✨ 역할 표시
       t.drawImage(sp(`rb${A.ro}${bs}`, bs, bs, b => { b.fillStyle = RO.c; b.beginPath(); b.arc(bs/2, bs/2, bs/2 - 1, 0, 7); b.fill(); b.strokeStyle = "#fff"; b.lineWidth = 2; b.stroke(); G2.emo(b, RO.e, bs/2, bs/2 + 1, bs*.62); }), (x - .47)*C, (y - .47)*C, bs, bs);
-      if (A.ro === "m" && !isFront(z, i)){ const l = lbl(["⚠️", "길에서 멀어요"], 11, "#ffe066"); t.drawImage(l, x*C - l.w/2, (y + .2)*C, l.w, l.h); } }); }
+      if (A.ro === "m" && !isFront(z, i)){ const l = lbl(["⚠️", "길에서 멀어요"], 11, "#ffe066"); t.drawImage(l, x*C - l.w/2, (y + .2)*C, l.w, l.h); }
+      /* 🌍 사는 곳 표시: 자기 땅이면 초록 테 · 아니면 빨간 테 (옮기거나 🎁 친구에게) */
+      { const ok = A.hb === TERR(z, i), hs = Math.round(C*.24); t.drawImage(sp(`hbb${A.hb}${ok ? 1 : 0}${hs}`, hs, hs, b => { b.fillStyle = ok ? "#fff" : "#ffe3e3"; b.beginPath(); b.arc(hs/2, hs/2, hs/2 - 1, 0, 7); b.fill(); b.strokeStyle = ok ? "#37b24d" : "#f03e3e"; b.lineWidth = ok ? 2 : 3; b.stroke(); G2.emo(b, RD_HBI[A.hb].e, hs/2, hs/2 + 1, hs*.6); }), (x + .47)*C - hs, (y - .47)*C, hs, hs); } }); }
   function unitsLayer(k){
     const base = `${layerKey}|${k}|${COLS}|${ROWS}|${C}`;
     if (base !== uV || !uL){ uV = base; uZ = []; uGv = -1;
@@ -1085,6 +1164,10 @@ NG.defs.rd = () => {
       parts.push({l: (prog ? dlbl : lbl)([done ? "✅" : fail ? "❌" : D.e, `미션: ${D.t(MS.n, MS.x)}${prog}`, ...(done ? [] : ["→", "🎒"])], 15, done ? "#8ce99a" : fail ? "#ffa8a8" : "#fff"), c: done ? "rgba(43,138,62,.75)" : fail ? "rgba(120,30,30,.7)" : "rgba(15,10,40,.72)"}); }
     else if (wave % 10 === 0) parts.push({l: lbl(["👑", "보스를 잡으면 🎁 유물 상자!"], 15, "#ffe066"), c: "rgba(90,20,40,.78)"});
     if (wave % 10) parts.push({l: lbl(["👑", `보스까지 ${10 - wave % 10}단계`], 14, "#ffd8a8"), c: "rgba(15,10,40,.6)"});
+    { const rg = REG(), hz = HBC[local[0]] || {l: 0, s: 0, a: 0};   // 🗺️ 이 맵에서 센 곳 · 🌍 내 무리
+      parts.push({l: lbl(rg === "*" ? ["🗺️", "모두 +15%"] : ["🗺️", RD_HBI[rg].e, `${RD_HBI[rg].n} +30%`], 14, rg === "*" ? "#ffe066" : RD_HBI[rg].c), c: "rgba(15,10,40,.72)"});
+      const sp0 = ["l", "s", "a"].filter(h => hz[h]).flatMap(h => { const T = rdSetT(hz[h]); return [RD_HBI[h].e, `${hz[h]}${T ? "★".repeat(T) : ""}`]; });
+      if (sp0.length) parts.push({l: lbl(sp0, 14, "#fff"), c: "rgba(15,10,40,.6)"}); }
     parts.push({l: lbl(["🌀", `${dimOf(wave)}차원`, `· ${wave}/${RD_END}`], 14, "#e5dbff"), c: "rgba(60,20,90,.7)"});
     if (N >= 3) parts.push({l: lbl(["🎌", TEAM > 1 ? `역할 분담 +${Math.round((TEAM - 1)*100)}%` : "역할 분담: 친구마다 ⚔️🏹✨ 주력을 나눠요"], 14, TEAM > 1 ? "#8ce99a" : "#ced4da"), c: "rgba(15,10,40,.6)"});
     const rel = Object.entries(Z[local[0]].rel || {}); if (rel.length) parts.push({l: lbl(rel.flatMap(([k, v]) => [RD_REL[k].e, v > 1 ? `${v}` : ""]).filter(Boolean), 14, "#ffe066"), c: "rgba(15,10,40,.6)"});
@@ -1112,33 +1195,58 @@ NG.defs.rd = () => {
     if (land) G2.put(g, lbl([th().n.split(" ")[0], th().n.split(" ").slice(1).join(" ")], 16, "#d0bfff"), LPAD + 122, 16);
     { const b = BARS.find(q => q.id === "spd"); if (b) G2.put(g, btnSpr(b.w, b.h, speed === 4 ? "#ff6b6b" : speed > 1 ? "#ff922b" : "#748ffc", speed === 4 ? "#c92a2a" : speed > 1 ? "#e8590c" : "#4c6ef5", ["⏩", `×${speed}`], 17), b.x, b.y); }
   }
+  /* 📥 대기 줄 카드 한 장 (등급 색 테두리 · 사는 곳 표시 · 이름) — 같은 카드는 한 번만 그려요 */
+  function trCard(k, w, h, z){ const A = RD_A[k], gift = A && N > 1 && !yardH(z).includes(A.hb);
+    return sp(`tc${k}${w}x${h}${gift ? "g" : ""}`, w, h, t => {
+      if (!A){ t.strokeStyle = "rgba(255,255,255,.28)"; t.lineWidth = 2; t.setLineDash([6, 5]); rrect(t, 2, 2, w - 4, h - 4, 12); t.stroke(); t.setLineDash([]); t.globalAlpha = .4; G2.emo(t, "⏳", w/2, h/2, Math.min(w, h)*.32); t.globalAlpha = 1; return; }
+      const G = RD_G[A.g], HB = RD_HBI[A.hb];
+      t.fillStyle = "rgba(0,0,0,.3)"; rrect(t, 2, 4, w - 4, h - 4, 12); t.fill();
+      t.fillStyle = BSA.lg(t, 0, 0, 0, h, [[0, "#ffffff"], [.55, G.c2], [1, G.c]]); rrect(t, 1, 1, w - 3, h - 5, 12); t.fill();
+      t.strokeStyle = G.c; t.lineWidth = A.g >= 2 ? 4 : 3; t.stroke();
+      const fs = Math.max(10, Math.min(15, Math.floor(w*.2))), us = Math.min(w - 6, h - fs - 12);
+      t.drawImage(RDA.unitSpr(k, Math.round(us)), (w - us)/2, 2, us, us);
+      t.fillStyle = HB.c2; t.beginPath(); t.arc(w*.2 + 2, w*.2 + 2, Math.min(w, h)*.17, 0, 7); t.fill(); t.strokeStyle = "#fff"; t.lineWidth = 2; t.stroke(); G2.emo(t, HB.e, w*.2 + 2, w*.2 + 3, Math.min(w, h)*.2);
+      if (gift){ G2.emo(t, "🎁", w - w*.2 - 2, w*.2 + 3, Math.min(w, h)*.22); }
+      outlinedRaw(t, A.n.length > 4 && w < 70 ? A.n.slice(0, 4) : A.n, w/2, h - fs*.75 - 4, fs, "#fff"); }); }
+  /* 📥 다음 동물까지 막대 + ⏳ 곧 떠날 카드 + ✨ 방금 온 카드 (움직이는 것만 여기서 그려요) */
+  const trNew = {};
+  function trayFx(g){ const fr = NG.frame;
+    BARS.forEach(b => { if (b.z < 0 || !Z[b.z]) return; const p = Z[b.z];
+      if (b.id === "trb"){ const r = state === "play" ? 1 - Math.max(0, Math.min(TRF, p.trT || 0))/TRF : 0; g.fillStyle = "rgba(0,0,0,.45)"; g.fillRect(b.x + 4, b.y + b.h + 1, b.w - 8, 4); g.fillStyle = "#ffe066"; g.fillRect(b.x + 4, b.y + b.h + 1, (b.w - 8)*r, 4); return; }
+      if (b.id !== "tk") return; const o = p.tr && p.tr[b.i], key = b.z + ":" + b.i, k = o ? o.k : "";
+      const nw = trNew[key] || (trNew[key] = {k, f: -99}); if (nw.k !== k){ nw.k = k; nw.f = k ? fr : -99; }
+      if (k && fr - nw.f < 14){ g.globalAlpha = 1 - (fr - nw.f)/14; g.strokeStyle = "#fff"; g.lineWidth = 5; rrect(g, b.x - 2, b.y - 2, b.w + 4, b.h - 2, 13); g.stroke(); g.globalAlpha = 1; }
+      if (k && trOld(p) === b.i && (p.trT || 0) < 36){ g.globalAlpha = .55 + Math.sin(fr*.4)*.35; G2.put(g, lbl(["⏳"], 16), b.x + b.w - 26, b.y + b.h - 34); g.globalAlpha = 1; } }); }
   let bL = null, bV = "";
   function drawBottom(g){
-    const k = NG.k || 1, sig = [k, W, H, BOTH, BARS.length, local.map(z => { const p = Z[z]; return [Math.floor(p.gold), p.gems, sumCost(z), p.up.join(""), p.s.some(q => q.k && q.n >= 3 && RD_A[q.k].g < RD_MG) ? 1 : 0, p.it.length, bagN(z), crN(z), crOpen ? 1 : 0].join(","); }).join("|")].join("/");
+    const k = NG.k || 1, sig = [k, W, H, BOTH, BARS.length, local.map(z => { const p = Z[z]; return [Math.floor(p.gold), p.gems, trS(p), rrCost(z), N > 1 ? yardH(z).join("") : "", p.up.join(""), p.s.some(q => q.k && q.n >= 3 && RD_A[q.k].g < RD_MG) ? 1 : 0, p.it.length, bagN(z), crN(z), crOpen ? 1 : 0].join(","); }).join("|")].join("/");
     if (sig !== bV || !bL){ bV = sig; bL = bL || document.createElement("canvas"); const w = Math.ceil(W*k), h = Math.ceil(BOTH*k) + 2; if (bL.width !== w || bL.height !== h){ bL.width = w; bL.height = h; }
       const t = bL.getContext("2d"); t.setTransform(1, 0, 0, 1, 0, 0); t.clearRect(0, 0, bL.width, bL.height); t.setTransform(k, 0, 0, k, 0, -(H - BOTH)*k); barsDraw(t); }
     g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(bL, 0, Math.round((H - BOTH)*k)); g.setTransform(k, 0, 0, k, 0, 0);
-    popsDraw(g);
+    trayFx(g); popsDraw(g);
   }
   function barsDraw(g){
     g.fillStyle = "rgba(15,10,40,.78)"; g.fillRect(0, H - BOTH, W, BOTH); g.fillStyle = "rgba(255,255,255,.12)"; g.fillRect(0, H - BOTH, W, 2);
     BARS.forEach(b => { if (b.id === "spd") return; if (b.z < 0) return; const p = Z[b.z]; if (!p) return; const col = RD_PC[b.z];
-      if (b.id === "sum"){ const c = sumCost(b.z), off = p.gold < c; G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), "#ffd43b", "#f08c00", ["🎲", "뽑기", "💰", rdN(c)], Math.min(land ? 27 : 28, Math.floor(b.w*.15)), off), b.x, b.y); }
+      if (b.id === "trb"){ g.fillStyle = "rgba(255,255,255,.07)"; rrect(g, b.x - 2, b.y - 2, b.w + 4, b.h + 4, 14); g.fill(); g.strokeStyle = "rgba(255,224,102,.55)"; g.lineWidth = 2; g.stroke();
+        G2.put(g, lbl(["📥", "대기 줄 · 눌러서 데려와요 · 🔄 새 줄"], 13, "#ffe066"), b.x + 6, b.y - 19); }
+      else if (b.id === "tk"){ const o = p.tr && p.tr[b.i]; G2.put(g, trCard(o ? o.k : "", Math.round(b.w), Math.round(b.h), b.z), b.x, b.y); }
+      else if (b.id === "rr"){ const c = rrCost(b.z); G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h) - 6, "#ffd43b", "#f08c00", ["🔄", rdN(c)], Math.min(17, Math.floor(b.w*.24)), p.gold < c), b.x, b.y); }
       else if (b.id === "all"){ const can = p.s.some(q => q.k && q.n >= 3 && RD_A[q.k].g < RD_MG); G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), "#69db7c", "#2b8a3e", ["🔀", "합치기"], Math.min(24, Math.floor(b.w*.19)), !can), b.x, b.y); }
       else if (b.id === "cr"){ const n = crN(b.z); G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), n ? "#ffc078" : "#ffa94d", "#d9480f", ["🧪", "조합"], Math.min(24, Math.floor(b.w*.22)), false), b.x, b.y);
         if (n){ const l = lbl(["✨", `${n}개 가능`], 14, "#fff"); g.fillStyle = "#e8590c"; rrect(g, b.x + b.w - l.w - 12, b.y - 12, l.w + 12, l.h + 4, 10); g.fill(); g.strokeStyle = "#ffd43b"; g.lineWidth = 2; g.stroke(); G2.put(g, l, b.x + b.w - l.w - 6, b.y - 10); } }
       else if (b.id === "up") G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), "#74c0fc", "#1971c2", ["⬆️", "강화"], Math.min(24, Math.floor(b.w*.22)), false), b.x, b.y);
-      else if (b.id === "luck") G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), "#e599f7", "#9c36b5", ["🎰", "고급 뽑기"], Math.min(22, Math.floor(b.w*.2)), p.gems < 1 && p.gold < heroCost(b.z)), b.x, b.y);
+      else if (b.id === "luck") G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), "#e599f7", "#9c36b5", ["💎", "보석"], Math.min(22, Math.floor(b.w*.22)), p.gems < 1), b.x, b.y);
       else if (b.id === "bag"){ g.fillStyle = "rgba(255,255,255,.06)"; rrect(g, b.x, b.y, b.w, b.h, 14); g.fill(); g.strokeStyle = "rgba(255,212,59,.6)"; g.lineWidth = 2; g.setLineDash([6, 5]); g.stroke(); g.setLineDash([]);
         G2.put(g, lbl(["🎒", `가방 ${p.it.length}/${bagN(b.z)}`], 13, "#ffe066"), b.x + 6, b.y - 18); }
       else if (b.id === "info"){ g.fillStyle = "rgba(255,255,255,.08)"; rrect(g, b.x, b.y, b.w, b.h, 14); g.fill(); g.strokeStyle = col; g.lineWidth = 3; g.stroke();
-        if (b.wide){ const l1 = dlbl(["💰", rdN(p.gold), "💎", String(p.gems), "🎲", `뽑기 ${rdN(sumCost(b.z))}`, "⬆️", `Lv ${p.up.join("·")}`], 22, "#ffe066"); G2.put(g, l1, b.x + 12, b.y + b.h/2 - l1.h/2); }
+        if (b.wide){ const l1 = dlbl(["💰", rdN(p.gold), "💎", String(p.gems), "📥", (p.tr || []).filter(Boolean).map(o => RD_A[o.k].e).join("") || "-", "⬆️", `Lv ${p.up.join("·")}`], 22, "#ffe066"); G2.put(g, l1, b.x + 12, b.y + b.h/2 - l1.h/2); }
         else { const f1 = Math.min(26, Math.floor(b.w*.2)); G2.put(g, dlbl(["💰", rdN(p.gold)], f1, "#ffe066"), b.x + 8, b.y + b.h*.5 - f1 - 10); G2.put(g, dlbl(["💎", String(p.gems)], Math.min(22, f1), "#e5dbff"), b.x + 8, b.y + b.h*.5 + 2); }
         if (local.length >= 2 || N > 1) faceAt(g, SIDS[b.z], b.x + b.w - 4, b.y + 4, 14, col); } });
     /* ⌨️ 단추마다 자판 글자 (키보드가 있는 기기) */
-    if (kHint || window.VK_ON) BARS.forEach(b => { if (b.z < 0 || b.z !== local[0]) return; const two = local.length >= 2, key = {sum: "Space", all: "Q", cr: "C", up: "1~4", luck: "E", bag: "5~9"}[b.id]; if (!key) return;
-      const l = lbl([key], 12, "#fff"); g.fillStyle = "rgba(0,0,0,.55)"; rrect(g, b.x + 4, b.y + b.h - l.h - 4, l.w + 8, l.h + 2, 7); g.fill(); G2.put(g, l, b.x + 8, b.y + b.h - l.h - 3); });
-    if ((kHint || window.VK_ON) && local.length >= 2) BARS.forEach(b => { if (b.z !== local[1]) return; const key = {sum: "Enter", all: "M", luck: "L"}[b.id]; if (!key) return;
+    if (kHint || window.VK_ON) BARS.forEach(b => { if (b.z < 0 || b.z !== local[0]) return; const two = local.length >= 2, key = {trb: "Space", rr: "V", all: "Q", cr: "C", up: "1~4", luck: "E", bag: "5~9"}[b.id]; if (!key) return;
+      const l = lbl([key], 12, "#fff"), hx = b.id === "trb" ? b.x + b.w - l.w - 12 : b.x + 4, hy = b.id === "trb" ? b.y - 20 : b.y + b.h - l.h - 4; g.fillStyle = "rgba(0,0,0,.55)"; rrect(g, hx, hy, l.w + 8, l.h + 2, 7); g.fill(); G2.put(g, l, hx + 4, hy + 1); });
+    if ((kHint || window.VK_ON) && local.length >= 2) BARS.forEach(b => { if (b.z !== local[1]) return; const key = {trb: "Enter", all: "M", luck: "L"}[b.id]; if (!key) return;
       const l = lbl([key], 12, "#fff"); g.fillStyle = "rgba(0,0,0,.55)"; rrect(g, b.x + 4, b.y + b.h - l.h - 4, l.w + 8, l.h + 2, 7); g.fill(); G2.put(g, l, b.x + 8, b.y + b.h - l.h - 3); });
   }
   /* 🧪 조합 창 (DOM) — 왼쪽: 조합 목록(만들 수 있는 것이 위) · 오른쪽: 내 4×4 마당에서 재료로 쓸 동물을 직접 골라 넣고 📍 만들 자리도 골라요
@@ -1152,10 +1260,11 @@ NG.defs.rd = () => {
   /* 🧭 만드는 길: 재료마다 '이미 있어요 / 어떻게 모아요'를 한 줄씩 (재료가 조합 동물이면 그 재료까지) */
   function crGuide(t, H){
     const R0 = RD_RC[t], miss = crMiss(t, H), how = k => { const A = RD_A[k];
-      if (A.g === 0) return `🎲 <b>뽑기</b>(Space)로 나와요 · <span class="cx-pkl" data-dk="pk:${k}">🎯 <b>골라 뽑기</b> 💰${rdN(pickCost(crZ))}</span>`;
-      if (A.g < RD_MG) return "🔀 같은 일반 동물 3마리를 <b>합치면</b> 나와요 · 🎲 뽑기에서도 가끔";
+      const hb = RD_HBI[A.hb], gv0 = N > 1 && !yardH(crZ).includes(A.hb) ? ` · 🎁 ${hb.e} 친구에게 부탁해요` : "";
+      if (A.g === 0) return `📥 <b>대기 줄</b>에 1초마다 와요 — ${A.e}이(가) 오면 눌러서 데려와요${gv0}`;
+      if (A.g < RD_MG) return `🔀 같은 ${hb.e} ${hb.n} 동물 3마리를 <b>합치면</b> ${hb.n} 동물이 나와요 · 📥 대기 줄에도 가끔${gv0}`;
       if (RD_RC[k]) return `🧪 <b>조합</b>으로 만들어요 <span class="sub">${RD_RC[k].map(([k2, c2]) => `<span class="${(H[k2] || 0) >= c2 ? "y" : ""}">${RD_A[k2].e}${RD_A[k2].n} ${Math.min(H[k2] || 0, c2)}/${c2}</span>`).join("")}</span> <button class="cx-lk" data-t="${k}" style="border:0;background:none;color:#7048e8;font:12px 'Jua';cursor:pointer">→ 보러 가기</button>`;
-      return "🎰 <b>고급 뽑기</b>에서 나와요"; };
+      return `📥 <b>대기 줄</b>에 와요 (단계가 오를수록 자주)${gv0}`; };
     const steps = R0.map(([k, c], i) => { const h = H[k] || 0, ok = h >= c;
       return `<div class="st ${ok ? "ok" : ""}"><span>${ok ? "✔" : i + 1}</span><div><b>${RD_A[k].e} ${RD_A[k].n} ${c}마리</b> — ${ok ? `<em>준비됐어요! (가진 것 ${h})</em>` : `<u>${c - h}마리 더 필요</u> · ${how(k)}`}</div></div>`; }).join("");
     return `<div class="cx-gd"><b>${miss ? `🧭 만드는 길 — ${miss}마리만 더 모으면 돼요!` : "🎉 재료가 다 모였어요! 아래에서 🧪 만들기!"}</b>${steps}</div>`; }
@@ -1213,12 +1322,12 @@ NG.defs.rd = () => {
     /* 오른쪽: 고른 조합 · 내 마당 4×4 */
     const t = crSel, A = RD_A[t], R0 = RD_RC[t]; if (!A || !R0) return;
     const G = RD_G[A.g], J = RD_JOB[A.job], RO = RD_ROLE[A.ro], can = canCraft(crZ, t, H), done = pickOK(crZ, t, crPick), dst = can ? destOf(crZ, t, crPick, crDest) : -1;
-    const dsig = [t, crPick.join("."), crDest, crMode, crCur, crMore, pin, Math.floor(Z[crZ].gold) >= pickCost(crZ), S.map(q => q.k ? q.k + q.n : "").join(","), can].join("|"); if (dsig === crD && !el.hidden) return; crD = dsig;
+    const dsig = [t, crPick.join("."), crDest, crMode, crCur, crMore, pin, N, S.map(q => q.k ? q.k + q.n : "").join(","), can].join("|"); if (dsig === crD && !el.hidden) return; crD = dsig;
     const dt = el.querySelector(".cx-dt"); dt.style.setProperty("--g", G.c); const newT = dt.dataset.cur !== t; dt.dataset.cur = t;
     /* 🧩 조합 식: [만들 동물] = 재료 + 재료 + 재료 — 재료마다 가진 수/필요 수, 모자라면 어떻게 모으는지 한 단어로 (조합 재료는 눌러서 그 조합으로) */
-    const how1 = k => { const g = RD_A[k].g; return g === 0 ? "🎲 뽑기" : g < RD_MG ? "🔀 합치기" : RD_RC[k] ? "🧪 조합 ›" : "🎰 고급 뽑기"; };
+    const how1 = k => { const g = RD_A[k].g; return g === 0 ? "📥 대기 줄" : g < RD_MG ? "🔀 합치기" : RD_RC[k] ? "🧪 조합 ›" : "📥 대기 줄"; };
     const fm = `<div class="cx-fm"><div class="fm-out"><img data-im="${t}" ${imgOf(t)} alt=""><b>${A.n}</b></div><i class="fm-eq">=</i>${R0.map(([k, c]) => { const h = H[k] || 0, ok = h >= c, n = crPick.filter(i => S[i] && S[i].k === k).length;
-        return `<button class="fm-in ${ok ? "ok" : "no"} ${n >= c ? "in" : ""}" ${RD_RC[k] ? `data-t="${k}"` : "data-h=\"1\""} style="--g:${RD_G[RD_A[k].g].c}"><img data-im="${k}" ${imgOf(k)} alt=""><span class="fm-c">${Math.min(h, 99)}<small>/${c}</small></span><b>${RD_A[k].n}</b>${!ok && RD_A[k].g === 0 ? `<em class="fm-pk" data-dk="pk:${k}">🎯 💰${rdN(pickCost(crZ))}</em>` : `<em>${ok ? "✔ 준비" : how1(k)}</em>`}</button>`; }).join(`<i class="fm-pl">+</i>`)}</div>`;
+        return `<button class="fm-in ${ok ? "ok" : "no"} ${n >= c ? "in" : ""}" ${RD_RC[k] ? `data-t="${k}"` : "data-h=\"1\""} style="--g:${RD_G[RD_A[k].g].c}"><img data-im="${k}" ${imgOf(k)} alt=""><span class="fm-c">${Math.min(h, 99)}<small>/${c}</small></span><b>${RD_HBI[RD_A[k].hb].e}${RD_A[k].n}</b><em>${ok ? "✔ 준비" : how1(k)}</em></button>`; }).join(`<i class="fm-pl">+</i>`)}</div>`;
     const info = `<div class="cx-sk">🌟 ${A.sk.e} <b>${A.sk.n}</b> — ${A.sk.d}<br>💪 ${A.t}${A.job === "s" ? " · 👑 보스 💥 약점 드러내기" : ""}</div>${crGuide(t, H)}`;
     dt.classList.toggle("cx-more", crMore);
     dt.innerHTML = `<div class="cx-dl"><div class="cx-tp"><img data-im="${t}" ${imgOf(t)} alt=""><div><h3>${A.e} ${A.n} <button data-a="pin" class="cx-pin${pin === t ? " on" : ""}">${pin === t ? "📌 목표 해제" : "📌 목표로"}</button></h3><i style="--q:${G.c}">${G.n}</i><i style="--q:${J.c}">${J.e} ${J.n}</i><i style="--q:${RO.c}">${RO.e} ${RO.n}</i></div></div>
@@ -1230,11 +1339,11 @@ NG.defs.rd = () => {
         return `<div data-s="${i}" class="${q.k ? "" : "cx-no"} ${!rel && crMode !== "dest" ? "cx-no" : ""} ${use ? "cx-use" : rel ? "cx-can" : ""} ${i === dst ? "cx-dst" : ""} ${i === crCur && kHint ? "cx-cur" : ""}">${q.k ? `<img data-im="${q.k}" ${imgOf(q.k)} alt=""><b>${q.n > 1 ? "×" + q.n : ""}</b>` : ""}${use ? `<em>✔${use > 1 ? use : ""}</em>` : ""}${i === dst ? "<u>📍</u>" : ""}</div>`; }).join("")}</div>
       <div class="cx-ac"><button data-a="auto">🔄 자동<span class="cx-lg">으로 고르기</span> <small>R</small></button><button data-a="dest" class="${crMode === "dest" ? "cx-on" : ""}">${crMode === "dest" ? "📍 칸을 눌러요" : "📍 자리<span class=\"cx-lg\"> 고르기</span>"} <small>P</small></button>
         <button data-a="go" class="cx-go" ${can && done ? "" : "disabled"}>🧪 만들기 <small>Enter</small></button></div>
-      <div class="cx-tip">${!can ? `재료가 ${crMiss(t, H)}마리 모자라요 — 뽑기·합치기로 모아요!` : !done ? "초록 칸 = 재료로 넣은 동물 · 노란 테두리 칸을 눌러 넣거나 빼요" : `✔ 준비 끝! 📍 ${Math.floor(dst/4) + 1}줄 ${dst % 4 + 1}번째 칸에 ${A.n}이(가) 생겨요`}${kHint ? `<span class="cx-kb"><br>⌨️ 방향키 칸 이동 · Space 넣기/빼기 · P 자리 · R 자동 · Enter 만들기 · 1~9 조합 고르기</span>` : ""}</div></div>`; if (newT) dt.scrollTop = 0;
+      <div class="cx-tip">${!can ? `재료가 ${crMiss(t, H)}마리 모자라요 — 📥 대기 줄·🔀 합치기${N > 1 ? "·🎁 친구" : ""}로 모아요!` : !done ? "초록 칸 = 재료로 넣은 동물 · 노란 테두리 칸을 눌러 넣거나 빼요" : `✔ 준비 끝! 📍 ${Math.floor(dst/4) + 1}줄 ${dst % 4 + 1}번째 칸에 ${A.n}이(가) 생겨요`}${kHint ? `<span class="cx-kb"><br>⌨️ 방향키 칸 이동 · Space 넣기/빼기 · P 자리 · R 자동 · Enter 만들기 · 1~9 조합 고르기</span>` : ""}</div></div>`; if (newT) dt.scrollTop = 0;
     el.hidden = false; document.body.classList.toggle("rd-cr-on", el.classList.contains("cx-mb")); dockTick(); }
 
   /* =====================================================================
-     🎛️ 빠른 행동 줄 (2026.11.18) — 🧪 조합 창 · 📖 도감을 연 채로도 뽑기·골라 뽑기·합치기·강화·고급 뽑기를 다 해요
+     🎛️ 빠른 행동 줄 (2026.11.18) — 🧪 조합 창 · 📖 도감을 연 채로도 📥 대기 줄·🔄 새 줄·합치기·강화·💎 보석을 다 해요
      · 게임은 멈추지 않아요 (혼자 할 때만 ⏸️ 멈춤 단추로 직접 멈춰요)
      ⚡ 금·값이 바뀔 때만 다시 그려요 (8장면에 한 번 확인)
      ===================================================================== */
@@ -1242,31 +1351,28 @@ NG.defs.rd = () => {
   let pin = (() => { try { const v = localStorage.getItem("arcade.rdpin"); return v && RD_RC[v] ? v : null; } catch(e){ return null; } })(), pinSig = "";
   const savePin = () => { try { pin ? localStorage.setItem("arcade.rdpin", pin) : localStorage.removeItem("arcade.rdpin"); } catch(e){} pinSig = ""; };
   const mrgN = z => Z[z].s.reduce((a, q) => a + (q.k && q.n >= 3 && RD_A[q.k].g < RD_MG ? 1 : 0), 0);
-  function dockSig(z, w){ const p = Z[z]; return [w, Math.floor(p.gold), p.gems, sumCost(z), pickCost(z), p.up.join("."), RL(z, "cheap"), p.hd || 0, p.md || 0, mrgN(z), crN(z), dkSub, pauseU, state, haveOf0(z)].join("|"); }
-  const haveOf0 = z => RD_BY[0].map(k => Z[z].s.reduce((a, q) => a + (q.k === k ? q.n : 0), 0)).join(".");
-  function dockHTML(z, w){ const p = Z[z], gold = Math.floor(p.gold), sc = sumCost(z), pc = pickCost(z), mg = mrgN(z), cn = crN(z), off = c => gold < c ? " dk-off" : "";
+  function dockSig(z, w){ const p = Z[z]; return [w, Math.floor(p.gold), p.gems, trS(p), rrCost(z), p.up.join("."), RL(z, "cheap"), mrgN(z), crN(z), dkSub, pauseU, state].join("|"); }
+  function dockHTML(z, w){ const p = Z[z], gold = Math.floor(p.gold), rc = rrCost(z), mg = mrgN(z), cn = crN(z), off = c => gold < c ? " dk-off" : "";
     const tg = (id, t) => `<button data-dk="~${id}" class="dk-b dk-t${dkSub === id ? " on" : ""}">${t} <span class="dk-car">${dkSub === id ? "▴" : "▾"}</span></button>`;
-    let h = `<div class="dk-row"><span class="dk-m">💰 <b>${rdN(gold)}</b>${p.gems ? `<em>💎 ${p.gems}</em>` : ""}</span>
-      <button data-dk="sum" class="dk-b dk-sum${off(sc)}">🎲 뽑기 <small>💰${sc}</small></button>${tg("pk", "🎯 골라 뽑기")}
+    let h = `<div class="dk-row"><span class="dk-m">💰 <b>${rdN(gold)}</b>${p.gems ? `<em>💎 ${p.gems}</em>` : ""}</span><span class="dk-tl">📥</span>
+      ${Array.from({length: TRN}, (_, i) => { const o = p.tr && p.tr[i]; if (!o) return `<button class="dk-b dk-tk dk-off" disabled>⏳</button>`; const A = RD_A[o.k];
+        return `<button data-dk="tk:${i}:${o.k}" class="dk-b dk-tk" style="--g:${RD_G[A.g].c}"><small>${RD_HBI[A.hb].e}</small>${A.e} ${A.n}</button>`; }).join("")}
+      <button data-dk="rr" class="dk-b${off(rc)}">🔄 새 줄 <small>💰${rdN(rc)}</small></button>
       <button data-dk="all" class="dk-b${mg ? " dk-hot" : ""}">🔀 합치기${mg ? ` <i>${mg}</i>` : ""}</button>
       ${w === "book" ? `<button data-dk="cr" class="dk-b${cn ? " dk-hot" : ""}">🧪 조합${cn ? ` <i>${cn}</i>` : ""}</button>` : ""}
-      ${tg("up", "⬆️ 강화")}${tg("lk", "🎰 고급 뽑기")}
+      ${tg("up", "⬆️ 강화")}${tg("lk", "💎 보석")}
       ${!party ? `<button data-dk="pause" class="dk-b dk-p${pauseU ? " on" : ""}">${pauseU ? "▶️ 계속" : "⏸️ 멈춤"}</button>` : ""}</div>`;
-    if (dkSub === "pk") h += `<div class="dk-sub"><span class="dk-tip">필요한 ⚪ 일반 동물을 바로 · 뽑기의 3배</span>${RD_BY[0].map(k => { const A = RD_A[k], n = p.s.reduce((a, q) => a + (q.k === k ? q.n : 0), 0);
-      return `<button data-dk="pk:${k}" class="dk-b${off(pc)}">${A.e} ${A.n}${n ? `<i>${n}</i>` : ""} <small>💰${rdN(pc)}</small></button>`; }).join("")}</div>`;
-    else if (dkSub === "up") h += `<div class="dk-sub">${[0, 1, 2, 3].map(i => { const c = upCost(z, i); return `<button data-dk="up:${i}" class="dk-b${off(c)}">${["⚪🔵", "🟣🟡", "🌈", "💠✨"][i]} ${RD_UPN[i]} <b>Lv${p.up[i] || 0}</b> <small>💰${rdN(c)}</small></button>`; }).join("")}</div>`;
-    else if (dkSub === "lk"){ const hc = heroCost(z), mc = mythCost(z);
-      h += `<div class="dk-sub"><button data-dk="lk:2" class="dk-b${off(hc)}">🟣 영웅 이상 <small>전설 13.5% · 💰${rdN(hc)}</small></button><button data-dk="lk:3" class="dk-b${off(mc)}">🌈 신화 이상 <small>초월 8% · 💰${rdN(mc)}</small></button>
-        <button data-dk="lk:0" class="dk-b${p.gems < 1 ? " dk-off" : ""}">💎1 보석 뽑기 <small>영웅 52% · 전설 10%</small></button><button data-dk="lk:1" class="dk-b${p.gems < 4 ? " dk-off" : ""}">💎4 큰 보석 뽑기 <small>신화 25%</small></button></div>`; }
+    if (dkSub === "up") h += `<div class="dk-sub">${[0, 1, 2, 3].map(i => { const c = upCost(z, i); return `<button data-dk="up:${i}" class="dk-b${off(c)}">${["⚪🔵", "🟣🟡", "🌈", "💠✨"][i]} ${RD_UPN[i]} <b>Lv${p.up[i] || 0}</b> <small>💰${rdN(c)}</small></button>`; }).join("")}</div>`;
+    else if (dkSub === "lk") h += `<div class="dk-sub"><span class="dk-tip">💎 보석은 👑 보스를 잡으면 1개씩 — 아껴 써요</span><button data-dk="lk:0" class="dk-b${p.gems < 1 ? " dk-off" : ""}">💎1 보석 뽑기 <small>영웅 52% · 전설 10%</small></button><button data-dk="lk:1" class="dk-b${p.gems < 4 ? " dk-off" : ""}">💎4 큰 보석 뽑기 <small>신화 25%</small></button></div>`;
     return h; }
   function dockClick(cmd, z){ if (z == null) z = crOpen ? crZ : local[0];
     if (cmd[0] === "~"){ const id = cmd.slice(1); dkSub = dkSub === id ? "" : id; playS("warn"); }
-    else if (cmd === "sum") act(z, ["sum"]);
+    else if (cmd === "rr") act(z, ["rr"]);
     else if (cmd === "all") act(z, ["all"]);
     else if (cmd === "cr"){ RDB.close(); if (!crOpen) crToggle(z); }
     else if (cmd === "pause"){ if (!party){ pauseU = !pauseU; playS("warn"); } }
-    else { const [a, v] = cmd.split(":");
-      if (a === "pk"){ act(z, ["pk", v]); if (party === "guest") playS("sum"); }
+    else { const [a, v, v2] = cmd.split(":");
+      if (a === "tk") act(z, ["tk", +v, v2]);
       else if (a === "up") act(z, ["up", +v]);
       else if (a === "lk") act(z, ["luck", +v]);
       else if (a === "crx" && RD_RC[v]){ RDB.close(); crSel = v; if (!crOpen) crToggle(z); else crPickSel(v); }
@@ -1299,9 +1405,11 @@ NG.defs.rd = () => {
     const q = sel && Z[sel.z] && Z[sel.z].s[sel.i];
     if (!q || !q.k || state !== "play" || crOpen){ if (el && !el.hidden){ el.hidden = true; selSig = ""; } return; }
     const A = RD_A[q.k], G = RD_G[A.g], RO = RD_ROLE[A.ro], fr0 = isFront(sel.z, sel.i), v = G.sell, canM = q.n >= 3 && A.g < RD_MG, hi = A.g >= RD_MG;
-    const atk = rdN(A.d*upMul(sel.z, A.g)*relMul(sel.z, A, null)*(A.ro === "r" && !fr0 ? 1.25 : 1)), cv = $("#ngCanvas"), r = cv.getBoundingClientRect(), s0 = r.height/H0();
+    const atk = rdN(A.d*upMul(sel.z, A.g)*relMul(sel.z, A, null)*(A.ro === "r" && !fr0 ? 1.25 : 1)*(BUF && BUF[sel.z] ? BUF[sel.z][sel.i] : 1)), cv = $("#ngCanvas"), r = cv.getBoundingClientRect(), s0 = r.height/H0();
+    const HB = RD_HBI[A.hb], tH = TERR(sel.z, sel.i), okH = tH === A.hb, mine = isMine(sel.z);
+    const hTip = okH ? `${HB.e} 자기 땅이에요! 힘 +35%` : `${HB.e} ${HB.n} 동물인데 ${RD_HBI[tH].e} ${RD_HBI[tH].n} 칸 → 힘 -20% · ✋ ${HB.e} 칸으로 옮겨요${N > 1 && !yardH(sel.z).includes(A.hb) ? " (🎁 친구에게!)" : ""}`;
     const tip = A.ro === "m" ? (fr0 ? "⚔️ 길 바로 옆 — 딱 좋아요" : "⚠️ 길에서 멀어서 못 닿아요 → ✋ 옮기기로 길 옆(⚔️ 칸)") : A.ro === "r" ? (fr0 ? "🏹 뒷줄(🏹 칸)에 두면 공격 +25%" : "🏹 뒷줄 명사수! 공격 +25%") : "✨ 옆 친구들을 도와요";
-    const sig = [sel.z, sel.i, q.k, q.n, atk, fr0, !!grab, kHint, Math.round(r.left), Math.round(r.width), Math.round(r.bottom), Math.round(s0*100)].join("|"); if (sig === selSig && el && !el.hidden) return; selSig = sig;
+    const sig = [sel.z, sel.i, q.k, q.n, atk, fr0, !!grab, kHint, okH, Math.round(r.left), Math.round(r.width), Math.round(r.bottom), Math.round(s0*100)].join("|"); if (sig === selSig && el && !el.hidden) return; selSig = sig;
     if (!el){ el = document.createElement("div"); el.id = "rdSel"; el.className = "rd-sel"; D.appendChild(el);
       ["pointerdown", "pointerup", "touchstart", "touchend", "mousedown"].forEach(ev => el.addEventListener(ev, e => e.stopPropagation(), {passive: true}));
       el.onclick = e => { const b = e.target.closest("[data-sa]"); if (b && !b.disabled) selDo(b.dataset.sa); }; }
@@ -1313,14 +1421,16 @@ NG.defs.rd = () => {
       el.style.bottom = Math.round(innerHeight - r.bottom + BOTH*s0 + 6) + "px"; el.style.maxHeight = Math.round((H - BOTH - TOPH - 10)*s0) + "px"; }
     else { el.style.width = ""; el.style.maxHeight = ""; el.style.left = Math.round(r.left + r.width/2) + "px"; el.style.bottom = Math.round(innerHeight - r.bottom + BOTH*s0 + 6) + "px"; }
     el.style.setProperty("--g", G.c);
-    el.innerHTML = `<div class="rs-hd"><img data-im="${q.k}" ${RDB.img(q.k)} alt=""><div class="rs-tx"><b>${A.e} ${A.n}${q.n > 1 ? ` <em>×${q.n}</em>` : ""}</b><small><i style="--c:${G.c}">${G.n}</i> ${RO.e} ${RO.n} · 💪 ${atk} · 🌟 ${A.sk.e} ${A.sk.n}</small><span class="rs-tip ${A.ro === "m" && !fr0 ? "bad" : ""}">${grab ? "✋ 옮길 칸을 눌러요 (같은 동물 칸이면 자리 바꾸기)" : tip}</span></div>
+    el.innerHTML = `<div class="rs-hd"><img data-im="${q.k}" ${RDB.img(q.k)} alt=""><div class="rs-tx"><b>${A.e} ${A.n}${q.n > 1 ? ` <em>×${q.n}</em>` : ""}</b><small><i style="--c:${G.c}">${G.n}</i> ${RO.e} ${RO.n} · 💪 ${atk} · 🌟 ${A.sk.e} ${A.sk.n}</small><span class="rs-tip ${A.ro === "m" && !fr0 ? "bad" : ""}">${grab ? "✋ 옮길 칸을 눌러요 (같은 동물 칸이면 자리 바꾸기)" : tip}</span><span class="rs-tip ${okH ? "" : "bad"}">${hTip}</span></div>
       <button class="rs-x" data-sa="x" title="닫기">✕${kb("Esc")}</button></div>
+      ${N > 1 && mine ? `<div class="rs-gv"><span>🎁 친구에게 1마리</span>${Z.map((_, z2) => z2 === sel.z ? "" : `<button data-sa="give:${z2}" style="--c:${RD_PC[z2]}"${yardH(z2).includes(A.hb) ? ' class="fit"' : ""}>${z2 + 1}P ${yardH(z2).map(h => RD_HBI[h].e).join("")} <small>${esc(nameOf(noOf_(SIDS[z2])))}</small></button>`).join("")}</div>` : ""}
       <div class="rs-bt">${hi ? `<button data-sa="cr" class="rs-go">🧪 조합${kb("C")}<small>영웅부터는 조합으로</small></button>`
         : `<button data-sa="mrg" class="rs-go" ${canM ? "" : "disabled"}>🔀 합치기${kb("R")}<small>${canM ? "3마리 → 한 등급 위!" : `3마리 모이면 (지금 ${q.n})`}</small></button>`}
         <button data-sa="sel" class="rs-sell">💰 팔기${kb("X")}<small>+${v}</small></button>
         ${q.n > 1 ? `<button data-sa="sela" class="rs-sell">💰 모두 팔기${kb("⇧X")}<small>+${v*q.n}</small></button>` : ""}
         <button data-sa="mov" class="${grab ? "on" : ""}">✋ ${grab ? "취소" : "옮기기"}${kb("G")}</button>
-        <button data-sa="book">📖 도감${kb("B")}</button></div>`;
+        <button data-sa="book">📖 도감${kb("B")}</button></div>
+`;
     el.hidden = false; }
   function selDo(a){ if (!sel) return; const z = sel.z, q = Z[z].s[sel.i];
     if (a === "x"){ sel = null; grab = null; }
@@ -1330,6 +1440,7 @@ NG.defs.rd = () => {
     else if (a === "sela"){ act(z, ["sela", sel.i]); sel = null; }
     else if (a === "mov"){ grab = grab ? null : {z, i: sel.i}; playS(grab ? "sum" : "warn"); }
     else if (a === "book"){ RDB.open(q && q.k); }
+    else if (a.startsWith("give:")){ act(z, ["give", sel.i, +a.slice(5)]); if (!q.k || q.n <= 1) sel = null; }
     selSig = ""; selTick(); }
   /* 🎒 가방 아이템 단추 (누르면 바로 써요) */
   function bagIcons(){ const L = []; BARS.forEach(b => { if (!b.bag) return; const p = Z[b.z], n = Math.max(1, p.it.length), s = Math.min(b.h - 12, (b.w - 10)/Math.min(n, 5) - 6);
@@ -1363,8 +1474,6 @@ NG.defs.rd = () => {
         G2.put(g, btnSpr(Math.round(b.w), b.h, b.i === 3 ? "#66d9e8" : "#74c0fc", b.i === 3 ? "#0b7285" : "#1864ab", [...splitE(nm), RD_UPN[b.i], `Lv${lv}`, "💰", rdN(c)], 17, p.gold < c), b.x, b.y);
         if (kHint) { const l = lbl([String(b.i + 1)], 13, "#3b2a00"); g.fillStyle = "#ffd43b"; rrect(g, b.x + 6, b.y + 6, l.w + 8, l.h + 2, 7); g.fill(); G2.put(g, l, b.x + 10, b.y + 7); }
         if (have){ const l = lbl([`내 동물 ${have}`], 12, "#d0ebff"); G2.put(g, l, b.x + b.w - l.w - 8, b.y + b.h - l.h - 4); } }
-      else if (b.i >= 2){ const my = b.i === 3, c = my ? mythCost(b.z) : heroCost(b.z);
-        G2.put(g, btnSpr(Math.round(b.w), b.h, my ? "#ff8fb1" : "#b197fc", my ? "#c2255c" : "#5f3dc4", my ? ["🌈", `신화 이상${kHint ? " Y" : ""}`, "초월8%", "💰", rdN(c)] : ["🟣", `영웅 이상${kHint ? " T" : ""}`, "전설13%", "💰", rdN(c)], 16, p.gold < c), b.x, b.y); }
       else { const c = b.i ? 4 : 1; G2.put(g, btnSpr(Math.round(b.w), b.h, "#e599f7", "#862e9c", b.i ? ["🌈", "신화 25%·전설", "💎", "4"] : ["🎁", "영웅 52%·전설 10%", "💎", "1"], 17, p.gems < c), b.x, b.y); } });
     selBtns().forEach(b => { const q = Z[sel.z].s[sel.i]; if (!q.k) return;
       if (b.id === "smrg") G2.put(g, btnSpr(b.w, b.h, "#69db7c", "#2b8a3e", RD_A[q.k].g >= RD_MG ? ["🧪", kHint ? "조합 C" : "조합으로"] : ["🔀", kHint ? "합치기 R" : "합치기"], 17, b.off && RD_A[q.k].g < RD_MG), b.x, b.y);
@@ -1387,6 +1496,7 @@ NG.defs.rd = () => {
     for (const b of selBtns()){ if (inR(b, x, y)){ press(b); return; } }
     for (const b of panelBtns()){ if (inR(b, x, y)){ press(b); return; } }
     for (const b of BARS){ if (!b.info && inR(b, x, y)){ press(b); if (b.id !== "up" && b.id !== "luck") panel = null; return; } }
+    for (const b of BARS){ if (b.id === "trb" && inR(b, x, y)) return; }   // 📥 카드 사이 틈을 눌러도 판이 반응하지 않게
     panel = null;
     const s = slotAt(x, y);
     if (crOpen){   // 🧪 조합 창을 연 채로 마당을 눌러도 돼요: 내 동물 = 재료 넣기/빼기 (📍 모드면 만들 자리)
@@ -1419,13 +1529,13 @@ NG.defs.rd = () => {
       const kit = RDP.takeKit(SIDS[z], Math.max(0, bagN(z) - p.it.length));
       if (kit.items.length) p.it = p.it.concat(kit.items).slice(0, bagN(z));
       if (kit.rare) p.minG = 1;
-      if (kit.hero){ const k = pick(2), i = placeK(z, k); if (i >= 0) popAt(z, i, `🦸 ${RD_A[k].e} ${RD_A[k].n}!`, RD_G[2].c); }
-      if (kit.legend){ const k = pick(3), i = placeK(z, k); if (i >= 0) popAt(z, i, `🌟 ${RD_A[k].e} ${RD_A[k].n}!`, RD_G[3].c); }
+      if (kit.hero){ const k = pick(2), i = placeH(z, k); if (i >= 0) popAt(z, i, `🦸 ${RD_A[k].e} ${RD_A[k].n}!`, RD_G[2].c); }
+      if (kit.legend){ const k = pick(3), i = placeH(z, k); if (i >= 0) popAt(z, i, `🌟 ${RD_A[k].e} ${RD_A[k].n}!`, RD_G[3].c); }
       const P = p.pk, bits = [];
       if (P.level > 1) bits.push(`🎓 Lv.${P.level}`);
       if (P.atk) bits.push(`💪+${P.atk*4}%`); if (P.spd) bits.push(`⚡+${P.spd*3}%`);
       if (kit.items.length) bits.push(`🎒 ${kit.items.map(k => RD_IT[k].e).join("")}`);
-      if (kit.rare) bits.push("👑 희귀 이상 뽑기"); if (kit.hero) bits.push("🦸 영웅"); if (kit.legend) bits.push("🌟 전설");
+      if (kit.rare) bits.push("👑 희귀 이상이 더 자주"); if (kit.hero) bits.push("🦸 영웅"); if (kit.legend) bits.push("🌟 전설");
       if (bits.length) msg.push((N > 1 ? nameOf(noOf_(SIDS[z])) + " " : "") + bits.join(" · "));
     });
     gv++;
@@ -1460,7 +1570,7 @@ NG.defs.rd = () => {
       setSky();
       const RES = !party && O.resume ? RDS.get(SIDS) : null;
       if (RES && loadGame(RES)){ /* 이어하기 */ }
-      else if (party !== "guest"){ startWave(); [0, 1].forEach(() => Z.forEach((p, z) => { const k = pick(0); placeK(z, k); })); applyKit(); }
+      else if (party !== "guest"){ startWave(); Z.forEach((p, z) => { [0, 1].forEach(() => placeH(z, pick(0))); p.tr = [0, 1, 2].map(i => ({k: trayRoll(z), t: i - 10})); }); applyKit(); }
       else { wave = 1; }
       if (party) PARTY.attach(self, gridMsg);
       if (!party){ document.addEventListener("visibilitychange", onHide); window.addEventListener("pagehide", onHide); }
@@ -1469,7 +1579,9 @@ NG.defs.rd = () => {
       (window.requestIdleCallback || setTimeout)(run, {timeout: 300});
     },
     slotPt(z, i){ const [x, y] = slotXY(z, i); return [cx(x), cy(y)]; },   // (시험·도우미) 칸 가운데 판 좌표
-    dockClick, rdInfo(){ const z = local[0]; return {sc: sumCost(z), pc: pickCost(z), hc: heroCost(z), mc: mythCost(z), gold: Z[z].gold, gems: Z[z].gems, H: haveOf(z), pin}; },
+    dockClick, rdInfo(){ const z = local[0]; return {rc: rrCost(z), tw: trayW(z), wave, gold: Z[z].gold, gems: Z[z].gems, H: haveOf(z), pin, yh: yardH(z), N}; },
+    /* 🧪 (시험·도우미) 빠른 계산 · 행동 · 땅 */
+    T: {sim: () => sim(), act: (z, a) => doAct(z, a), terr: (z, i) => TERR(z, i), front: (z, i) => isFront(z, i), hbc: () => HBC, trayW, buf: () => BUF, crList, upCost, rrCost, bestTk, set hpk(v){ HPK = v; }, E: () => E, LIMIT: () => LIMIT, get state(){ return state; }, get wave(){ return wave; }},
     apply, dropIdx(i){ /* 나간 친구 자리의 동물은 그대로 싸워요 */ },
     end(w, ws, m){ if (party !== "guest" || ended) return; ended = true; if (m){ score = m.score; wave = m.wave; kills = m.kills; } RDM.guestOver(score, wave, kills); },
     step(){
@@ -1489,7 +1601,7 @@ NG.defs.rd = () => {
     },
     draw, down, move, up,
     key(code, d, e){
-      const KEYS = ["Space", "Enter", "KeyM", "KeyQ", "Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "KeyL", "KeyF", "KeyE", "KeyT", "KeyY", "KeyB", "KeyC", "KeyX", "KeyR", "KeyG", "KeyP", "KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Escape", "Tab"];
+      const KEYS = ["Space", "Enter", "KeyM", "KeyQ", "Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "KeyL", "KeyF", "KeyE", "KeyV", "KeyB", "KeyC", "KeyX", "KeyR", "KeyG", "KeyP", "KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Escape", "Tab"];
       if (!d || (e && e.repeat && !/^Arrow|^Key[WASD]$/.test(code))) return KEYS.includes(code);
       if (!kHint){ kHint = true; bV = ""; }
       if (RDB.isOpen && (code === "KeyB" || code === "Escape")){ RDB.close(); return true; }   // 📖 도감을 연 채로도 다른 키는 게임에 그대로
@@ -1517,15 +1629,15 @@ NG.defs.rd = () => {
         else { if (grab.i !== sel.i) act(z1, ["mov", grab.i, sel.i]); grab = null; playS("merge"); } return true; }
       if (Z[z1].pick && /^Digit[123]$/.test(code)){ act(z1, ["rel", +code[5] - 1]); playS("up"); return true; }
       if (/^Digit[56789]$/.test(code)){ const i = +code[5] - 5; if (Z[z1].it[i]) act(z1, ["it", i]); return true; }
-      if (code === "KeyT" || code === "KeyY"){ act(z1, ["luck", code === "KeyY" ? 3 : 2]); if (party === "guest") playS("sum"); return true; }   // 💰 고급 뽑기
-      const M = {Space: [z1, "sum"], KeyQ: [z1, "all"], KeyE: [z1, "luck0"], Digit1: [z1, "up0"], Digit2: [z1, "up1"], Digit3: [z1, "up2"], Digit4: [z1, "up3"],
-                 Enter: [z2, "sum"], KeyM: [z2, "all"], KeyL: [z2, "luck0"], KeyF: [-1, "spd"], KeyB: [-1, "book"]};
-      if (!two){ M.Enter = [z1, "sum"]; M.KeyM = [z1, "all"]; M.KeyL = [z1, "luck0"]; }
+      if (code === "KeyV"){ act(z1, ["rr"]); return true; }   // 🔄 새 줄
+      const M = {Space: [z1, "tkb"], KeyQ: [z1, "all"], KeyE: [z1, "luck0"], Digit1: [z1, "up0"], Digit2: [z1, "up1"], Digit3: [z1, "up2"], Digit4: [z1, "up3"],
+                 Enter: [z2, "tkb"], KeyM: [z2, "all"], KeyL: [z2, "luck0"], KeyF: [-1, "spd"], KeyB: [-1, "book"]};
+      if (!two){ M.Enter = [z1, "tkb"]; M.KeyM = [z1, "all"]; M.KeyL = [z1, "luck0"]; }
       const m = M[code]; if (!m) return false;
       const [z, a] = m;
       if (a === "book"){ RDB.isOpen ? RDB.close() : RDB.open(); return true; }
       if (a === "spd"){ act(local[0], ["spd"]); playS("warn"); }
-      else if (a === "sum") act(z, ["sum"]); else if (a === "all") act(z, ["all"]); else if (a === "luck0") act(z, ["luck", 0]); else act(z, ["up", +a[2]]);
+      else if (a === "tkb"){ const j = bestTk(z); if (j >= 0) act(z, ["tk", j, Z[z].tr[j].k]); else playS("no"); } else if (a === "all") act(z, ["all"]); else if (a === "luck0") act(z, ["luck", 0]); else act(z, ["up", +a[2]]);
       return true;
     },
     hud(){ return `🐾 ${wave}단계 · ${th().n} · ${(score || 0).toLocaleString()}점${party ? " · 🌐 함께 지키기" : N > 1 ? " · 👫 둘이 지키기" : ""}`; }
@@ -1548,12 +1660,12 @@ const RDM = {
     const me = ARC.me, box = partyModal("rd"), body = $("#wbBody"); RDB.css();
     body.innerHTML = `<div class="rd-intro"><div class="rd-gs">${RD_G.map((g, i) => `<span style="--c:${g.c}"><b>${g.n}</b><em>${RD_BY[i].map(k => RD_A[k].e).join("")}</em></span>`).join("")}</div>
       <div class="rd-cards">
-        <div><h4>🎲 뽑고 🔀 합치고 🧪 조합</h4>일반·희귀는 같은 동물 3마리를 합쳐요. 🟣 영웅부터는 조합표대로 재료를 모아 원하는 동물을 골라 만들어요 — 🌟 태초까지!<br>🎰 <b>고급 뽑기</b>: 금을 많이 내고 바로 🟣 영웅 이상(T 키) · 🌈 신화 이상(Y 키)을 뽑아요 — 가끔 전설·초월·불멸 대박!</div>
-        <div><h4>🤝 배치 시너지</h4>같은 동물끼리 붙이면 🤝, ⚔️🏹✨ 셋이 모이면 🔺 삼각 진형, 같은 등급 셋이면 🎖️ — 힘이 세져요</div>
+        <div><h4>📥 1초마다 오는 동물로 덱 짜기</h4>뽑기는 없어요! <b>대기 줄</b>에 1초마다 랜덤 동물이 와요 — 골라서 데려오면 공짜. 단계가 오를수록 🟡 전설 · 🌈 신화가 자주 와요.</div>
+        <div><h4>🌍 🌳 육지 · 🌊 바다 · ☁️ 하늘</h4>동물은 <b>자기 땅 칸</b>에서 세져요(+35%). 같은 곳 동물이 3·6·9칸 모이면 <b>무리 효과</b>! 맵마다 센 곳이 달라요(+30%).</div>
         <div><h4>🏡 1000단계 도전</h4>👾 몬스터가 꽉 차면 끝. 10단계마다 👑 보스, 100단계마다 🌀 차원 대왕! ⬆️ 강화는 끝없이 올라가요</div>
-        <div><h4>👥 최대 6명 협동</h4>🔗 여러 친구 동물에게 번갈아 맞으면 더 아파요 · 💞 지원은 길 건너 친구도 응원 · 🎌 친구마다 ⚔️🏹✨ 주력을 나누면 모두 세져요</div>
+        <div><h4>👥 최대 6명 · 🎁 주고받기</h4>친구마다 마당 땅이 달라요(🌳·🌊·☁️). 내 땅이 아닌 동물은 <b>🎁 친구에게</b>! 조합 재료도 서로 부탁해요 — 이야기할수록 강해져요</div>
         <div><h4>🧩 4×4 마당 · 🗡️ 딜러 🛡️ 서포터</h4>⚔️ 근거리는 길 옆 · 🏹 원거리는 안쪽(+25%). 20단계부터 👑 보스는 단단해요 → 🛡️ 서포터가 💥 약점을 드러내야 해요!</div>
-        <div><h4>⌨️ 키보드로도!</h4>Space 뽑기 · Q 합치기 · C 조합 · 1~4 강화 · 방향키로 칸 고르고 X 팔기 · G 옮기기 (도감 → 요령에 전부)</div>
+        <div><h4>⌨️ 키보드로도!</h4>Space 대기 줄에서 데려오기 · V 새 줄 · Q 합치기 · C 조합 · 1~4 강화 · 방향키로 칸 고르고 X 팔기 · G 옮기기</div>
       </div>
       <button class="arc-btn rd-book-btn" id="rdBook">📖 동물 도감 보기 · 동물마다 힘·스킬·배치 요령</button>
       <button class="arc-btn rd-shop-btn" id="rdShop">🏪 코인 상점 · 🔬 동물 연구소 <small id="rdShopMe"></small></button></div>
@@ -1743,6 +1855,7 @@ const RDB = {
   #mdRdBook.rdb-live .rdb-top{margin-bottom:5px;flex-wrap:nowrap;padding-right:44px}#mdRdBook.rdb-live .rdb-top h2{font-size:16px;white-space:nowrap}#mdRdBook.rdb-live .rdb-fl{margin-bottom:6px}
   #mdRdBook.rdb-live .arc-x{width:34px;height:34px;font-size:20px;top:6px;right:6px}.rdb-dock .dk-tip{display:none}.rdb-dock .dk-b{padding:6px 9px;font-size:13.5px}.rdb-dock .dk-m{font-size:13px}}
 .rdb-how{border-left:4px solid #ffd43b}
+.rdb-tw{width:100%;border-collapse:collapse;font-size:13px;margin:4px 0;text-align:center}.rdb-tw th{color:var(--c,#ffe066);font-weight:400;padding:2px}.rdb-tw td{padding:2px;border-top:1px solid rgba(255,255,255,.08)}.rdb-tw td:first-child{color:#ffe066;text-align:left}.rdb-tw tr.on td{background:rgba(255,212,59,.18);color:#fff}
 .rdb-go{border:0;border-radius:12px;padding:7px 12px;margin:6px 6px 0 0;font:14px "Jua",sans-serif;background:#ffd43b;color:#3b2a00;cursor:pointer;box-shadow:0 3px 0 #e67700}
 .rdb-go.sm{padding:3px 9px;font-size:12.5px;margin:2px 0 0 4px}.rdb-go.on{background:#fff;color:#5f3dc4}
 .rdb-gr{display:flex;flex-wrap:wrap}
@@ -1768,29 +1881,26 @@ const RDB = {
     m.querySelectorAll(".rdb-c.on").forEach(el => el.classList.remove("on")); const c = m.querySelector(`.rdb-c[data-k="${k}"]`); if (c) c.classList.add("on");
     const d = m.querySelector(".rdb-d"); if (d) d.outerHTML = this.detail(k); },
   close(){ const m = $("#mdRdBook"); if (m) m.hidden = true; this.isOpen = false; },
-  how(k){ const A = RD_A[k], g = A.g, n = RD_BY[g].length, one = p => `<b>${(p/n).toFixed(p/n < 1 ? 2 : 1).replace(/\.0+$/, "")}%</b>`, I = this.live() ? NG.cur.rdInfo() : null;
-    const L = [];
-    if (g === 0){ L.push(`🎲 기본 뽑기 · 일반 85% → 이 동물 ${one(85)}`); L.push(`🎯 <b>골라 뽑기</b>로 바로!${I ? ` 💰${rdN(I.pc)} <button class="rdb-go sm" data-dk="pk:${k}">🎯 지금 뽑기</button>` : " (뽑기의 3배 금)"}`); }
-    if (g === 1){ L.push(`🎲 기본 뽑기 · 희귀 13.5% → 이 동물 ${one(13.5)}`); L.push("🔀 ⚪ 일반 3마리 합치기 (희귀 4종 중 랜덤)"); }
-    if (g === 2){ L.push("🧪 <b>조합</b>으로 골라서 만들기"); L.push(`🔀 🔵 희귀 3마리 합치기 · 🎲 뽑기 1.5% → ${one(1.5)}`); L.push(`🎰 영웅 이상 뽑기 85% → ${one(85)} · 💎1 보석 52% → ${one(52)}`); }
-    if (g === 3){ L.push("🧪 <b>조합</b>으로 골라서 만들기"); L.push(`🎰 영웅 이상 뽑기 13.5% → ${one(13.5)} · 💎 보석 10%~75%`); }
-    if (g === 4){ L.push("🧪 <b>조합</b>으로 골라서 만들기"); L.push(`🎰 신화 이상 뽑기 91% → ${one(91)} · 영웅 이상 1.5% · 💎4 25%`); }
-    if (g === 5) L.push(`🧪 <b>조합</b> · 🎰 신화 이상 뽑기 8% → ${one(8)}`);
-    if (g === 6) L.push(`🧪 <b>조합</b> · 🎰 신화 이상 뽑기 1% → ${one(1)}`);
-    if (g >= 7) L.push(`🧪 <b>조합으로만</b> 만들 수 있어요${g >= 8 ? " · 🌟 태초가 재료예요" : ""}`);
+  how(k){ const A = RD_A[k], g = A.g, n = RD_BY[g].length, I = this.live() ? NG.cur.rdInfo() : null, HB = RD_HBI[A.hb];
+    const L = [], fw = (p0) => { for (let w = 1; w <= 1000; w++) if (rdTrayP(w)[g] >= p0) return w; return 0; };
+    if (g <= 7){ const now = I ? rdTrayP(I.wave)[g]/n : 0, w1 = fw(g === 0 ? 0 : 2);
+      L.push(`📥 <b>대기 줄</b>에 와요 ${I ? `· 지금(${I.wave}단계) 1초마다 <b>${now < 1 ? now.toFixed(2) : now.toFixed(1)}%</b>` : ""}${g >= 2 && w1 ? ` · ${w1}단계쯤부터 자주` : ""}`); }
+    if (g === 1 || g === 2) L.push(`🔀 ${HB.e} ${HB.n} ${RD_G[g - 1].n} 3마리 합치기 → ${HB.n} ${RD_G[g].n} 중 하나`);
+    if (RD_RC[k]) L.push(`🧪 <b>조합</b>으로 골라서 만들기${g >= 8 ? " · 🌟 태초가 재료예요" : ""}`);
+    if (g >= 2 && g <= 4) L.push("💎 보석 뽑기에서도 가끔");
     if (RD_USE[k]) L.push(`🧩 재료로 쓰여요: ${RD_USE[k].map(t => `<span class="rdb-to" data-k="${t}">${RD_A[t].e} ${RD_A[t].n}</span>`).join(" ")}`);
     return L.join("<br>"); },
   render(){
     const seen = this.seen(), nSeen = RD_K.filter(k => seen[k]).length, T = this.tab;
-    const tabs = [["a", "🐾 동물"], ["s", "🎲 뽑기 안내"], ["c", "🧪 조합표"], ["r", "🎁 유물"], ["i", "🎒 아이템"], ["g", "🧩 배치·보스 요령"]].map(([id, n]) => `<button data-t="${id}" class="${T === id ? "on" : ""}">${n}</button>`).join("");
+    const tabs = [["a", "🐾 동물"], ["s", "📥 동물 오는 법"], ["c", "🧪 조합표"], ["r", "🎁 유물"], ["i", "🎒 아이템"], ["g", "🧩 배치·보스 요령"]].map(([id, n]) => `<button data-t="${id}" class="${T === id ? "on" : ""}">${n}</button>`).join("");
     let html = `<div class="rdb-top"><h2>📖 동물 도감</h2><div class="rdb-tabs">${tabs}</div></div>`;
     if (T === "a"){
-      const F = [["all", `전체 ${nSeen}/${RD_K.length}`], ["jd", "🗡️ 딜러"], ["js", "🛡️ 서포터"], ["m", "⚔️ 근거리"], ["r", "🏹 원거리"], ["s", "✨ 지원"], ...RD_G.map((g, i) => ["g" + i, g.n])];
-      const list = RD_K.filter(k => { const A = RD_A[k]; return this.f === "all" || A.ro === this.f || this.f === "g" + A.g || this.f === "j" + A.job; });
+      const F = [["all", `전체 ${nSeen}/${RD_K.length}`], ["hl", "🌳 육지"], ["hs", "🌊 바다"], ["ha", "☁️ 하늘"], ["jd", "🗡️ 딜러"], ["js", "🛡️ 서포터"], ["m", "⚔️ 근거리"], ["r", "🏹 원거리"], ["s", "✨ 지원"], ...RD_G.map((g, i) => ["g" + i, g.n])];
+      const list = RD_K.filter(k => { const A = RD_A[k]; return this.f === "all" || A.ro === this.f || this.f === "g" + A.g || this.f === "j" + A.job || this.f === "h" + A.hb; });
       if (!this.cur || !RD_A[this.cur]) this.cur = list[0] || RD_K[0];
       html += `<div class="rdb-fl">${F.map(([id, n]) => `<button data-f="${id}" class="${this.f === id ? "on" : ""}">${n}</button>`).join("")}</div>
         <div class="rdb-wrap"><div class="rdb-grid">${list.map(k => { const A = RD_A[k], RO = RD_ROLE[A.ro];
-          return `<button class="rdb-c ${this.cur === k ? "on" : ""} ${seen[k] ? "" : "new"}" data-k="${k}" style="--c:${RD_G[A.g].c};--rc:${RO.c}"><i>${RO.e}</i><u style="--jc:${RD_JOB[A.job].c}">${RD_JOB[A.job].e}</u><img data-im="${k}" ${this.img(k)} alt=""><b>${A.n}</b><small>${RD_G[A.g].n}</small></button>`; }).join("")}</div>${this.detail(this.cur)}</div>`;
+          return `<button class="rdb-c ${this.cur === k ? "on" : ""} ${seen[k] ? "" : "new"}" data-k="${k}" style="--c:${RD_G[A.g].c};--rc:${RO.c}"><i>${RO.e}</i><u style="--jc:${RD_JOB[A.job].c}">${RD_JOB[A.job].e}</u><img data-im="${k}" ${this.img(k)} alt=""><b>${A.n}</b><small>${RD_HBI[A.hb].e} ${RD_G[A.g].n}</small></button>`; }).join("")}</div>${this.detail(this.cur)}</div>`;
     } else if (T === "s"){ html += this.gacha();
     } else if (T === "c"){
       html += `<p class="arc-small">⚪ 일반 → 🔵 희귀 → 🟣 영웅까지는 <b>같은 동물 3마리 합치기</b>(어떤 동물이 나올지 랜덤). 🟣 영웅부터는 아래 <b>조합표</b>대로 재료 동물을 모아 <b>골라서</b> 만들어요 — 🟡 전설부터는 조합으로만! 게임 중 <b>🧪 조합</b> 단추(C 키)를 누르면 만들 수 있는 것이 반짝여요.</p>
@@ -1810,7 +1920,8 @@ const RDB = {
         <div><h4>🔀 합치기 · 🧪 조합</h4>⚪ 일반·🔵 희귀는 같은 동물 3마리를 합쳐요(R 키 / Q 키 모두). 🟣 영웅부터는 <b>🧪 조합표</b>대로 재료를 모아 원하는 동물을 골라 만들어요. 다음에 만들 동물의 재료는 팔지 말고 남겨 두세요!</div>
         <div><h4>🗡️ 딜러 · 🛡️ 서포터</h4>🗡️ 딜러는 세게 때려서 쓰러뜨리고, 🛡️ 서포터(🐭🐸🐧🐼🐳🦁🦄🦌🐋천마)는 느리게·멈추게·응원해요. <b>20단계부터 👑 보스는 단단해서 피해 -50%</b>! 서포터가 보스를 때리면 4초 동안 <b>💥 약점</b>이 드러나 모두 +40%로 때려요. 서포터 1~2마리를 꼭 길 옆에 두어요.</div>
         <div><h4>🤝 같이 하기 맵</h4>친구 마당이 바둑판처럼 놓이고 <b>마당 사이 골목이 모두 길</b>이에요. 몬스터는 한가운데 🌀 문에서 나와 세로 골목 → 가로 골목을 지그재그로 돌며 <b>모든 마당을 두 번씩</b> 지나가요. 가운데 골목은 양쪽 친구가 함께, 골목이 만나는 <b>네거리 옆 모서리 칸은 여러 길에 닿는 명당</b>! 친구 마당과 붙은 자리에 ✨ 지원 동물을 두면 💞 친구 응원으로 둘 다 세져요.</div>
-        <div><h4>⌨️ 키보드로 하기</h4>Space 뽑기 · Q 모두 합치기 · C 조합 · 1~4 강화 · E 행운 · T/Y 고급 뽑기 · 5~9 아이템 · F 속도 · B 도감 · P 잠깐 멈춤(혼자·둘이)<br><b>고른 동물</b>: 방향키/WASD 칸 고르기 · Tab 다음 동물 · R 합치기(영웅부터는 조합) · X 팔기 · Shift+X 모두 팔기 · G 옮기기(집기→놓기) · Esc 닫기<br><small>📱 손가락: 동물을 톡 누르면 아래(가로 화면은 옆)에 큰 단추 줄이 떠요 · 끌어서 옮겨도 돼요</small></div>
+        <div><h4>🌍 땅 칸 · 무리 효과</h4>칸 색이 땅이에요: 🌳 초록 = 육지 · 🌊 파랑 = 바다 · ☁️ 보라 = 하늘. 동물 오른쪽 위 동그라미가 <b>초록 테</b>면 자기 땅, <b>빨간 테</b>면 다른 땅(-20%) → 끌어서 옮겨요(맞는 칸이 반짝여요). 위쪽 띠에 내 무리(🌳6★★ 같은)와 이 맵에서 센 곳이 보여요.</div>
+        <div><h4>⌨️ 키보드로 하기</h4>Space 대기 줄에서 가장 좋은 동물 데려오기 · V 🔄 새 줄 · Q 모두 합치기 · C 조합 · 1~4 강화 · E 💎 보석 · 5~9 아이템 · F 속도 · B 도감 · P 잠깐 멈춤(혼자·둘이)<br><b>고른 동물</b>: 방향키/WASD 칸 고르기 · Tab 다음 동물 · R 합치기(영웅부터는 조합) · X 팔기 · Shift+X 모두 팔기 · G 옮기기(집기→놓기) · Esc 닫기<br><small>📱 손가락: 동물을 톡 누르면 아래(가로 화면은 옆)에 큰 단추 줄이 떠요 · 끌어서 옮겨도 돼요</small></div>
         <div><h4>🌟 스킬 고르기</h4>👑 보스가 나오기 전엔 <b>한 마리를 세게</b> 때리는 스킬(저격·필살 냥펀치·연속 찌르기)을, 몬스터가 쌓이면 <b>여러 마리를 멈추는</b> 스킬(얼음 폭풍·지진 쿵·해일)을 가진 친구를 앞에 두어요.</div>
         <div><h4>🗺️ 4×4 마당</h4>내 마당은 16칸(4×4)! 길에 붙은 가장자리 = ⚔️ 앞줄, 안쪽 = 🏹 뒷줄이에요. 10단계마다 길 모양이 바뀌니 근거리 친구가 "⚠️ 길에서 멀어요"가 되면 옮겨 주세요.</div></div>`;
     }
@@ -1818,34 +1929,37 @@ const RDB = {
     $("#rdbBody").innerHTML = html;
     if (this.live()) NG.cur.dockClick("noop");
   },
-  /* 🎲 뽑기 안내: 동물을 얻는 모든 방법 · 확률 · 지금 값 */
-  gacha(){ const I = this.live() ? NG.cur.rdInfo() : null, cost = (v, d) => I ? `💰 ${rdN(v)}` : d, bt = (cmd, t) => I ? `<button class="rdb-go" data-dk="${cmd}">${t}</button>` : "";
-    const row = (g, n) => `<span class="rdb-gp" style="--c:${RD_G[g].c}">${RD_G[g].n} ${n}</span>`;
-    return `<p class="arc-small">동물을 얻는 방법은 6가지예요. 위쪽일수록 싸고, 아래쪽일수록 원하는 동물을 <b>골라서</b> 얻어요.${I ? " 단추를 누르면 게임에 바로 써요!" : ""}</p>
+  /* 📥 동물 오는 법: 대기 줄 등급표 · 땅 · 주고받기 · 합치기 · 조합 · 보석 */
+  gacha(){ const I = this.live() ? NG.cur.rdInfo() : null, bt = (cmd, t) => I ? `<button class="rdb-go" data-dk="${cmd}">${t}</button>` : "";
+    const row = (g, n) => `<span class="rdb-gp" style="--c:${RD_G[g].c}">${RD_G[g].n} ${n}</span>`, pc = v => v >= 10 ? Math.round(v) + "%" : v >= 1 ? v.toFixed(1) + "%" : v > 0 ? v.toFixed(2) + "%" : "-";
+    const WS = [1, 10, 30, 60, 100, 200, 400, 700], cur = I ? I.wave : 0;
+    const tb = `<table class="rdb-tw"><tr><th>단계</th>${RD_G.slice(0, 8).map(g => `<th style="--c:${g.c}">${g.n}</th>`).join("")}</tr>${(cur && !WS.includes(cur) ? WS.concat([cur]).sort((a, b) => a - b) : WS).map(w => { const P = rdTrayP(w); return `<tr class="${w === cur ? "on" : ""}"><td>${w === cur ? "👉 " : ""}${w}</td>${P.map(v => `<td>${pc(v)}</td>`).join("")}</tr>`; }).join("")}</table>`;
+    return `<p class="arc-small">🎲 뽑기는 없어요! <b>1초마다</b> 랜덤 동물이 <b>📥 대기 줄</b>(5칸)에 와요 — 눌러서 데려오면 <b>공짜</b>. 5칸이 차면 가장 오래 기다린 동물(⏳)이 떠나요. 어떤 동물을 데려올지 <b>고르는 것</b>이 실력!</p>
       <div class="rdb-ga">
-        <div><h4>🎲 기본 뽑기 <small>${cost(I && I.sc, "💰 20 → 70")}</small></h4>${row(0, "85%")}${row(1, "13.5%")}${row(2, "1.5%")}<p>가장 싸요. 뽑을수록 조금씩 비싸지다가 💰70에서 멈춰요. 🎲 행운 주사위 유물·🍀 네잎클로버면 더 좋아져요.</p>${bt("sum", "🎲 지금 뽑기")}</div>
-        <div><h4>🎯 골라 뽑기 <small>${cost(I && I.pc, "뽑기의 3배")}</small></h4><p>필요한 <b>⚪ 일반 동물</b>을 바로 골라요: ${RD_BY[0].map(k => `${RD_A[k].e} ${RD_A[k].n}`).join(" · ")}<br>조합 재료가 한 마리 모자랄 때 딱! 쓸 때마다 조금씩 비싸져요.</p>${I ? `<div class="rdb-gr">${RD_BY[0].map(k => bt("pk:" + k, `${RD_A[k].e} ${RD_A[k].n}`)).join("")}</div>` : ""}</div>
-        <div><h4>🔀 합치기 <small>공짜</small></h4><p>같은 동물 3마리 → 한 등급 위 (어떤 동물이 나올지는 랜덤)</p>${row(0, "3마리")} → ${row(1, "1마리")}<br>${row(1, "3마리")} → ${row(2, "1마리")}${bt("all", "🔀 모두 합치기")}</div>
-        <div><h4>🧪 조합 <small>재료 동물</small></h4><p>🟣 영웅부터는 <b>원하는 동물을 골라서</b> 만들어요. 🟡 전설 위로는 조합으로만! 🌟 태초 위에는 ${row(8, "🌌")} ${row(9, "♾️")} 등급이 있어요 — 태초 1마리 이상이 재료예요.</p>${I ? `<button class="rdb-go" data-dk="cr">🧪 조합 창 열기</button>` : ""}</div>
-        <div><h4>🎰 고급 뽑기 <small>💰 금</small></h4><p><b>🟣 영웅 이상</b> ${cost(I && I.hc, "💰260~")}</p>${row(2, "85%")}${row(3, "13.5%")}${row(4, "1.5%")}<p><b>🌈 신화 이상</b> ${cost(I && I.mc, "💰2,600~")}</p>${row(4, "91%")}${row(5, "8%")}${row(6, "1%")}<p>쓸수록 조금씩 비싸져요.</p>${bt("lk:2", "🟣 영웅 이상")}${bt("lk:3", "🌈 신화 이상")}</div>
-        <div><h4>💎 보석 뽑기 <small>👑 보스를 잡으면 💎</small></h4><p><b>💎 1개</b>: ${row(2, "52%")}${row(3, "10%")} · 꽝 38%</p><p><b>💎 4개</b>: ${row(4, "25%")}${row(3, "75%")}</p>${bt("lk:0", "💎1 뽑기")}${bt("lk:1", "💎4 뽑기")}</div>
+        <div><h4>📥 대기 줄 <small>공짜 · 1초마다</small></h4><p>단계가 오를수록 <b>높은 등급</b>이 자주 와요. 잘 버틸수록 🟡 전설·🌈 신화를 쉽게 만나요!</p><p>🔄 <b>새 줄</b>: 금을 내고 5마리를 모두 새로 ${I ? `(지금 💰${rdN(I.rc)})` : ""}</p>${bt("rr", "🔄 새 줄")}</div>
+        <div><h4>🌍 사는 곳 <small>🌳 🌊 ☁️</small></h4><p>동물마다 사는 곳이 있어요. <b>자기 땅 칸</b>에 두면 힘 +35% (다른 땅이면 -20%). 같은 곳 동물이 자기 땅에 3·6·9칸 모이면 <b>무리 효과</b>!</p>
+          <p>🌳 육지: 공격 ×1.2 → ×1.45 → ×1.8<br>🌊 바다: 공격 ×1.1~1.35 + 때리면 느려져요 15%→25%→40%<br>☁️ 하늘: 빠르기 ×1.15 → ×1.3 → ×1.5 + 거리 +0.3~1칸</p></div>
+        <div><h4>🗺️ 맵마다 센 곳</h4><p>10단계마다 맵이 바뀌고, 맵마다 힘이 센 곳(+30%)이 달라요: ${RD_TH.map((T, i) => `${T.n.split(" ")[0]}${RD_REG[i] === "*" ? "✨" : RD_HBI[RD_REG[i]].e}`).join(" ")}</p><p>☁️ 하늘 → 🦇 날개 몬스터 ×1.5 · 🌳 육지 → 🛡️ 단단한 몬스터 ×1.3 · 🌊 바다 → 💨 질주·💚 재생 ×1.5</p></div>
+        <div><h4>🤝 같이 하면 <small>🎁 주고받기</small></h4><p>친구마다 마당 땅이 달라요 (1P 🌳 · 2P 🌊 · 3P ☁️ …). 내 땅이 아닌 동물이 오면 데려와서 <b>🎁 친구에게</b>! 조합 재료도 서로 부탁해요 — 말을 많이 할수록 강해져요.</p></div>
+        <div><h4>🔀 합치기 · 🧪 조합</h4><p>같은 동물 3마리 → 한 등급 위 <b>같은 곳 동물</b> (🌊 3마리 → 🌊)</p>${row(0, "3마리")} → ${row(1, "1마리")} → ${row(2, "1마리")}<p>🟣 영웅부터는 조합표대로 재료를 모아 골라서 만들어요. 재료는 여러 땅에서 와요!</p>${bt("all", "🔀 모두 합치기")}${I ? `<button class="rdb-go" data-dk="cr">🧪 조합 창 열기</button>` : ""}</div>
+        <div><h4>💎 보석 <small>아주 가끔</small></h4><p>👑 보스를 잡으면 💎 1개. 아껴 썼다가 큰 순간에!</p><p><b>💎 1개</b>: ${row(2, "52%")}${row(3, "10%")} · 꽝 38%<br><b>💎 4개</b>: ${row(4, "25%")}${row(3, "75%")}</p>${bt("lk:0", "💎1 뽑기")}${bt("lk:1", "💎4 뽑기")}</div>
       </div>
-      <div class="rdb-box"><h4>🧭 태초·창세로 가는 길</h4>① 🎲 뽑기로 일반을 모아 🔀 합치기 → ② 🧪 조합표에서 <b>📌 목표</b>를 정해요 (화면 아래 왼쪽에 재료가 몇 마리 모였는지 늘 보여요) → ③ 한 마리 모자라면 🎯 골라 뽑기 → ④ 🌈 신화부터는 🎰 신화 이상 뽑기로 재료를 빨리 모아요 → ⑤ 🌟 태초 2~3마리로 🌌 창세, 창세 2마리로 ♾️ 영원!</div>`; },
+      <div class="rdb-box"><h4>📊 대기 줄에 오는 등급 (단계마다)</h4>${tb}<small>🎲 행운 주사위 유물·🍀 네잎클로버면 더 높은 등급이 와요 · 🌌 창세 · ♾️ 영원은 조합으로만!</small></div>`; },
   /* 🌳 재료 나무: 조합 재료의 재료까지 (3단계) */
   tree(k, d = 0, c = 1){ const A = RD_A[k], R0 = RD_RC[k], H = this.live() ? NG.cur.rdInfo().H : null, h = H ? (H[k] || 0) : null;
-    const me = `<span class="rdb-tn" data-k="${k}" style="--c:${RD_G[A.g].c}">${A.e} ${A.n}${c > 1 ? ` <em>×${c}</em>` : ""}${h != null && d ? ` <small class="${h >= c ? "y" : ""}">${Math.min(h, 99)}/${c}</small>` : ""}${!R0 ? ` <i>${A.g === 0 ? "🎲🎯" : A.g === 1 ? "🔀" : "🎰"}</i>` : ""}</span>`;
+    const me = `<span class="rdb-tn" data-k="${k}" style="--c:${RD_G[A.g].c}">${A.e} ${A.n}${c > 1 ? ` <em>×${c}</em>` : ""}${h != null && d ? ` <small class="${h >= c ? "y" : ""}">${Math.min(h, 99)}/${c}</small>` : ""}${!R0 ? ` <i>${A.g === 0 ? "📥" : A.g === 1 ? "🔀📥" : "📥"}</i>` : ""} <i>${RD_HBI[A.hb].e}</i></span>`;
     if (!R0 || d >= 3) return `<li>${me}</li>`;
     return `<li>${me}<ul>${R0.map(([q, n]) => this.tree(q, d + 1, n)).join("")}</ul></li>`; },
   detail(k){ const A = RD_A[k], RO = RD_ROLE[A.ro], G = RD_G[A.g], S = A.sk, dps = A.d*60/A.cd;
     const mx = Math.log10(RD_A.trex.d*60/RD_A.trex.cd), mn = Math.log10(RD_A.frog.d*60/RD_A.frog.cd), pw = Math.max(.06, (Math.log10(dps) - mn)/(mx - mn));
     const bar = (n, v, t, c) => `<div class="rdb-bar"><b>${n}</b><span><em style="width:${Math.round(Math.min(1, v)*100)}%;--bc:${c}"></em></span><small>${t}</small></div>`;
     const nx = A.g < RD_MAXG ? `${RD_G[A.g + 1].n} ${RD_BY[A.g + 1].map(q => RD_A[q].e).join("")}` : "가장 높은 등급!";
-    return `<div class="rdb-d" style="--c:${G.c}"><div class="rdb-hd"><img data-im="${k}" ${this.img(k)} alt=""><div><h3>${A.e} ${A.n}</h3><span class="rdb-chip" style="--c:${G.c}">${G.n}</span><span class="rdb-chip" style="--c:${RO.c}">${RO.e} ${RO.n}</span><span class="rdb-chip" style="--c:${RD_JOB[A.job].c}">${RD_JOB[A.job].e} ${RD_JOB[A.job].n}</span></div></div>
-      <div class="rdb-box rdb-how"><h4>🎲 이렇게 얻어요</h4>${this.how(k)}</div>
+    return `<div class="rdb-d" style="--c:${G.c}"><div class="rdb-hd"><img data-im="${k}" ${this.img(k)} alt=""><div><h3>${A.e} ${A.n}</h3><span class="rdb-chip" style="--c:${G.c}">${G.n}</span><span class="rdb-chip" style="--c:${RO.c}">${RO.e} ${RO.n}</span><span class="rdb-chip" style="--c:${RD_JOB[A.job].c}">${RD_JOB[A.job].e} ${RD_JOB[A.job].n}</span><span class="rdb-chip" style="--c:${RD_HBI[A.hb].c}">${RD_HBI[A.hb].e} ${RD_HBI[A.hb].n}</span></div></div>
+      <div class="rdb-box rdb-how"><h4>📥 이렇게 얻어요</h4>${this.how(k)}</div>
       ${bar("💪 힘", pw, `${A.d}`, "#ff8787")}${bar("⚡ 빠르기", 28/A.cd, `${(60/A.cd).toFixed(1)}번/초`, "#ffd43b")}${bar("📏 거리", A.r/5.6, `${A.r}칸`, "#74c0fc")}
       <div class="rdb-box"><h4>✨ 특기</h4>${this.tags(A).map(([e, t]) => `${e} ${t}`).join("<br>")}</div>
       <div class="rdb-box"><h4>🌟 스킬: ${S.e} ${S.n}</h4>${S.d}<br><small>공격 ${S.mp}번마다 저절로 · 이럴 때 좋아요: ${this.when(S)}</small></div>
-      <div class="rdb-box"><h4>🧩 어디에 둘까?</h4>${this.tip(A)}</div>
+      <div class="rdb-box"><h4>🧩 어디에 둘까?</h4>${RD_HBI[A.hb].e} <b>${RD_HBI[A.hb].n} 칸</b>에 두면 +35% (${RD_HBI[A.hb].t}) · ${this.tip(A)}</div>
       <div class="rdb-box"><h4>${RD_JOB[A.job].e} ${RD_JOB[A.job].n}</h4>${RD_JOB[A.job].t}${A.job === "s" ? "<br><small>👑 보스를 때리면 💥 약점이 드러나 모두 +40%!</small>" : ""}</div>
       ${RD_RC[k] ? `<div class="rdb-box"><h4>🌳 재료 나무 <small>(재료의 재료까지${this.live() ? " · 숫자 = 지금 가진 수" : ""})</small></h4><ul class="rdb-tree">${this.tree(k)}</ul>${this.live() ? `<div class="rdb-gr"><button class="rdb-go" data-dk="crx:${k}">🧪 조합 창에서 만들기</button><button class="rdb-go${NG.cur.rdInfo().pin === k ? " on" : ""}" data-dk="pin:${k}">${NG.cur.rdInfo().pin === k ? "📌 목표 해제" : "📌 목표로 정하기"}</button></div>` : ""}</div>` : ""}
 

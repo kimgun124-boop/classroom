@@ -44,7 +44,13 @@ const RDA = {
     suzaku:  {b: "#ff5c5c", b2: "#c92a2a", f: "#ffe3e3", ear: "feather", beak: "#ffd43b", hook: 1, brow: 1, body: "#ff922b", wing: "#ff8787"},
     genbu:   {b: "#37b24d", b2: "#1b6e2e", f: "#d3f9d8", ear: "bump", nostril: 1, arms: 1, wing: "#a9e34b"},
     eternal: {b: "#f8f9fa", b2: "#b5bdc6", f: "#ffffff", ear: "horn", horn: "#a3e635", wing: "#d9f99d", nostril: 1, fang: 1},
-    yggdra:  {b: "#d8f5a2", b2: "#82c91e", f: "#f4fce3", ear: "point", ein: "#c0eb75", horn: "#a3e635", maneR: 1, nose: "#5c940d", wing: "#e9fac8"}
+    yggdra:  {b: "#d8f5a2", b2: "#82c91e", f: "#f4fce3", ear: "point", ein: "#c0eb75", horn: "#a3e635", maneR: 1, nose: "#5c940d", wing: "#e9fac8"},
+    /* 🌊☁️ (2026.11.18) 바다·하늘 친구 */
+    parrot:  {b: "#40c057", b2: "#2b8a3e", f: "#fff3bf", ear: "tuft", beak: "#ff922b", hook: 1, body: "#ff6b6b", wing: "#4dabf7"},
+    shark:   {b: "#8fa1b3", b2: "#5c6f82", f: "#f1f3f5", ear: "none", fin: 1, teeth: 1, belly: 1},
+    squid:   {b: "#ff8fab", b2: "#e64980", f: "#ffdeeb", ear: "none", mantle: 1, tent: "#f06595"},
+    kraken:  {b: "#9c36b5", b2: "#5f1f73", f: "#f3d9fa", ear: "none", mantle: 1, tent: "#be4bdb", brow: 1, wing: "#da77f2"},
+    seaking: {b: "#1098ad", b2: "#0b7285", f: "#c5f6fa", ear: "horn", horn: "#ffd43b", spout: 1, smile: "wide", belly: 1, wing: "#66d9e8"}
   },
   ell(t, x, y, rx, ry, a = 0){ t.beginPath(); t.ellipse(x, y, Math.max(.1, rx), Math.max(.1, ry), a, 0, Math.PI*2); },
   ol(t, w){ t.lineJoin = "round"; t.lineCap = "round"; t.lineWidth = w; t.strokeStyle = this.OL; t.stroke(); },
@@ -92,6 +98,10 @@ const RDA = {
       t.closePath(); t.fillStyle = D.spk || D.b2; t.fill(); this.ol(t, lw); }
     if (ear === "frog"){ [-1, 1].forEach(d => { this.ell(t, hx + d*hr*.48, hy - hr*.78, hr*.32, hr*.3); t.fillStyle = D.b; t.fill(); this.ol(t, lw); }); }
     if (ear === "bump"){ [-1, 1].forEach(d => { this.ell(t, hx + d*hr*.45, hy - hr*.8, hr*.28, hr*.24); t.fillStyle = D.b; t.fill(); this.ol(t, lw); }); }
+    if (D.fin){ t.beginPath(); t.moveTo(hx - hr*.3, hy - hr*.78); t.quadraticCurveTo(hx + hr*.05, hy - hr*1.75, hx + hr*.38, hy - hr*.72); t.closePath(); t.fillStyle = D.b2; t.fill(); this.ol(t, lw); }
+    if (D.mantle){ t.beginPath(); t.moveTo(hx - hr*.7, hy - hr*.45); t.quadraticCurveTo(hx, hy - hr*2.1, hx + hr*.7, hy - hr*.45); t.closePath(); t.fillStyle = BSA.lg(t, 0, hy - hr*1.6, 0, hy, [[0, D.b], [1, D.b2]]); t.fill(); this.ol(t, lw);
+      t.fillStyle = "rgba(255,255,255,.35)"; [[-.2, -1.1], [.15, -1.35], [.1, -.8]].forEach(([a, b]) => { this.ell(t, hx + a*hr, hy + b*hr, hr*.08, hr*.08); t.fill(); }); }
+    if (D.tent){ [-1.5, -.5, .5, 1.5].forEach((o, i) => { t.beginPath(); t.moveTo(hx + o*s*.06 - s*.025, by + s*.04); t.quadraticCurveTo(hx + o*s*.1 + (i % 2 ? s*.05 : -s*.05), by + s*.14, hx + o*s*.09, by + s*.2); t.quadraticCurveTo(hx + o*s*.07 + s*.03, by + s*.12, hx + o*s*.06 + s*.025, by + s*.04); t.closePath(); t.fillStyle = D.tent; t.fill(); this.ol(t, lw*.7); }); }
     if (D.mane){ t.beginPath(); for (let i = 0; i < 16; i++){ const a = i*Math.PI/8, rr = hr*(i % 2 ? 1.18 : 1.36); t.lineTo(hx + Math.cos(a)*rr, hy + Math.sin(a)*rr*.98); } t.closePath(); t.fillStyle = BSA.rg(t, hx, hy, hr*.5, hr*1.4, [[0, "#f59f00"], [1, D.mane]]); t.fill(); this.ol(t, lw); }
     if (D.maneR){ ["#ff8fab", "#ffd43b", "#8ce99a", "#74c0fc", "#b197fc"].forEach((c, i) => { this.ell(t, hx - hr*.85 + i*hr*.1, hy - hr*.55 + i*hr*.28, hr*.3, hr*.2, -.6); t.fillStyle = c; t.fill(); }); }
     // 머리
@@ -193,7 +203,7 @@ const RDA = {
   },
 
   /* ---------- 탄 ---------- */
-  SHOT: {cosmos: "water", suzaku: "fire", eternal: "rainbow", yggdra: "rainbow", dragon: "fire", lion: "fire", trex: "fire", penguin: "ice", whale: "water", frog: "water", eagle: "feather", owl: "feather", chick: "feather", unicorn: "rainbow", cat: "heart", rabbit: "heart"},
+  SHOT: {parrot: "feather", shark: "water", squid: "water", kraken: "water", seaking: "water", cosmos: "water", suzaku: "fire", eternal: "rainbow", yggdra: "rainbow", dragon: "fire", lion: "fire", trex: "fire", penguin: "ice", whale: "water", frog: "water", eagle: "feather", owl: "feather", chick: "feather", unicorn: "rainbow", cat: "heart", rabbit: "heart"},
   shotSpr(k, g){ const ty = this.SHOT[k] || "star", c = RD_G[g].c, s = 26 + g*4;
     return G2.spr(`rds${ty}${g}`, s, s, t => { const m = s/2;
       t.fillStyle = BSA.rg(t, m, m, 1, m, [[0, "rgba(255,255,255,.9)"], [.4, ty === "fire" ? "rgba(255,146,43,.55)" : ty === "ice" ? "rgba(153,233,242,.55)" : ty === "water" ? "rgba(116,192,252,.55)" : c + "88"], [1, "rgba(255,255,255,0)"]]); t.fillRect(0, 0, s, s);
@@ -223,7 +233,7 @@ const RD_REL = {
   rng:   {e: "🏹", n: "긴 활",         d: "공격 거리 +0.5칸", max: 3},
   boss:  {e: "👑", n: "보스 사냥꾼",   d: "보스·중간 보스에게 피해 +60%"},
   bank:  {e: "🪙", n: "황금 저금통",   d: "단계마다 💰+30, 가진 금 5% 이자"},
-  dice:  {e: "🎲", n: "행운 주사위",   d: "뽑기에서 희귀·영웅이 더 잘 나와요", max: 3},
+  dice:  {e: "🎲", n: "행운 주사위",   d: "대기 줄에 높은 등급이 더 잘 와요", max: 3},
   merge: {e: "🔀", n: "합치기 달인",   d: "합칠 때 15% 확률로 두 등급 껑충!", max: 3},
   slow:  {e: "🐢", n: "끈적끈적 길",   d: "몬스터가 10% 느려져요", max: 3},
   gem:   {e: "💎", n: "보석 광산",     d: "보스 💎+2 · 중간 보스 💎+1"},
@@ -247,7 +257,7 @@ const RD_REL = {
 const RD_IT = {
   bomb:   {e: "💣", n: "폭탄",       d: "모든 몬스터 체력 -30% (보스 -6%)"},
   ice:    {e: "❄️", n: "얼음꽃",     d: "모든 몬스터 5초 꽁꽁 (보스 2초)"},
-  clover: {e: "🍀", n: "네잎클로버", d: "다음 뽑기 3번 희귀 이상!"},
+  clover: {e: "🍀", n: "네잎클로버", d: "대기 줄에 오는 동물 3마리 희귀 이상!"},
   gold:   {e: "💰", n: "금주머니",   d: "금 +(40 + 단계×5)"},
   time:   {e: "⏳", n: "모래시계",   d: "이번 단계 시간 +15초"},
   fever:  {e: "🔥", n: "응원 깃발",  d: "15초 동안 모든 동물 공격 ×2"}
@@ -258,7 +268,7 @@ const RD_MS = {
   gold:  {e: "🟡", t: () => "황금 슬라임이 도망가기 전에 잡기"},
   chest: {e: "🎁", t: () => "보물상자 몬스터 잡기"},
   merge: {e: "🔀", t: n => `이번 단계에 합치기 ${n}번`},
-  sum:   {e: "🎲", t: n => `이번 단계에 뽑기 ${n}번`},
+  sum:   {e: "📥", t: n => `이번 단계에 동물 ${n}마리 데려오기`},
   kill:  {e: "⚔️", t: n => `이번 단계에 몬스터 ${n}마리 잡기`},
   mk:    {e: "🧪", t: (n, x) => x && RD_A[x] ? `이번 단계에 ${RD_A[x].e} ${RD_A[x].n} 만들기` : "조합하기"}   // 🆕 머리 쓰기: 정해진 동물 조합
 };
@@ -341,11 +351,16 @@ const RD_SK = {
   suzaku:  {ro: "r", sk: {e: "🔥", n: "남쪽 불꽃",   d: "거리 안 몬스터 모두 18배 + 불태우기",   mp: 9,  ty: "burn", v: 18}},
   genbu:   {ro: "m", sk: {e: "🐢", n: "북쪽 방패",   d: "길 위 몬스터 기절 + 16배",             mp: 11, ty: "quake", v: 16}},
   eternal: {ro: "r", sk: {e: "🌠", n: "영원의 별비", d: "모든 몬스터 30배 + 기절",              mp: 12, ty: "nova", v: 30, stn: 1}},
-  yggdra:  {ro: "s", sk: {e: "🌳", n: "세계수 축복", d: "모든 친구 공격 ×2 · 속도 ×2 (6초)",    mp: 10, ty: "bless"}}
+  yggdra:  {ro: "s", sk: {e: "🌳", n: "세계수 축복", d: "모든 친구 공격 ×2 · 속도 ×2 (6초)",    mp: 10, ty: "bless"}},
+  parrot:  {ro: "r", sk: {e: "🗣️", n: "따라쟁이",    d: "거리 안 몬스터 모두 2배",              mp: 8,  ty: "all", v: 2}},
+  shark:   {ro: "m", sk: {e: "🦈", n: "상어 이빨",   d: "약해진 몬스터를 한입에! (아니면 6배)",  mp: 8,  ty: "exec", v: 6}},
+  squid:   {ro: "r", sk: {e: "🦑", n: "먹물 폭풍",   d: "거리 안 몬스터 꽁꽁 (2초)",             mp: 10, ty: "freeze", v: 120}},
+  kraken:  {ro: "m", sk: {e: "🐙", n: "휘감기",      d: "길 위 몬스터 기절 + 12배",              mp: 12, ty: "quake", v: 12}},
+  seaking: {ro: "r", sk: {e: "🔱", n: "용왕의 심판", d: "모든 몬스터 뒤로 + 26배",               mp: 12, ty: "tsunami", v: 26}}
 };
 /* 근거리는 길 바로 옆에서만 닿는 대신 더 세게 · 원거리는 멀리서 */
 Object.entries(RD_SK).forEach(([k, v]) => { const A = RD_A[k]; if (!A) return; A.ro = v.ro; A.sk = v.sk;
-  if (v.ro === "m"){ A.r = k === "trex" || k === "titan" || k === "genbu" ? 1.7 : 1.5; A.d = Math.round(A.d*1.5); }
+  if (v.ro === "m"){ A.r = k === "trex" || k === "titan" || k === "genbu" || k === "kraken" ? 1.7 : 1.5; A.d = Math.round(A.d*1.5); }
   else if (v.ro === "r") A.r = Math.max(2.6, A.r + .4);
   else A.r = Math.max(2.3, A.r); });
 
@@ -382,12 +397,17 @@ const RD_RC = {
   suzaku:  [["gdragon", 1], ["phoenix", 2], ["nine", 1]],
   genbu:   [["titan", 1], ["pegasus", 1], ["trex", 2]],
   eternal: [["cosmos", 1], ["suzaku", 1], ["gdragon", 2]],
-  yggdra:  [["genbu", 1], ["pegasus", 2], ["kirin", 2]]
+  yggdra:  [["genbu", 1], ["pegasus", 2], ["kirin", 2]],
+  /* 🌊 (2026.11.18) 바다 친구 */
+  shark:   [["croc", 1], ["whale", 1], ["penguin", 2]],
+  squid:   [["levi", 1], ["shark", 1], ["whale", 2]],
+  kraken:  [["squid", 1], ["levi", 1], ["shark", 2]],
+  seaking: [["cosmos", 1], ["kraken", 1], ["squid", 2]]
 };
 const RD_RCK = Object.keys(RD_RC);
 /* ⚔️ 딜러 · 🛡️ 서포터 — 👑 보스는 단단해서(20단계부터 받는 피해 -50%) 🛡️ 서포터가 먼저 때려 '💥 약점'을 드러내야 딜러가 세게(+40%) 때려요 */
 const RD_JOB = {d: {e: "🗡️", n: "딜러", c: "#ff8787", t: "몬스터를 세게 때려 쓰러뜨려요"}, s: {e: "🛡️", n: "서포터", c: "#63e6be", t: "느리게·멈추게·응원 + 👑 보스 약점 드러내기"}};
-["mouse", "frog", "penguin", "panda", "whale", "lion", "unicorn", "kirin", "levi", "pegasus", "genbu", "yggdra"].forEach(k => { if (RD_A[k]) RD_A[k].job = "s"; });
+["mouse", "frog", "penguin", "panda", "whale", "lion", "unicorn", "kirin", "levi", "pegasus", "genbu", "yggdra", "squid"].forEach(k => { if (RD_A[k]) RD_A[k].job = "s"; });
 RD_K.forEach(k => { if (!RD_A[k].job) RD_A[k].job = "d"; });
 /* 이 동물이 재료로 쓰이는 조합들 */
 const RD_USE = {}; RD_RCK.forEach(t => RD_RC[t].forEach(([k]) => (RD_USE[k] = RD_USE[k] || []).push(t)));
