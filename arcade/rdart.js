@@ -50,6 +50,8 @@ const RDA = {
     shark:   {b: "#8fa1b3", b2: "#5c6f82", f: "#f1f3f5", ear: "none", fin: 1, teeth: 1, belly: 1},
     squid:   {b: "#ff8fab", b2: "#e64980", f: "#ffdeeb", ear: "none", mantle: 1, tent: "#f06595"},
     kraken:  {b: "#9c36b5", b2: "#5f1f73", f: "#f3d9fa", ear: "none", mantle: 1, tent: "#be4bdb", brow: 1, wing: "#da77f2"},
+    abyss:   {b: "#4c2fa8", b2: "#1f1360", f: "#d0bfff", ear: "none", mantle: 1, tent: "#7048e8", brow: 1, fang: 1, wing: "#9775fa"},
+    kgod:    {b: "#0c8599", b2: "#0b4f5c", f: "#c3fae8", ear: "horn", horn: "#ffd43b", mantle: 1, tent: "#22b8cf", brow: 1, wing: "#99e9f2"},
     seaking: {b: "#1098ad", b2: "#0b7285", f: "#c5f6fa", ear: "horn", horn: "#ffd43b", spout: 1, smile: "wide", belly: 1, wing: "#66d9e8"}
   },
   ell(t, x, y, rx, ry, a = 0){ t.beginPath(); t.ellipse(x, y, Math.max(.1, rx), Math.max(.1, ry), a, 0, Math.PI*2); },
@@ -203,7 +205,7 @@ const RDA = {
   },
 
   /* ---------- 탄 ---------- */
-  SHOT: {parrot: "feather", shark: "water", squid: "water", kraken: "water", seaking: "water", cosmos: "water", suzaku: "fire", eternal: "rainbow", yggdra: "rainbow", dragon: "fire", lion: "fire", trex: "fire", penguin: "ice", whale: "water", frog: "water", eagle: "feather", owl: "feather", chick: "feather", unicorn: "rainbow", cat: "heart", rabbit: "heart"},
+  SHOT: {abyss: "water", kgod: "rainbow", parrot: "feather", shark: "water", squid: "water", kraken: "water", seaking: "water", cosmos: "water", suzaku: "fire", eternal: "rainbow", yggdra: "rainbow", dragon: "fire", lion: "fire", trex: "fire", penguin: "ice", whale: "water", frog: "water", eagle: "feather", owl: "feather", chick: "feather", unicorn: "rainbow", cat: "heart", rabbit: "heart"},
   shotSpr(k, g){ const ty = this.SHOT[k] || "star", c = RD_G[g].c, s = 26 + g*4;
     return G2.spr(`rds${ty}${g}`, s, s, t => { const m = s/2;
       t.fillStyle = BSA.rg(t, m, m, 1, m, [[0, "rgba(255,255,255,.9)"], [.4, ty === "fire" ? "rgba(255,146,43,.55)" : ty === "ice" ? "rgba(153,233,242,.55)" : ty === "water" ? "rgba(116,192,252,.55)" : c + "88"], [1, "rgba(255,255,255,0)"]]); t.fillRect(0, 0, s, s);
@@ -356,11 +358,13 @@ const RD_SK = {
   shark:   {ro: "m", sk: {e: "🦈", n: "상어 이빨",   d: "약해진 몬스터를 한입에! (아니면 6배)",  mp: 8,  ty: "exec", v: 6}},
   squid:   {ro: "r", sk: {e: "🦑", n: "먹물 폭풍",   d: "거리 안 몬스터 꽁꽁 (2초)",             mp: 10, ty: "freeze", v: 120}},
   kraken:  {ro: "m", sk: {e: "🐙", n: "휘감기",      d: "길 위 몬스터 기절 + 12배",              mp: 12, ty: "quake", v: 12}},
-  seaking: {ro: "r", sk: {e: "🔱", n: "용왕의 심판", d: "모든 몬스터 뒤로 + 26배",               mp: 12, ty: "tsunami", v: 26}}
+  seaking: {ro: "r", sk: {e: "🔱", n: "용왕의 심판", d: "모든 몬스터 뒤로 + 26배",               mp: 12, ty: "tsunami", v: 26}},
+  abyss:   {ro: "m", sk: {e: "🐙", n: "심연 휘감기", d: "길 위 몬스터 모두 기절 + 18배",          mp: 11, ty: "quake", v: 18}},
+  kgod:    {ro: "r", sk: {e: "🌀", n: "심해 소용돌이", d: "모든 몬스터 32배 + 기절",              mp: 12, ty: "nova", v: 32, stn: 1}}
 };
 /* 근거리는 길 바로 옆에서만 닿는 대신 더 세게 · 원거리는 멀리서 */
 Object.entries(RD_SK).forEach(([k, v]) => { const A = RD_A[k]; if (!A) return; A.ro = v.ro; A.sk = v.sk;
-  if (v.ro === "m"){ A.r = k === "trex" || k === "titan" || k === "genbu" || k === "kraken" ? 1.7 : 1.5; A.d = Math.round(A.d*1.5); }
+  if (v.ro === "m"){ A.r = k === "trex" || k === "titan" || k === "genbu" || k === "kraken" || k === "abyss" ? 1.7 : 1.5; A.d = Math.round(A.d*1.5); }
   else if (v.ro === "r") A.r = Math.max(2.6, A.r + .4);
   else A.r = Math.max(2.3, A.r); });
 
@@ -402,7 +406,9 @@ const RD_RC = {
   shark:   [["croc", 1], ["whale", 1], ["penguin", 2]],
   squid:   [["levi", 1], ["shark", 1], ["whale", 2]],
   kraken:  [["squid", 1], ["levi", 1], ["shark", 2]],
-  seaking: [["cosmos", 1], ["kraken", 1], ["squid", 2]]
+  seaking: [["cosmos", 1], ["kraken", 1], ["squid", 2]],
+  abyss:   [["kraken", 2], ["levi", 1], ["squid", 1]],   // 🐙 창세: 크라켄 2마리
+  kgod:    [["abyss", 1], ["cosmos", 1], ["kraken", 2]]   // 🌀 영원: 심연 크라켄 + 은하 고래 + 크라켄 2마리
 };
 const RD_RCK = Object.keys(RD_RC);
 /* ⚔️ 딜러 · 🛡️ 서포터 — 👑 보스는 단단해서(20단계부터 받는 피해 -50%) 🛡️ 서포터가 먼저 때려 '💥 약점'을 드러내야 딜러가 세게(+40%) 때려요 */

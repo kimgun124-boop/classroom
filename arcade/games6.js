@@ -69,17 +69,19 @@ const RD_A = {
   cosmos:  {e: "🌌", n: "은하 고래",    g: 8, d: 170000, cd: 56, r: 4.4, sp: 2.6, sl: .5, t: "은하 물결 · 느리게"},
   suzaku:  {e: "🔥", n: "주작",         g: 8, d: 140000, cd: 30, r: 3.9, mt: 3, burn: .35, t: "불꽃 날개 3갈래"},
   genbu:   {e: "🐢", n: "현무",         g: 8, d: 90000,  cd: 58, r: 2.6, sp: 2.0, st: .3, t: "등껍질 방패 · 기절"},
+  abyss:   {e: "🐙", n: "심연 크라켄",  g: 8, d: 130000, cd: 50, r: 2.9, sp: 2.2, sl: .55, t: "심연의 다리 8개 · 휘감기"},   // 🆕 (2026.11.18) 크라켄 2마리로
   /* ♾️ 영원 */
   eternal: {e: "🌠", n: "영원룡",       g: 9, d: 700000, cd: 50, r: 4.8, sp: 3.0, burn: .4, t: "별을 삼키는 용"},
   yggdra:  {e: "🌳", n: "세계수 사슴",  g: 9, d: 260000, cd: 28, r: 4.0, mt: 8, bf: 1.0, t: "옆 친구 힘 +100%"},
-  seaking: {e: "🔱", n: "바다 용왕",    g: 9, d: 520000, cd: 46, r: 4.6, sp: 2.8, sl: .6, t: "바다를 다스리는 왕"}
+  seaking: {e: "🔱", n: "바다 용왕",    g: 9, d: 520000, cd: 46, r: 4.6, sp: 2.8, sl: .6, t: "바다를 다스리는 왕"},
+  kgod:    {e: "🌀", n: "심해신 크라켄", g: 9, d: 600000, cd: 44, r: 4.6, mt: 4, sl: .6, t: "바다 끝의 신 · 소용돌이"}   // 🆕 (2026.11.18) 심연 크라켄 + 크라켄
 };
 const RD_K = Object.keys(RD_A), RD_BY = RD_G.map((_, g) => RD_K.filter(k => RD_A[k].g === g));
 /* 🌍 사는 곳 (2026.11.18): 🌳 육지 · 🌊 바다 · ☁️ 하늘 — 자기 땅 칸에 두면 힘이 세지고, 같은 곳 친구가 모이면 무리 효과! */
 const RD_HBI = {l: {e: "🌳", n: "육지", c: "#69db7c", c2: "#2b8a3e", t: "튼튼한 힘 — 공격력이 크게 올라요"}, s: {e: "🌊", n: "바다", c: "#4dabf7", c2: "#1864ab", t: "물결 — 때리면 몬스터가 느려져요"}, a: {e: "☁️", n: "하늘", c: "#e5dbff", c2: "#7048e8", t: "바람 — 공격이 빨라지고 멀리 닿아요"}};
 const RD_HB = {};
 "mouse rabbit dog cat hedgehog fox panda lion tiger unicorn trex kirin wtiger nine titan genbu yggdra".split(" ").forEach(k => RD_HB[k] = "l");
-"frog penguin croc whale shark levi squid kraken cosmos seaking".split(" ").forEach(k => RD_HB[k] = "s");
+"frog penguin croc whale shark levi squid kraken cosmos abyss seaking kgod".split(" ").forEach(k => RD_HB[k] = "s");
 "chick parrot owl eagle dragon phoenix bdragon gdragon pegasus suzaku eternal".split(" ").forEach(k => RD_HB[k] = "a");
 RD_K.forEach(k => { RD_A[k].hb = RD_HB[k] || "l"; });
 /* 🎚️ 무리 효과: 내 마당에서 '자기 땅 칸'에 선 같은 곳 동물이 3·6·9칸이면 */
