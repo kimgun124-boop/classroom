@@ -729,18 +729,27 @@ const PARTY = {
        와이파이가 약한 친구는 그 통로가 줄줄이 밀려서 몇 초씩 멈춘 화면만 보였어요.
        대신 10장마다 한 장은 꼭 도착하는 통로로도 보내요(빠른 통로가 아예 막혀도 화면이 움직이게).
      - 4배속처럼 일이 많을 때 반짝이·소리 소식이 쌓이면 통로가 넘쳐서 끊겼어요(팅김) → 밀려 있으면 꾸밈 소식은 빼고 꼭 필요한 것만 보내요. */
+  /* 🐢➡️⚡ 늦은 장면 쌓지 않기 (2026.11.18)
+     와이파이가 느린 친구에게 방장이 보내는 양이 통로보다 많으면, 예전엔 장면이 통로에 줄줄이 쌓여서(64KB까지)
+     친구 화면이 3초 → 10초씩 점점 더 늦어졌어요(방장 화면은 멀쩡한데 친구 화면만 멈춘 것처럼 보임).
+     → 통로에 아직 못 나간 장면이 있으면 이번 장면은 건너뛰어요. 친구는 늘 '가장 최근 장면'만 받아요.
+       반짝이·소리 같은 꾸밈 소식도 통로가 비었을 때만 보내고, 밀려 있으면 꼭 필요한 알림만 보내요. */
   sendSnap(s, ev, gv){
     if (gv !== this.lastGv && this.gridFn){ this.lastGv = gv; this.sendAll(this.gridFn()); }
-    const str = JSON.stringify({t: "s", n: ++this.seq, s}), key = this.seq % 10 === 0;
+    const str = JSON.stringify({t: "s", n: ++this.seq, s}), key = this.seq % 10 === 0, SL = str.length;
     let evS = null, evL = null;
+    const mkL = () => { if (evL === null){ const L = ev.filter(e => !["x", "s", "r", "p"].includes(e[0])).slice(-40); evL = L.length ? JSON.stringify({t: "ev", ev: L}) : ""; } return evL; };
     this.connected().forEach(P => {
-      if (ev.length){ const busy = P.relay || (P.r && P.r.bufferedAmount > 24000);
-        if (busy){ if (evL === null){ const L = ev.filter(e => !["x", "s", "r", "p"].includes(e[0])).slice(-40); evL = L.length ? JSON.stringify({t: "ev", ev: L}) : ""; } if (evL) this.send(P, evL); }
-        else { if (evS === null) evS = JSON.stringify({t: "ev", ev: ev.slice(-120)}); try { if (P.r.readyState === "open" && P.r.bufferedAmount < 256000) P.r.send(evS); } catch(e) {} } }
+      const rb = P.r ? P.r.bufferedAmount || 0 : 0;
+      if (ev.length){
+        if (P.relay || rb > 1500){ if (rb < 24000 && mkL()) this.send(P, evL); }   // 밀려 있으면 꼭 필요한 알림만
+        else { if (evS === null) evS = JSON.stringify({t: "ev", ev: ev.slice(-80)}); try { if (P.r.readyState === "open") P.r.send(evS); } catch(e) {} } }
       if (P.relay){ try { P.r.send(str); } catch(e) {} return; }
-      const uok = P.u && P.u !== P.r && P.u.readyState === "open" && str.length < 60000;
-      try { if (uok && P.u.bufferedAmount < 64000) P.u.send(str); } catch(e) {}
-      try { if ((key || !uok) && P.r && P.r.readyState === "open" && P.r.bufferedAmount < 32000) P.r.send(str); } catch(e) {}   // 빠른 통로가 없으면 믿음 통로로 매번
+      const uok = P.u && P.u !== P.r && P.u.readyState === "open" && SL < 60000;
+      let sent = false;
+      try { if (uok && (P.u.bufferedAmount || 0) < Math.min(6000, SL)){ P.u.send(str); sent = true; } } catch(e) {}   // 앞 장면이 아직 못 나갔으면 건너뛰어요
+      try { if ((key || !uok) && P.r && P.r.readyState === "open" && rb < Math.min(8000, SL*2)) P.r.send(str); } catch(e) {}   // 10장마다 한 장은 꼭 도착하는 통로로 (통로가 비어 있을 때만)
+      P.skip = sent ? 0 : (P.skip || 0) + 1;
     });
   },
   /* ======== ☁️ 다리(릴레이): 기기끼리 바로 못 이으면(학교 와이파이 등) Firebase 저장소를 거쳐 주고받아요 ======== */
@@ -859,7 +868,9 @@ const PARTY = {
     const now = performance.now(), gap = now - Math.max(this.snapT || 0, this.joinT || 0);
     if (gap > 2500){ this.inSeq = 0; this.needGrid(true); }
     if (gap > 4000 && $("#ngOver").hidden && NG.cur && !NG.ended && (!this.stallT || now - this.stallT > 6000)){ this.stallT = now; toast("📡 방장 화면을 다시 받아오는 중이에요…"); }
-    if (gap > 8000 && this.canRelay() && !(this.hp && this.hp.relay)){ this.relayJoin(); this.joinT = now; } }, 1000); },
+    // 직접 연결이 살아 있으면(잠깐 밀린 것뿐) 15초까지 기다려요 — 다리(저장소)는 1초에 한 장뿐이라 한 번 가면 내내 뚝뚝 끊겨 보였어요
+    const live = this.hp && !this.hp.relay && this.hp.r && this.hp.r.readyState === "open" && (!this.hp.pc || this.hp.pc.connectionState === "connected");
+    if (gap > (live ? 15000 : 8000) && this.canRelay() && !(this.hp && this.hp.relay)){ this.relayJoin(); this.joinT = now; } }, 1000); },
   hostGone(msg){
     if (this.role !== "guest") return;
     const playing = NG.cur && NG.gid === this.gid && !$("#ng").hidden;
