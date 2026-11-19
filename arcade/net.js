@@ -74,7 +74,31 @@ const NET = {
       c.onopen = () => this.ready(); c.onclose = () => { if (this.on) this.lost(); }; });
     this.ready();
   },
-  connWait(){ clearTimeout(this.timer); this.timer = setTimeout(() => { if (!this.on) this.fail(`🔌 두 기기가 연결되지 않았어요.<br><small>두 기기가 <b>같은 와이파이</b>에 연결돼 있는지 확인하고 다시 해 보세요. 학교 와이파이가 기기끼리 연결을 막아 두었으면 안 될 수 있어요. 그럴 때는 한 기기에서 🧒 둘이 대결을 해요.</small>`); }, 20000); },
+  flushBd(){ const Q = this.bdQ; this.bdQ = null; if (Q) setTimeout(() => { const A = this.ad(); if (A && A.bd) Q.forEach(d => A.bd(d)); }, 0); },
+  /* ☁️ 다리: 기기끼리 바로 연결이 안 되면 신청 쪽지(rooms 문서)에 서로 쪽지를 남겨 주고받아요 — 보드 게임처럼 한 수씩 주고받을 때만 */
+  goRelay(){
+    if (this.relay || !this.rid || !this.TB.includes(this.gid)) return;
+    this.relay = true; clearTimeout(this.timer); const rid = this.rid, me = this.role === "host" ? "hm" : "gm", other = me === "hm" ? "gm" : "hm";
+    const pc = this.pc; this.pc = null; setTimeout(() => { try { pc && pc.close(); } catch(e) {} }, 0);
+    const out = [], R = this.rly = {k: 0, last: 0, t: 0};
+    const flush = () => { R.t = 0; this.S().update(rid, {[me]: JSON.stringify(out.slice(-40)), rl: 1}).catch(e => console.warn(e)); };
+    const ch = {readyState: "open", bufferedAmount: 0, close(){}, send: str => { out.push([++R.k, str]); if (str.includes('"t":"bye"')){ clearTimeout(R.t); flush(); } else if (!R.t) R.t = setTimeout(flush, 120); }};
+    this.u = this.r = ch;
+    if (this.unRoom) this.unRoom();
+    this.unRoom = this.S().watch(rid, d => {
+      if (!this.relay || this.rid !== rid) return;
+      if (!d){ if (this.on) this.lost(true); else this.fail("신청이 사라졌어요. 다시 신청해 보세요."); return; }
+      if (d.st === "no" && !this.on) return this.fail(`🙏 친구가 다음에 하재요.`);
+      let L = []; try { L = JSON.parse(d[other] || "[]"); } catch(e) {}
+      L.forEach(([k, str]) => { if (k > R.last){ R.last = k; try { this.msg(JSON.parse(str)); } catch(e) {} } });
+      if (!this.on && (d.rl || this.role === "host")) this.relayReady();
+    });
+    flush();
+  },
+  relayReady(){ if (this.on) return; this.on = true; ARC.modal("#mdNet", false); toast("☁️ 기기끼리 바로 연결이 안 돼서 쪽지(다리)로 이어졌어요 · 한 수씩 주고받아요"); if (this.role === "host") this.go(); },
+  connWait(){ clearTimeout(this.timer);
+    if (this.TB.includes(this.gid)){ clearTimeout(this.rlT); this.rlT = setTimeout(() => { if (!this.on && this.role) this.goRelay(); }, 6000); }
+    this.timer = setTimeout(() => { if (!this.on) this.fail(`🔌 두 기기가 연결되지 않았어요.<br><small>두 기기가 <b>같은 와이파이</b>에 연결돼 있는지 확인하고 다시 해 보세요. 학교 와이파이가 기기끼리 연결을 막아 두었으면 안 될 수 있어요. 그럴 때는 한 기기에서 🧒 둘이 대결을 해요.</small>`); }, 20000); },
 
   async invite(gid, to){
     this.close(); this.role = "host"; this.gid = gid; this.a = ARC.me; this.b = to;
@@ -91,6 +115,7 @@ const NET = {
         if (this.pc !== pc || this.on) return;
         if (!d) return this.fail("신청이 사라졌어요. 다시 신청해 보세요.");
         if (d.st === "no") return this.fail(`🙏 <b>${esc(iga(who(to)))}</b> 다음에 하재요.`);
+        if (d.rl && this.TB.includes(this.gid)) return this.goRelay();
         if (d.answer && !pc.currentRemoteDescription){ pc.setRemoteDescription({type: "answer", sdp: d.answer}).catch(e => this.fail("연결하지 못했어요: " + e.message)); this.wait("🔌 친구 기기와 연결하는 중…"); this.connWait(); }
       });
       this.timer = setTimeout(() => { if (this.pc === pc && !this.on && !pc.currentRemoteDescription) this.fail(`⌛ <b>${esc(iga(who(to)))}</b> 대답이 없어요.<br><small>친구가 자기 기기에서 오락실에 로그인해 있는지 확인해요.</small>`); }, 60000);
@@ -106,9 +131,9 @@ const NET = {
       await pc.setLocalDescription(await pc.createAnswer()); await this.gather();
       if (this.pc !== pc) return;
       await this.S().update(x.id, {answer: pc.localDescription.sdp, st: "go"});
-      this.unRoom = this.S().watch(x.id, d => { if (this.pc === pc && !this.on && !d) this.fail("친구가 신청을 취소했어요."); });
+      this.unRoom = this.S().watch(x.id, d => { if (this.pc === pc && !this.on && !d) this.fail("친구가 신청을 취소했어요."); if (d && d.rl && !this.on && this.pc === pc) this.goRelay(); });
       this.connWait();
-    } catch(e){ console.error(e); this.fail("연결하지 못했어요: " + (e.message || e)); }
+    } catch(e){ console.error(e); if (this.TB.includes(this.gid) && this.rid === x.id) this.goRelay(); else this.fail("연결하지 못했어요: " + (e.message || e)); }
   },
   cancel(){
     if (this.rid && !this.on){ if (this.role === "host") this.S().del(this.rid); else this.S().update(this.rid, {st: "no"}).catch(() => {}); }
@@ -116,6 +141,7 @@ const NET = {
   },
   /* 두 통로가 다 열리면 시작 */
   ready(){
+    if (this.relay) return;
     if (this.on || !this.u || !this.r || this.u.readyState !== "open" || this.r.readyState !== "open") return;
     this.on = true; clearTimeout(this.timer); ARC.modal("#mdNet", false);
     if (this.unRoom){ this.unRoom(); this.unRoom = null; }
@@ -123,7 +149,8 @@ const NET = {
   },
 
   /* ---- 게임 ---- */
-  ad(){ return this.gid === "vb" ? window.__vbNet : this.gid === "ah" ? window.__ahNet : this.gid === "pp" ? (NG.cur && NG.gid === "pp" && NG.cur.netAd) : null; },
+  TB: ["jg", "ch", "om", "bl"],   // ♟️ 한 수씩 주고받는 보드 게임: 기기끼리 연결이 안 되면 Firebase 쪽지(다리)로
+  ad(){ if (this.TB.includes(this.gid)) return NG.cur && NG.cur.netBd; return this.gid === "vb" ? window.__vbNet : this.gid === "ah" ? window.__ahNet : this.gid === "pp" ? (NG.cur && NG.gid === "pp" && NG.cur.netAd) : null; },
   go(){   // 심판(신청한 친구) 기기가 시작해요
     const x = ARC.netGo("host", this.gid, this.a, this.b);
     this.sendR({t: "start", g: this.gid, a: this.a, b: this.b, x});
@@ -145,7 +172,8 @@ const NET = {
   msg(m){
     if (m.t === "s" || m.t === "i"){ if (m.q <= this.inSeq) return; this.inSeq = m.q; const A = this.ad(); if (A) (m.t === "s" ? A.apply(m.d) : A.put(m.d)); return; }
     if (m.t === "ev"){ const A = this.ad(); if (A) A.fx(m.e); return; }
-    if (m.t === "start"){ if (this.role === "guest"){ this.gid = m.g; ARC.netGo("guest", m.g, m.a, m.b, m.x); } return; }
+    if (m.t === "bd"){ const A = this.ad(); if (A && A.bd) A.bd(m.d); else (this.bdQ = this.bdQ || []).push(m.d); return; }
+    if (m.t === "start"){ if (this.role === "guest"){ this.gid = m.g; ARC.netGo("guest", m.g, m.a, m.b, m.x); this.flushBd(); } return; }
     if (m.t === "end"){ const A = this.ad(); if (A) A.end(m.w, m.sc, m.txt); return; }
     if (m.t === "re"){ if (this.role === "host"){ toast("🔁 친구가 한 판 더 하재요!"); this.go(); } return; }
     if (m.t === "bye") return this.lost(true);
@@ -165,7 +193,8 @@ const NET = {
   close(){
     clearTimeout(this.timer); clearTimeout(this.dcT);
     if (this.unRoom){ this.unRoom(); this.unRoom = null; }
-    if (this.rid && this.role === "host" && !this.on) this.S().del(this.rid);
+    if (this.rid && this.role === "host" && (!this.on || this.relay)){ const id = this.rid, rl = this.relay; setTimeout(() => this.S().del(id), rl ? 900 : 0); }   // 다리로 이어졌으면 마지막 쪽지가 간 뒤 지워요
+    clearTimeout(this.rlT); if (this.rly && this.rly.t){ clearTimeout(this.rly.t); } this.relay = false; this.rly = null; this.bdQ = null;
     const pc = this.pc, u = this.u, r = this.r; this.pc = this.u = this.r = null;
     setTimeout(() => { try { u && u.close(); r && r.close(); pc && pc.close(); } catch(e) {} }, 150);   // 'bye'가 먼저 가게 잠깐 기다려요
     [window.__vbNet, window.__ahNet].forEach(A => A && A.reset());

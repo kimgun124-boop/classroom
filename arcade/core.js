@@ -442,6 +442,10 @@ const GAMES = [
   {id: "ah", e: "🏒", n: "얼굴 에어하키", kind: "duel", d: "둘이서 하키 대결"},
   {id: "pp", e: "🏓", n: "얼굴 탁구",   kind: "duel",  d: "둘이서 탁구 대결"},
   {id: "wb", e: "💦", n: "물풍선 대작전", kind: "duel", multi: 1, d: "미로에서 물풍선 펑! 최대 6명"},
+  {id: "jg", e: "🀄", n: "장기",        kind: "duel",  tag: "🆕 둘이서 · 🤖 컴퓨터와도", d: "초와 한의 한판 승부! 장군 받고 외통수로 이겨요"},
+  {id: "ch", e: "♟️", n: "체스",        kind: "duel",  tag: "🆕 둘이서 · 🤖 컴퓨터와도", d: "킹을 체크메이트! 캐슬링·앙파상까지 진짜 규칙"},
+  {id: "om", e: "⚫", n: "오목",        kind: "duel",  tag: "🆕 둘이서 · 🤖 컴퓨터와도", d: "돌 다섯 개를 먼저 한 줄로! 두 번 톡톡 눌러 놓아요"},
+  {id: "bl", e: "🎱", n: "당구",        kind: "duel",  tag: "🆕 둘이서 · 🤖 컴퓨터와도", d: "포켓볼 점수 대결! 넣으면 한 번 더 · ⭐9번 공은 3점"},
   {id: "bs", e: "🫧", n: "버블 특공대", kind: "score", d: "로봇을 거품에 가둬 날려 보내요"},
   {id: "sk", e: "🌥️", n: "하늘 무사단", kind: "score", tag: "🤝 최대 4명 · 협동 점수전", d: "구름 위 슈팅! 30단계 · 6가지 하늘 · 스킬 · 보스"},
   {id: "bp", e: "🧩", n: "블록 퍼즐",   kind: "score", d: "조각을 끌어 놓고 줄을 채우면 펑!"},
@@ -666,7 +670,8 @@ const ARC = {
     const g = GAME[gid], me = this.me; let lv = 1;
     $("#duTitle").textContent = `${g.e} ${g.n} 대결`;
     $("#duDuo").innerHTML = `<div class="p"><span class="avf">${avHTMLof(sidOf(me), {still: true, face: true})}</span><b>${esc(who(me))}</b></div><div class="vs">VS</div><div class="p q"><span class="f">❔</span><b>누구랑 할까요?</b></div>`;
-    $("#duHelp").textContent = gid === "vb" ? "태블릿에서는 화면 양쪽 아래 버튼으로 움직여요 (키보드: 1P W·A·D·F / 2P 방향키·Enter)" : gid === "ah" ? "자기 쪽 화면을 손가락으로 끌어서 말렛을 움직여요" : "자기 쪽 화면을 손가락으로 위아래로 끌어요 (키보드: 1P W·S / 2P ↑·↓)";
+    const BDH = {jg: "말을 톡 눌러 고르고, 초록 점을 눌러 옮겨요. 장군을 받으면 꼭 막아요!", ch: "말을 톡 눌러 고르고, 초록 점을 눌러 옮겨요. 폰이 끝까지 가면 퀸이 돼요!", om: "놓고 싶은 곳을 두 번 톡톡! 가로·세로·대각선 다섯 개를 먼저 만들면 승리", bl: "판을 끌어 방향을 정하고, 힘 막대를 당겼다 놓아 쳐요. 공을 넣으면 한 번 더!"};
+    $("#duHelp").textContent = BDH[gid] ? BDH[gid] : gid === "vb" ? "태블릿에서는 화면 양쪽 아래 버튼으로 움직여요 (키보드: 1P W·A·D·F / 2P 방향키·Enter)" : gid === "ah" ? "자기 쪽 화면을 손가락으로 끌어서 말렛을 움직여요" : "자기 쪽 화면을 손가락으로 위아래로 끌어요 (키보드: 1P W·S / 2P ↑·↓)";
     $$("#duLv button").forEach(b => b.classList.toggle("on", +b.dataset.v === lv));
     $("#duLv").onclick = e => { const b = e.target.closest("button"); if (b){ lv = +b.dataset.v; $$("#duLv button").forEach(x => x.classList.toggle("on", x === b)); } };
     $("#duCpu").onclick = () => { this.modal("#mdDuel", false); const others = roster().filter(s => s.no != me && !s.t); const cpu = others.length ? others[Math.floor(Math.random()*others.length)].no : me; this.startDuel(gid, me, cpu, true, lv); };
