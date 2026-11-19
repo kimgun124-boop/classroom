@@ -436,9 +436,9 @@ NG.defs.rd = () => {
          내 마당과 둘레 길이 화면을 채우게 크게 · 빈 땅을 끌면 맵을 움직여요 · 오른쪽 위 작은 지도로 전체를 보고 눌러서 이동 */
       const sc = Math.min(sw/W, sh/H), my = two ? -1 : (local[0] != null ? local[0] : 0), Zb = my >= 0 && TP.zones[my] ? TP.zones[my].box : null;
       CAM.can = N > 1 && !!Zb && C*sc < 62; CAM.fitC = C;
-      if (CAM.can && CAM.on){ const m = 1.05, bw = Zb[2] - Zb[0] + m*2, bh = Zb[3] - Zb[1] + m*2;
-        C = Math.max(C, Math.floor(Math.min(84/sc, aw/bw, ah/bh)));
-        if (CAM.fx == null || CAM.key !== N + "|" + ti + "|" + land){ CAM.fx = (Zb[0] + Zb[2])/2; CAM.fy = (Zb[1] + Zb[3])/2; CAM.key = N + "|" + ti + "|" + land; }
+      if (CAM.can && CAM.on){ const m = 1.05, bw = Zb[2] - Zb[0] + m*2, bh = Zb[3] - Zb[1] + m*2, [qx0, qy0, qx1, qy1] = camArea(), aw2 = qx1 - qx0, ah2 = qy1 - qy0;
+        C = Math.max(C, Math.floor(SPEC ? Math.min(aw2/bw, ah2/bh) : Math.min(84/sc, aw2/bw, ah2/bh)));
+        if (CAM.fx == null || CAM.key !== N + "|" + ti + "|" + land + "|" + my){ CAM.key = N + "|" + ti + "|" + land + "|" + my; CAM.fx = (Zb[0] + Zb[2])/2; CAM.fy = (Zb[1] + Zb[3])/2; }
         camTo(CAM.fx, CAM.fy, true); }
       const path = TP.path.map(([x, y]) => [x + .5, y + .5]);
       SH = {ox: 0, oy: 0, w: TP.w, h: TP.h, map: TP, path, front: TP.front, doors: TP.doors};
@@ -449,13 +449,16 @@ NG.defs.rd = () => {
       calcTerr(); bufV = -1; layerKey = ""; panel = null; }
   }
   /* 🔍 카메라: 맵 칸(fx, fy)을 판 가운데로 · 판 밖으로 너무 나가지 않게 */
-  const CAM = {on: (() => { try { return localStorage.getItem("arcade.rdcam") !== "0"; } catch(e){ return true; } })(), can: false, fx: null, fy: null, key: "", fitC: 0};
-  function camArea(){ return [5, TOPH + 34, W - 5, H - BOTH - 6]; }
+  /* 👀 관전은 처음엔 🗺️ 전체 보기(판 전체가 화면에 딱 맞게) · 관전용 설정은 따로 기억해요 */
+  const CAMK = SPEC ? "arcade.rdcamS" : "arcade.rdcam";
+  const CAM = {on: (() => { try { const v = localStorage.getItem(CAMK); return SPEC ? v === "1" : v !== "0"; } catch(e){ return !SPEC; } })(), can: false, fx: null, fy: null, key: "", fitC: 0};
+  function camArea(){ const r = zoomed() && land ? W - mmRect().w - 26 : W - 5; return [5, TOPH + 34, r, H - BOTH - 6]; }   // 가로 화면 크게 보기: 오른쪽 작은 지도 자리는 비워 둬요
   function camTo(fx, fy, quiet){ const [ax0, ay0, ax1, ay1] = camArea(), mw = COLS*C, mh = ROWS*C;
     let bx = (ax0 + ax1)/2 - fx*C, by = (ay0 + ay1)/2 - fy*C;
-    bx = mw <= ax1 - ax0 ? (ax0 + ax1 - mw)/2 : Math.min(ax0, Math.max(ax1 - mw, bx)); by = mh <= ay1 - ay0 ? (ay0 + ay1 - mh)/2 : Math.min(ay0, Math.max(ay1 - mh, by));
+    const ox = zoomed() ? Math.max(0, (ax1 - ax0)/2 - 2*C) : 0, oy = zoomed() ? Math.max(0, (ay1 - ay0)/2 - 2*C) : 0;   // 🔍 가장자리 마당도 화면 가운데에 오게
+    bx = mw <= ax1 - ax0 ? (ax0 + ax1 - mw)/2 : Math.min(ax0 + ox, Math.max(ax1 - mw - ox, bx)); by = mh <= ay1 - ay0 ? (ay0 + ay1 - mh)/2 : Math.min(ay0 + oy, Math.max(ay1 - mh - oy, by));
     BX = Math.round(bx); BY = Math.round(by); CAM.fx = ((ax0 + ax1)/2 - BX)/C; CAM.fy = ((ay0 + ay1)/2 - BY)/C; if (!quiet) setSky(); }
-  function camToggle(){ CAM.on = !CAM.on; try { localStorage.setItem("arcade.rdcam", CAM.on ? "1" : "0"); } catch(e) {} CAM.fx = null; playS("warn"); NG.fit(); }
+  function camToggle(){ CAM.on = !CAM.on; try { localStorage.setItem(CAMK, CAM.on ? "1" : "0"); } catch(e) {} CAM.fx = null; playS("warn"); NG.fit(); }
   const zoomed = () => CAM.can && CAM.on;
   /* 🗺️ 작은 지도 (오른쪽 위) · 그 아래 🔍/🗺️ 단추 */
   function mmRect(){ const w = Math.round(Math.min(land ? 200 : 120, W*.2)), h = Math.round(Math.min(w*ROWS/COLS, (H - TOPH - BOTH)*(land ? .34 : .2))), w2 = Math.round(h*COLS/ROWS); return {x: W - w2 - 10, y: TOPH + 40, w: w2, h}; }
@@ -640,10 +643,10 @@ NG.defs.rd = () => {
     /* 🤝 (2026.11.17) 같이 할 때 몬스터 문은 하나! 모든 몬스터가 한 문에서 나와 친구들 마당을 차례로 지나가요 → 내 몬스터·친구 몬스터 없이 다 같이 잡아요 */
     const d0 = (SH && SH.doors && SH.doors[0]) || 0, p0 = posAt(d0, l); E.push({id: ++eid, kind, l, d: d0, tr: 0, hp: h*(tt === 1 ? 1.3 : tt === 6 ? .75 : 1), mhp: h*(tt === 1 ? 1.3 : tt === 6 ? .75 : 1), spd: KSPD(kind)*(tt === 2 ? 1.25 : tt === 6 ? 1.7 : 1), slT: 0, slF: 0, stT: 0, x: p0[0], y: p0[1], f: R.f()*60|0, tt, sh: tt === 4 ? 3 + Math.floor(wave/25) : 0}); }
   const TTS = new Set();
-  function setSky(){ const cv = $("#ngCanvas"); cv.style.backgroundImage = (bgURL ? `url(${bgURL}),` : "") + th().sky; cv.style.backgroundColor = "#1c1d52";
+  function setSky(){ const cv = $("#ngCanvas"); skyB = BX + "," + BY + "," + C; cv.style.backgroundImage = (bgURL ? `url(${bgURL}),` : "") + th().sky; cv.style.backgroundColor = "#1c1d52";
     if (bgURL){ cv.style.backgroundSize = `${COLS*C/W*100}% ${ROWS*C/H*100}%, 100% 100%`; cv.style.backgroundPosition = `${Math.abs(W - COLS*C) > .5 ? BX/(W - COLS*C)*100 : 0}% ${Math.abs(H - ROWS*C) > .5 ? BY/(H - ROWS*C)*100 : 0}%, 0 0`; cv.style.backgroundRepeat = "no-repeat"; } else { cv.style.backgroundSize = ""; cv.style.backgroundPosition = ""; } }
   /* ⚡ 판 그림은 CSS 배경으로 (매 장면 붙이지 않아요) — 준비되기 전에는 캔버스에 붙여요 */
-  let bgURL = null, bgKey = "";
+  let bgURL = null, bgKey = "", skyB = "";
   function boardBG(){ if (bgKey === layerKey) return; bgKey = layerKey; const key = layerKey; bgURL = null; setSky();
     try { layer.toBlob(bl => { if (!bl || key !== layerKey || NG.cur !== self) return; if (RD_BG.url) URL.revokeObjectURL(RD_BG.url); RD_BG.url = bgURL = URL.createObjectURL(bl); setSky(); }, "image/png"); } catch(e) {} }
 
@@ -1014,7 +1017,7 @@ NG.defs.rd = () => {
     const x0 = land ? 10 + lw + 8 : 10, w0 = W - x0 - 10, yy = rows === 1 ? y0 : y0 + bh*.8 + 8, cw = (w0 - 8*(N - 1))/N;
     for (let z = 0; z < N; z++) L.push({id: "fol", z, x: x0 + z*(cw + 8), y: yy, w: cw, h: rows === 1 ? bh : bh*1.2 - 8});
     L.push({id: "book", z: -1, x: W - 92, y: 8, w: 84, h: TOPH - 18}); return L; }
-  function follow(z){ if (!SPEC || !Z[z]) return; local[0] = z; bV = ""; playS("warn"); if (zoomed() && LN[z]){ const L = LN[z]; camTo(L.ox + L.w/2, L.oy + L.h/2); } }
+  function follow(z){ if (!SPEC || !Z[z]) return; local[0] = z; bV = ""; playS("warn"); if (zoomed()){ CAM.fx = null; NG.fit(); } }   // 그 친구 마당이 화면 가운데에 딱 맞게
   function bars(){
     if (SPEC) return specBars();
     const L = []; const two = local.length >= 2;
@@ -1103,7 +1106,7 @@ NG.defs.rd = () => {
     if (crOpen && NG.frame % 10 === 0) crRender();
     if (NG.frame % 8 === 0) dockTick(); if (NG.frame % 12 === 3) pinTick(); selTick();   // 🎛️ 행동 줄 · 📌 목표 (바뀔 때만 다시 그려요)
     g.clearRect(0, 0, W, H);
-    const k = NG.k || 1, lk = LK(); buildLayer(); boardBG();
+    const k = NG.k || 1, lk = LK(); buildLayer(); boardBG(); if (bgURL && skyB !== BX + "," + BY + "," + C) setSky();   // 🔍 카메라가 움직였으면 판 배경 위치도 맞춰요
     g.setTransform(1, 0, 0, 1, 0, 0); if (!bgURL) g.drawImage(layer, Math.round(BX*k), Math.round(BY*k), Math.round(COLS*C*k), Math.round(ROWS*C*k));
     unitsLayer(lk); g.drawImage(uL, Math.round(BX*k), Math.round(BY*k), Math.round(COLS*C*k), Math.round(ROWS*C*k)); g.setTransform(k, 0, 0, k, 0, 0);
     const fr = NG.frame, us = Math.round(C*.62);
@@ -1276,7 +1279,7 @@ NG.defs.rd = () => {
     BARS.forEach(b => { if (b.id === "spd") return;
       if (b.id === "spl"){ const l1 = lbl(["👀", "관전 중"], land ? 24 : 22, "#ffe066"), l2 = lbl(["친구를 누르면 그 마당을 봐요"], 13, "#e5dbff"); G2.put(g, l1, b.x + 6, b.y + b.h/2 - l1.h + (land ? 4 : 10)); if (land) G2.put(g, l2, b.x + 6, b.y + b.h/2 + 6); else G2.put(g, l2, b.x + l1.w + 18, b.y + b.h/2 - l2.h/2 + 2); return; }
       if (b.id === "fol"){ const on = local[0] === b.z, p = Z[b.z]; if (!p) return; const nm = nameOf(noOf_(SIDS[b.z])), yh = N > 1 ? (TE[b.z] ? [...new Set(TE[b.z])].map(h => RD_HBI[h].e).join("") : "") : "";
-        G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), on ? RD_PC[b.z] : "#e9ecef", on ? "#5f3dc4" : "#adb5bd", [`${b.z + 1}P`, nm.length > 4 && b.w < 130 ? nm.slice(0, 4) : nm, yh, "💰", rdN(p.gold)], Math.max(12, Math.min(18, Math.floor(b.w/9))), false), b.x, b.y); return; }
+        G2.put(g, btnSpr(Math.round(b.w), Math.round(b.h), on ? RD_PC[b.z] : "#e9ecef", on ? "#5f3dc4" : "#adb5bd", b.w >= 190 ? [`${b.z + 1}P`, nm, yh, "💰", rdN(p.gold)] : [`${b.z + 1}P`, b.w < 130 && nm.length > 3 ? nm.slice(0, 3) : nm], Math.max(13, Math.min(18, Math.floor(b.w/(b.w >= 190 ? 9 : 6.5)))), false), b.x, b.y); return; }
       if (b.z < 0) return; const p = Z[b.z]; if (!p) return; const col = RD_PC[b.z];
       if (b.id === "trb"){ g.fillStyle = "rgba(255,255,255,.07)"; rrect(g, b.x - 2, b.y - 2, b.w + 4, b.h + 4, 14); g.fill(); g.strokeStyle = "rgba(255,224,102,.55)"; g.lineWidth = 2; g.stroke();
         G2.put(g, lbl(["📥", "대기 줄 · 눌러서 데려와요 · 🔄 새 줄"], 13, "#ffe066"), b.x + 6, b.y - 19); }
@@ -1634,7 +1637,7 @@ NG.defs.rd = () => {
   let saveT = 0; const onHide = () => { if (NG.cur === self) saveGame(); };
   const self = {
     get W(){ return W; }, get H(){ return H; }, maxSteps: 2, get maxPx(){ return Math.min(rdPx, party === "guest" ? 1.15e6 : 1.5e6); }, full: true, layout, save: saveGame,
-    get dbg(){ return {Z, E, wave, waveT, state, score, kills, BARS, N, LIMIT, gv, PR, FX, panel, panelBtns, bagIcons, slotXYpx: (z, i) => { const [x, y] = slotXY(z, i); return [cx(x) + C/2, cy(y) + C/2]; }, dz: DMGZ}; },
+    get dbg(){ return {Z, E, wave, waveT, state, score, kills, BARS, N, LIMIT, gv, PR, FX, panel, panelBtns, bagIcons, slotXYpx: (z, i) => { const [x, y] = slotXY(z, i); return [cx(x) + C/2, cy(y) + C/2]; }, dz: DMGZ, cam: () => ({local: local.slice(), BX, BY, C, CAM: Object.assign({}, CAM), zoomed: zoomed()})}; },
     cheat(o){ if (o.rel){ Z.forEach(p => Object.assign(p.rel, o.rel)); gv++; } if (o.it) Z.forEach(p => { p.it = o.it.slice(); }); if (o.pick) Z.forEach((p, z) => offerRel(z)); if (o.gold != null) Z.forEach(p => p.gold = o.gold); if (o.gems != null) Z.forEach(p => p.gems = o.gems); if (o.wave != null){ wave = o.wave - 1; startWave(); } if (o.put){ placeK(o.z || 0, o.put); } if (o.clear) E = []; },
     init(){
       document.body.classList.remove("rd-cr-on");
