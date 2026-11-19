@@ -74,15 +74,27 @@ const RD_A = {
   eternal: {e: "🌠", n: "영원룡",       g: 9, d: 700000, cd: 50, r: 4.8, sp: 3.0, burn: .4, t: "별을 삼키는 용"},
   yggdra:  {e: "🌳", n: "세계수 사슴",  g: 9, d: 260000, cd: 28, r: 4.0, mt: 8, bf: 1.0, t: "옆 친구 힘 +100%"},
   seaking: {e: "🔱", n: "바다 용왕",    g: 9, d: 520000, cd: 46, r: 4.6, sp: 2.8, sl: .6, t: "바다를 다스리는 왕"},
-  kgod:    {e: "🌀", n: "심해신 크라켄", g: 9, d: 600000, cd: 44, r: 4.6, mt: 4, sl: .6, t: "바다 끝의 신 · 소용돌이"}   // 🆕 (2026.11.18) 심연 크라켄 + 크라켄
+  kgod:    {e: "🌀", n: "심해신 크라켄", g: 9, d: 600000, cd: 44, r: 4.6, mt: 4, sl: .6, t: "바다 끝의 신 · 소용돌이"},   // 🆕 (2026.11.18) 심연 크라켄 + 크라켄
+  /* 🆕 (2026.11.19) 높은 등급 친구들이 더 많아졌어요 — 신화 1 · 초월 2 · 불멸 2 · 태초 2 · 창세 2 · 영원 2 */
+  mammoth: {e: "🦣", n: "매머드",       g: 4, d: 2000,   cd: 62, r: 2.4, sp: 1.4, st: .15, t: "쿵쿵 돌진 · 기절"},
+  griffin: {e: "🪽", n: "그리폰",       g: 5, d: 3800,   cd: 36, r: 4.4, mt: 3, t: "하늘 사자 · 세 갈래"},
+  rhino:   {e: "🦏", n: "강철 코뿔소",  g: 5, d: 6000,   cd: 52, r: 2.4, cr: .3, t: "강철 뿔 · 한 방"},
+  icewolf: {e: "🐺", n: "서리 늑대",    g: 6, d: 10000,  cd: 32, r: 2.8, sp: 1.2, sl: .5, t: "얼음 이빨 · 꽁꽁"},
+  thunder: {e: "⚡", n: "천둥새",       g: 6, d: 12000,  cd: 30, r: 4.0, chain: 4, t: "번개가 튕겨요"},
+  moonrab: {e: "🐇", n: "달토끼",       g: 7, d: 24000,  cd: 26, r: 3.6, mt: 5, bf: .7, t: "옆 친구 힘 +70%"},
+  hydra:   {e: "🐍", n: "히드라",       g: 7, d: 56000,  cd: 40, r: 3.8, mt: 5, t: "머리 다섯 · 다섯 갈래"},
+  sunbird: {e: "🌞", n: "태양 봉황",    g: 8, d: 160000, cd: 36, r: 4.2, mt: 3, burn: .4, t: "태양 불꽃 · 불태우기"},
+  golem:   {e: "🗿", n: "대지 거인",    g: 8, d: 150000, cd: 64, r: 2.6, sp: 2.2, st: .3, t: "땅을 흔들어 기절"},
+  chrono:  {e: "⏳", n: "시간룡",       g: 9, d: 650000, cd: 48, r: 4.8, sp: 2.8, sl: .6, t: "시간을 멈춰요"},
+  gfox:    {e: "💫", n: "은하 구미호",  g: 9, d: 480000, cd: 30, r: 4.4, mt: 9, t: "별 구슬 아홉 개"}
 };
 const RD_K = Object.keys(RD_A), RD_BY = RD_G.map((_, g) => RD_K.filter(k => RD_A[k].g === g));
 /* 🌍 사는 곳 (2026.11.18): 🌳 육지 · 🌊 바다 · ☁️ 하늘 — 자기 땅 칸에 두면 힘이 세지고, 같은 곳 친구가 모이면 무리 효과! */
 const RD_HBI = {l: {e: "🌳", n: "육지", c: "#69db7c", c2: "#2b8a3e", t: "튼튼한 힘 — 공격력이 크게 올라요"}, s: {e: "🌊", n: "바다", c: "#4dabf7", c2: "#1864ab", t: "물결 — 때리면 몬스터가 느려져요"}, a: {e: "☁️", n: "하늘", c: "#e5dbff", c2: "#7048e8", t: "바람 — 공격이 빨라지고 멀리 닿아요"}};
 const RD_HB = {};
-"mouse rabbit dog cat hedgehog fox panda lion tiger unicorn trex kirin wtiger nine titan genbu yggdra".split(" ").forEach(k => RD_HB[k] = "l");
-"frog penguin croc whale shark levi squid kraken cosmos abyss seaking kgod".split(" ").forEach(k => RD_HB[k] = "s");
-"chick parrot owl eagle dragon phoenix bdragon gdragon pegasus suzaku eternal".split(" ").forEach(k => RD_HB[k] = "a");
+"mouse rabbit dog cat hedgehog fox panda lion tiger unicorn trex kirin wtiger nine titan genbu yggdra mammoth rhino icewolf golem gfox".split(" ").forEach(k => RD_HB[k] = "l");
+"frog penguin croc whale shark levi squid kraken cosmos abyss seaking kgod hydra".split(" ").forEach(k => RD_HB[k] = "s");
+"chick parrot owl eagle dragon phoenix bdragon gdragon pegasus suzaku eternal griffin thunder moonrab sunbird chrono".split(" ").forEach(k => RD_HB[k] = "a");
 RD_K.forEach(k => { RD_A[k].hb = RD_HB[k] || "l"; });
 /* 🎚️ 무리 효과: 내 마당에서 '자기 땅 칸'에 선 같은 곳 동물이 3·6·9칸이면 */
 const RD_SET = {l: {d: [1, 1.2, 1.45, 1.8]}, s: {d: [1, 1.1, 1.2, 1.35], sl: [0, .15, .25, .4]}, a: {s: [1, 1.15, 1.3, 1.5], r: [0, .3, .6, 1]}};
@@ -358,7 +370,7 @@ NG.defs.rd = () => {
   const SPEC = party === "guest" && !!O.spec;
   const local = SPEC ? [0] : party === "guest" ? [O.idx] : (O.local || [0]).slice(0, 2);
   const remote = i => party === "host" && O.remote && O.remote[i] != null;
-  const ZS = 16, LIMIT0 = 100 + 40*(N - 1);
+  const ZS = 16, LIMIT0 = 130 + 45*(N - 1);
   let LIMIT = LIMIT0;   // 🛡️ 수호 방패 · 💥 유리 대포 유물로 바뀌어요
   let LPAD = 90, W = 1280, H = 720, land = true, C = 90, BX = 0, BY = 0, COLS = 8, ROWS = 5, GC = 1, TOPH = 70, BOTH = 120, ZO = [], LN = [], CELL = new Map(), MAPI = -1, lastSW = 1280, lastSH = 720, layer = null, layerKey = "", SH = null;   // SH: 🤝 같이 하기 공동 맵
   let Z, PS, E, PR, FX, MS, wave, waveT, spawnLeft, spawnT, state, overT, score, kills, bossK, eid, gv, speed, banner, sel, drag, ptr, panel, NQ, outbox, aseq, lastAct, sndT, ended, seed, bossTimer, frame;
@@ -368,9 +380,10 @@ NG.defs.rd = () => {
   /* 30단계부터는 조금 덜 가파르게 (예전엔 40단계에서 다 막혔어요) — 대신 🎁 유물·🎒 아이템으로 강해져요 */
   /* 🏔️ 1000단계까지: 처음엔 가파르게, 갈수록 완만하게 — 대신 💰 금도 단계마다 늘고 ⬆️ 강화는 끝없이 올라가요 */
   /* 💪 (2026.11.18 난이도 ↑↑) 체력 ×18 · 보통 몬스터 ×3.5 더 · 1~40단계 단계마다 +3.5% · 같이 하면 사람마다 +80% — 시험 봇: 아무렇게나 두면 23~29단계에서 몬스터가 넘쳐 지고, 땅·무리·조합을 잘 짜면 30~50단계 */
-  let HPK = 18, NRM = 3.5, RMP = 1.035;   /* 😤 (2026.11.18 난이도 ↑) 보통 몬스터는 보스보다 더 많이 세졌어요(×3.5) — 보스만 벽이고 보통 단계는 너무 쉬웠어요 · 1~40단계는 단계마다 3.5%씩 더 (40단계 ×3.8) */
-  const hpAt = w => HPK*15*Math.pow(RMP, Math.min(w, 40) - 1)*Math.pow(1.19, Math.min(w, 30) - 1)*Math.pow(1.16, Math.min(30, Math.max(0, w - 30)))*Math.pow(1.09, Math.min(90, Math.max(0, w - 60)))
-    *Math.pow(1.05, Math.min(150, Math.max(0, w - 150)))*Math.pow(1.036, Math.min(200, Math.max(0, w - 300)))*Math.pow(1.042, Math.max(0, w - 500))*(1 + .8*(N - 1));   // 🤝 (2026.11.18) 같이 하면 모두가 모든 몬스터를 때리니까 사람마다 +80% (동물이 사람마다 1초에 한 마리씩 오니까)
+  /* 😊 (2026.11.19 난이도 ↓) 아이들이 너무 어렵다고 해서: 체력 18→10 · 보통 몬스터 ×3.5→×2.4 · 같이 하면 사람마다 +80%→+50% · 몬스터 한도 +30 */
+  let HPK = 10, NRM = 2.4, RMP = 1.035;   /* 😤 (2026.11.18 난이도 ↑) 보통 몬스터는 보스보다 더 많이 세졌어요(×3.5) — 보스만 벽이고 보통 단계는 너무 쉬웠어요 · 1~40단계는 단계마다 3.5%씩 더 (40단계 ×3.8) */
+  const hpAt = w => HPK*15*Math.pow(RMP, Math.min(w, 40) - 1)*Math.pow(1.17, Math.min(w, 30) - 1)*Math.pow(1.15, Math.min(30, Math.max(0, w - 30)))*Math.pow(1.09, Math.min(90, Math.max(0, w - 60)))
+    *Math.pow(1.05, Math.min(150, Math.max(0, w - 150)))*Math.pow(1.036, Math.min(200, Math.max(0, w - 300)))*Math.pow(1.042, Math.max(0, w - 500))*(1 + .5*(N - 1));   // 🤝 (2026.11.18) 같이 하면 모두가 모든 몬스터를 때리니까 사람마다 +80% (동물이 사람마다 1초에 한 마리씩 오니까)
   /* 💪 (2026.11.18) 150단계부터 몬스터가 훨씬 빨리 세져요 — 예전엔 300단계 뒤 ×1.02씩이라 금(×1.025)·강화가 더 빨라서 400단계부터 너무 쉬웠어요.
      이제 150~300 ×1.05 · 300~500 ×1.036 · 500~ ×1.042 → 태초만으로는 버티기 어렵고 🌌 창세 · ♾️ 영원 조합과 강화·유물을 잘 써야 해요 */
   const gmul = () => Math.pow(1.025, Math.max(0, wave - 60));
@@ -619,7 +632,8 @@ NG.defs.rd = () => {
   function startWave(){ DMGZ = Z ? Z.map(() => 0) : []; teamK = 0;
     let msOk = false; if (MS && !MS.st){ if (MS.k === "keep" && E.length <= MS.n){ msWin(true); msOk = true; } else msFail(); }
     wave++; const boss = wave % 10 === 0, mini = !boss && wave % 5 === 0;
-    waveT = boss ? 60*60 : 20*60; spawnLeft = boss ? 0 : Math.round((30 + Math.min(14, wave*.3))*(1 + .6*(N - 1))); spawnT = 0; spawnI = N === 1 ? 28 : Math.max(6, Math.floor(waveT*.8/Math.max(1, spawnLeft)));
+    waveT = boss ? 75*60 : 20*60;   // 😊 (2026.11.19) 보스 시간 60→75초
+    spawnLeft = boss ? 0 : Math.round((30 + Math.min(14, wave*.3))*(1 + .6*(N - 1))); spawnT = 0; spawnI = N === 1 ? 28 : Math.max(6, Math.floor(waveT*.8/Math.max(1, spawnLeft)));
     if (wave > 1) Z.forEach((p, z) => { p.gold += (8 + Math.floor(wave*1.2))*gmul(); const b = RL(z, "bank"); if (b) p.gold += 30*b + Math.min(60*b, Math.floor(p.gold*.05*b)); });
     if (boss){ spawn(2); bossTimer = waveT; banner = wave === RD_END ? {t: "🏆 1000단계 마지막 보스!", s: "모두 힘을 모아요! 잡으면 정복!", k: 200, c: "#fde047"} : wave % 100 === 0 ? {t: `🌀 ${dimOf(wave)}차원 대왕 보스!`, s: "아주 튼튼해요 · 잡으면 💎 보석 듬뿍!", k: 170, c: "#e599f7"} : {t: `👑 ${wave}단계 보스!`, s: "60초 안에 꼭 잡아요!", k: 150, c: "#ff6b6b"}; sfx("boss"); }
     else { if (mini) spawn(1); banner = {t: `🏁 ${wave}단계`, s: wave % 100 === 1 && wave > 1 ? `🌀 ${dimOf(wave)}차원 돌입! 몬스터가 더 세져요` : wave % 10 === 1 ? `${th().n}에 왔어요! ${REG() === "*" ? "모든 동물 +15%" : `${RD_HBI[REG()].e} ${RD_HBI[REG()].n} 동물 +30%`}` : mini ? "😈 중간 보스가 섞여 있어요" : "", k: wave % 100 === 1 && wave > 1 ? 170 : 110, c: wave % 100 === 1 && wave > 1 ? "#e599f7" : undefined}; sfx("wave"); }
@@ -636,7 +650,7 @@ NG.defs.rd = () => {
     /* 🌀 문이 사람 수만큼: 몬스터는 친구마다 자기 마당 앞 문에서 번갈아 나와요 → 모두가 함께 때려요 · 보스는 한 마리(대신 다 같이 튼튼), 나오는 문은 돌아가며 */
     if (kind === 1 || kind === 2){ one = N; l = bossRR++ % N; } else if (l == null) l = laneRR++ % N;
     if (kind === 2 && wave >= 20 && !TTS.has(99)){ TTS.add(99); banner = {t: "🛡️ 단단한 보스 등장!", s: "받는 피해 -50% → 🛡️ 서포터가 먼저 때리면 💥 약점이 드러나 모두 +40%!", k: 220, c: "#63e6be"}; if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); }
-    const h = one*hpAt(wave)*(kind === 2 ? 20*(1 + .5*(N - 1))/N*(wave === RD_END ? 5 : wave % 100 === 0 ? 2.5 : 1) : kind === 1 ? 10*(1 + .3*(N - 1))/N : kind === 3 ? 5 : kind === 4 ? 16 : NRM)/(kind ? 1 + .25*(N - 1) : 1);
+    const h = one*hpAt(wave)*(kind === 2 ? 14*(1 + .5*(N - 1))/N*(wave === RD_END ? 5 : wave % 100 === 0 ? 2.5 : 1) : kind === 1 ? 8*(1 + .3*(N - 1))/N : kind === 3 ? 5 : kind === 4 ? 16 : NRM)/(kind ? 1 + .25*(N - 1) : 1);
     /* 몬스터 특성 (단계가 오를수록): 🛡️ 단단함(원거리 반감) · 🦇 날개(근거리 못 닿음) · 👻 유령(지원이 잘 잡음) · 🔰 방패(처음 몇 번 막음) → 역할을 섞어 배치해야 해요 */
     let tt = 0; if (kind === 0 && wave >= 12){ const r = R.f(); tt = r < .16 ? 1 : wave >= 20 && r < .3 ? 2 : wave >= 35 && r < .4 ? 3 : wave >= 50 && r < .47 ? 4 : wave >= 100 && r < .55 ? 5 : wave >= 150 && r < .62 ? 6 : 0;
       if (tt && !TTS.has(tt)){ TTS.add(tt); banner = {t: RD_TT[tt].t, s: RD_TT[tt].s, k: 200, c: "#ffd43b"}; if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); } }
@@ -896,7 +910,7 @@ NG.defs.rd = () => {
     /* 🔗 협동 표식: 다른 친구 자리의 동물에게 번갈아 맞을수록 +10%씩 더 아파요 (최대 +50%) → 길을 따라 친구들과 나눠서 지켜요 */
     if (N > 1 && z != null){ if (e.lz !== z){ if (e.lz != null) e.co = Math.min(5, (e.co || 0) + 1); e.lz = z; } if (e.co) dm *= 1 + .1*e.co; }
     /* 👑 단단한 보스: 20단계부터 받는 피해 -50% · 🛡️ 서포터가 때리면 4초 동안 💥 약점 → 모두 +40% */
-    if (e.kind === 1 || e.kind === 2){ if (A.job === "s") e.exT = 240; dm *= e.exT > 0 ? 1.4 : wave >= 20 ? (e.kind === 2 ? .5 : .7) : 1; }
+    if (e.kind === 1 || e.kind === 2){ if (A.job === "s") e.exT = 240; dm *= e.exT > 0 ? 1.4 : wave >= 20 ? (e.kind === 2 ? .65 : .8) : 1; }
     if (z != null && dm > 0) DMGZ[z] = (DMGZ[z] || 0) + Math.min(dm, Math.max(0, e.hp));   // 🤝 누가 얼마나 함께 때렸는지
     e.hp -= dm; if (A.sl){ e.slT = 90; e.slF = Math.max(e.slF, A.sl); } if (A.st && R.f() < A.st) e.stT = 40;
     const bn = (A.burn || 0) + (z != null ? .15*RL(z, "burn") : 0); if (bn){ e.bnT = 180; e.bnD = Math.max(e.bnD || 0, dm*bn/60); }

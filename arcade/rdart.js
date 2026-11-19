@@ -52,7 +52,19 @@ const RDA = {
     kraken:  {b: "#9c36b5", b2: "#5f1f73", f: "#f3d9fa", ear: "none", mantle: 1, tent: "#be4bdb", brow: 1, wing: "#da77f2"},
     abyss:   {b: "#4c2fa8", b2: "#1f1360", f: "#d0bfff", ear: "none", mantle: 1, tent: "#7048e8", brow: 1, fang: 1, wing: "#9775fa"},
     kgod:    {b: "#0c8599", b2: "#0b4f5c", f: "#c3fae8", ear: "horn", horn: "#ffd43b", mantle: 1, tent: "#22b8cf", brow: 1, wing: "#99e9f2"},
-    seaking: {b: "#1098ad", b2: "#0b7285", f: "#c5f6fa", ear: "horn", horn: "#ffd43b", spout: 1, smile: "wide", belly: 1, wing: "#66d9e8"}
+    seaking: {b: "#1098ad", b2: "#0b7285", f: "#c5f6fa", ear: "horn", horn: "#ffd43b", spout: 1, smile: "wide", belly: 1, wing: "#66d9e8"},
+    /* 🆕 (2026.11.19) 높은 등급 친구들 */
+    mammoth: {b: "#a47148", b2: "#7f5539", f: "#e6ccb2", ear: "flop", ein: "#7f5539", snout: "#c9a27e", horn: "#fff8e7", nostril: 1},
+    griffin: {b: "#ffe8a3", b2: "#d9a441", f: "#fff9e6", ear: "feather", beak: "#ffb703", hook: 1, brow: 1, body: "#b07d3b", wing: "#ffd8a8"},
+    rhino:   {b: "#adb5bd", b2: "#6c757d", f: "#e9ecef", ear: "round", ein: "#868e96", horn: "#f8f9fa", nostril: 1, snout: "#ced4da"},
+    icewolf: {b: "#e3fafc", b2: "#99e9f2", f: "#ffffff", ear: "point", ein: "#66d9e8", nose: "#1864ab", snout: "#ffffff", wh: 1, fang: 1, wing: "#c5f6fa"},
+    thunder: {b: "#5c7cfa", b2: "#364fc7", f: "#dbe4ff", ear: "feather", beak: "#ffd43b", hook: 1, brow: 1, body: "#3b5bdb", wing: "#ffe066"},
+    moonrab: {b: "#f3f0ff", b2: "#d0bfff", f: "#ffffff", ear: "long", ein: "#ffd43b", nose: "#f783ac", tooth: 1, wing: "#e5dbff"},
+    hydra:   {b: "#2f9e44", b2: "#1b5e20", f: "#d3f9d8", ear: "horn", horn: "#ffd43b", fang: 1, nostril: 1, wing: "#8ce99a"},
+    sunbird: {b: "#ffd43b", b2: "#f59f00", f: "#fff9db", ear: "feather", beak: "#ff6b6b", hook: 1, brow: 1, body: "#ff922b", wing: "#ffec99"},
+    golem:   {b: "#868e96", b2: "#495057", f: "#dee2e6", ear: "bump", arms: 1, brow: 1, teeth: 1},
+    chrono:  {b: "#e599f7", b2: "#9c36b5", f: "#f8f0fc", ear: "horn", horn: "#ffffff", wing: "#fcc2d7", nostril: 1, fang: 1},
+    gfox:    {b: "#d0bfff", b2: "#7048e8", f: "#ffffff", ear: "point", ein: "#ffd43b", nose: "#2b1d3a", cheek: "#ffffff", wing: "#b197fc"}
   },
   ell(t, x, y, rx, ry, a = 0){ t.beginPath(); t.ellipse(x, y, Math.max(.1, rx), Math.max(.1, ry), a, 0, Math.PI*2); },
   ol(t, w){ t.lineJoin = "round"; t.lineCap = "round"; t.lineWidth = w; t.strokeStyle = this.OL; t.stroke(); },
@@ -205,7 +217,7 @@ const RDA = {
   },
 
   /* ---------- 탄 ---------- */
-  SHOT: {abyss: "water", kgod: "rainbow", parrot: "feather", shark: "water", squid: "water", kraken: "water", seaking: "water", cosmos: "water", suzaku: "fire", eternal: "rainbow", yggdra: "rainbow", dragon: "fire", lion: "fire", trex: "fire", penguin: "ice", whale: "water", frog: "water", eagle: "feather", owl: "feather", chick: "feather", unicorn: "rainbow", cat: "heart", rabbit: "heart"},
+  SHOT: {griffin: "feather", thunder: "star", hydra: "water", sunbird: "fire", chrono: "rainbow", gfox: "rainbow", moonrab: "heart", icewolf: "ice", abyss: "water", kgod: "rainbow", parrot: "feather", shark: "water", squid: "water", kraken: "water", seaking: "water", cosmos: "water", suzaku: "fire", eternal: "rainbow", yggdra: "rainbow", dragon: "fire", lion: "fire", trex: "fire", penguin: "ice", whale: "water", frog: "water", eagle: "feather", owl: "feather", chick: "feather", unicorn: "rainbow", cat: "heart", rabbit: "heart"},
   shotSpr(k, g){ const ty = this.SHOT[k] || "star", c = RD_G[g].c, s = 26 + g*4;
     return G2.spr(`rds${ty}${g}`, s, s, t => { const m = s/2;
       t.fillStyle = BSA.rg(t, m, m, 1, m, [[0, "rgba(255,255,255,.9)"], [.4, ty === "fire" ? "rgba(255,146,43,.55)" : ty === "ice" ? "rgba(153,233,242,.55)" : ty === "water" ? "rgba(116,192,252,.55)" : c + "88"], [1, "rgba(255,255,255,0)"]]); t.fillRect(0, 0, s, s);
@@ -360,11 +372,22 @@ const RD_SK = {
   kraken:  {ro: "m", sk: {e: "🐙", n: "휘감기",      d: "길 위 몬스터 기절 + 12배",              mp: 12, ty: "quake", v: 12}},
   seaking: {ro: "r", sk: {e: "🔱", n: "용왕의 심판", d: "모든 몬스터 뒤로 + 26배",               mp: 12, ty: "tsunami", v: 26}},
   abyss:   {ro: "m", sk: {e: "🐙", n: "심연 휘감기", d: "길 위 몬스터 모두 기절 + 18배",          mp: 11, ty: "quake", v: 18}},
-  kgod:    {ro: "r", sk: {e: "🌀", n: "심해 소용돌이", d: "모든 몬스터 32배 + 기절",              mp: 12, ty: "nova", v: 32, stn: 1}}
+  kgod:    {ro: "r", sk: {e: "🌀", n: "심해 소용돌이", d: "모든 몬스터 32배 + 기절",              mp: 12, ty: "nova", v: 32, stn: 1}},
+  mammoth: {ro: "m", sk: {e: "🦣", n: "매머드 돌진", d: "길 위 몬스터 기절 + 5배",               mp: 12, ty: "quake", v: 5}},
+  griffin: {ro: "r", sk: {e: "🌪️", n: "하늘 회오리", d: "어디든 몬스터 여러 마리에 5배",         mp: 9,  ty: "storm", v: 5}},
+  rhino:   {ro: "m", sk: {e: "🦏", n: "강철 뿔",     d: "한 몬스터에 12배",                      mp: 8,  ty: "big", v: 12}},
+  icewolf: {ro: "m", sk: {e: "❄️", n: "서리 울음",   d: "거리 안 몬스터 꽁꽁 (2초)",             mp: 9,  ty: "freeze", v: 130}},
+  thunder: {ro: "r", sk: {e: "⚡", n: "천둥 번개",   d: "번개가 14마리를 튕기며 7배",            mp: 9,  ty: "chain", v: 7, n2: 14}},
+  moonrab: {ro: "s", sk: {e: "🌕", n: "달빛 축복",   d: "모든 친구 공격 ×2 · 속도 ×2 (6초)",     mp: 11, ty: "bless"}},
+  hydra:   {ro: "r", sk: {e: "🐍", n: "다섯 머리",   d: "앞선 몬스터 12마리에 10배",             mp: 9,  ty: "pick", v: 10, n2: 12}},
+  sunbird: {ro: "r", sk: {e: "🌞", n: "태양 불꽃",   d: "거리 안 몬스터 모두 22배 + 불태우기",   mp: 9,  ty: "burn", v: 22}},
+  golem:   {ro: "m", sk: {e: "🗿", n: "대지 거인",   d: "길 위 몬스터 기절 + 20배",              mp: 11, ty: "quake", v: 20}},
+  chrono:  {ro: "r", sk: {e: "⏳", n: "시간 멈춤",   d: "모든 몬스터 36배 + 기절",               mp: 12, ty: "nova", v: 36, stn: 1}},
+  gfox:    {ro: "r", sk: {e: "💫", n: "은하 구슬",   d: "앞선 몬스터 18마리에 30배",             mp: 9,  ty: "pick", v: 30, n2: 18}}
 };
 /* 근거리는 길 바로 옆에서만 닿는 대신 더 세게 · 원거리는 멀리서 */
 Object.entries(RD_SK).forEach(([k, v]) => { const A = RD_A[k]; if (!A) return; A.ro = v.ro; A.sk = v.sk;
-  if (v.ro === "m"){ A.r = k === "trex" || k === "titan" || k === "genbu" || k === "kraken" || k === "abyss" ? 1.7 : 1.5; A.d = Math.round(A.d*1.5); }
+  if (v.ro === "m"){ A.r = k === "trex" || k === "titan" || k === "genbu" || k === "kraken" || k === "abyss" || k === "mammoth" || k === "golem" ? 1.7 : 1.5; A.d = Math.round(A.d*1.5); }
   else if (v.ro === "r") A.r = Math.max(2.6, A.r + .4);
   else A.r = Math.max(2.3, A.r); });
 
@@ -408,12 +431,24 @@ const RD_RC = {
   kraken:  [["squid", 1], ["levi", 1], ["shark", 2]],
   seaking: [["cosmos", 1], ["kraken", 1], ["squid", 2]],
   abyss:   [["kraken", 2], ["levi", 1], ["squid", 1]],   // 🐙 창세: 크라켄 2마리
-  kgod:    [["abyss", 1], ["cosmos", 1], ["kraken", 2]]   // 🌀 영원: 심연 크라켄 + 은하 고래 + 크라켄 2마리
+  kgod:    [["abyss", 1], ["cosmos", 1], ["kraken", 2]],   // 🌀 영원: 심연 크라켄 + 은하 고래 + 크라켄 2마리
+  /* 🆕 (2026.11.19) 높은 등급 친구들 */
+  mammoth: [["lion", 1], ["panda", 2], ["hedgehog", 2]],
+  griffin: [["eagle", 2], ["lion", 1], ["dragon", 1]],
+  rhino:   [["trex", 1], ["mammoth", 1], ["croc", 2]],
+  icewolf: [["levi", 1], ["mammoth", 1], ["penguin", 3]],
+  thunder: [["griffin", 1], ["eagle", 2], ["phoenix", 1]],
+  moonrab: [["nine", 1], ["kirin", 1], ["rabbit", 3]],
+  hydra:   [["squid", 1], ["bdragon", 1], ["croc", 3]],
+  sunbird: [["gdragon", 1], ["thunder", 1], ["phoenix", 2]],
+  golem:   [["titan", 1], ["rhino", 2], ["mammoth", 2]],
+  chrono:  [["sunbird", 1], ["moonrab", 2], ["gdragon", 1]],
+  gfox:    [["suzaku", 1], ["nine", 2], ["moonrab", 1]]
 };
 const RD_RCK = Object.keys(RD_RC);
 /* ⚔️ 딜러 · 🛡️ 서포터 — 👑 보스는 단단해서(20단계부터 받는 피해 -50%) 🛡️ 서포터가 먼저 때려 '💥 약점'을 드러내야 딜러가 세게(+40%) 때려요 */
 const RD_JOB = {d: {e: "🗡️", n: "딜러", c: "#ff8787", t: "몬스터를 세게 때려 쓰러뜨려요"}, s: {e: "🛡️", n: "서포터", c: "#63e6be", t: "느리게·멈추게·응원 + 👑 보스 약점 드러내기"}};
-["mouse", "frog", "penguin", "panda", "whale", "lion", "unicorn", "kirin", "levi", "pegasus", "genbu", "yggdra", "squid"].forEach(k => { if (RD_A[k]) RD_A[k].job = "s"; });
+["mouse", "frog", "penguin", "panda", "whale", "lion", "unicorn", "kirin", "levi", "pegasus", "genbu", "yggdra", "squid", "icewolf", "moonrab", "mammoth"].forEach(k => { if (RD_A[k]) RD_A[k].job = "s"; });
 RD_K.forEach(k => { if (!RD_A[k].job) RD_A[k].job = "d"; });
 /* 이 동물이 재료로 쓰이는 조합들 */
 const RD_USE = {}; RD_RCK.forEach(t => RD_RC[t].forEach(([k]) => (RD_USE[k] = RD_USE[k] || []).push(t)));
