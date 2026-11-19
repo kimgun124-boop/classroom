@@ -265,7 +265,8 @@ const GIFTBOX = {
         <div class="gf-kids" id="gfKids">${K.map(s => `<button data-no="${s.no}" class="${gf.sel.has(s.no) ? "on" : ""}">${avI(sidOf(s.no))}<b>${s.no}</b><small>${esc(s.name)}</small></button>`).join("")}</div>
         <div class="arc-row" style="justify-content:flex-start"><button class="arc-btn sm" id="gfAll">✅ 모두 고르기</button><button class="arc-btn sm" id="gfNone">↩️ 다 풀기</button></div></div>
       <div class="ad-sec"><h4>② 무엇을?</h4>
-        <div class="arc-row" style="justify-content:flex-start"><span style="align-self:center;min-width:90px">🪙 코인</span><div class="arc-seg" id="gfCoins" style="margin:0">${[0, 10, 30, 50, 100, 300].map(v => `<button data-v="${v}" class="${gf.coins === v ? "on" : ""}">${v ? "+" + v : "없음"}</button>`).join("")}</div></div>
+        <div class="arc-row" style="justify-content:flex-start"><span style="align-self:center;min-width:90px">🪙 코인</span><div class="arc-seg" id="gfCoins" style="margin:0">${[0, 10, 30, 50, 100, 300].map(v => `<button data-v="${v}" class="${gf.coins === v ? "on" : ""}">${v ? "+" + v : "없음"}</button>`).join("")}</div>
+          <label class="cg-amt" style="margin-left:4px"><small style="font:13px 'Gowun Dodum',sans-serif;color:#b9b0dd">직접</small><input id="gfCoinN" type="number" inputmode="numeric" min="0" max="100000" step="1" value="${gf.coins}"><span>개</span></label></div>
         <div class="gf-h">🏷️ 선생님 칭호 <small>하나 고르기 · 다시 누르면 빼기</small></div>
         <div class="gf-ttls" id="gfTtls">${GIFT_TITLES.map(([v]) => `<button data-t="${v}" class="${gf.title === v ? "on" : ""}"><span class="${ttlCls(v)}">${esc(itemName("title", v))}</span></button>`).join("")}</div>
         <div class="gf-h">🎨 선생님 아바타 상 <small>여러 개 고를 수 있어요</small></div>
@@ -285,7 +286,9 @@ const GIFTBOX = {
     $("#gfKids").onclick = e => { const b = e.target.closest("[data-no]"); if (!b) return; const n = +b.dataset.no; gf.sel.has(n) ? gf.sel.delete(n) : gf.sel.add(n); b.classList.toggle("on", gf.sel.has(n)); sum(); };
     $("#gfAll").onclick = () => { K.forEach(s => gf.sel.add(s.no)); $$("#gfKids button").forEach(b => b.classList.add("on")); sum(); };
     $("#gfNone").onclick = () => { gf.sel.clear(); $$("#gfKids button").forEach(b => b.classList.remove("on")); sum(); };
-    $("#gfCoins").onclick = e => { const b = e.target.closest("[data-v]"); if (!b) return; gf.coins = +b.dataset.v; $$("#gfCoins button").forEach(x => x.classList.toggle("on", x === b)); sum(); };
+    $("#gfCoins").onclick = e => { const b = e.target.closest("[data-v]"); if (!b) return; gf.coins = +b.dataset.v; $("#gfCoinN").value = gf.coins; $$("#gfCoins button").forEach(x => x.classList.toggle("on", x === b)); sum(); };
+    $("#gfCoinN").oninput = e => { gf.coins = Math.max(0, Math.min(100000, Math.floor(+e.target.value || 0))); $$("#gfCoins button").forEach(x => x.classList.toggle("on", +x.dataset.v === gf.coins)); sum(); };
+    $("#gfCoinN").onkeydown = e => { if (e.key === "Enter"){ e.preventDefault(); e.target.blur(); } };
     $("#gfTtls").onclick = e => { const b = e.target.closest("[data-t]"); if (!b) return; gf.title = gf.title === b.dataset.t ? "" : b.dataset.t; $$("#gfTtls button").forEach(x => x.classList.toggle("on", x.dataset.t === gf.title)); sum(); };
     $("#gfAvs").onclick = e => { const b = e.target.closest("[data-k]"); if (!b) return; const k = b.dataset.k; gf.items.has(k) ? gf.items.delete(k) : gf.items.add(k); b.classList.toggle("on", gf.items.has(k)); sum(); };
     $("#gfWhyQ").onclick = e => { const b = e.target.closest("button"); if (!b) return; $("#gfWhy").value = gf.why = b.textContent.replace(/^\S+\s/, ""); };
@@ -294,9 +297,13 @@ const GIFTBOX = {
     $("#gfGo").onclick = async () => {
       const L = [...gf.sel].sort((a, b) => a - b); if (!L.length) return;
       const items = [...gf.items]; if (gf.title) items.unshift("title:" + gf.title);
+      if (gf.coins >= 5000 && !confirm(`정말 한 명에게 코인 ${gf.coins.toLocaleString()}개씩 줄까요?`)) return;
       $("#gfGo").disabled = true;
+      const sc = body.parentNode, top = sc.scrollTop;
       try {
-        for (const no of L) await Store.award(sidOf(no), {coins: gf.coins, items, why: gf.why});
+        // 화면에는 바로 들어가고, 서버 저장은 모두 동시에 (실패해도 계속 다시 해요)
+        const saved = Promise.all(L.map(no => Store.award(sidOf(no), {coins: gf.coins, items, why: gf.why})));
+        saved.then(r => { if (r.every(Boolean)) toast(`✅ ${L.length}명 상 저장 완료!`); else toast("⚠️ 일부 저장이 늦어지고 있어요 · 화면을 켜 두면 다시 올려요"); });
         if (gf.brag){
           const nm = L.length === 1 ? iga(who(L[0])) : `${L.length > 3 ? `${who(L[0])} 외 ${L.length - 1}명` : L.map(n => who(n)).join(", ")}이(가)`;
           const names = items.map(k => itemName(...k.split(":")).replace("🎁 ", ""));
@@ -304,7 +311,7 @@ const GIFTBOX = {
           CHAT.sys(`🎁 ${nm} 선생님께 ${prize}을 받았어요! 👏`);
         }
         toast(`🎁 ${L.length}명에게 상을 줬어요!`);
-        gf.sel.clear(); gf.why = ""; this.render("gift", body);
+        gf.sel.clear(); gf.why = ""; this.render("gift", body); sc.scrollTop = top;   // 보던 자리 그대로
       } catch(e){ console.error(e); alert("상을 주지 못했어요: " + (e.message || e)); $("#gfGo").disabled = false; }
     };
   };

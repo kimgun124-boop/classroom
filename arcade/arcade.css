@@ -315,3 +315,24 @@ body.arc-lite .arc-logo .g{animation:none !important}
 /* 🔇 음소거 단추 */
 .ng-top .ng-snd{font-size:20px;display:flex;align-items:center;justify-content:center}
 .snd-btn.off{background:#5c2b3d!important;color:#ffc9c9!important}
+/* 🪙 선생님 코인 주기 (2026.11.19): 숫자 정하기 막대는 위에 붙어 있고, 준 줄만 바뀌어요 */
+.cg-bar{position:sticky;top:-1px;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:#2a2268;border:1px solid #5b4bd1;border-radius:14px;padding:8px 10px;margin:6px 0 10px;box-shadow:0 6px 16px rgba(0,0,0,.35)}
+.cg-amt{display:flex;align-items:center;gap:6px;font:18px "Jua",sans-serif;color:#ffe066}
+.cg-amt input{width:110px;height:40px;box-sizing:border-box;border:2px solid #ffd43b;border-radius:10px;background:#120d33;color:#fff;font:20px "Jua",sans-serif;text-align:right;padding:0 10px}
+.cg-amt input:focus{outline:none;box-shadow:0 0 0 3px rgba(255,212,59,.35)}
+.cg-amt span{font-size:15px;color:#e5dbff}
+.cg-chips{display:flex;flex-wrap:wrap;gap:4px;flex:1;min-width:0}
+.cg-chips button{border:1px solid #4c3fb0;background:#1b1550;color:#e5dbff;border-radius:999px;padding:5px 10px;font:14px "Jua",sans-serif;cursor:pointer}
+.cg-chips button.on{background:#ffd43b;color:#2b1d5c;border-color:#ffd43b}
+.cg-all b{font-weight:400}
+.arc-coins .cc{position:relative}
+.arc-coins .cg-plus{min-width:78px}
+.arc-coins .cg-plus b{font-weight:400}
+.arc-coins .r{transition:background .25s}
+.arc-coins .r.cg-busy{background:#2e2672}
+.arc-coins .r.cg-ok{background:#1f4d33}
+.cg-fx{position:absolute;left:70px;top:-2px;font:16px "Jua",sans-serif;font-style:normal;opacity:0;pointer-events:none}
+.cg-fx.up{color:#69db7c}.cg-fx.dn{color:#ff8787}
+.cg-fx.go{animation:cgFx 1.1s ease-out}
+@keyframes cgFx{0%{opacity:0;transform:translateY(6px)}20%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-14px)}}
+@media (max-width:700px){.arc-coins .r{flex-wrap:wrap}.arc-coins .nm{width:auto;flex:1}.arc-coins .bb{width:100%;justify-content:flex-end}.cg-amt input{width:96px}}

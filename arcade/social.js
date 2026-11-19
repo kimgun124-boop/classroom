@@ -378,7 +378,7 @@ const PROF = {
   avI = (sid, cls = "avf") => avI0(sid, cls).replace(`<span class="${cls}">`, `<span class="${cls}" data-pf="${sid}">`);
   document.addEventListener("click", e => {
     const t = e.target.closest("[data-pf]"); if (!t || ARC.me === null || ARC.busy) return;
-    if (t.closest("#scrLogin, #mdCrMake, #mdCrSheet, #mdProf, .cr-pick, #lgNums")) return;
+    if (t.closest("#scrLogin, #mdCrMake, #mdCrSheet, #mdProf, .cr-pick, #lgNums, .gf-kids, button")) return;   // 단추 안 얼굴(선생님 상 주기에서 친구 고르기 등)은 단추가 할 일을 해요
     e.preventDefault(); e.stopPropagation(); PROF.open(t.dataset.pf);
   }, true);
 

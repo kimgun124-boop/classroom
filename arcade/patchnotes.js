@@ -10,6 +10,9 @@
    - k: "new"(새로 생겼어요) · "up"(더 좋아졌어요) · "fix"(고쳤어요)
    ===================================================================== */
 const NEWS = [
+  {id: "2026-11-19b", d: "11월 19일", e: "🎁", t: "선생님 코인이 바로 들어와요", items: [
+    ["fix", "🪙", "선생님이 주신 코인", "선생님이 코인이나 상을 주셨는데 가끔 안 들어오던 문제를 고쳤어요. 이제 게임하는 중에도 바로 들어와요!"]
+  ], tip: "🎁 수업 시간에 멋진 모습을 보여 주면 선생님이 코인을 주실 수도 있어요!"},
   {id: "2026-11-19a", d: "11월 19일", e: "🎙️", t: "친구랑 말로 이야기해요!", items: [
     ["new", "🎙️", "음성 채팅이 생겼어요", "💬 채팅 맨 위 ‘🎙️ 참여하기’를 누르고 마이크를 허용하면 친구들과 말로 이야기해요. 게임하면서도 계속 들려요!"],
     ["fix", "💬", "채팅이 바로바로 보여요", "보낸 말이 늦게 뜨거나, 순서가 뒤죽박죽이거나, 시간이 다르게 찍히던 문제를 고쳤어요."],
@@ -38,8 +41,8 @@ const NEWSUI = {
   key(){ return `${KEY}.news.${(Store.cls || {}).cid}.${ARC.me}`; },
   seen(){ try { return localStorage.getItem(this.key()) || ""; } catch(e){ return ""; } },
   mark(){ try { localStorage.setItem(this.key(), NEWS[0].id); } catch(e) {} this.dot(); },
-  /* 아직 안 본 소식들 (처음 들어온 친구는 가장 새 소식 하나만) */
-  unseen(){ const s = this.seen(); if (!s) return NEWS.slice(0, 1); const i = NEWS.findIndex(n => n.id === s); return i < 0 ? NEWS.slice(0, 1) : NEWS.slice(0, i).slice(0, 3); },
+  /* 아직 안 본 소식들 (처음 들어온 친구는 가장 최근 날짜의 소식들) */
+  unseen(){ const s = this.seen(), i = s ? NEWS.findIndex(n => n.id === s) : -1; return i < 0 ? NEWS.filter(n => n.d === NEWS[0].d).slice(0, 3) : NEWS.slice(0, i).slice(0, 3); },
   card(n, big){
     return `<section class="nw-sec${big ? " big" : ""}">
       <div class="nw-hd"><span class="nw-e">${n.e}</span><div><small>${esc(n.d)} 업데이트</small><b>${esc(n.t)}</b></div></div>
