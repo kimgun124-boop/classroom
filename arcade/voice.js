@@ -25,7 +25,7 @@ const VOICE = {
     if (t && t.urls){ const u = String(t.urls).split(/[\s,]+/).filter(x => /^turns?:/.test(x)); if (u.length) l.push({urls: u, username: t.u || "", credential: t.p || ""}); }
     return l;
   },
-  chName(ch){ if (ch === "all") return "🌈 우리반 전체"; const r = CROOM.get(ch); return r ? `${r.dm ? "💌" : r.e || "💬"} ${CROOM.title(r)}` : "대화방"; },
+  chName(ch){ if (ch === "all") return "🌈 우리반 전체"; if (/^g_/.test(ch)) return "🎮 게임방 친구들"; const r = CROOM.get(ch); return r ? `${r.dm ? "💌" : r.e || "💬"} ${CROOM.title(r)}` : "대화방"; },
   /* 왜 못 들어가는지 ("" = 들어갈 수 있어요) */
   why(ch){
     const me = ARC.me;
@@ -38,6 +38,7 @@ const VOICE = {
     if ((Store.cls || {}).closed) return "🔒 지금은 오락실 쉬는 시간이에요";
     if (this.off()) return "🤫 선생님이 음성 채팅을 잠깐 껐어요";
     const m = CHAT.muted(me); if (m) return `🔇 ${hhmm(m)}까지 채팅을 쉬어요`;
+    if (ch && /^g_/.test(ch)) return typeof PARTY !== "undefined" && PARTY.role && PARTY.pid === ch.slice(2) ? "" : "🎮 게임방에 있어야 그 방 음성 채팅을 할 수 있어요";   // 🎮 같은 게임방 친구들끼리
     if (ch && ch !== "all"){ const r = CROOM.get(ch); if (!r) return "방이 없어졌어요"; if (!CROOM.mine(r)) return "🙋 방에 들어가야 음성 채팅을 할 수 있어요"; }
     return "";
   },
@@ -110,6 +111,7 @@ const VOICE = {
   /* 3초마다: 약속 확인 · 오래 조용한 친구 정리 */
   tick(){
     if (!this.ch) return;
+    if (/^g_/.test(this.ch)){ const ok = typeof PARTY !== "undefined" && PARTY.role && PARTY.pid === this.ch.slice(2); if (ok) this.gLost = 0; else if (!this.gLost) this.gLost = Date.now(); else if (Date.now() - this.gLost > 10000){ this.gLost = 0; return this.leave(true, "🎮 게임방이 끝나서 방 음성 채팅에서 나왔어요"); } }
     const w = this.why(this.ch);
     if (w && !/쉬어요/.test(w)) return this.leave(true, w);
     if (w && this.mic && this.track){ this.mic = false; this.track.enabled = false; this.pub().catch(() => {}); toast(w); }
@@ -263,6 +265,7 @@ const VOICE = {
       const on = x.hold > 0 && !(id === "me" && !this.mic);
       if (!!this.speak[id] !== on){ this.speak[id] = on; ch = true; }
     }
+    if (ch) this.duck();
     if (ch) $$("[data-vsid]").forEach(el => { const id = el.dataset.vsid === this.me ? "me" : el.dataset.vsid; el.classList.toggle("sp", !!this.speak[id]); });
   },
 
@@ -390,7 +393,7 @@ const VOICE = {
   #vcBar{padding:4px 16px 2px}
   .vc-acts{margin-left:auto}
 }
-body.arc-playing #vcPill{right:auto;left:max(8px,env(safe-area-inset-left));top:calc(50% + 32px);bottom:auto;padding:3px 4px;opacity:.92}
+body.arc-playing #vcPill{right:auto;left:max(8px,env(safe-area-inset-left));top:calc(50% + 52px);bottom:auto;padding:3px 4px;opacity:.92}
 body.arc-playing #vcPill .vc-ppl{max-width:84px}
 body.ch-kb #vcPill{display:none}`;
   document.head.appendChild(st);
@@ -438,4 +441,71 @@ body.ch-kb #vcPill{display:none}`;
     $("#avOn").onchange = e => this.patch({voice: {off: !e.target.checked}}, e.target.checked ? "🎙️ 음성 채팅을 켰어요" : "🤫 음성 채팅을 껐어요");
     $("#avTurnSave").onclick = () => this.patch({turn: {urls: $("#avTurnU").value.trim(), u: $("#avTurnN").value.trim(), p: $("#avTurnP").value.trim()}}, "💾 TURN 서버를 저장했어요 (다음 연결부터 써요)");
   };
+})();
+
+
+/* =====================================================================
+   🎮🎙️ 게임하면서 음성 채팅 (2026.11.19)
+   - 게임 화면 왼쪽에 작은 🎙️ 단추 → [🎮 이 게임방 친구들] (같이 하는 방에 있을 때) · [🌈 우리반 전체] 중에 골라 바로 참여
+   - 온라인 방(대기실)에도 '🎙️ 방 친구들과 말하기' 단추 — 시작 전부터 이야기하고, 게임 중에도 그대로 이어져요
+   - 게임방 음성은 그 방이 끝나면(10초 기다려 봐도 방이 없으면) 저절로 나와요
+   - 🔉 친구가 말할 때는 게임 소리를 살짝 줄여서 말이 잘 들려요 (말이 끝나면 다시 원래대로)
+   - ⚡ 렉 없게: 소리는 게임과 다른 길(따로 연결)로 오가고, 화면은 바뀔 때만 다시 그려요
+   ===================================================================== */
+Object.assign(VOICE, {
+  gameCh(){ return typeof PARTY !== "undefined" && PARTY.role && PARTY.pid ? "g_" + PARTY.pid : null; },
+  /* 🔉 친구가 말하면 게임 소리를 낮춰요 */
+  duck(){ try { if (typeof SND === "undefined" || !SND.out) return; const other = this.ch && Object.keys(this.speak).some(id => id !== "me" && this.speak[id]);
+    const v = !SND.on ? 0 : !this.ch ? 1 : other ? .3 : .75, g = SND.out.gain; if (Math.abs((this.duckV == null ? 1 : this.duckV) - v) < .01) return; this.duckV = v;
+    g.cancelScheduledValues(SND.out.context.currentTime); g.setTargetAtTime(v, SND.out.context.currentTime, other ? .05 : .4); } catch(e) {} },
+  /* 🎮 게임 화면의 🎙️ 단추 (아직 음성에 안 들어갔을 때) */
+  drawGameBtn(){
+    let el = document.getElementById("vcGame");
+    const show = document.body.classList.contains("arc-playing") && !this.ch && ARC.me != null && LIVE.cloud() && !this.off() && !(typeof NG !== "undefined" && NG.ended) && !document.body.classList.contains("ch-kb");
+    if (!show){ if (el) el.hidden = true; return; }
+    if (!el){ el = document.createElement("div"); el.id = "vcGame"; document.body.appendChild(el);
+      ["pointerdown", "pointerup", "touchstart", "touchend", "mousedown", "keydown"].forEach(ev => el.addEventListener(ev, e => e.stopPropagation(), {passive: true}));
+      el.onclick = e => { const b = e.target.closest("[data-vg]"); if (!b){ return; } e.stopPropagation(); const a = b.dataset.vg;
+        if (a === "open"){ this.gOpen = !this.gOpen; this.drawGameBtn(); return; }
+        if (a === "x"){ this.gOpen = false; this.drawGameBtn(); return; }
+        this.gOpen = false; this.join(a === "g" ? this.gameCh() : "all"); }; }
+    el.hidden = false;
+    const gc = this.gameCh(), wg = gc ? this.why(gc) : "x", wa = this.why("all");
+    const h = this.joining ? `<span class="vg-wait">🎤 마이크 켜는 중…</span>` : !this.gOpen ? `<button class="vg-go" data-vg="open" title="음성 채팅">🎙️</button>`
+      : `<div class="vg-menu"><b>🎙️ 누구랑 말할까요?</b>${gc ? `<button data-vg="g"${wg ? " disabled" : ""}>🎮 이 게임방 친구들${wg ? `<small>${esc(wg)}</small>` : `<small>같이 하는 친구들끼리만</small>`}</button>` : ""}<button data-vg="all"${wa ? " disabled" : ""}>🌈 우리반 전체${wa ? `<small>${esc(wa)}</small>` : `<small>반 친구 누구나 (8명까지)</small>`}</button><button class="vg-x" data-vg="x">✕ 닫기</button><small class="vg-tip">🎧 이어폰을 끼면 소리가 울리지 않아요</small></div>`;
+    if (el._h !== h){ el._h = h; el.innerHTML = h; }
+  },
+  /* 🏠 온라인 방 대기실 안에 '방 친구들과 말하기' 줄 */
+  roomRow(){
+    const box = document.getElementById("wbRooms"); if (!box || !PARTY.role || !PARTY.pid) return;
+    let row = box.querySelector(".vg-room"); const gc = this.gameCh(), here = this.ch === gc, why = this.why(gc);
+    if (!row){ row = document.createElement("div"); row.className = "vg-room"; box.prepend(row); row.onclick = e => { const b = e.target.closest("[data-vr]"); if (!b) return; e.stopPropagation(); const a = b.dataset.vr; if (a === "join") this.join(this.gameCh()); else if (a === "mic") this.toggleMic(); else if (a === "leave") this.leave(); }; }
+    const L = here ? this.list(this.mem, true) : [];
+    const h = here ? `<span>🟢 <b>방 음성 연결됨</b> · ${L.length}명</span><div class="vc-ppl">${L.map(x => this.face(x.sid, x.p, x.sid === this.me)).join("")}</div><button class="vc-b ${this.track && this.mic ? "mic" : "off"}" data-vr="mic">${!this.track ? "🎧 듣기만" : this.mic ? "🎤 켜짐" : "🔇 꺼짐"}</button><button class="vc-b end" data-vr="leave">나가기</button>`
+      : why ? `<span>🎙️ 방 음성 채팅 · <small>${esc(why)}</small></span>`
+      : `<span>🎙️ <b>방 친구들과 말로 이야기</b><small>게임 중에도 계속 들려요</small></span><button class="vc-b go" data-vr="join"${this.joining ? " disabled" : ""}>${this.joining ? "🎤 켜는 중…" : this.ch ? "🎙️ 이 방으로 옮기기" : "🎙️ 참여하기"}</button>`;
+    if (row._h !== h){ row._h = h; row.innerHTML = h; }
+  }
+});
+(function(){
+  const st = document.createElement("style"); st.textContent = `
+#vcGame{position:fixed;left:max(8px,env(safe-area-inset-left));top:calc(50% + 52px);z-index:930}
+#vcGame[hidden]{display:none}
+#vcGame .vg-go{width:46px;height:46px;border-radius:50%;border:2px solid rgba(105,219,124,.7);background:rgba(20,15,46,.88);font-size:22px;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.35);-webkit-tap-highlight-color:transparent}
+#vcGame .vg-wait{display:block;background:rgba(20,15,46,.94);color:#fff;border-radius:14px;padding:8px 12px;font:14px "Jua",sans-serif}
+#vcGame .vg-menu{display:flex;flex-direction:column;gap:6px;width:min(250px,70vw);background:rgba(20,15,46,.96);border:1px solid rgba(105,219,124,.5);border-radius:16px;padding:10px;box-shadow:0 10px 30px rgba(0,0,0,.45);color:#fff;font:15px "Jua",sans-serif}
+#vcGame .vg-menu button{border:0;border-radius:12px;padding:9px 10px;text-align:left;font:16px "Jua",sans-serif;color:#fff;background:linear-gradient(160deg,#51cf66,#2b8a3e);cursor:pointer;display:flex;flex-direction:column}
+#vcGame .vg-menu button small{font:11.5px "Gowun Dodum",sans-serif;opacity:.85}
+#vcGame .vg-menu button:disabled{background:#495057;opacity:.75}
+#vcGame .vg-menu .vg-x{background:rgba(255,255,255,.12);align-items:center}
+#vcGame .vg-tip{font:11.5px "Gowun Dodum",sans-serif;color:#c5f6fa}
+.vg-room{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:rgba(64,192,87,.12);border:1px solid rgba(105,219,124,.45);border-radius:14px;padding:8px 10px;margin-bottom:8px;color:#fff;font:15px "Jua",sans-serif}
+.vg-room span{display:flex;flex-direction:column;flex:1 1 140px}.vg-room small{font:11.5px "Gowun Dodum",sans-serif;color:#b9b0dd}
+.vg-room .vc-ppl{flex:1 1 90px}`;
+  document.head.appendChild(st);
+  const dr = VOICE.draw; VOICE.draw = function(){ dr.apply(this, arguments); this.drawGameBtn(); this.roomRow(); this.duck(); };
+  if (typeof PARTY !== "undefined"){ const rr = PARTY.renderRooms; PARTY.renderRooms = function(){ const r = rr.apply(this, arguments); VOICE.paint(); return r; };
+    const lv = PARTY.leave; PARTY.leave = function(){ const r = lv.apply(this, arguments); VOICE.paint(); return r; }; }
+  /* 소리 켜기/끄기(🔊)를 바꾸면 줄인 정도도 다시 맞춰요 */
+  setInterval(() => { if (VOICE.ch || VOICE.duckV != null && VOICE.duckV !== 1) VOICE.duck(); }, 1500);
 })();
