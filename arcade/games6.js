@@ -429,6 +429,14 @@ NG.defs.rd = () => {
     { const TP = rdGen(N, ti, land); GC = 1; COLS = TP.w; ROWS = TP.h;
       const aw = W - 10, ah = H - TOPH - BOTH - 40;
       C = Math.floor(Math.min(130, aw/COLS, ah/ROWS)); BX = Math.round((W - COLS*C)/2); BY = Math.round(TOPH + 34 + (ah - ROWS*C)/2);
+      /* 🔍 (2026.11.19) 같이 할 때 휴대폰·태블릿에서 맵이 너무 작으면 → '내 마당 크게 보기' (카메라)
+         내 마당과 둘레 길이 화면을 채우게 크게 · 빈 땅을 끌면 맵을 움직여요 · 오른쪽 위 작은 지도로 전체를 보고 눌러서 이동 */
+      const sc = Math.min(sw/W, sh/H), my = two ? -1 : (local[0] != null ? local[0] : 0), Zb = my >= 0 && TP.zones[my] ? TP.zones[my].box : null;
+      CAM.can = N > 1 && !!Zb && C*sc < 62; CAM.fitC = C;
+      if (CAM.can && CAM.on){ const m = 1.05, bw = Zb[2] - Zb[0] + m*2, bh = Zb[3] - Zb[1] + m*2;
+        C = Math.max(C, Math.floor(Math.min(84/sc, aw/bw, ah/bh)));
+        if (CAM.fx == null || CAM.key !== N + "|" + ti + "|" + land){ CAM.fx = (Zb[0] + Zb[2])/2; CAM.fy = (Zb[1] + Zb[3])/2; CAM.key = N + "|" + ti + "|" + land; }
+        camTo(CAM.fx, CAM.fy, true); }
       const path = TP.path.map(([x, y]) => [x + .5, y + .5]);
       SH = {ox: 0, oy: 0, w: TP.w, h: TP.h, map: TP, path, front: TP.front, doors: TP.doors};
       LN = []; CELL = new Map(); ZO = [];
@@ -437,6 +445,27 @@ NG.defs.rd = () => {
         L.slots.forEach(([x, y], s) => CELL.set(Math.floor(x) + "," + Math.floor(y), {z, i: s})); LN.push(L); });
       calcTerr(); bufV = -1; layerKey = ""; panel = null; }
   }
+  /* 🔍 카메라: 맵 칸(fx, fy)을 판 가운데로 · 판 밖으로 너무 나가지 않게 */
+  const CAM = {on: (() => { try { return localStorage.getItem("arcade.rdcam") !== "0"; } catch(e){ return true; } })(), can: false, fx: null, fy: null, key: "", fitC: 0};
+  function camArea(){ return [5, TOPH + 34, W - 5, H - BOTH - 6]; }
+  function camTo(fx, fy, quiet){ const [ax0, ay0, ax1, ay1] = camArea(), mw = COLS*C, mh = ROWS*C;
+    let bx = (ax0 + ax1)/2 - fx*C, by = (ay0 + ay1)/2 - fy*C;
+    bx = mw <= ax1 - ax0 ? (ax0 + ax1 - mw)/2 : Math.min(ax0, Math.max(ax1 - mw, bx)); by = mh <= ay1 - ay0 ? (ay0 + ay1 - mh)/2 : Math.min(ay0, Math.max(ay1 - mh, by));
+    BX = Math.round(bx); BY = Math.round(by); CAM.fx = ((ax0 + ax1)/2 - BX)/C; CAM.fy = ((ay0 + ay1)/2 - BY)/C; if (!quiet) setSky(); }
+  function camToggle(){ CAM.on = !CAM.on; try { localStorage.setItem("arcade.rdcam", CAM.on ? "1" : "0"); } catch(e) {} CAM.fx = null; playS("warn"); NG.fit(); }
+  const zoomed = () => CAM.can && CAM.on;
+  /* 🗺️ 작은 지도 (오른쪽 위) · 그 아래 🔍/🗺️ 단추 */
+  function mmRect(){ const w = Math.round(Math.min(land ? 200 : 120, W*.2)), h = Math.round(Math.min(w*ROWS/COLS, (H - TOPH - BOTH)*(land ? .34 : .2))), w2 = Math.round(h*COLS/ROWS); return {x: W - w2 - 10, y: TOPH + 40, w: w2, h}; }
+  function camBtn(){ const m = zoomed() ? mmRect() : {x: W - 10, y: TOPH + 40 - 8, w: 0, h: 0}, bw = land ? 150 : 128, bh = land ? 46 : 42; return {x: m.x + m.w - bw, y: m.y + m.h + 8, w: bw, h: bh}; }
+  function mmDraw(g, fr){ if (!CAM.can) return; const b = camBtn();
+    if (zoomed()){ const m = mmRect(), sx = m.w/(COLS*C), sy = m.h/(ROWS*C);
+      G2.put(g, sp(`mm${layerKey}${m.w}x${m.h}`, m.w + 8, m.h + 8, t => { t.fillStyle = "rgba(15,10,40,.78)"; rrect(t, 0, 0, m.w + 8, m.h + 8, 12); t.fill(); if (layer) t.drawImage(layer, 4, 4, m.w, m.h);
+        LN.forEach((L, z) => { t.strokeStyle = RD_PC[z]; t.lineWidth = z === local[0] ? 3 : 1.5; t.strokeRect(4 + L.ox*C*sx, 4 + L.oy*C*sy, L.w*C*sx, L.h*C*sy); }); }), m.x - 4, m.y - 4);
+      g.fillStyle = "#ff6b6b"; for (const e of E){ const r = e.kind ? 4 : 2; g.fillRect(m.x + e.x*C*sx - r, m.y + e.y*C*sy - r, r*2, r*2); }
+      const [ax0, ay0, ax1, ay1] = camArea(); g.strokeStyle = "#fff"; g.lineWidth = 2; g.strokeRect(m.x + Math.max(0, (ax0 - BX)*sx), m.y + Math.max(0, (ay0 - BY)*sy), Math.min(m.w, (ax1 - ax0)*sx), Math.min(m.h, (ay1 - ay0)*sy)); }
+    G2.put(g, btnSpr(b.w, b.h, zoomed() ? "#e7f5ff" : "#ffd43b", zoomed() ? "#74c0fc" : "#f08c00", zoomed() ? ["🗺️", "전체 보기"] : ["🔍", "크게 보기"], 17), b.x, b.y);
+    if (kHint){ const l = lbl(["Z"], 12, "#fff"); g.fillStyle = "rgba(0,0,0,.55)"; rrect(g, b.x + 4, b.y + b.h - l.h - 4, l.w + 8, l.h + 2, 7); g.fill(); G2.put(g, l, b.x + 8, b.y + b.h - l.h - 3); } }
+  let pan = null;
   const plOf = l => (LN[l] || LN[0]).path.length;
   function posAt(d, l){ const P = (LN[l || 0] || LN[0]).path, n = P.length; d = ((d % n) + n) % n; const i = Math.floor(d), f = d - i, a = P[i], b = P[(i + 1) % n]; return [a[0] + (b[0] - a[0])*f, a[1] + (b[1] - a[1])*f]; }
   /* 맵이 바뀌면(10단계마다) 길·자리를 다시 만들어요 */
@@ -447,9 +476,11 @@ NG.defs.rd = () => {
   const UOFF = [[[0, -.04]], [[-.21, 0], [.21, 0]], [[0, -.2], [-.22, .13], [.22, .13]]];
 
   /* ---------- 그림 ---------- */
+  /* 🧠 크게 보기로 맵 그림이 너무 커지면(태블릿) 그림판 해상도를 줄여요 — 메모리·렉 방지 (최대 600만 점) */
+  const LK = () => { const k = NG.k || 1, a = COLS*C*ROWS*C*k*k; return a > 6e6 ? k*Math.sqrt(6e6/a) : k; };
   function buildLayer(){
     const key = `${th().n}|${W}|${H}|${C}|${N}|${MAPI}`; if (key === layerKey && layer) return; layerKey = key;
-    const k = NG.k || 1; layer = layer || document.createElement("canvas"); layer.width = Math.ceil(COLS*C*k); layer.height = Math.ceil(ROWS*C*k);
+    const k = LK(); layer = layer || document.createElement("canvas"); layer.width = Math.ceil(COLS*C*k); layer.height = Math.ceil(ROWS*C*k);
     const t = layer.getContext("2d"); t.setTransform(k, 0, 0, k, 0, 0); t.clearRect(0, 0, layer.width, layer.height);
     const T = th(), ti = Math.min(9, Math.floor((Math.max(1, wave) - 1)/10)), TP = RD_TOP[ti], rr = BSA.rng(7 + ti*13), dep = C*.26;
     (SH ? [SH] : LN).forEach((L, z) => {
@@ -607,7 +638,7 @@ NG.defs.rd = () => {
     const d0 = (SH && SH.doors && SH.doors[0]) || 0, p0 = posAt(d0, l); E.push({id: ++eid, kind, l, d: d0, tr: 0, hp: h*(tt === 1 ? 1.3 : tt === 6 ? .75 : 1), mhp: h*(tt === 1 ? 1.3 : tt === 6 ? .75 : 1), spd: KSPD(kind)*(tt === 2 ? 1.25 : tt === 6 ? 1.7 : 1), slT: 0, slF: 0, stT: 0, x: p0[0], y: p0[1], f: R.f()*60|0, tt, sh: tt === 4 ? 3 + Math.floor(wave/25) : 0}); }
   const TTS = new Set();
   function setSky(){ const cv = $("#ngCanvas"); cv.style.backgroundImage = (bgURL ? `url(${bgURL}),` : "") + th().sky; cv.style.backgroundColor = "#1c1d52";
-    if (bgURL){ cv.style.backgroundSize = `${COLS*C/W*100}% ${ROWS*C/H*100}%, 100% 100%`; cv.style.backgroundPosition = `${W > COLS*C ? BX/(W - COLS*C)*100 : 0}% ${H > ROWS*C ? BY/(H - ROWS*C)*100 : 0}%, 0 0`; cv.style.backgroundRepeat = "no-repeat"; } else { cv.style.backgroundSize = ""; cv.style.backgroundPosition = ""; } }
+    if (bgURL){ cv.style.backgroundSize = `${COLS*C/W*100}% ${ROWS*C/H*100}%, 100% 100%`; cv.style.backgroundPosition = `${Math.abs(W - COLS*C) > .5 ? BX/(W - COLS*C)*100 : 0}% ${Math.abs(H - ROWS*C) > .5 ? BY/(H - ROWS*C)*100 : 0}%, 0 0`; cv.style.backgroundRepeat = "no-repeat"; } else { cv.style.backgroundSize = ""; cv.style.backgroundPosition = ""; } }
   /* ⚡ 판 그림은 CSS 배경으로 (매 장면 붙이지 않아요) — 준비되기 전에는 캔버스에 붙여요 */
   let bgURL = null, bgKey = "";
   function boardBG(){ if (bgKey === layerKey) return; bgKey = layerKey; const key = layerKey; bgURL = null; setSky();
@@ -1059,9 +1090,9 @@ NG.defs.rd = () => {
     if (crOpen && NG.frame % 10 === 0) crRender();
     if (NG.frame % 8 === 0) dockTick(); if (NG.frame % 12 === 3) pinTick(); selTick();   // 🎛️ 행동 줄 · 📌 목표 (바뀔 때만 다시 그려요)
     g.clearRect(0, 0, W, H);
-    const k = NG.k || 1; buildLayer(); boardBG();
-    g.setTransform(1, 0, 0, 1, 0, 0); if (!bgURL) g.drawImage(layer, Math.round(BX*k), Math.round(BY*k));
-    unitsLayer(k); g.drawImage(uL, Math.round(BX*k), Math.round(BY*k)); g.setTransform(k, 0, 0, k, 0, 0);
+    const k = NG.k || 1, lk = LK(); buildLayer(); boardBG();
+    g.setTransform(1, 0, 0, 1, 0, 0); if (!bgURL) g.drawImage(layer, Math.round(BX*k), Math.round(BY*k), Math.round(COLS*C*k), Math.round(ROWS*C*k));
+    unitsLayer(lk); g.drawImage(uL, Math.round(BX*k), Math.round(BY*k), Math.round(COLS*C*k), Math.round(ROWS*C*k)); g.setTransform(k, 0, 0, k, 0, 0);
     const fr = NG.frame, us = Math.round(C*.62);
     // 3마리 모인 칸: 반짝이는 🔀 표시 (동물 그림은 위 한 장에 들어 있어요)
     for (let z = 0; z < N; z++){ if (!isMine(z)) continue; Z[z].s.forEach((q, i) => { if (!q.k || q.n < 3 || RD_A[q.k].g >= RD_MG) return; const [x, y] = slotXY(z, i); g.globalAlpha = .55 + Math.sin(fr*.15)*.4; G2.put(g, lbl(["🔀"], 20), cx(x - .5) + 1, cy(y - .5) - 2); g.globalAlpha = 1; }); }
@@ -1123,7 +1154,7 @@ NG.defs.rd = () => {
         const [sx, sy] = slotXY(crZ, i), X = cx(sx), Y = cy(sy); g.lineWidth = use ? 5 : 3; g.strokeStyle = i === crDest ? "#fab005" : use ? "#51cf66" : "rgba(255,212,59,.9)";
         if (!use) g.setLineDash([8, 6]); g.beginPath(); g.arc(X, Y, r, 0, 7); g.stroke(); g.setLineDash([]);
         if (use){ g.fillStyle = "#51cf66"; g.beginPath(); g.arc(X - r*.7, Y - r*.7, 11, 0, 7); g.fill(); g.fillStyle = "#fff"; g.font = "bold 14px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("✔", X - r*.7, Y - r*.7); } }); }
-    emDraw(g, fr); drawTop(g, fr); drawBottom(g); bagDraw(g); drawMission(g, fr);
+    emDraw(g, fr); drawTop(g, fr); drawBottom(g); bagDraw(g); drawMission(g, fr); mmDraw(g, fr);
     if (party === "guest" && performance.now() - (PARTY.rxT || 0) > 2500){ g.fillStyle = "rgba(10,6,30,.55)"; g.fillRect(0, H/2 - 60, W, 120); outlined(g, "📡 방장 화면을 받고 있어요…", W/2, H/2 - 6, 38, "#ffe066"); outlined(g, PARTY.hp && PARTY.hp.relay ? "☁️ 다리(저장소)로 연결 중 · 잠깐만 기다려요" : "자동으로 다시 이어요 · 나가지 말고 기다려요", W/2, H/2 + 36, 22, "#fff"); }
     if (banner && banner.k > 0){ /* 👀 (2026.11.18) 큰 알림이 판 한가운데 동물을 가렸어요 → 위쪽에 작은 띠로 (반투명 바탕) */
       const by0 = TOPH + 40, bh = banner.s ? 74 : 46; g.globalAlpha = Math.min(1, banner.k/18)*.92; g.fillStyle = "rgba(15,10,40,.62)"; const bw = Math.min(W*.9, Math.max(dlW(banner.t, land ? 34 : 30), banner.s ? dlW(banner.s, 19) : 0) + 70); rrect(g, W/2 - bw/2, by0, bw, bh, 18); g.fill(); g.globalAlpha = Math.min(1, banner.k/18);
@@ -1509,7 +1540,11 @@ NG.defs.rd = () => {
     for (const b of BARS){ if (!b.info && inR(b, x, y)){ press(b); if (b.id !== "up" && b.id !== "luck") panel = null; return; } }
     for (const b of BARS){ if (b.id === "trb" && inR(b, x, y)) return; }   // 📥 카드 사이 틈을 눌러도 판이 반응하지 않게
     panel = null;
+    if (CAM.can){ const cb = camBtn(); if (inR(cb, x, y)){ camToggle(); return; }
+      if (zoomed()){ const m = mmRect(); if (inR(m, x, y)){ camTo((x - m.x)/m.w*COLS, (y - m.y)/m.h*ROWS); playS("warn"); return; } } }
+    if (y < TOPH || y > H - BOTH) return;   // 👆 위 막대·아래 단추 줄 사이 틈으로 그 밑의 맵이 눌리지 않게
     const s = slotAt(x, y);
+    if (zoomed() && (!s || !isMine(s.z)) && !crOpen && !grab){ pan = {id, sx: x, sy: y, fx: CAM.fx, fy: CAM.fy, mv: false, s}; return; }   // 🔍 빈 땅을 끌면 맵 움직이기 (톡 = 원래처럼)
     if (crOpen){   // 🧪 조합 창을 연 채로 마당을 눌러도 돼요: 내 동물 = 재료 넣기/빼기 (📍 모드면 만들 자리)
       if (s && s.z === crZ){ crCur = s.i; crTap(s.i); } return; }
     if (grab && s && s.z === grab.z){ if (s.i !== grab.i){ act(grab.z, ["mov", grab.i, s.i]); playS("merge"); } sel = {z: s.z, i: s.i}; grab = null; return; }   // ✋ 옮기기: 다음에 누른 칸으로
@@ -1522,8 +1557,11 @@ NG.defs.rd = () => {
   }
   /* 👆 (2026.11.18) 손가락이 살짝 떨려도 '톡'으로 알아들어요: 화면에서 18px 넘게 움직여야 끌기 (예전엔 판 기준 14칸 → 휴대폰에선 7px만 움직여도 끌기가 돼서 눌러도 안 골라졌어요) */
   const dragTh = () => Math.max(14, 18/Math.max(.2, NG.s || 1));
-  function move(x, y, id){ if (!drag || drag.id !== id) return; drag.x = x; drag.y = y; const p = ptr.get(id); if (p && Math.hypot(x - p.sx, y - p.sy) > dragTh() && Z[drag.z].s[drag.i].k) drag.on = true; }
-  function up(x, y, id){ if (!drag || drag.id !== id) return; const d = drag; drag = null; ptr.delete(id);
+  function move(x, y, id){ if (pan && pan.id === id){ const dx = x - pan.sx, dy = y - pan.sy; if (!pan.mv && Math.hypot(dx, dy) > dragTh()) pan.mv = true; if (pan.mv) camTo(pan.fx - dx/C, pan.fy - dy/C); return; }
+    if (!drag || drag.id !== id) return; drag.x = x; drag.y = y; const p = ptr.get(id); if (p && Math.hypot(x - p.sx, y - p.sy) > dragTh() && Z[drag.z].s[drag.i].k) drag.on = true; }
+  function up(x, y, id){ if (pan && pan.id === id){ const p0 = pan; pan = null; if (p0.mv) return;
+      if (emPick){ emClose(); return; } if (p0.s){ sel = null; return; } if (N > 1 && !sel && x > BX && x < BX + COLS*C && y > BY && y < BY + ROWS*C){ emOpen((x - BX)/C, (y - BY)/C); return; } sel = null; return; }
+    if (!drag || drag.id !== id) return; const d = drag; drag = null; ptr.delete(id);
     if (d.on && (slotAt(x, y) || {}).i === d.i && (slotAt(x, y) || {}).z === d.z) d.on = false;   // 같은 칸에서 떼면 '톡'
     if (d.on){ const s = slotAt(x, y); if (s && s.z === d.z && s.i !== d.i){ act(d.z, ["mov", d.i, s.i]); if (sel && sel.z === d.z) sel = {z: d.z, i: s.i}; playS("sell"); } return; }
     sel = sel && sel.z === d.z && sel.i === d.i ? null : (Z[d.z].s[d.i].k ? {z: d.z, i: d.i} : null); }
@@ -1612,7 +1650,7 @@ NG.defs.rd = () => {
     },
     draw, down, move, up,
     key(code, d, e){
-      const KEYS = ["Space", "Enter", "KeyM", "KeyQ", "Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "KeyL", "KeyF", "KeyE", "KeyV", "KeyB", "KeyC", "KeyX", "KeyR", "KeyG", "KeyP", "KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Escape", "Tab"];
+      const KEYS = ["Space", "Enter", "KeyM", "KeyQ", "Digit1", "Digit2", "Digit3", "Digit4", "Digit5", "Digit6", "Digit7", "Digit8", "Digit9", "KeyL", "KeyF", "KeyE", "KeyV", "KeyZ", "KeyB", "KeyC", "KeyX", "KeyR", "KeyG", "KeyP", "KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Escape", "Tab"];
       if (!d || (e && e.repeat && !/^Arrow|^Key[WASD]$/.test(code))) return KEYS.includes(code);
       if (!kHint){ kHint = true; bV = ""; }
       if (RDB.isOpen && (code === "KeyB" || code === "Escape")){ RDB.close(); return true; }   // 📖 도감을 연 채로도 다른 키는 게임에 그대로
@@ -1641,6 +1679,7 @@ NG.defs.rd = () => {
       if (Z[z1].pick && /^Digit[123]$/.test(code)){ act(z1, ["rel", +code[5] - 1]); playS("up"); return true; }
       if (/^Digit[56789]$/.test(code)){ const i = +code[5] - 5; if (Z[z1].it[i]) act(z1, ["it", i]); return true; }
       if (code === "KeyV"){ act(z1, ["rr"]); return true; }   // 🔄 새 줄
+      if (code === "KeyZ"){ if (CAM.can) camToggle(); return true; }   // 🔍 크게 보기 ↔ 🗺️ 전체
       const M = {Space: [z1, "tkb"], KeyQ: [z1, "all"], KeyE: [z1, "luck0"], Digit1: [z1, "up0"], Digit2: [z1, "up1"], Digit3: [z1, "up2"], Digit4: [z1, "up3"],
                  Enter: [z2, "tkb"], KeyM: [z2, "all"], KeyL: [z2, "luck0"], KeyF: [-1, "spd"], KeyB: [-1, "book"]};
       if (!two){ M.Enter = [z1, "tkb"]; M.KeyM = [z1, "all"]; M.KeyL = [z1, "luck0"]; }
