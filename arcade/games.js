@@ -166,7 +166,7 @@ const NG = {
   }
 };
 $("#ngOver").addEventListener("click", e => { const b = e.target.closest("[data-ng]"); if (!b) return; if (b.dataset.ng === "again") NG.again(); else NG.close(); });
-$("#ngClose").onclick = () => { if (NG.cur && NG.cur.full && !NG.ended && !confirm("게임을 그만하고 나갈까요?")) return; NG.close(); };   // 📱 꽉 찬 화면에선 ✕가 판 위에 있어서 잘못 눌러도 바로 나가지 않게
+$("#ngClose").onclick = () => { if (NG.cur && NG.cur.full && !NG.ended && !NG.cur.spec && !confirm("게임을 그만하고 나갈까요?")) return; NG.close(); };   // 📱 꽉 찬 화면에선 ✕가 판 위에 있어서 잘못 눌러도 바로 나가지 않게
 /* ⌨️ 채팅 글자를 칠 때 화면 키보드가 올라오면 창 크기가 바뀌어요 → 그때마다 게임판을 다시 짜면 버벅이고 글자 칸이 흔들려서
    글자 칸에 있는 동안은 게임판을 그대로 두고, 글자 칸에서 나오면 한 번만 맞춰요 */
 const typing = () => { const a = document.activeElement; return !!a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.isContentEditable); };
