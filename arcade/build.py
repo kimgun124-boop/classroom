@@ -251,7 +251,7 @@ for k, v in {
     "/*{{CORE_JS}}*/": rd("core.js"),
     "/*{{AV_JS}}*/": av_js + "\n" + rd("avatar.js"),
     "/*{{GAME_JS}}*/": game_js,
-    "/*{{NEW_JS}}*/": rd("games.js") + "\n" + rd("net.js") + "\n" + rd("lobby.js") + "\n" + rd("gift.js") + "\n" + rd("games2.js") + "\n" + rd("color.js") + "\n" + rd("games3.js") + "\n" + rd("warrior.js") + "\n" + rd("games4.js") + "\n" + rd("games5.js") + "\n" + rd("qdgear.js") + "\n" + rd("coop.js") + "\n" + rd("games6.js") + "\n" + rd("rdart.js") + "\n" + rd("rdshop.js") + "\n" + rd("vkey.js") + "\n" + rd("praise.js") + "\n" + rd("rhythm.js") + "\n" + rd("social.js") + "\n" + rd("ingame.js") + "\n" + rd("voice.js"),
+    "/*{{NEW_JS}}*/": rd("games.js") + "\n" + rd("net.js") + "\n" + rd("lobby.js") + "\n" + rd("gift.js") + "\n" + rd("games2.js") + "\n" + rd("color.js") + "\n" + rd("games3.js") + "\n" + rd("warrior.js") + "\n" + rd("games4.js") + "\n" + rd("games5.js") + "\n" + rd("qdgear.js") + "\n" + rd("coop.js") + "\n" + rd("games6.js") + "\n" + rd("rdart.js") + "\n" + rd("rdshop.js") + "\n" + rd("vkey.js") + "\n" + rd("praise.js") + "\n" + rd("rhythm.js") + "\n" + rd("social.js") + "\n" + rd("ingame.js") + "\n" + rd("voice.js") + "\n" + rd("patchnotes.js"),
 }.items():
     assert out.count(k) == 1, k
     out = out.replace(k, v)
@@ -285,3 +285,7 @@ out = out.replace("{{BUILD}}", _build)
 open(os.path.join(ROOT, "arcade-version.json"), "w", encoding="utf-8").write(json.dumps({"b": _build}) + "\n")
 open(os.path.join(ROOT, "arcade.html"), "w", encoding="utf-8").write(out)
 print(f"arcade.html 완성 ({len(out.encode('utf-8'))//1024} KB)")
+
+# 📢 새 소식(패치노트) 확인: 오락실을 고쳤으면 arcade/patchnotes.js 맨 위에 아이들용 안내를 더해요
+_m = re.search(r'\{id: "([^"]+)", d: "([^"]+)", e: "[^"]*", t: "([^"]+)"', rd("patchnotes.js"))
+print(f"📢 새 소식 맨 위: {_m.group(1)} · {_m.group(2)} · {_m.group(3)}  ← 이번에 고친 내용이 들어 있나요?" if _m else "⚠️ patchnotes.js에서 새 소식을 찾지 못했어요")
