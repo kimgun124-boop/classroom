@@ -110,8 +110,10 @@ const QG = (() => {
     skin: ["#f3cfae", "#f6d7bb", "#e8b48f", "#c98b62", "#8d5a3b"],
     cape: ["", "#c92a2a", "#1864ab", "#2b8a3e", "#5f3dc4", "#e67700", "#212529", "#f8f9fa", "#d6336c", "#0ca678"],
     acc:  ["", "#ffd43b", "#ff6b6b", "#74c0fc", "#69db7c", "#da77f2", "#ffffff", "#ff922b"]};
-  async function setLook(sid, clsId, k, v){ await Store.kidTx(sid, w => { const q = JSON.parse(JSON.stringify(w.qd || {})); q.look = Object.assign({}, q.look || {}); q.look[clsId] = Object.assign({}, q.look[clsId] || {}); if (v) q.look[clsId][k] = v; else delete q.look[clsId][k]; w.qd = q; return w; }); }
-  async function setAura(sid, v){ await Store.kidTx(sid, w => { const q = JSON.parse(JSON.stringify(w.qd || {})); q.aura = v; w.qd = q; return w; }); }
+  /* 🎨 꾸미기는 코인이 안 드니 바로 저장(인터넷이 잠깐 끊겨도 기기에 먼저 저장 → 나중에 올라가요) */
+  async function setLook(sid, clsId, k, v){ const w = walletOf(sid), L = Object.assign({}, ((w.qd || {}).look || {})[clsId] || {}); if (v) L[k] = v; else delete L[k];
+    await Store.putFields(sid, {[`qd.look.${clsId}`]: L}); }
+  async function setAura(sid, v){ await Store.putFields(sid, {"qd.aura": v == null ? null : v}); }
 
   /* ---------- 사고 끼기 ---------- */
   async function buy(sid, clsId, slot){
@@ -137,7 +139,7 @@ const QG = (() => {
       if (!q.pets[id]){ if ((w.coins || 0) < P.price) throw new Error(`코인이 ${(P.price - (w.coins || 0)).toLocaleString()}개 모자라요`); w.coins -= P.price; q.pets[id] = Date.now(); }
       q.pet = id; w.qd = q; return w; });
   }
-  async function petOff(sid){ await Store.kidTx(sid, w => { const q = JSON.parse(JSON.stringify(w.qd || {})); q.pet = null; w.qd = q; return w; }); }
+  async function petOff(sid){ await Store.putFields(sid, {"qd.pet": null}); }
 
   /* ---------- 🛒 상점 화면 ---------- */
   const UI = {

@@ -356,7 +356,7 @@ const PROF = {
     if (self){ $("#pfBioF").onsubmit = async e => { e.preventDefault(); const t = $("#pfBio").value.replace(/\s+/g, " ").trim().slice(0, 30);
       if (t && CHAT.bad(t)) return $("#pfMsg").textContent = "🙅 쓸 수 없는 말이 있어요";
       if (/https?:|www\./i.test(t)) return $("#pfMsg").textContent = "🔗 주소(링크)는 안 돼요";
-      try { await Store.kidTx(sid, x => Object.assign(x, {bio: t})); $("#pfMsg").textContent = "✅ 저장했어요"; } catch(err){ $("#pfMsg").textContent = "⚠️ 저장하지 못했어요"; } }; }
+      try { await Store.putFields(sid, {bio: t}); $("#pfMsg").textContent = "✅ 저장했어요"; } catch(err){ $("#pfMsg").textContent = "⚠️ 저장하지 못했어요"; } }; }
     body.onclick = async e => {
       const b = e.target.closest("[data-pa],[data-pg],[data-pr]"); if (!b) return;
       if (b.dataset.pa === "shop"){ ARC.modal("#mdProf", false); SHOP.open(sid); }

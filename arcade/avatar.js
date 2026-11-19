@@ -343,7 +343,7 @@ const SHOP = {
     try { await Store.buy(this.sid, un.map(k => `${k}:${this.draft[k]}`), cost, this.draft); SFX.rec(); toast(`🛍️ 샀어요! 🪙 -${cost.toLocaleString()}`); this.burst(); this.render(); }
     catch(e){ toast("⚠️ " + (e.message || e)); this.render(); }
   },
-  async save(){ await Store.putAv(this.sid, this.draft); toast("💾 이대로 입었어요!"); ARC.modal("#mdShop", false); },
+  async save(){ const sid = this.sid, av = Object.assign({}, this.draft); ARC.modal("#mdShop", false); toast("💾 이대로 입었어요!"); await Store.putAv(sid, av); },
   burst(){ const c = $("#shPrevBox"); c.insertAdjacentHTML("beforeend", NG.conf(60)); setTimeout(() => { const x = c.querySelector(".ng-conf"); if (x) x.remove(); }, 4500); }
 };
 (function(){

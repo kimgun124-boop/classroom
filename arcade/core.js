@@ -208,7 +208,7 @@ const Store = {
     this.mode = "cloud"; this.cls = first.data();
     localStorage.setItem(KEY + ".join", JSON.stringify({c: cfg, i: cid}));
     fs.onSnapshot(this.refCls, s => { if (s.exists()){ this.cls = s.data(); this.ok = true; this.emit(); } }, e => { this.ok = false; this.err = e.message; this.emit(); });
-    fs.onSnapshot(fs.collection(db, "arcade", cid, "kids"), qs => { const k = {}; qs.forEach(d => k[d.id] = d.data()); this.kids = this.withPending(k); this.ok = true; this.emit(); if (!this._rp){ this._rp = 1; setTimeout(() => this.replayBackup(), 4000); } }, e => { this.ok = false; this.err = e.message; this.emit(); });
+    fs.onSnapshot(fs.collection(db, "arcade", cid, "kids"), qs => { const k = {}; qs.forEach(d => k[d.id] = d.data()); this._raw = JSON.parse(JSON.stringify(k)); this.kids = this.withPending(k); this.ok = true; this.emit(); if (!this._rp){ this._rp = 1; setTimeout(() => this.replayBackup(), 4000); } }, e => { this.ok = false; this.err = e.message; this.emit(); });
     fs.onSnapshot(fs.collection(db, "arcade", cid, "recs"), qs => { const r = {}; qs.forEach(d => r[d.id] = d.data()); this.recs = r; this.ok = true; this.emit(); }, e => { this.ok = false; this.err = e.message; this.emit(); });
     return true;
   },
@@ -277,7 +277,7 @@ const Store = {
        서버에 저장하다 실패하면(인터넷·다른 기기와 겹침) 알려 주고 서버 값으로 되돌려요. */
     const fs = this.fs, ref = this.kidRef(sid), P = this._pend = this._pend || {}, job = {fn};
     (P[sid] = P[sid] || []).push(job);        // 저장이 끝나기 전에 서버 소식이 와도 산 것이 사라져 보이지 않게(아래 withPending)
-    const done = () => { P[sid] = (P[sid] || []).filter(j => j !== job); if (!P[sid].length) delete P[sid]; this.paintSaving(); };
+    const done = () => { P[sid] = (P[sid] || []).filter(j => j !== job); if (!P[sid].length) delete P[sid]; this.paintSaving(); this.rebase(sid); };
     this.paintSaving();
     /* 🔁 절대 잃어버리지 않게: 인터넷이 끊기거나 다른 기기와 겹쳐도 포기하지 않고 다시 해요
        (끊겼으면 인터넷이 돌아올 때까지 기다렸다가 · 1→2→4→8…초 간격으로 최대 12번). 코인이 모자라는 것처럼 '규칙' 때문에 막힌 것만 바로 멈춰요 */
@@ -300,6 +300,9 @@ const Store = {
     return k;
   },
   saving(){ return Object.keys(this._pend || {}).length > 0 || (this._wn || 0) > 0; },
+  /* 저장이 끝나면 마지막 서버 값 위에 '아직 남은' 변경만 다시 얹어요
+     (서버 소식이 저장 완료보다 먼저 오면 같은 코인이 두 번 더해져 보이던 것 고침) */
+  rebase(sid){ const R = this._raw; if (!R || !(sid in R)) return; this.kids[sid] = this.withPending({[sid]: JSON.parse(JSON.stringify(R[sid]))})[sid]; this.emit(); },
   async flush(){ try { await this._txq; } catch(_){} try { if (this.fs && this.fs.waitForPendingWrites && this.db) await Promise.race([this.fs.waitForPendingWrites(this.db), sleep(8000)]); } catch(_){} },
   paintSaving(){ const s = this.saving(); document.body && document.body.classList.toggle("arc-saving", s); },
   /* 🪙 코인 규칙: 하루 한도(0 = 무제한) · 이벤트 배율(×1~×3) */
@@ -360,7 +363,32 @@ const Store = {
     await this.kidTx(sid, w => { if ((w.coins || 0) < cost) throw new Error("코인이 모자라요");
       w.coins -= cost; w.owned = Object.assign({}, w.owned); keys.forEach(k => w.owned[k] = Date.now()); if (av) w.av = JSON.parse(JSON.stringify(av)); return w; });
   },
-  async putAv(sid, av){ av = JSON.parse(JSON.stringify(av)); await this.kidTx(sid, w => Object.assign(w, {av})); },
+  /* 👕 아바타처럼 '내 것만 바꾸는 칸'은 트랜잭션 없이 바로 써요 (2026.11.19)
+     → 인터넷이 잠깐 끊겨도 기기 안(IndexedDB)에 먼저 저장되고, 다시 연결되면 Firebase가 알아서 올려요(앱을 다시 켜도).
+        예전엔 '읽고-쓰기' 묶음(트랜잭션)이라 학교 와이파이가 잠깐 끊기면 '저장하지 못했어요' + 되돌리기로 아바타가 사라졌어요.
+     fields = {av: {...}} 처럼 칸 이름 → 값 (점 경로 'qd.look.kn' 도 돼요). 그 칸만 통째로 바꾸고 코인·산 물건은 건드리지 않아요.
+     코인이 걸린 일(사기·강화)은 예전처럼 kidTx로 안전하게. */
+  async putFields(sid, fields){
+    fields = JSON.parse(JSON.stringify(fields, (k, v) => v === undefined ? null : v));
+    const setPath = (w, path, v) => { const ks = path.split("."); let o = w; ks.slice(0, -1).forEach(k => { o[k] = Object.assign({}, o[k] || {}); o = o[k]; }); o[ks[ks.length - 1]] = v; return w; };
+    const fn = w => { for (const k in fields) setPath(w, k, fields[k]); return w; };
+    const cur = Object.assign({coins: 0, total: 0, owned: {}}, JSON.parse(JSON.stringify(this.kids[sid] || {})));
+    this.kids[sid] = fn(cur); this.emit();
+    if (this.mode === "local") return this.saveLocal();
+    const fs = this.fs, ref = this.kidRef(sid), P = this._pend = this._pend || {}, job = {fn};
+    (P[sid] = P[sid] || []).push(job); this.paintSaving();
+    const done = () => { P[sid] = (P[sid] || []).filter(j => j !== job); if (!P[sid].length) delete P[sid]; this.paintSaving(); this.rebase(sid); };
+    const doc = {}; for (const k in fields) setPath(doc, k, fields[k]);
+    const go = async () => { for (let k = 0; ; k++){
+        try { await fs.setDoc(ref, doc, {mergeFields: Object.keys(fields)}); return; }
+        catch(e){ if (k >= 11 || /permission|invalid-argument/.test(String(e && e.code))) throw e; console.warn("👕 다시 저장해요", k + 1, e && e.code); await sleep(Math.min(30000, 1000*2**k)); await waitOnline(); } } };
+    const w = go();
+    w.then(done).catch(async e => { console.error(e); done(); toast("⚠️ 저장하지 못했어요: " + (e.message || "인터넷을 확인해 주세요"));
+      try { const d = await fs.getDoc(ref); this.kids[sid] = this.withPending({[sid]: d.exists() ? d.data() : {}})[sid]; this.emit(); } catch(_){} });
+    // 기기 안 저장은 바로 끝나요 → 서버 확인까지 기다리지 않고 돌아가요(오프라인이어도 화면이 멈추지 않게)
+    return Promise.race([w.catch(() => {}), sleep(1200)]);
+  },
+  async putAv(sid, av){ return this.putFields(sid, {av}); },
   /* 선생님이 코인 주기·빼기 */
   async give(sid, n){ await this.kidTx(sid, w => Object.assign(w, {coins: Math.max(0, (w.coins || 0) + n), total: (w.total || 0) + Math.max(0, n)})); },
   /* 이 기기 기록 → Firebase 로 옮기기 */
