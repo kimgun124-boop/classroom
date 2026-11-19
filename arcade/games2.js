@@ -622,7 +622,7 @@ const PARTY = {
     }
     if (this.role === "guest"){
       const M = this.members.length ? this.members : [this.host, ARC.me];
-      if (this.spec){ box.innerHTML = `<div class="wb-wait">👀 <b>${esc(who(this.host))}</b>의 판을 보러 가는 중… ${this.on() ? "곧 화면이 보여요!" : "연결하는 중이에요"}</div><div class="arc-row"><button class="arc-btn" id="wbPLeave">✕ 그만 보기</button></div>`;
+      if (this.spec){ box.innerHTML = `<div class="wb-wait">👀 <b>${esc(who(this.host))}</b>의 판을 보러 가는 중… ${this.specWait ? "⏳ 지금은 판과 판 사이예요 · 다음 판이 시작되면 바로 보여요!" : this.on() ? "곧 화면이 보여요!" : "연결하는 중이에요"}</div><div class="arc-row"><button class="arc-btn" id="wbPLeave">✕ 그만 보기</button></div>`;
         $("#wbPLeave").onclick = () => { this.leave(); this.renderRooms(); }; return; }
       box.innerHTML = `<div class="wb-wait">${this.rjBack ? `🔁 <b>${esc(who(this.host))}</b>의 판으로 다시 들어가는 중… 곧 내 마당이 보여요!` : this.on() ? `✅ <b>${esc(who(this.host))}</b>의 방에 들어왔어요! 방장이 시작하길 기다려요…` : `🔌 <b>${esc(who(this.host))}</b>의 방에 연결하는 중…`}</div>
         <div class="wb-slots">${M.map((no, i) => `<div class="wb-slot on">${face(no)}<b>${i === 0 ? "👑 " : ""}${esc(who(no))}</b></div>`).join("")}${this.bots ? `<div class="wb-slot bot"><span class="f">🤖</span><b>컴퓨터 ×${this.bots}</b></div>` : ""}</div>
@@ -664,7 +664,11 @@ const PARTY = {
     let P = this.peers.get(no);
     if (d.st === "relay" && this.CFG[this.gid].relay){ this.relayPeer(no, d); return; }
     /* 👀 관전하러 온 친구: 판에 끼지 않고 화면만 받아요 (최대 SPECMAX명) */
-    if (d.w && d.st === "knock"){ if (!this.started || !this.canSpec() || (this.specs().length >= this.SPECMAX && !(P && P.spec))){ Store.fs.updateDoc(this.ref(this.pid, "peers", id), {st: "full"}).catch(() => {}); return; }
+    if (d.w && d.st === "knock"){
+      // 👀 못 받는 이유를 알려 줘요: 판과 판 사이면 '기다려요'(다음 판이 시작되면 바로 보여 줘요)
+      const why = !this.canSpec() ? "game" : !this.started ? "wait" : (this.specs().length >= this.SPECMAX && !(P && P.spec)) ? "max" : "";
+      if (why){ Store.fs.updateDoc(this.ref(this.pid, "peers", id), {st: why === "wait" ? "wait" : "full", why}).catch(() => {}); return; }
+      if (P && !P.spec && this.members.includes(no) && P.open){ return; }   // 지금 같이 하는 친구는 관전으로 바꾸지 않아요
       if (P && P.kAt === d.at) return; if (P){ this.peers.delete(no); const pc0 = P.pc; setTimeout(() => { try { pc0 && pc0.close(); } catch(e) {} }, 0); }
       const pc = new RTCPeerConnection({iceServers: this.ice()});
       P = {no, pc, u: pc.createDataChannel("u", {ordered: false, maxRetransmits: 0}), r: pc.createDataChannel("r"), last: {}, open: false, idx: -1, kAt: d.at, spec: true};
@@ -797,6 +801,7 @@ const PARTY = {
     if (!P){
       const ch = {readyState: "open", bufferedAmount: 0, send: str => this.rlyPut(no, str)};
       P = {no, relay: true, open: true, r: ch, u: ch, last: {}, inN: 0, idx: -1, ngK: 0}; this.peers.set(no, P);
+      if (d.w && (!this.started || !this.canSpec())){ this.rlyPut(no, JSON.stringify({t: "full", why: this.canSpec() ? "wait" : "game"})); this.peers.delete(no); return; }   // 👀 관전은 판이 진행 중일 때만 (대기실 친구로 끼지 않게)
       if (this.started && d.w && this.canSpec()){ P.spec = true; if (this.startMsg) this.rlyPut(no, JSON.stringify(Object.assign({}, this.startMsg, {idx: -1, spec: 1}))); this.lastGv = -1; this.rlyStart(); }   // 👀 관전도 다리로
       else if (this.started){ const i = this.members.indexOf(no); if (i <= 0){ this.rlyPut(no, '{"t":"full"}'); this.peers.delete(no); return; }
         P.idx = i; if (this.startMsg) this.rlyPut(no, JSON.stringify(Object.assign({}, this.startMsg, {idx: i}))); this.lastGv = -1; toast(`☁️ ${who(no)} 기기는 다리(저장소)로 이어졌어요`); }
@@ -865,13 +870,21 @@ const PARTY = {
       this.un.push(fs.onSnapshot(myRef, s => this.onMyDoc(s.exists() ? s.data() : null), () => {}));
       this.un.push(fs.onSnapshot(this.ref(pid), s => { const d = s.exists() ? s.data() : null; if (this.role !== "guest") return;
         if (!d || d.st === "closed"){ this.hostGone("방장이 방을 닫았어요"); } }, () => {}));
-      clearTimeout(this.conT); this.conT = setTimeout(() => { if (this.role === "guest" && !this.on()){ if (this.canRelay()) this.relayJoin(); else this.hostGone("🔌 방장 기기와 연결되지 않았어요. 같은 와이파이인지 확인하고 다시 해 보세요."); } }, this.canRelay() ? 7000 : 20000);
+      this.armCon = () => { clearTimeout(this.conT); this.conT = setTimeout(() => { if (this.role === "guest" && !this.on() && !this.specWait){ if (this.canRelay()) this.relayJoin(); else this.hostGone("🔌 방장 기기와 연결되지 않았어요. 같은 와이파이인지 확인하고 다시 해 보세요."); } }, this.canRelay() ? 7000 : 20000); };
+      this.myRef = myRef; this.specTry = 0; this.specWait = false; this.armCon();
     } catch(e){ console.error(e); toast("⚠️ 방에 들어가지 못했어요"); this.leave(); this.renderRooms(); }
   },
   async onMyDoc(d){
     if (this.role !== "guest") return;
     if (!d){ return; }
-    if (d.st === "full"){ this.hostGone(this.spec ? "👀 관전 자리가 꽉 찼거나 판이 끝났어요" : "방이 꽉 찼거나 이미 시작했어요"); return; }
+    if (d.st === "wait" && this.spec){   // 👀 판과 판 사이: 3초마다 다시 똑똑 (최대 2분) → 다음 판이 시작되면 바로 보여요
+      this.specWait = true; clearTimeout(this.conT); this.renderRooms();
+      if (++this.specTry > 40){ this.hostGone("👀 친구가 다음 판을 시작하지 않았어요. 조금 뒤에 다시 눌러 보세요"); return; }
+      clearTimeout(this.specT); this.specT = setTimeout(() => { if (this.role !== "guest" || !this.spec || !this.myRef) return; this.specWait = false; this.armCon();
+        Store.fs.setDoc(this.myRef, {no: ARC.me, st: "knock", at: Date.now(), w: 1}).catch(() => {}); }, 3000);
+      return; }
+    if (d.st === "full"){ const W = {max: `👀 관전 자리(${this.SPECMAX}명)가 꽉 찼어요. 조금 뒤에 다시 눌러 보세요`, game: "👀 이 게임은 관전할 수 없어요"};
+      this.hostGone(this.spec ? (W[d.why] || "👀 방장 친구 기기가 예전 버전이라 관전을 못 받아요 · 방장 친구가 🔄 새로고침하면 볼 수 있어요") : "방이 꽉 찼거나 이미 시작했어요"); return; }
     if (this.hp && this.hp.relay) return;
     if (d.offer && !this.hp){
       const pc = new RTCPeerConnection({iceServers: this.ice()}), H = this.hp = {pc, u: null, r: null};
@@ -905,7 +918,7 @@ const PARTY = {
     }
     else if (m.t === "end"){ this.rjClear(); this.game && this.game.end(m.w, m.wins, m); }
     else if (m.t === "cont"){ if (typeof CONT !== "undefined") CONT.resume(); this.game && this.game.cont && this.game.cont(); toast("▶ 방장이 이어하기를 눌렀어요! 다시 출동!"); }
-    else if (m.t === "full"){ this.hostGone(this.spec ? "👀 관전 자리가 꽉 찼어요" : "방이 꽉 찼거나 이미 시작했어요"); }
+    else if (m.t === "full"){ this.hostGone(this.spec ? (m.why === "wait" ? "👀 지금은 판과 판 사이예요 · 친구가 다음 판을 시작하면 다시 눌러 보세요" : m.why === "game" ? "👀 이 게임은 관전할 수 없어요" : `👀 관전 자리(${this.SPECMAX}명)가 꽉 찼어요`) : "방이 꽉 찼거나 이미 시작했어요"); }
     else if (m.t === "bye"){ this.hostGone("방장이 방을 나갔어요"); }
   },
   tickGuest(){
@@ -936,7 +949,7 @@ const PARTY = {
   leave(){
     const role = this.role; if (!role){ this.unwatchRooms(); return; }
     if (role === "guest" && !(NG.cur && NG.gid === this.gid && NG.opt && NG.opt.party === "guest" && !NG.ended)) this.rjClear();
-    this.role = null; this.spec = false; clearInterval(this.beat); clearTimeout(this.conT); clearInterval(this.wdT); clearTimeout(this.waitT); this.waitT = 0; this.rlyStop();
+    this.role = null; this.spec = false; this.specWait = false; clearTimeout(this.specT); this.myRef = null; clearInterval(this.beat); clearTimeout(this.conT); clearInterval(this.wdT); clearTimeout(this.waitT); this.waitT = 0; this.rlyStop();
     this.un.forEach(f => { try { f(); } catch(e) {} }); this.un = [];
     const fs = Store.fs, pid = this.pid;
     if (role === "host"){
