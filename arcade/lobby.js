@@ -6,7 +6,7 @@
    - ⚡ 렉 줄이기: 바뀐 칸만 다시 그리기, 아바타는 그림으로 한 번만, 접속 신호는 4분에 한 번
    ===================================================================== */
 const hhmm = t => { const d = new Date(t || 0); return `${d.getHours()}:${String(d.getMinutes()).padStart(2, "0")}`; };
-const agoTxt = t => { const m = Math.floor((Date.now() - (t || 0))/60000); return m < 1 ? "방금" : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m/60)}시간 전` : `${Math.floor(m/1440)}일 전`; };
+const agoTxt = t => { const m = Math.max(0, Math.floor((CLOCK.now() - (t || 0))/60000)); return m < 1 ? "방금" : m < 60 ? `${m}분 전` : m < 1440 ? `${Math.floor(m/60)}시간 전` : `${Math.floor(m/1440)}일 전`; };
 const isT = no => +no === TEACHER;
 let avI = (sid, cls = "avf") => `<span class="${cls}">${avHTMLof(sid, {still: true, face: true})}</span>`;
 const gameOn = gid => !((Store.cls && Store.cls.off) || {})[gid];
@@ -15,6 +15,77 @@ const gameOn = gid => !((Store.cls && Store.cls.off) || {})[gid];
    🔴 실시간 반 소식: 접속 중 · 채팅 · 대결방
    ☁️ Firebase 반: arcade/{반}/on · chat · lobby  /  💻 이 기기: localStorage (같은 기기의 다른 창끼리)
    ===================================================================== */
+/* =====================================================================
+   ⏰ 반 공통 시계 (2026.11.19)
+   태블릿·휴대폰마다 시계가 몇 분씩 틀려 있어서, 채팅이 엉뚱한 자리에 끼거나(안 보이거나)
+   시간이 다르게 찍혔어요 → Firebase 서버 시계에 맞춘 '반 공통 시간'을 써요.
+   ===================================================================== */
+const CLOCK = {
+  off: 0, good: false, busy: false, at: 0,
+  now(){ return Date.now() + this.off; },
+  /* 1) 웹 주소(서버)의 시계로 먼저 대충 맞추고 (1초 단위) */
+  async http(){
+    try {
+      const t0 = Date.now(), r = await fetch("arcade-version.json?clk=" + t0, {cache: "no-store"}), t1 = Date.now(), d = Date.parse(r.headers.get("date") || "");
+      if (d && !this.good && t1 - t0 < 3000){ const o = d + 500 - (t0 + t1)/2; this.off = Math.abs(o) > 1500 ? o : 0; }
+    } catch(e) {}
+  },
+  /* 2) Firebase 서버 시계로 정확하게 (10분마다 다시) */
+  async sync(){
+    if (this.busy || !LIVE.cloud() || ARC.me === null || ARC.me === undefined) return;
+    this.busy = true; this.at = Date.now();
+    const fs = Store.fs, ref = fs.doc(Store.db, "arcade", Store.cid, "clock", sidOf(ARC.me));
+    try {
+      const t0 = Date.now();
+      await fs.setDoc(ref, {sv: fs.serverTimestamp(), c: t0});
+      const t1 = Date.now(), d = await fs.getDocFromServer(ref), sv = d.exists() && d.data().sv;
+      // 서버에 쓴 순간 ≈ 보낸 때와 '저장됐어요' 받은 때의 가운데
+      if (sv && sv.toMillis && t1 - t0 < 4000){ this.off = sv.toMillis() - (t0 + t1)/2; this.good = true; }
+      } catch(e){ console.warn("[시계]", e); }
+    this.busy = false;
+  },
+  start(){
+    this.http();
+    setInterval(() => { if (!document.hidden && Date.now() - this.at > 10*60000) this.sync(); }, 60000);
+  }
+};
+CLOCK.start();
+
+/* =====================================================================
+   ⌨️ 채팅 글자 칸 (반 전체 · 대화방 · 게임 중 채팅 모두)
+   - 한글을 치다가 Enter/보내기를 누르면 마지막 글자가 남거나, 두 번 보내지거나,
+     '같은 말을 또 보내지 않아요'에 걸려 안 보내지던 문제를 막아요 (글자 조합이 끝난 뒤에 보내요)
+   - 보내기를 누르면 글자 칸은 바로 비우고(기다리지 않아요), 못 보냈으면 글자를 다시 돌려놔요
+   ===================================================================== */
+function chatWire(form, inp, go){
+  inp._go = go;
+  if (inp._cw) return; inp._cw = 1;
+  let comp = false, want = false, lock = 0, kick = 0;
+  const fire = async () => {
+    want = false; clearTimeout(kick);
+    if (comp || inp.disabled) return;
+    const t = inp.value; if (!t.trim()) return;
+    if (Date.now() - lock < 300) return; lock = Date.now();
+    inp.value = "";
+    let err = "";
+    try { err = await inp._go(t); } catch(e){ console.error(e); err = "⚠️ 보내지 못했어요"; }
+    if (err && !inp.value) inp.value = t;      // 못 보냈으면 친 글자를 돌려줘요
+  };
+  // 글자 조합이 끝나지 않으면: 잠깐 기다렸다가, 그래도 안 끝나면 칸을 잠깐 놓았다 다시 잡아서 조합을 끝내요
+  const later = () => { want = true; clearTimeout(kick); kick = setTimeout(() => { if (!want) return; if (comp){ const f = document.activeElement === inp; inp.blur(); if (f) inp.focus({preventScroll: true}); setTimeout(() => { comp = false; if (want) fire(); }, 30); } else fire(); }, 90); };
+  inp.addEventListener("compositionstart", () => { comp = true; });
+  inp.addEventListener("compositionend", () => { comp = false; if (want) setTimeout(fire, 0); });
+  inp.addEventListener("blur", () => { comp = false; });
+  inp.addEventListener("keydown", e => {
+    if (e.key !== "Enter" && e.keyCode !== 13) return;
+    e.preventDefault();
+    if (e.isComposing || e.keyCode === 229 || comp) later(); else fire();
+  });
+  form.onsubmit = e => { e.preventDefault(); if (comp) later(); else fire(); };
+}
+/* 알림 줄: 몇 초 뒤 저절로 지워요 */
+function chatNote(el, msg){ if (!el) return; el.textContent = msg || ""; clearTimeout(el._t); if (msg) el._t = setTimeout(() => { if (el.textContent === msg) el.textContent = ""; }, 5000); }
+
 const LIVE = {
   started: false, chat: [], on: {}, rooms: [], subs: [], un: [], _t: 0, _k: {}, last: null, cur: {st: "off", g: ""}, loaded: false,
   emit(kind){ this._k[kind] = 1; if (this._t) return; this._t = setTimeout(() => { const k = this._k; this._k = {}; this._t = 0; this.subs.forEach(f => { try { f(k); } catch(e) { console.error(e); } }); }, 120); },
@@ -30,6 +101,7 @@ const LIVE = {
       const fs = Store.fs, warn = e => console.warn("[오락실 실시간]", e);
       // 채팅은 마지막 50개만 받아요 (반 친구 모두가 받으니까 적게)
       this.un.push(fs.onSnapshot(fs.query(this.col("chat"), fs.orderBy("at", "desc"), fs.limit(50)), qs => { const l = []; qs.forEach(d => l.push(Object.assign({id: d.id}, d.data()))); this.chat = l.reverse(); this.emit("chat"); }, warn));
+      CLOCK.sync();
       this.un.push(fs.onSnapshot(this.col("on"), qs => { const o = {}; qs.forEach(d => o[d.id] = d.data()); this.on = o; this.emit("on"); }, warn));
       this.un.push(fs.onSnapshot(this.col("lobby"), qs => { const l = []; qs.forEach(d => l.push(Object.assign({id: d.id}, d.data()))); this.rooms = l; this.loaded = true; this.emit("rooms"); }, warn));
     } else {
@@ -46,18 +118,18 @@ const LIVE = {
   ping(st, g, force, keepCur){
     if (ARC.me === null || ARC.me === undefined || !Store.cls) return;
     if (!keepCur) this.cur = {st, g: g || ""};
-    const sid = sidOf(ARC.me), o = {no: ARC.me, st, g: g || "", at: Date.now()};
+    const sid = sidOf(ARC.me), o = {no: ARC.me, st, g: g || "", at: CLOCK.now()};
     if (!force && this.last && this.last.st === o.st && this.last.g === o.g && o.at - this.last.at < 60000) return;
     this.last = o; this.on[sid] = o; this.emit("on");
     if (this.cloud()) Store.fs.setDoc(Store.fs.doc(this.col("on"), sid), o).catch(() => {});
     else { const m = this.lget("on", {}); m[sid] = o; this.lset("on", m); }
   },
-  online(sid){ const o = this.on[sid]; return o && o.st !== "off" && Date.now() - (o.at || 0) < 6*60000 ? o : null; },
+  online(sid){ const o = this.on[sid]; return o && o.st !== "off" && Math.abs(CLOCK.now() - (o.at || 0)) < 6*60000 ? o : null; },
   onlineList(){ return roster().filter(s => this.online(sidOf(s.no))); },
 
   /* ---- 💬 채팅 ---- */
   async say(o){
-    if (this.cloud()) return Store.fs.addDoc(this.col("chat"), o);
+    if (this.cloud()) return Store.fs.addDoc(this.col("chat"), Object.assign({ts: Store.fs.serverTimestamp()}, o));
     const l = this.lget("chat", []); l.push(Object.assign({id: rid(10)}, o)); this.lset("chat", l.slice(-80));
   },
   async unsay(id){
@@ -102,7 +174,7 @@ const CHAT = {
     /* 비방(놀리기·흉보기) */ "바보","멍청","한심","재수없","못생","꼴통","왕따","찌질","쓰레기","장애인","정신병","돌아이","죽여","죽을래","꺼지","닥치","sibal","tlqkf","qudtls"],
   last: 0, lastT: "",
   rules(){ return Object.assign({off: false, slow: 3}, (Store.cls || {}).chat); },
-  muted(no){ const u = (((Store.cls || {}).mute) || {})[no] || 0; return u > Date.now() ? u : 0; },
+  muted(no){ const u = (((Store.cls || {}).mute) || {})[no] || 0; return u > CLOCK.now() ? u : 0; },
   norm(t){ return String(t).toLowerCase().replace(/[\s.,!?\-_~^*@#$%&()'"`:;+=<>\/\\|[\]{}0-9ㆍ·…]/g, ""); },
   /* 🚫 영원히 추방 (선생님이 풀어 줄 때까지) */
   banned(no){ return !!((((Store.cls || {}).chatBan) || {})[no]); },
@@ -136,11 +208,14 @@ const CHAT = {
       }
     }
     this.last = Date.now(); this.lastT = t;
-    try { await LIVE.say(Object.assign({no: +no, t, at: Date.now()}, k === "st" ? {k} : {})); } catch(e){ console.error(e); return "⚠️ 보내지 못했어요. 인터넷을 확인해 주세요."; }
+    /* ⚡ 서버가 '받았어요' 할 때까지 기다리지 않아요 → 내 화면에는 바로 뜨고, 인터넷이 잠깐 끊겨도 이어지면 저절로 보내져요 */
+    let p;
+    try { p = LIVE.say(Object.assign({no: +no, t, at: CLOCK.now()}, k === "st" ? {k} : {})); } catch(e){ console.error(e); this.last = 0; this.lastT = ""; return "⚠️ 보내지 못했어요. 인터넷을 확인해 주세요."; }
+    Promise.resolve(p).catch(e => { console.error(e); this.last = 0; this.lastT = ""; toast("⚠️ 채팅 하나를 보내지 못했어요. 인터넷을 확인하고 다시 보내 주세요."); });
     return "";
   },
   /* 🏆 새 1등 같은 자동 알림 */
-  sys(t){ if (LIVE.cloud() || Store.mode === "local") LIVE.say({no: -1, sys: 1, t: String(t).slice(0, 80), at: Date.now()}).catch(() => {}); }
+  sys(t){ if (LIVE.cloud() || Store.mode === "local") Promise.resolve(LIVE.say({no: -1, sys: 1, t: String(t).slice(0, 80), at: CLOCK.now()})).catch(() => {}); }
 };
 
 
@@ -162,13 +237,13 @@ const emoOnly = t => /^(\p{Extended_Pictographic}|\p{Emoji_Component}|\u200d|\uf
 const ROOMS = {
   mine: null, mineAt: 0, inviting: false,
   ok(){ return NET.ok() && !(Store.cls || {}).roomsOff; },
-  list(){ return LIVE.rooms.filter(r => r.st === "open" && GAME[r.g] && gameOn(r.g) && Date.now() - (r.at || 0) < 15*60000 && (r.host === ARC.me || LIVE.online(sidOf(r.host)))).sort((a, b) => (a.at || 0) - (b.at || 0)); },
+  list(){ return LIVE.rooms.filter(r => r.st === "open" && GAME[r.g] && gameOn(r.g) && Math.abs(CLOCK.now() - (r.at || 0)) < 15*60000 && (r.host === ARC.me || LIVE.online(sidOf(r.host)))).sort((a, b) => (a.at || 0) - (b.at || 0)); },
   myRoom(){ return this.mine && LIVE.rooms.find(r => r.id === this.mine); },
   async open(g){
     if (!this.ok() || ARC.me === null) return;
     if (this.mine) await this.close();
     const why = LOBBY.blocked(g); if (why) return toast(why);
-    try { this.mineAt = Date.now(); this.mine = "…"; this.mine = await LIVE.addRoom({g, host: ARC.me, st: "open", at: Date.now()}); toast(`⚔️ ${GAME[g].e} ${GAME[g].n} 방을 만들었어요! 친구가 들어오면 바로 시작해요`); }
+    try { this.mineAt = Date.now(); this.mine = "…"; this.mine = await LIVE.addRoom({g, host: ARC.me, st: "open", at: CLOCK.now()}); toast(`⚔️ ${GAME[g].e} ${GAME[g].n} 방을 만들었어요! 친구가 들어오면 바로 시작해요`); }
     catch(e){ this.mine = null; console.error(e); toast("⚠️ 방을 만들지 못했어요. 인터넷을 확인해 주세요."); }
     LOBBY.renderSide(true);
   },
@@ -180,7 +255,7 @@ const ROOMS = {
     const why = LOBBY.blocked(r.g); if (why) return toast(why);
     if (this.mine) await this.close();
     try { await LIVE.joinRoom(id, ARC.me); } catch(e){ toast("😢 " + (e.message || e)); return; }
-    const g = GAME[r.g], at = Date.now();
+    const g = GAME[r.g], at = CLOCK.now();
     NET.auto = {from: r.host, g: r.g, at, until: at + 45000};
     NET.gid = r.g; NET.a = r.host; NET.b = ARC.me;
     NET.box(`⚔️ ${g.e} ${g.n} 대결방`, `🚪 <b>${esc(who(r.host))}</b>의 방에 들어갔어요!<br>방장 기기와 연결하는 중… 잠깐만 기다려요`, [{t: "✕ 그만두기", f: () => { NET.auto = null; NET.cancel(); }}]);
@@ -284,7 +359,8 @@ const LOBBY = {
     };
     $("#chQuick").innerHTML = ["👍","ㅋㅋㅋ","🎉 축하해!","GG!","대결할 사람? ⚔️","화이팅! 💪","잘했어 👏","고마워 😊"].map(t => `<button type="button">${t}</button>`).join("");
     $("#chQuick").onclick = e => { const b = e.target.closest("button"); if (b) this.send(b.textContent); };
-    $("#chForm").onsubmit = e => { e.preventDefault(); const i = $("#chText"); this.send(i.value, () => { i.value = ""; }); };
+    chatWire($("#chForm"), $("#chText"), t => this.send(t));
+    this.kbFit();
     $("#chList").onclick = e => { const d = e.target.closest("[data-del]"), b = e.target.closest("[data-ban]");
       if (d && isT(ARC.me) && confirm("이 채팅을 지울까요?")) LIVE.unsay(d.dataset.del);
       if (b && isT(ARC.me)) ADMIN.ban(+b.dataset.ban, true); };
@@ -301,15 +377,32 @@ const LOBBY = {
     $("#chEmo").onclick = async e => {
       const t = e.target.closest("[data-tab]"); if (t){ this.emoTab = t.dataset.tab === "st" ? "st" : +t.dataset.tab; this.emo(); return; }
       const b = e.target.closest("[data-e]"); if (!b) return;
-      if (this.emoTab === "st"){ const msg = await CHAT.send(b.dataset.e, ARC.me, "st"); $("#chMsg").textContent = msg; if (!msg){ $("#chEmo").hidden = true; this.seen = Date.now(); } return; }
+      if (this.emoTab === "st"){ const msg = await CHAT.send(b.dataset.e, ARC.me, "st"); chatNote($("#chMsg"), msg); if (!msg){ $("#chEmo").hidden = true; this.seen = CLOCK.now(); this.stick(); } return; }
       const i = $("#chText"), v = b.dataset.e; if (i.disabled || i.value.length + v.length > 50) return;
       const p = i.selectionStart ?? i.value.length; i.value = i.value.slice(0, p) + v + i.value.slice(i.selectionEnd ?? p); i.selectionStart = i.selectionEnd = p + v.length;
     };
   },
   async send(t, ok){
-    const msg = await CHAT.send(t); $("#chMsg").textContent = msg;
-    if (!msg){ if (ok) ok(); this.seen = Date.now(); }
-    else if (/고운 말/.test(msg)){ $("#chText").classList.remove("arc-shk"); }
+    const msg = await CHAT.send(t); chatNote($("#chMsg"), msg);
+    if (!msg){ if (ok) ok(); this.seen = CLOCK.now(); this.stick(); }
+    return msg;
+  },
+  /* 내가 보낸 말이 오면 맨 아래로 */
+  stick(){ this._scrolled = false; if (typeof CRUI !== "undefined") CRUI.lastRid = null; const l = $("#chList"); if (l) requestAnimationFrame(() => { l.scrollTop = l.scrollHeight; }); },
+  /* 📱 화면 키보드가 올라오면 채팅 칸을 보이는 곳에 맞춰요 (글자 칸이 키보드에 가려 안 보이던 문제) */
+  kbFit(){
+    if (this._kb) return; this._kb = 1;
+    const vv = window.visualViewport; if (!vv) return;
+    const fit = () => {
+      const side = $("#scrHome .arc-side"), inp = $("#chText"), small = matchMedia("(max-width:700px)").matches;
+      const kb = small && document.activeElement === inp && (vv.height < window.innerHeight - 80);
+      document.body.classList.toggle("ch-kb", kb);
+      if (!side) return;
+      if (kb){ side.style.top = vv.offsetTop + "px"; side.style.bottom = "auto"; side.style.height = vv.height + "px"; const l = $("#chList"); if (l) l.scrollTop = l.scrollHeight; }
+      else { side.style.top = side.style.bottom = side.style.height = ""; }
+    };
+    vv.addEventListener("resize", fit); vv.addEventListener("scroll", fit);
+    document.addEventListener("focusin", () => setTimeout(fit, 250)); document.addEventListener("focusout", () => setTimeout(fit, 250));
   },
   mv: "games",
   paintNav(){
@@ -324,7 +417,7 @@ const LOBBY = {
     if (!keep) this.mv = "side";
     this.tab = t; $$("#hmTabs button").forEach(b => b.classList.toggle("on", b.dataset.t === t));
     $("#paneRank").hidden = t !== "rank"; $("#paneRoom").hidden = t !== "room"; $("#paneCoop").hidden = t !== "coop"; $("#paneChat").hidden = t !== "chat";
-    if (t === "chat"){ this.seen = Date.now(); this.chatSig = ""; }
+    if (t === "chat"){ this.seen = CLOCK.now(); this.chatSig = ""; }
     this.renderSide(true);
     if (t === "chat"){ const l = $("#chList"); l.scrollTop = l.scrollHeight; }
     this.paintNav();
@@ -488,7 +581,7 @@ const ADMIN = {
       $("#acBanSave").onclick = () => this.patch({ban: $("#acBan").value.split(/[,\n]/).map(x => x.trim()).filter(Boolean).slice(0, 100)}, "💾 막을 말을 저장했어요");
       $("#acNoticeGo").onclick = () => { const t = $("#acNotice").value.trim(); if (!t) return; this.patch({notice: {t, at: Date.now()}}, "📢 알림을 올렸어요"); };
       $("#acNoticeOff").onclick = () => { $("#acNotice").value = ""; this.patch({notice: {t: "", at: Date.now()}}, "알림을 내렸어요"); };
-      $("#acSayF").onsubmit = async e => { e.preventDefault(); const i = $("#acSay"), m = await CHAT.send(i.value, TEACHER); if (m) toast(m); else i.value = ""; };
+      chatWire($("#acSayF"), $("#acSay"), async t => { const m = await CHAT.send(t, TEACHER); if (m) toast(m); return m; });
       $("#acClear").onclick = async () => { if (!confirm("채팅 기록을 모두 지울까요? 되돌릴 수 없어요.")) return; try { await LIVE.clearChat(); toast("🧹 채팅을 모두 지웠어요"); } catch(e){ alert("지우지 못했어요: " + (e.message || e)); } };
       $("#adChat").onclick = e => {
         const d = e.target.closest("[data-del]"), m = e.target.closest("[data-mute]"), b = e.target.closest("[data-ban]");
@@ -526,7 +619,7 @@ const ADMIN = {
     if (on && !confirm(`${who(no)}을(를) 채팅방에서 영원히 추방할까요?\n선생님이 풀어 줄 때까지 채팅을 볼 수도, 쓸 수도 없어요.`)) return;
     this.patch({chatBan: {[no]: on ? Date.now() : 0}}, on ? `🚫 ${who(no)} 채팅방에서 추방했어요` : `✅ ${who(no)} 다시 채팅할 수 있어요`);
   },
-  mute(no, min){ this.patch({mute: {[no]: Date.now() + min*60000}}, `🔇 ${who(no)} ${min}분 채팅 쉬기`); },
+  mute(no, min){ this.patch({mute: {[no]: CLOCK.now() + min*60000}}, `🔇 ${who(no)} ${min}분 채팅 쉬기`); },
   /* 데이터가 바뀌면 목록만 다시 (입력 칸은 그대로) */
   live(){
     if ($("#mdTeach").hidden) return;

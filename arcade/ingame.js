@@ -42,7 +42,7 @@ const GCHAT = {
 #gcQuick::-webkit-scrollbar{display:none}
 #gcQuick button{flex:none;font:14px "Jua",sans-serif;color:#e5dbff;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:5px 11px;cursor:pointer}
 #gcForm{display:flex;gap:6px;padding:8px 10px 10px}
-#gcForm input{flex:1;min-width:0;height:40px;box-sizing:border-box;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:0 14px;background:rgba(255,255,255,.07);color:#fff;font:15px "Gowun Dodum",sans-serif;outline:none}
+#gcForm input{flex:1;min-width:0;height:40px;box-sizing:border-box;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:0 14px;background:rgba(255,255,255,.07);color:#fff;font:16px "Gowun Dodum",sans-serif;outline:none}
 #gcForm input:focus{border-color:#a594ff}
 #gcPanel.kb #gcQuick{display:none}#gcPanel.kb .hd small{display:none}#gcPanel.kb .hd{padding:4px 8px 4px 12px;font-size:15px}#gcPanel.kb #gcList{padding:4px 10px}
 #gcForm button{height:40px;border:0;border-radius:999px;padding:0 15px;background:linear-gradient(160deg,#8f7cff,#6c5ce7);color:#fff;font:15px "Jua",sans-serif;cursor:pointer}
@@ -68,7 +68,7 @@ const GCHAT = {
     $("#gcBtn").onclick = () => this.toggle();
     $("#gcX").onclick = () => this.toggle(false);
     $("#gcQuick").onclick = e => { const b = e.target.closest("button"); if (b) this.send(b.textContent); };
-    $("#gcForm").onsubmit = e => { e.preventDefault(); const i = $("#gcIn"); this.send(i.value).then(ok => { if (ok) i.value = ""; }); };
+    chatWire($("#gcForm"), $("#gcIn"), async t => { const ok = await this.send(t); return ok ? "" : "x"; });
     LIVE.subs.push(k => { if (k.chat || k.on) this.paint(); });
     /* 📱 글자 칠 때 화면 키보드가 올라오면 채팅 창을 보이는 곳에 맞춰 줄여요 (글자 칸이 키보드에 가려져 안 쳐지던 문제) */
     const vv = window.visualViewport, fitVV = () => { if (!vv || !this.el) return; const kb = vv.height < window.innerHeight - 80 || vv.height < 360;
@@ -79,12 +79,12 @@ const GCHAT = {
     $("#gcIn").addEventListener("focus", () => setTimeout(fitVV, 300));
     $("#gcIn").addEventListener("blur", () => setTimeout(fitVV, 300));
     new MutationObserver(() => this.paint()).observe(document.body, {attributes: true, attributeFilter: ["class"]});
-    this.seen = Date.now(); this.paint();
+    this.seen = CLOCK.now(); this.paint();
   },
-  toggle(on){ this.open = on == null ? !this.open : on; if (this.open){ this.seen = Date.now(); this.painted = false; $("#gcToast").hidden = true; } this.sig = ""; this.paint();
+  toggle(on){ this.open = on == null ? !this.open : on; if (this.open){ this.seen = CLOCK.now(); this.painted = false; $("#gcToast").hidden = true; } this.sig = ""; this.paint();
     if (this.open && !matchMedia("(pointer:coarse)").matches) setTimeout(() => { const i = $("#gcIn"); if (i && !i.disabled) i.focus(); }, 50);
     if (!this.open){ const i = $("#gcIn"); if (i) i.blur(); } },
-  async send(t){ const r = await CHAT_SEND.call(CHAT, t, ARC.me); $("#gcMsg").textContent = r || ""; if (!r){ this.seen = Date.now(); } return !r; },
+  async send(t){ const r = await CHAT_SEND.call(CHAT, t, ARC.me); chatNote($("#gcMsg"), r || ""); if (!r){ this.seen = CLOCK.now(); this.painted = false; this.sig = ""; } return !r; },
   paint(){
     if (!this.el) return;
     const ok = this.ok(); $("#gcBtn").hidden = !ok || this.open; if (!ok){ this.el.hidden = true; $("#gcToast").hidden = true; if (this.open) this.open = false; return; }
@@ -95,7 +95,7 @@ const GCHAT = {
     if (!this.open && last && last.id !== this.lastToast){ this.lastToast = last.id; const t = $("#gcToast");
       t.innerHTML = `<b>${esc(isT(last.no) ? "선생님" : nameOf(last.no))}</b>${esc(last.t)}`; t.hidden = false; clearTimeout(this.toastT); this.toastT = setTimeout(() => { t.hidden = true; }, 4000); }
     this.el.hidden = !this.open; if (!this.open) return;
-    this.seen = Date.now();
+    this.seen = CLOCK.now();
     const why = CHAT.why(me), inp = $("#gcIn"); inp.disabled = $("#gcSend").disabled = !!why; inp.placeholder = why || "고운 말로 한마디 😊";
     const sig = L.length + "|" + (L.length ? L[L.length - 1].id : "") + "|" + why; if (sig === this.sig) return; this.sig = sig;
     const box = $("#gcList"), stick = box.scrollHeight - box.scrollTop - box.clientHeight < 40;

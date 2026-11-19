@@ -92,7 +92,7 @@ const CROOM = {
     const bad = this.nameBad(n); if (bad) return toast(bad);
     if (!isT(ARC.me) && this.rooms.filter(r => r.owner === ARC.me && !r.dm).length >= CR_MAXOWN) return toast(`방은 한 사람이 ${CR_MAXOWN}개까지 만들 수 있어요. 안 쓰는 방을 닫아 주세요`);
     const mem = [ARC.me].concat((o.mem || []).filter(x => x !== ARC.me)).slice(0, 40);
-    const r = {n, e: CR_EMO.includes(o.e) ? o.e : "💬", owner: ARC.me, mem, open: !!o.open, at: Date.now(), la: Date.now(), lt: "방을 만들었어요", ln: -1};
+    const r = {n, e: CR_EMO.includes(o.e) ? o.e : "💬", owner: ARC.me, mem, open: !!o.open, at: CLOCK.now(), la: CLOCK.now(), lt: "방을 만들었어요", ln: -1};
     const id = await this.put(null, r);
     await this.sysSay(id, `🎉 ${iga(who(ARC.me))} ‘${n}’ 방을 만들었어요${mem.length > 1 ? ` · ${mem.slice(1).map(x => who(x)).join(", ")} 초대` : ""}`);
     this.select(id); return id;
@@ -101,7 +101,7 @@ const CROOM = {
     const w = this.why(); if (w) return toast(w);
     if (no === ARC.me) return;
     const a = Math.min(no, ARC.me), b = Math.max(no, ARC.me), id = `dm_${a}_${b}`;
-    if (!this.get(id)) await this.put(id, {n: "1:1 대화", e: "💌", dm: 1, owner: ARC.me, mem: [a, b], open: false, at: Date.now(), la: 0, ln: -1}, true);
+    if (!this.get(id)) await this.put(id, {n: "1:1 대화", e: "💌", dm: 1, owner: ARC.me, mem: [a, b], open: false, at: CLOCK.now(), la: 0, ln: -1}, true);
     else if (!this.mine(this.get(id))) await this.upd(id, {mem: [a, b]});
     this.select(id); return id;
   },
@@ -153,7 +153,7 @@ const CROOM = {
     if (this.mRid === rm) this.msgs = l.slice(-60);
     await this.upd(rm, last);
   },
-  sysSay(id, t){ return this.say(id, {no: -1, sys: 1, t: String(t).slice(0, 80), at: Date.now()}).catch(() => {}); },
+  sysSay(id, t){ return this.say(id, {no: -1, sys: 1, t: String(t).slice(0, 80), at: CLOCK.now()}).catch(() => {}); },
   async unsay(mid){
     const rid = this.mRid; if (!rid) return; this.msgs = this.msgs.filter(m => m.id !== mid); this.changed();
     if (this.cloud()) return Store.fs.deleteDoc(this.ref(rid, "m", mid)).catch(() => {});
@@ -253,7 +253,7 @@ const CRUI = {
     const inp = $("#chText"); inp.disabled = $("#chSend").disabled = $("#chEmoBtn").disabled = !canSay;
     inp.placeholder = why || (canSay ? `‘${CROOM.title(r)}’에 한마디! (고운 말 😊)` : "🙋 들어가기를 누르면 말할 수 있어요");
     $("#chRule").hidden = LOBBY.ruleOk(); $("#chQuick").hidden = false; $("#chForm").hidden = false;
-    const L = CROOM.msgs, sg = r.id + "|" + L.map(m => m.id).join(",") + "|" + JSON.stringify((Store.cls || {}).chatBan || {}) + "|" + LIVE.rooms.map(x => x.id + x.st).join(",") + "|" + Math.floor(Date.now()/60000) + "|" + (r.mem || []).join(",");
+    const L = CROOM.msgs, sg = r.id + "|" + L.map(m => m.id).join(",") + "|" + JSON.stringify((Store.cls || {}).chatBan || {}) + "|" + LIVE.rooms.map(x => x.id + x.st).join(",") + "|" + Math.floor(CLOCK.now()/60000) + "|" + (r.mem || []).join(",");
     if (sg !== this.sig){
       this.sig = sg;
       const box = $("#chList"), near = box.scrollHeight - box.scrollTop - box.clientHeight < 80 || this.lastRid !== r.id;
@@ -411,7 +411,7 @@ const PROF = {
     $("#crBar").onclick = e => { const b = e.target.closest("[data-cr]"); if (!b) return;
       if (b.dataset.cr === "new") return CRUI.openMake();
       if (b.dataset.cr === "toggle"){ const off = !CROOM.off(); return ADMIN.patch({croomsOff: off}, off ? "⏸️ 대화방을 닫았어요 (반 전체 채팅은 그대로)" : "▶️ 대화방을 열었어요").then(() => { CRUI.barSig = ""; LOBBY.renderSide(true); }); }
-      if (b.dataset.cr === "all"){ CROOM.select("all"); LOBBY.chatSig = ""; this.seen = Date.now(); } else CROOM.select(b.dataset.cr);
+      if (b.dataset.cr === "all"){ CROOM.select("all"); LOBBY.chatSig = ""; this.seen = CLOCK.now(); } else CROOM.select(b.dataset.cr);
       CRUI.sig = ""; LOBBY.renderSide(true); const l = $("#chList"); l.scrollTop = l.scrollHeight; };
     $("#crHd").onclick = async e => { const b = e.target.closest("[data-cra]"); const r = CROOM.get(CROOM.mRid); if (!b || !r) return;
       const a = b.dataset.cra;

@@ -170,7 +170,10 @@
   .ch-quick{padding:8px 12px 2px;gap:6px;border-top:1px solid var(--m-ln)}
   .ch-quick button{font-size:13px;padding:5px 11px;border-color:var(--m-ln);background:var(--m-sf)}
   .ch-in{padding:6px 12px 10px;gap:8px;align-items:center}
-  .ch-in input{height:42px;box-sizing:border-box;border:1px solid var(--m-ln);border-radius:999px;padding:0 16px;background:rgba(255,255,255,.07);font-size:15px}
+  .ch-in input{height:42px;box-sizing:border-box;border:1px solid var(--m-ln);border-radius:999px;padding:0 16px;background:rgba(255,255,255,.07);font-size:16px}
+  body.ch-kb .m-nav{display:none}
+  body.ch-kb #scrHome .arc-side::before{display:none}
+  body.ch-kb .ch-law,body.ch-kb .ch-quick{display:none}
   .ch-in input:focus{border-color:#a594ff}
   .ch-in .ch-emob{width:42px;height:42px;padding:0 !important;border-radius:50% !important;border:1px solid var(--m-ln) !important;background:var(--m-sf) !important;display:grid;place-items:center}
   .ch-in #chSend{height:42px;border-radius:999px;padding:0 16px;font-size:15px;background:linear-gradient(160deg,#8f7cff,#6c5ce7)}

@@ -26,7 +26,7 @@ const NET = {
   listen(me){
     if (!this.ok() || (this.unInbox && this.me === me)) return;
     this.unlisten(); this.me = me;
-    try { this.unInbox = this.S().inbox(me, l => { this.inbox = l.filter(x => x.st === "wait" && x.offer && Math.abs(Date.now() - (x.at || 0)) < 120000).sort((a, b) => b.at - a.at); this.showInvite(); }); }
+    try { this.unInbox = this.S().inbox(me, l => { this.inbox = l.filter(x => x.st === "wait" && x.offer && Math.abs(CLOCK.now() - (x.at || 0)) < 120000).sort((a, b) => b.at - a.at); this.showInvite(); }); }
     catch(e){ console.warn(e); }
   },
   unlisten(){ if (this.unInbox) this.unInbox(); this.unInbox = null; this.inbox = []; this.me = null; if (this.inv){ this.inv = null; ARC.modal("#mdNet", false); } },
@@ -45,7 +45,7 @@ const NET = {
     if (this.role || ARC.me === null || ARC.busy) return;
     // ⚔️ 대결방에 들어간 친구: 방장 기기에서 온 신청은 바로 받아요
     const au = this.auto;
-    if (au && Date.now() < au.until){ const x = this.inbox.find(i => i.from === au.from && i.g === au.g && (i.at || 0) >= au.at - 5000); if (x){ this.auto = null; this.inv = null; return this.accept(x); } }
+    if (au && CLOCK.now() < au.until){ const x = this.inbox.find(i => i.from === au.from && i.g === au.g && (i.at || 0) >= au.at - 5000); if (x){ this.auto = null; this.inv = null; return this.accept(x); } }
     const cur = this.inv && this.inbox.find(x => x.id === this.inv.id);
     if (this.inv && !cur){ this.inv = null; ARC.modal("#mdNet", false); toast("친구가 대결 신청을 취소했어요"); }
     if (this.inv || !this.inbox.length) return;
@@ -84,7 +84,7 @@ const NET = {
       this.u = pc.createDataChannel("u", {ordered: false, maxRetransmits: 0}); this.r = pc.createDataChannel("r"); this.wire();
       await pc.setLocalDescription(await pc.createOffer()); await this.gather();
       if (this.pc !== pc) return;
-      this.rid = await this.S().create({g: gid, from: this.a, to, st: "wait", offer: pc.localDescription.sdp, at: Date.now()});
+      this.rid = await this.S().create({g: gid, from: this.a, to, st: "wait", offer: pc.localDescription.sdp, at: CLOCK.now()});
       if (this.pc !== pc){ this.S().del(this.rid); return; }
       this.wait(`📨 <b>${esc(who(to))}</b>의 화면에 신청이 떴어요.<br>친구가 <b>⚔️ 수락</b>을 누르면 바로 시작해요!<br><small>친구도 자기 기기에서 오락실에 로그인해 있어야 해요.</small>`);
       this.unRoom = this.S().watch(this.rid, d => {
