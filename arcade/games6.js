@@ -1058,7 +1058,8 @@ NG.defs.rd = () => {
     else if (b.id === "rr") act(b.z, ["rr"]);
     else if (b.id === "all") act(b.z, ["all"]);
     else if (b.id === "cr") crToggle(b.z);
-    else if (b.id === "up" || b.id === "luck"){ if (b.i != null){ act(b.z, b.id === "up" ? ["up", b.i] : ["luck", b.i]); } else panel = panel && panel.id === b.id && panel.z === b.z ? null : {id: b.id, z: b.z}; }
+    else if (b.id === "up" || b.id === "luck"){ if (b.i != null){ act(b.z, b.id === "up" ? ["up", b.i] : ["luck", b.i]); } else { panel = panel && panel.id === b.id && panel.z === b.z ? null : {id: b.id, z: b.z};
+        if (panel){ ["#rdSel", "#rdPin"].forEach(q => { const e = $(q); if (e) e.hidden = true; }); } } }
     else if (b.id === "book"){ if (RDB.isOpen) RDB.close(); else { const q = sel && Z[sel.z].s[sel.i]; RDB.open(q && q.k); } playS("warn"); }
     else if (b.id === "spd"){ act(local[0], ["spd"]); playS("warn"); }
     else if (b.id === "smrg"){ const q = Z[sel.z].s[sel.i]; if (q.k && RD_A[q.k].g >= RD_MG){ crF = String(Math.min(RD_MAXG, RD_A[q.k].g + 1)); crToggle(sel.z); } else if (!b.off){ act(sel.z, ["mrg", sel.i]); sel = null; } }
@@ -1434,13 +1435,17 @@ NG.defs.rd = () => {
     return `<span>🐾 내 마당에 <b>${n}마리</b></span>${n ? `<button class="sel" data-dk="selk:${k}">👆 판에서 고르기</button><button data-dk="sellk:${k}">💰 1마리 팔기 +${rdN(v)}</button>` : ""}${tj >= 0 ? `<button class="tk" data-dk="tk:${tj}:${k}">📥 대기 줄에서 데려오기</button>` : ""}`; }
   let ownSig = "";
   function ownTick(){ const e = $("#mdRdBook [data-own]"); if (!e) return; const k = e.dataset.own, p = Z[local[0]]; if (!p) return;
-    const sg = k + "|" + p.s.map(q => q.k === k ? q.n : 0).join("") + "|" + trS(p); if (sg === ownSig && e.dataset.sg === sg) return; ownSig = sg; e.dataset.sg = sg; e.innerHTML = ownHTML(k); }
+    const sg = k + "|" + p.s.map(q => q.k === k ? q.n : 0).join("") + "|" + trS(p); if (sg === ownSig && e.dataset.sg === sg) return; holdGuard(e); if (e._hold && Date.now() - e._hold < 1500) return; ownSig = sg; e.dataset.sg = sg; e.innerHTML = ownHTML(k); }
   function dockTick(force){ if (RDB.isOpen) ownTick(); const L = []; if (crOpen){ const e = $("#rdCr .rd-dock"); if (e) L.push([e, crZ]); } if (RDB.isOpen){ const e = $("#mdRdBook .rd-dock"); if (e) L.push([e, local[0]]); }
-    L.forEach(([el, z]) => { const w = el.dataset.w, sig = dockSig(z, w); if (!force && el._sig === sig) return; el._sig = sig; el.innerHTML = dockHTML(z, w); }); }
+    L.forEach(([el, z]) => { holdGuard(el); const w = el.dataset.w, sig = dockSig(z, w); if (!force && el._sig === sig) return;
+      if (!force && el._hold && Date.now() - el._hold < 1500) return;   // 👆 누르는 중엔 다시 그리지 않아요(금이 바뀔 때마다 단추를 새로 만들어 '눌렀는데 안 눌리던' 문제)
+      el._sig = sig; el.innerHTML = dockHTML(z, w); }); }
+  function holdGuard(el){ if (el._hg) return; el._hg = 1; el.addEventListener("pointerdown", () => { el._hold = Date.now(); }, {passive: true});
+    const up = () => setTimeout(() => { el._hold = 0; }, 60); ["pointerup", "pointercancel", "pointerleave"].forEach(ev => el.addEventListener(ev, up, {passive: true})); }
   /* 📌 목표 조합: 고른 동물의 재료가 몇 마리 모였는지 화면 아래 왼쪽에 늘 보여요 (누르면 조합 창) · 목표가 없으면 🧪 조합 미션 동물 */
   function pinTick(){ const D = $("#ngDom"); if (!D) return; let el = $("#rdPin"); if (SPEC){ if (el) el.hidden = true; return; }
     const z = local[0], mt = MS && MS.k === "mk" && !MS.st && RD_RC[MS.x] ? MS.x : null, t = pin || mt;
-    if (!t || state !== "play" || crOpen || (sel && Z[sel.z].s[sel.i].k)){ if (el && !el.hidden){ el.hidden = true; pinSig = ""; } return; }
+    if (!t || state !== "play" || crOpen || panel || (sel && Z[sel.z].s[sel.i].k)){ if (el && !el.hidden){ el.hidden = true; pinSig = ""; } return; }
     const H = haveOf(z), R0 = RD_RC[t], can = canCraft(z, t, H), cv = $("#ngCanvas"), r = cv.getBoundingClientRect(), s0 = r.height/H0();
     const sig = [t, !!pin, R0.map(([k]) => H[k] || 0).join("."), can, Math.round(r.left), Math.round(r.bottom), Math.round(s0*100)].join("|"); if (sig === pinSig && el && !el.hidden) return; pinSig = sig;
     if (!el){ el = document.createElement("button"); el.id = "rdPin"; el.className = "rd-pin"; D.appendChild(el);
@@ -1460,7 +1465,8 @@ NG.defs.rd = () => {
   let selSig = "";
   function selTick(){ const D = $("#ngDom"); if (!D) return; let el = $("#rdSel");
     const q = sel && Z[sel.z] && Z[sel.z].s[sel.i];
-    if (!q || !q.k || state !== "play" || crOpen){ if (el && !el.hidden){ el.hidden = true; selSig = ""; } return; }
+    /* ⬆️ 강화·💎 보석 단추판이 열려 있으면 '고른 동물' 줄을 잠깐 숨겨요 (휴대폰 세로에서 이 줄이 강화 단추를 덮어 안 눌리던 문제) */
+    if (!q || !q.k || state !== "play" || crOpen || panel){ if (el && !el.hidden){ el.hidden = true; selSig = ""; } return; }
     if (RDB.isOpen && RDB.tab === "a" && RDB.cur !== q.k && isMine(sel.z)) RDB.pickK(q.k);   /* 📖 도감을 연 채로 판의 동물을 누르면 도감도 그 동물로 */
     const A = RD_A[q.k], G = RD_G[A.g], RO = RD_ROLE[A.ro], fr0 = isFront(sel.z, sel.i), v = G.sell, canM = q.n >= 3 && A.g < RD_MG, hi = A.g >= RD_MG;
     const atk = rdN(A.d*upMul(sel.z, A.g)*relMul(sel.z, A, null)*(A.ro === "r" && !fr0 ? 1.25 : 1)*(BUF && BUF[sel.z] ? BUF[sel.z][sel.i] : 1)), cv = $("#ngCanvas"), r = cv.getBoundingClientRect(), s0 = r.height/H0();
@@ -1471,6 +1477,7 @@ NG.defs.rd = () => {
     if (!el){ el = document.createElement("div"); el.id = "rdSel"; el.className = "rd-sel"; D.appendChild(el);
       ["pointerdown", "pointerup", "touchstart", "touchend", "mousedown"].forEach(ev => el.addEventListener(ev, e => e.stopPropagation(), {passive: true}));
       el.onclick = e => { const b = e.target.closest("[data-sa]"); if (b && !b.disabled) selDo(b.dataset.sa); }; }
+    holdGuard(el); if (el._hold && Date.now() - el._hold < 1500 && !el.hidden){ selSig = ""; return; }   // 👆 누르는 중엔 그대로
     const kb = k => kHint ? `<kbd>${k}</kbd>` : "";
     /* 가로 화면: 판 옆 빈자리에 세로로 (판을 가리지 않게) · 빈자리가 좁으면 아래쪽 단추 줄 바로 위 */
     const k0 = r.width/W, bR = r.left + (BX + COLS*C)*k0, bL = r.left + BX*k0, spR = r.right - bR, spL = bL - r.left, side = Math.max(spR, spL) >= 150;
@@ -1505,7 +1512,7 @@ NG.defs.rd = () => {
     p.it.slice(0, 5).forEach((k, i) => L.push({id: "it", z: b.z, i, k, x: b.x + 6 + i*(s + 6), y: b.y + (b.h - s)/2, w: s, h: s})); }); return L; }
   function bagDraw(g){
     BARS.forEach(b => { if (b.bag && !Z[b.z].it.length) G2.put(g, lbl(["보스·미션에서 받아요"], 13, "#bfb3e8"), b.x + 8, b.y + b.h/2 - 12); });
-    bagIcons().forEach(b => { const s = Math.round(b.w); G2.put(g, sp(`it${b.k}${s}`, s, s + 4, t => { t.fillStyle = "rgba(0,0,0,.3)"; rrect(t, 0, 4, s, s, s*.25); t.fill();
+    bagIcons().forEach(b => { if (!RD_IT[b.k]) return; const s = Math.round(b.w); G2.put(g, sp(`it${b.k}${s}`, s, s + 4, t => { t.fillStyle = "rgba(0,0,0,.3)"; rrect(t, 0, 4, s, s, s*.25); t.fill();
       t.fillStyle = BSA.lg(t, 0, 0, 0, s, [[0, "#fff6d6"], [1, "#ffc94d"]]); rrect(t, 0, 0, s, s, s*.25); t.fill(); t.strokeStyle = "#fff"; t.lineWidth = 2; t.stroke(); G2.emo(t, RD_IT[b.k].e, s/2, s/2, s*.6); }), b.x, b.y); });
     local.forEach(z => { const p = Z[z]; if (p.fev > 0 || p.clv > 0){ const b = BARS.find(q => q.bag && q.z === z); if (b) G2.put(g, lbl([...(p.fev > 0 ? ["🔥", `${Math.ceil(p.fev/60)}초`] : []), ...(p.clv > 0 ? ["🍀", `×${p.clv}`] : [])], 13, "#ffd8a8"), b.x + b.w - 92, b.y - 18); } });
   }
@@ -1627,7 +1634,7 @@ NG.defs.rd = () => {
   let saveT = 0; const onHide = () => { if (NG.cur === self) saveGame(); };
   const self = {
     get W(){ return W; }, get H(){ return H; }, maxSteps: 2, get maxPx(){ return Math.min(rdPx, party === "guest" ? 1.15e6 : 1.5e6); }, full: true, layout, save: saveGame,
-    get dbg(){ return {Z, E, wave, waveT, state, score, kills, BARS, N, LIMIT, gv, PR, FX, dz: DMGZ}; },
+    get dbg(){ return {Z, E, wave, waveT, state, score, kills, BARS, N, LIMIT, gv, PR, FX, panel, panelBtns, bagIcons, slotXYpx: (z, i) => { const [x, y] = slotXY(z, i); return [cx(x) + C/2, cy(y) + C/2]; }, dz: DMGZ}; },
     cheat(o){ if (o.rel){ Z.forEach(p => Object.assign(p.rel, o.rel)); gv++; } if (o.it) Z.forEach(p => { p.it = o.it.slice(); }); if (o.pick) Z.forEach((p, z) => offerRel(z)); if (o.gold != null) Z.forEach(p => p.gold = o.gold); if (o.gems != null) Z.forEach(p => p.gems = o.gems); if (o.wave != null){ wave = o.wave - 1; startWave(); } if (o.put){ placeK(o.z || 0, o.put); } if (o.clear) E = []; },
     init(){
       document.body.classList.remove("rd-cr-on");
