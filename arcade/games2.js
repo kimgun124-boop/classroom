@@ -716,7 +716,7 @@ const PARTY = {
   drop(no, P0){
     const P = this.peers.get(no); if (!P || (P0 && P !== P0)) return; this.peers.delete(no);
     try { P.pc && P.pc.close(); } catch(e) {}
-    if (P.spec){ if (this.pid) Store.fs.deleteDoc(this.ref(this.pid, "peers", String(no))).catch(() => {}); return; }   // 👀 관전하던 친구가 나가도 판은 그대로
+    if (P.spec) return;   // 👀 관전하던 친구가 나가도 판은 그대로 · 쪽지는 지우지 않아요(끊겼다 다시 두드린 쪽지를 지우면 다시 못 들어와서 튕겼어요 — 나갈 땐 친구 기기가 스스로 지워요)
     if (!this.started){ this.members = this.members.filter(x => x !== no); this.lobbyMsg(); this.renderRooms(); }
     else if (P.idx >= 0){ toast(this.canRejoin() ? `🔌 ${who(no)} 연결이 끊겼어요 · 다시 들어오면 그대로 이어요 (동물은 계속 싸워요)` : `🔌 ${who(no)} 연결이 끊겨서 🤖 컴퓨터가 대신해요`); if (this.game) this.game.dropIdx(P.idx); }
     if (this.pid && !(this.started && this.CFG[this.gid].relay)) Store.fs.deleteDoc(this.ref(this.pid, "peers", String(no))).catch(() => {});
@@ -856,7 +856,17 @@ const PARTY = {
       if (!d || d.st !== "play" || Date.now() - (d.at || 0) > 100000 || (d.m && !d.m.includes(ARC.me))){ this.rjClear(); return null; }
       this.rjRoom = Object.assign({}, r, {n: d.n || 0}); return this.rjRoom; } catch(e){ return null; } },
   /* 연결이 끊기면: 다리로 다시 이어요 (다리를 못 쓰는 게임만 나가요) */
-  lost(msg){ if (this.role !== "guest") return; if (this.canRelay() && !(this.hp && this.hp.relay)) this.relayJoin(); else if (!this.canRelay()) this.hostGone(msg); },
+  lost(msg){ if (this.role !== "guest") return;
+    if (this.spec && !(this.hp && this.hp.relay) && (this.reTry || 0) < 2){ this.reKnock(); return; }   // 👀 관전: 먼저 바로 다시 이어 보고(빠름), 두 번 안 되면 다리로
+    if (this.canRelay() && !(this.hp && this.hp.relay)) this.relayJoin(); else if (!this.canRelay()) this.hostGone(msg); },
+  /* 👀 관전 연결이 끊기면: 화면은 그대로 두고 조용히 새로 문을 두드려요 (방장 기기는 예전 연결을 정리하고 새로 이어 줘요) */
+  reKnock(){
+    if (this.role !== "guest" || !this.myRef) return;
+    this.reTry = (this.reTry || 0) + 1; this.reKnockT = performance.now();
+    const H = this.hp; this.hp = null; if (H && H.pc){ H.pc.onconnectionstatechange = null; setTimeout(() => { try { H.pc.close(); } catch(e) {} }, 0); }
+    Store.fs.setDoc(this.myRef, {no: ARC.me, st: "knock", at: Date.now(), w: 1}).catch(() => {});
+    this.armCon();
+  },
 
   /* ---------- 👀 관전 (2026.11.19) ---------- */
   spectate(pid, host){ if (this.role) return; this.spec = true; this.join(pid, host, true); },
@@ -869,6 +879,7 @@ const PARTY = {
       await fs.setDoc(myRef, Object.assign({no: me, st: "knock", at: Date.now()}, spec ? {w: 1} : {}));
       this.un.push(fs.onSnapshot(myRef, s => this.onMyDoc(s.exists() ? s.data() : null), () => {}));
       this.un.push(fs.onSnapshot(this.ref(pid), s => { const d = s.exists() ? s.data() : null; if (this.role !== "guest") return;
+        if (!d && s.metadata && s.metadata.fromCache) return;   // 인터넷이 잠깐 끊겨 '기기 저장본'에 없을 뿐이면 기다려요 (방이 사라진 게 아니에요)
         if (!d || d.st === "closed"){ this.hostGone("방장이 방을 닫았어요"); } }, () => {}));
       this.armCon = () => { clearTimeout(this.conT); this.conT = setTimeout(() => { if (this.role === "guest" && !this.on() && !this.specWait){ if (this.canRelay()) this.relayJoin(); else this.hostGone("🔌 방장 기기와 연결되지 않았어요. 같은 와이파이인지 확인하고 다시 해 보세요."); } }, this.canRelay() ? 7000 : 20000); };
       this.myRef = myRef; this.specTry = 0; this.specWait = false; this.armCon();
@@ -890,7 +901,7 @@ const PARTY = {
       const pc = new RTCPeerConnection({iceServers: this.ice()}), H = this.hp = {pc, u: null, r: null};
       pc.ondatachannel = e => { const ch = e.channel; if (ch.label === "u") H.u = ch; else H.r = ch;
         ch.onmessage = ev => { let m; try { m = JSON.parse(ev.data); } catch(er){ return; } this.onHost(m); };
-        ch.onopen = () => { this.renderRooms(); }; ch.onclose = () => { if (this.role === "guest" && this.hp === H) this.lost("🔌 방장 기기와 연결이 끊겼어요"); }; };
+        ch.onopen = () => { if (H.r && H.r.readyState === "open") this.reTry = 0; this.renderRooms(); }; ch.onclose = () => { if (this.role === "guest" && this.hp === H) this.lost("🔌 방장 기기와 연결이 끊겼어요"); }; };
       pc.onconnectionstatechange = () => { if (this.hp !== H) return; const s = pc.connectionState; if (s === "failed") this.lost("🔌 방장 기기와 연결이 끊겼어요"); else if (s === "disconnected") setTimeout(() => { if (this.hp === H && pc.connectionState === "disconnected") this.lost("🔌 방장 기기와 연결이 끊겼어요"); }, 4000); };
       try { await pc.setRemoteDescription(d.offer); await pc.setLocalDescription(await pc.createAnswer()); await this.gather(pc);
         await Store.fs.updateDoc(this.ref(this.pid, "peers", String(ARC.me)), {st: "answer", answer: this.sd(pc.localDescription)}); }
@@ -907,7 +918,7 @@ const PARTY = {
     else if (m.t === "grid"){ this.safeApply({grid: m}); }
     else if (m.t === "lobby"){ this.members = m.m; this.bots = m.bots; if (!this.game || $("#ng").hidden) this.renderRooms(); }
     else if (m.t === "start"){
-      clearTimeout(this.conT); const md = $("#mdWb"); if (md) md.hidden = true; this.myIdx = m.idx; this.inSeq = 0;
+      clearTimeout(this.conT); clearTimeout(this.specT); this.specWait = false; this.specTry = 0; const md = $("#mdWb"); if (md) md.hidden = true; this.myIdx = m.idx; this.inSeq = 0;
       const gid = m.g || "wb";
       if (NG.cur && NG.gid === gid && !$("#ng").hidden && NG.opt && NG.opt.party === "guest" && NG.opt.seed === m.seed && !NG.ended){ this.inSeq = 0; this.needGrid(true); return; }   // 이미 같은 판이면 다시 시작하지 않아요(다시 이어졌을 때)
       if ($("#ng").hidden || !NG.cur){ ARC.game = gid; ARC.enter(); ARC.prep(); }
@@ -918,6 +929,8 @@ const PARTY = {
     }
     else if (m.t === "end"){ this.rjClear(); this.game && this.game.end(m.w, m.wins, m); }
     else if (m.t === "cont"){ if (typeof CONT !== "undefined") CONT.resume(); this.game && this.game.cont && this.game.cont(); toast("▶ 방장이 이어하기를 눌렀어요! 다시 출동!"); }
+    else if (m.t === "full" && this.spec && m.why === "wait" && (this.specTry || 0) < 40){ this.specTry = (this.specTry || 0) + 1; this.specWait = true; clearTimeout(this.specT);   // 👀 판과 판 사이: 내쫓지 않고 조금 뒤 다시
+      this.specT = setTimeout(() => { if (this.role !== "guest" || !this.myRef) return; this.specWait = false; Store.fs.setDoc(this.myRef, Object.assign({no: ARC.me, st: this.hp && this.hp.relay ? "relay" : "knock", at: Date.now(), w: 1})).catch(() => {}); }, 3000); }
     else if (m.t === "full"){ this.hostGone(this.spec ? (m.why === "wait" ? "👀 지금은 판과 판 사이예요 · 친구가 다음 판을 시작하면 다시 눌러 보세요" : m.why === "game" ? "👀 이 게임은 관전할 수 없어요" : `👀 관전 자리(${this.SPECMAX}명)가 꽉 찼어요`) : "방이 꽉 찼거나 이미 시작했어요"); }
     else if (m.t === "bye"){ this.hostGone("방장이 방을 나갔어요"); }
   },
@@ -932,7 +945,9 @@ const PARTY = {
   safeApply(d){ try { this.game && this.game.apply(d); } catch(e){ console.error("apply", e); if (!this.applyErrT || performance.now() - this.applyErrT > 10000){ this.applyErrT = performance.now(); this.needGrid(true); } } },
   /* 🧊 친구 기기 지킴이: '소식'이 아니라 '화면 장면'이 끊긴 시간을 봐요(예전엔 다른 소식만 와도 괜찮다고 여겨서 화면이 멈춘 채 그대로였어요) */
   watch(){ clearInterval(this.wdT); this.snapT = performance.now(); this.wdT = setInterval(() => { if (this.role !== "guest" || $("#ng").hidden){ clearInterval(this.wdT); return; }
-    const now = performance.now(), gap = now - Math.max(this.snapT || 0, this.joinT || 0);
+    // 🏁 판이 끝나 결과 화면을 보는 동안은 방장도 장면을 안 보내요 → 끊긴 게 아니에요 (예전엔 이때 다리로 바꿔서 다음 판이 내내 뚝뚝 끊겼어요)
+    if (NG.ended || !$("#ngOver").hidden){ this.snapT = performance.now(); return; }
+    const now = performance.now(), gap = now - Math.max(this.snapT || 0, this.joinT || 0, this.reKnockT || 0);
     if (gap > 2500){ this.inSeq = 0; this.needGrid(true); }
     if (gap > 4000 && $("#ngOver").hidden && NG.cur && !NG.ended && (!this.stallT || now - this.stallT > 6000)){ this.stallT = now; toast("📡 방장 화면을 다시 받아오는 중이에요…"); }
     // 직접 연결이 살아 있으면(잠깐 밀린 것뿐) 15초까지 기다려요 — 다리(저장소)는 1초에 한 장뿐이라 한 번 가면 내내 뚝뚝 끊겨 보였어요
@@ -941,6 +956,12 @@ const PARTY = {
   hostGone(msg){
     if (this.role !== "guest") return; this.rjClear();
     const playing = NG.cur && NG.gid === this.gid && !$("#ng").hidden;
+    /* 👀 관전 중이었으면: 갑자기 튕기지 않고, 보던 화면 위에 '끝났어요' 안내를 띄워요 */
+    if (this.spec && playing){ this.leave();
+      $("#ngOver").innerHTML = `<div class="ng-box"><h3>👋 관전이 끝났어요</h3><div class="info"><div>${esc(msg)}</div><div style="margin-top:6px">다른 친구의 판을 구경하거나 직접 해 봐요!</div></div><div class="arc-row"><button class="arc-btn p" data-sg="more">👀 다른 판 구경하기</button><button class="arc-btn" data-sg="home">🏠 나가기</button></div></div>`;
+      $("#ngOver").hidden = false; NG.ended = true;
+      $("#ngOver").onclick = e => { const b = e.target.closest("[data-sg]"); if (!b) return; e.stopPropagation(); const g = this.gid; NG.close(); if (b.dataset.sg === "more") setTimeout(() => ARC.play(g), 50); };
+      return; }
     this.leave(); toast(msg);
     if (playing) NG.close(); else this.renderRooms();
   },
@@ -949,7 +970,7 @@ const PARTY = {
   leave(){
     const role = this.role; if (!role){ this.unwatchRooms(); return; }
     if (role === "guest" && !(NG.cur && NG.gid === this.gid && NG.opt && NG.opt.party === "guest" && !NG.ended)) this.rjClear();
-    this.role = null; this.spec = false; this.specWait = false; clearTimeout(this.specT); this.myRef = null; clearInterval(this.beat); clearTimeout(this.conT); clearInterval(this.wdT); clearTimeout(this.waitT); this.waitT = 0; this.rlyStop();
+    this.role = null; this.spec = false; this.specWait = false; this.reTry = 0; this.reKnockT = 0; clearTimeout(this.specT); this.myRef = null; clearInterval(this.beat); clearTimeout(this.conT); clearInterval(this.wdT); clearTimeout(this.waitT); this.waitT = 0; this.rlyStop();
     this.un.forEach(f => { try { f(); } catch(e) {} }); this.un = [];
     const fs = Store.fs, pid = this.pid;
     if (role === "host"){

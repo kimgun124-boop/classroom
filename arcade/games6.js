@@ -1660,7 +1660,7 @@ NG.defs.rd = () => {
     T: {sim: () => sim(), act: (z, a) => doAct(z, a), terr: (z, i) => TERR(z, i), front: (z, i) => isFront(z, i), hbc: () => HBC, trayW, buf: () => BUF, crList, upCost, rrCost, bestTk, set hpk(v){ HPK = v; }, set nrm(v){ NRM = v; }, set rmp(v){ RMP = v; }, E: () => E, LIMIT: () => LIMIT, get state(){ return state; }, get wave(){ return wave; }},
     apply, dropIdx(i){ /* 나간 친구 자리의 동물은 그대로 싸워요 */ },
     end(w, ws, m){ if (party !== "guest" || ended) return; ended = true; if (m){ score = m.score; wave = m.wave; kills = m.kills; }
-      if (SPEC){ $("#ngOver").innerHTML = `<div class="ng-box"><h3>👀 관전 끝!</h3><div class="sc">${(score || 0).toLocaleString()}점</div><div class="info"><div>🏁 <b>${wave}단계</b>까지 · 👾 몬스터 ${kills}마리 · 👥 ${N}명이 함께 지켰어요</div></div><div class="arc-row"><button class="arc-btn p" data-rd="home">🏠 나가기</button></div></div>`;
+      if (SPEC){ $("#ngOver").innerHTML = `<div class="ng-box"><h3>👀 이번 판 끝!</h3><div class="sc">${(score || 0).toLocaleString()}점</div><div class="info"><div>🏁 <b>${wave}단계</b>까지 · 👾 몬스터 ${kills}마리 · 👥 ${N}명이 함께 지켰어요</div><div style="margin-top:6px">⏳ 친구들이 <b>한 판 더</b> 하면 바로 이어서 보여 줘요!</div></div><div class="arc-row"><button class="arc-btn" data-rd="home">🏠 그만 보기</button></div></div>`;
         $("#ngOver").hidden = false; NG.ended = true; $("#ngOver").onclick = e => { const b = e.target.closest("[data-rd]"); if (b){ e.stopPropagation(); PARTY.leave(); NG.close(); } }; return; }
       RDM.guestOver(score, wave, kills); },
     spec: SPEC,
@@ -1813,7 +1813,10 @@ const RDM = {
     this.startMsg = {t: "start", g: "rd", sids, seed};
     M.forEach((no, i) => { if (i){ const P = this.peers.get(no); if (P){ P.idx = i; P.inN = 0; P.last = {}; remote[i] = no; this.send(P, {t: "start", g: "rd", sids, idx: i, seed}); } } });
     /* 시작 쪽지를 놓친 친구가 없게 2초마다 3번 더 보내요 (이미 같은 판이면 친구 기기는 그대로 둬요) */
-    [2000, 4000, 7000].forEach(ms => setTimeout(() => { if (this.role !== "host" || !this.startMsg || this.startMsg.seed !== seed) return; M.forEach((no, i) => { const P = i && this.peers.get(no); if (P) this.send(P, {t: "start", g: "rd", sids, idx: i, seed}); }); }, ms));
+    /* 👀 구경하던 친구들도 새 판으로 바로 데려가요 (예전엔 '관전 끝'에서 멈춰 있었어요) */
+    const toSpecs = () => this.specs().forEach(P => { if (P.open || P.relay) this.send(P, Object.assign({}, this.startMsg, {idx: -1, spec: 1})); });
+    toSpecs();
+    [2000, 4000, 7000].forEach(ms => setTimeout(() => { if (this.role !== "host" || !this.startMsg || this.startMsg.seed !== seed) return; M.forEach((no, i) => { const P = i && this.peers.get(no); if (P) this.send(P, {t: "start", g: "rd", sids, idx: i, seed}); }); if (ms === 2000) toSpecs(); }, ms));
     this.seq = 0; this.lastGv = -1; const md = $("#mdWb"); if (md) md.hidden = true;
     if (!again){ ARC.game = "rd"; ARC.enter(); ARC.prep(); }
     getAC(); NG.play("rd", sids, {party: "host", local: [0], remote, seed});
