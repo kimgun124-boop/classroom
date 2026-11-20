@@ -440,6 +440,8 @@ const GAMES = [
   {id: "rh", e: "🎵", n: "리듬 스타",   kind: "score", d: "오리지널 62곡에 맞춰 톡톡! 5줄 리듬게임 · Lv.1~15 · 내 노래도"},
   {id: "vb", e: "🏐", n: "얼굴 배구",   kind: "duel",  d: "둘이서 배구 대결"},
   {id: "ah", e: "🏒", n: "얼굴 에어하키", kind: "duel", d: "둘이서 하키 대결"},
+  {id: "kf", e: "🔥", n: "우리반 격투왕", kind: "duel", tag: "🆕 격투 대결 · 🤖 컴퓨터와도", d: "캐릭터 6명! 펀치·킥·기술·필살기로 3판 2선승 · 연타 콤보"},
+  {id: "jj", e: "🥋", n: "주짓수 한판", kind: "duel", tag: "🆕 둘이서 · 🤖 컴퓨터와도", d: "넘기고·누르고·조르기! 기술이 걸리면 연타 대결 · 탭 받으면 승리"},
   {id: "pp", e: "🏓", n: "얼굴 탁구",   kind: "duel",  d: "둘이서 탁구 대결"},
   {id: "wb", e: "💦", n: "물풍선 대작전", kind: "duel", multi: 1, d: "미로에서 물풍선 펑! 최대 6명"},
   {id: "jg", e: "🀄", n: "장기",        kind: "duel",  tag: "🆕 둘이서 · 🤖 컴퓨터와도", d: "초와 한의 한판 승부! 장군 받고 외통수로 이겨요"},
@@ -670,7 +672,9 @@ const ARC = {
     const g = GAME[gid], me = this.me; let lv = 1;
     $("#duTitle").textContent = `${g.e} ${g.n} 대결`;
     $("#duDuo").innerHTML = `<div class="p"><span class="avf">${avHTMLof(sidOf(me), {still: true, face: true})}</span><b>${esc(who(me))}</b></div><div class="vs">VS</div><div class="p q"><span class="f">❔</span><b>누구랑 할까요?</b></div>`;
-    const BDH = {jg: "말을 톡 눌러 고르고, 초록 점을 눌러 옮겨요. 장군을 받으면 꼭 막아요!", ch: "말을 톡 눌러 고르고, 초록 점을 눌러 옮겨요. 폰이 끝까지 가면 퀸이 돼요!", om: "놓고 싶은 곳을 두 번 톡톡! 가로·세로·대각선 다섯 개를 먼저 만들면 승리", bl: "판을 끌어 방향을 정하고, 힘 막대를 당겼다 놓아 쳐요. 공을 넣으면 한 번 더!"};
+    const BDH = {jg: "말을 톡 눌러 고르고, 초록 점을 눌러 옮겨요. 장군을 받으면 꼭 막아요!", ch: "말을 톡 눌러 고르고, 초록 점을 눌러 옮겨요. 폰이 끝까지 가면 퀸이 돼요!", om: "놓고 싶은 곳을 두 번 톡톡! 가로·세로·대각선 다섯 개를 먼저 만들면 승리", bl: "판을 끌어 방향을 정하고, 힘 막대를 당겼다 놓아 쳐요. 공을 넣으면 한 번 더!",
+      jj: "⚡ 기술 · 🛡️ 탈출 · 🔒 조르기 단추를 눌러요. 기술이 걸리면 둘 다 빠르게 연타! (키보드: 1P F·G·H / 2P J·K·L)",
+      kf: "👊 펀치 · 🦵 킥 · ✨ 기술 · 💥 필살! 뒤로 누르면 막기 (키보드: 1P W·A·S·D + F·G·H·T / 2P 방향키 + J·K·L·I)"};
     $("#duHelp").textContent = BDH[gid] ? BDH[gid] : gid === "vb" ? "태블릿에서는 화면 양쪽 아래 버튼으로 움직여요 (키보드: 1P W·A·D·F / 2P 방향키·Enter)" : gid === "ah" ? "자기 쪽 화면을 손가락으로 끌어서 말렛을 움직여요" : "자기 쪽 화면을 손가락으로 위아래로 끌어요 (키보드: 1P W·S / 2P ↑·↓)";
     $$("#duLv button").forEach(b => b.classList.toggle("on", +b.dataset.v === lv));
     $("#duLv").onclick = e => { const b = e.target.closest("button"); if (b){ lv = +b.dataset.v; $$("#duLv button").forEach(x => x.classList.toggle("on", x === b)); } };

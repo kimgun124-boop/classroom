@@ -150,7 +150,7 @@ const NET = {
 
   /* ---- 게임 ---- */
   TB: ["jg", "ch", "om", "bl"],   // ♟️ 한 수씩 주고받는 보드 게임: 기기끼리 연결이 안 되면 Firebase 쪽지(다리)로
-  ad(){ if (this.TB.includes(this.gid)) return NG.cur && NG.cur.netBd; return this.gid === "vb" ? window.__vbNet : this.gid === "ah" ? window.__ahNet : this.gid === "pp" ? (NG.cur && NG.gid === "pp" && NG.cur.netAd) : null; },
+  ad(){ if (this.TB.includes(this.gid)) return NG.cur && NG.cur.netBd; return this.gid === "vb" ? window.__vbNet : this.gid === "ah" ? window.__ahNet : ["pp", "jj", "kf"].includes(this.gid) ? (NG.cur && NG.gid === this.gid && NG.cur.netAd) : null; },
   go(){   // 심판(신청한 친구) 기기가 시작해요
     const x = ARC.netGo("host", this.gid, this.a, this.b);
     this.sendR({t: "start", g: this.gid, a: this.a, b: this.b, x});

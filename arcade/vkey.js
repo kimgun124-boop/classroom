@@ -28,6 +28,8 @@ const VK = {
       st: [{b: [["ArrowLeft", "🔄", "방향 바꾸기", 2]]}, {b: [["ArrowRight", "⬆️", "오르기", 2]]}],
       fm: [{d: Object.assign(lr(A), {rep: 1})}, {b: [["Space", "⬇️", "떨어뜨리기", 1]]}],
       pp: two ? [{c: 0, d: ud(P1)}, {c: 1, d: ud(P2)}] : [{d: ud(A)}],
+      kf: two ? [{c: 0, d: Object.assign({diag: 1}, P1), b: [["KeyF", "👊", "펀치"], ["KeyG", "🦵", "킥"], ["KeyH", "✨", "기술"], ["KeyT", "💥", "필살"]]}, {c: 1, d: Object.assign({diag: 1}, P2), b: [["KeyJ", "👊", "펀치"], ["KeyK", "🦵", "킥"], ["KeyL", "✨", "기술"], ["KeyI", "💥", "필살"]]}]
+              : [{d: Object.assign({diag: 1}, P1)}, {b: [["KeyF", "👊", "펀치", 1], ["KeyG", "🦵", "킥", 1], ["KeyH", "✨", "기술", 1], ["KeyT", "💥", "필살", 1]]}],
       vb: two ? [{c: 0, d: lr(P1), b: [["KeyW", "⤴️", "점프"], ["KeyF", "💥", "스파이크"]]}, {c: 1, d: lr(P2), b: [["ArrowUp", "⤴️", "점프"], ["Enter", "💥", "스파이크"]]}]
               : [{d: lr(P1)}, {b: [["KeyW", "⤴️", "점프", 1], ["KeyF", "💥", "스파이크", 1]]}],
       ah: two ? [{c: 0, d: Object.assign({diag: 1}, P1), b: [["KeyF", "💥", "세게"]]}, {c: 1, d: Object.assign({diag: 1}, P2), b: [["Enter", "💥", "세게"]]}]
@@ -43,12 +45,12 @@ const VK = {
     return L[gid] || null;
   },
   /* 🐾 랜덤 디펜스 · 🎵 리듬 스타는 게임 화면에 큰 손가락 단추가 이미 있어서 화면 키보드가 필요 없어요 (화면을 덜 가려요) */
-  TWO: ["pp", "vb", "ah", "wb", "bs", "qd", "sk"],
+  TWO: ["pp", "kf", "vb", "ah", "wb", "bs", "qd", "sk"],
   /* 지금 열린 게임 */
   active(){
     if (!$("#scrHome").hidden && $("#ng").hidden && !["#volley", "#airh", "#flappy", "#train"].some(s => { const el = $(s); return el && el.classList.contains("open"); })) return null;   // 로비에서는 절대 안 보여요
     if (typeof NG !== "undefined" && NG.cur && !$("#ng").hidden){ const g = NG.gid, o = NG.opt || {};
-      const two = (o.local || []).length >= 2 || (g === "pp" && !o.cpu && !o.net); return {gid: g, two, auto: true}; }
+      const two = (o.local || []).length >= 2 || (["pp", "kf"].includes(g) && !o.cpu && !o.net); return {gid: g, two, auto: true}; }
     const L = [["vb", "#volley"], ["ah", "#airh"], ["fl", "#flappy"], ["tr", "#train"]];
     for (const [g, s] of L){ const el = $(s); if (el && el.classList.contains("open")) return {gid: g, two: this.two, auto: false}; }
     return null;
