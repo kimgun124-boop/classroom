@@ -599,7 +599,7 @@ const PARTY = {
     /* 👀 (2026.11.19) 관전: 하는 중인 방(st: play)도 함께 받아요 — 관전이 되는 게임만 목록에 보여요 */
     this.unRooms = fs.onSnapshot(fs.query(this.col(), fs.where("st", "in", ["open", "play"])), qs => { this.allRooms = qs;
       const l = []; qs.forEach(d => l.push(Object.assign({id: d.id}, d.data())));
-      this.rooms = l.filter(r => Date.now() - (r.at || 0) < (r.st === "play" ? 100000 : (r.g === "rd" ? 30000 : 90000)) && (r.g || "wb") === this.gid && (r.st !== "play" || this.canSpec())).sort((a, b) => (a.st === "play") - (b.st === "play") || (a.t0 || 0) - (b.t0 || 0)); this.renderRooms();
+      this.rooms = l.filter(r => Math.abs(CLOCK.now() - (r.at || 0)) < (r.st === "play" ? 100000 : 90000) && (r.g || "wb") === this.gid && (r.st !== "play" || this.canSpec())).sort((a, b) => (a.st === "play") - (b.st === "play") || (a.t0 || 0) - (b.t0 || 0)); this.renderRooms();
     }, e => console.warn(e));
   },
   unwatchRooms(){ if (this.unRooms) this.unRooms(); this.unRooms = null; },
@@ -608,13 +608,13 @@ const PARTY = {
     if (!this.ok()){ box.innerHTML = `<p class="arc-small">🌐 온라인 방은 선생님이 <b>☁️ Firebase</b>로 연결한 반에서 쓸 수 있어요. 지금은 위의 두 가지로 해요!</p>`; return; }
     const face = no => `<span class="avf">${avHTMLof(sidOf(no), {still: true, face: true})}</span>`;
     if (this.role === "host"){
-      const M = this.members, slots = Array.from({length: this.MAX}, (_, i) => i < M.length ? `<div class="wb-slot on">${face(M[i])}<b>${i === 0 ? "👑 " : ""}${esc(who(M[i]))}</b></div>`
-        : i < M.length + (this.CFG[this.gid].bots ? this.bots : 0) ? `<div class="wb-slot bot"><span class="f">🤖</span><b>컴퓨터</b></div>` : `<div class="wb-slot"><span class="f">⏳</span><b>빈자리</b></div>`).join("");
+      const M = this.members, pend = [...this.peers.values()].filter(q => !q.spec && !q.open && !M.includes(q.no)).map(q => q.no), slots = Array.from({length: this.MAX}, (_, i) => i < M.length ? `<div class="wb-slot on">${face(M[i])}<b>${i === 0 ? "👑 " : ""}${esc(who(M[i]))}</b></div>`
+        : i < M.length + (this.CFG[this.gid].bots ? this.bots : 0) ? `<div class="wb-slot bot"><span class="f">🤖</span><b>컴퓨터</b></div>` : (j => j < pend.length ? `<div class="wb-slot on wait">${face(pend[j])}<b>🔌 ${esc(who(pend[j]))}<small> 들어오는 중…</small></b></div>` : `<div class="wb-slot"><span class="f">⏳</span><b>빈자리</b></div>`)(i - M.length - (this.CFG[this.gid].bots ? this.bots : 0))).join("");
       const cf = this.CFG[this.gid], maxB = cf.bots ? this.MAX - M.length : 0, g = GAME[this.gid], nb = Math.min(this.bots, maxB);
       box.innerHTML = `<div class="wb-wait"><b>🏠 내 방이 열렸어요!</b> 친구들은 ${g.e} ${g.n} → 🌐 온라인 방에서 <b>${esc(who(ARC.me))}</b>의 방에 들어와요.</div>
         <div class="wb-slots">${slots}</div>
-        ${cf.bots ? `<div class="wb-row"><span>🤖 빈자리 컴퓨터</span><div class="arc-seg" id="wbPBots">${Array.from({length: maxB + 1}, (_, n) => `<button data-v="${n}" class="${n === nb ? "on" : ""}">${n}</button>`).join("")}</div></div>` : `<p class="arc-small">👥 친구들이 다 들어오면 시작을 눌러요. 모두 함께 로봇 군단을 물리쳐요!</p>`}
-        <div class="arc-row"><button class="arc-btn" id="wbPClose">✕ 방 닫기</button><button class="arc-btn p" id="wbPGo" ${M.length + nb < cf.min ? "disabled" : ""}>▶ 시작! (${M.length + nb}명)</button></div>`;
+        ${cf.bots ? `<div class="wb-row"><span>🤖 빈자리 컴퓨터</span><div class="arc-seg" id="wbPBots">${Array.from({length: maxB + 1}, (_, n) => `<button data-v="${n}" class="${n === nb ? "on" : ""}">${n}</button>`).join("")}</div></div>` : `<p class="arc-small">👥 친구들이 다 들어오면 시작을 눌러요. ${this.gid === "rd" ? "모두 함께 동물 마을을 지켜요!" : "모두 함께 로봇 군단을 물리쳐요!"}</p>`}
+        <div class="arc-row"><button class="arc-btn" id="wbPClose">✕ 방 닫기</button><button class="arc-btn p" id="wbPGo" ${M.length + nb + pend.length < cf.min ? "disabled" : ""}>▶ 시작! (${M.length + nb + pend.length}명)</button></div>`;
       if ($("#wbPBots")) $("#wbPBots").onclick = e => { const b = e.target.closest("button"); if (b){ this.bots = +b.dataset.v; this.renderRooms(); this.lobbyMsg(); } };
       $("#wbPClose").onclick = () => { this.leave(); this.renderRooms(); };
       $("#wbPGo").onclick = () => this.start();
@@ -651,10 +651,10 @@ const PARTY = {
     if (this.role) return; const fs = Store.fs;
     this.role = "host"; this.members = [ARC.me]; this.started = false; this.bots = this.bots || 0; this.renderRooms();
     try {
-      const r = fs.doc(this.col()); this.pid = r.id; const now = Date.now();
+      const r = fs.doc(this.col()); this.pid = r.id; const now = CLOCK.now();
       await fs.setDoc(r, {host: ARC.me, g: this.gid, st: "open", n: 1, at: now, t0: now});
       this.un.push(fs.onSnapshot(this.col(this.pid, "peers"), qs => qs.docChanges().forEach(ch => this.onPeerDoc(ch.type, ch.doc.id, ch.doc.data())), e => console.warn(e)));
-      this.beat = setInterval(() => { if (this.role === "host" && (!this.started || this.canRejoin())) fs.updateDoc(this.ref(this.pid), Object.assign({at: Date.now(), n: this.members.length, w: this.specs().length}, this.started && NG.cur && NG.gid === this.gid && NG.cur.dbg ? {wv: NG.cur.dbg.wave || 0} : {})).catch(() => {}); }, 25000);   // 🔁 다시 들어오기 되는 게임은 하는 중에도 '방장 살아 있어요' 표시
+      this.beat = setInterval(() => { if (this.role === "host" && (!this.started || this.canRejoin())) fs.updateDoc(this.ref(this.pid), Object.assign({at: CLOCK.now(), n: this.members.length, w: this.specs().length}, this.started && NG.cur && NG.gid === this.gid && NG.cur.dbg ? {wv: NG.cur.dbg.wave || 0} : {})).catch(() => {}); }, 25000);   // 🔁 다시 들어오기 되는 게임은 하는 중에도 '방장 살아 있어요' 표시
     } catch(e){ console.error(e); toast("⚠️ 방을 만들지 못했어요. 인터넷을 확인해 주세요."); this.leave(); this.renderRooms(); }
   },
   async onPeerDoc(type, id, d){
@@ -685,13 +685,14 @@ const PARTY = {
       const pc = new RTCPeerConnection({iceServers: this.ice()});
       P = {no, pc, u: pc.createDataChannel("u", {ordered: false, maxRetransmits: 0}), r: pc.createDataChannel("r"), last: {d: 0, b: 0}, open: false, idx: -1, kAt: d.at};
       this.peers.set(no, P); this.wirePeer(P);
+      if (!this.started) this.renderRooms();   // 🔌 문을 두드리자마자 방장 화면에 '들어오는 중' 으로 보여 줘요
       pc.onconnectionstatechange = () => { const s = pc.connectionState; if (s === "failed" || s === "closed") this.drop(no, P); else if (s === "disconnected") setTimeout(() => { if (pc.connectionState === "disconnected") this.drop(no, P); }, 5000); };
       try { await pc.setLocalDescription(await pc.createOffer()); await this.gather(pc);
         await Store.fs.updateDoc(this.ref(this.pid, "peers", id), {st: "offer", offer: this.sd(pc.localDescription)}); }
       catch(e){ console.warn(e); this.drop(no, P); }
       return;
     }
-    if (P && d.answer && !P.pc.remoteDescription){ try { await P.pc.setRemoteDescription(d.answer); } catch(e){ console.warn(e); this.drop(no); } }
+    if (P && P.pc && !P.relay && d.answer && !P.pc.remoteDescription){ try { await P.pc.setRemoteDescription(d.answer); } catch(e){ console.warn(e); this.drop(no); } }
   },
   wirePeer(P){
     const onOpen = () => { if (P.r.readyState !== "open" || P.open) return; P.open = true;
@@ -853,7 +854,7 @@ const PARTY = {
   /* 그 방이 아직 하는 중인지 한 번만 살펴봐요 (계속 지켜보지 않아서 가벼워요) */
   async rjCheck(){ const r = this.rjGet(); if (!r || !this.ok()) return null;
     try { const s = await Store.fs.getDoc(this.ref(r.pid)); const d = s.exists() ? s.data() : null;
-      if (!d || d.st !== "play" || Date.now() - (d.at || 0) > 100000 || (d.m && !d.m.includes(ARC.me))){ this.rjClear(); return null; }
+      if (!d || d.st !== "play" || Math.abs(CLOCK.now() - (d.at || 0)) > 100000 || (d.m && !d.m.includes(ARC.me))){ this.rjClear(); return null; }
       this.rjRoom = Object.assign({}, r, {n: d.n || 0}); return this.rjRoom; } catch(e){ return null; } },
   /* 연결이 끊기면: 다리로 다시 이어요 (다리를 못 쓰는 게임만 나가요) */
   lost(msg){ if (this.role !== "guest") return;
@@ -882,7 +883,7 @@ const PARTY = {
         if (!d && s.metadata && s.metadata.fromCache) return;   // 인터넷이 잠깐 끊겨 '기기 저장본'에 없을 뿐이면 기다려요 (방이 사라진 게 아니에요)
         if (!d || d.st === "closed"){ this.hostGone("방장이 방을 닫았어요"); return; }
         if (d.host != null && d.host !== this.host && this.onHostMove) this.onHostMove(d); }, () => {}));   // 👑 방장이 바뀌었어요 → 새 방장 기기로 이어요
-      this.armCon = () => { clearTimeout(this.conT); this.conT = setTimeout(() => { if (this.role === "guest" && !this.on() && !this.specWait){ if (this.canRelay()) this.relayJoin(); else this.hostGone("🔌 방장 기기와 연결되지 않았어요. 같은 와이파이인지 확인하고 다시 해 보세요."); } }, this.canRelay() ? 7000 : 20000); };
+      this.armCon = () => { clearTimeout(this.conT); this.conT = setTimeout(() => { if (this.role === "guest" && !this.on() && !this.specWait){ if (this.canRelay()) this.relayJoin(); else this.hostGone("🔌 방장 기기와 연결되지 않았어요. 같은 와이파이인지 확인하고 다시 해 보세요."); } }, this.canRelay() ? 5000 : 20000); };
       this.myRef = myRef; this.specTry = 0; this.specWait = false; this.armCon();
     } catch(e){ console.error(e); toast("⚠️ 방에 들어가지 못했어요"); this.leave(); this.renderRooms(); }
   },
@@ -1008,7 +1009,7 @@ const PARTY = {
 .wb-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:6px 0}.wb-row>span{font:16px "Jua",sans-serif}
 .wb-sec>.arc-btn{width:100%;margin-top:6px}.wb-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0}
 .wb-slot{display:flex;align-items:center;gap:8px;padding:8px;border-radius:12px;background:rgba(0,0,0,.2);border:2px dashed rgba(255,255,255,.18);min-width:0}
-.wb-slot.on{border:2px solid #4dabf7;background:rgba(77,171,247,.15)}.wb-slot.bot{border:2px solid #9775fa;background:rgba(151,117,250,.12)}
+.wb-slot.on{border:2px solid #4dabf7;background:rgba(77,171,247,.15)}.wb-slot.wait{border-style:dashed;border-color:#ffd43b;background:rgba(255,212,59,.1);animation:wbWait 1s ease-in-out infinite alternate}.wb-slot.wait small{font:12px "Gowun Dodum",sans-serif;color:#ffe066}@keyframes wbWait{to{opacity:.6}}.wb-slot.bot{border:2px solid #9775fa;background:rgba(151,117,250,.12)}
 .wb-slot b{font:14px "Jua",sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.wb-slot .avf,.wb-slot .f,.wb-room .avf{width:36px;height:36px;flex:none;font-size:26px;display:grid;place-items:center}
 .wb-wait{padding:8px 10px;border-radius:12px;background:rgba(81,207,102,.12);font-size:15px}
 .wb-rooms{display:grid;gap:8px;margin-top:10px}.wb-room{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;border:2px solid #4dabf7;background:rgba(77,171,247,.12);color:inherit;cursor:pointer;text-align:left}

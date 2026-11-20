@@ -1903,7 +1903,7 @@ const RDM = {
     const live = this.connected().map(p => p.no);
     this.members = [ARC.me].concat(this.members.filter(no => no !== ARC.me && live.includes(no))).slice(0, this.MAX);
     const M = this.members; if (M.length < 2){ toast("친구가 1명 이상 들어와야 시작할 수 있어요"); this.renderRooms(); return; }
-    this.started = true; Store.fs.updateDoc(this.ref(this.pid), {st: "play", n: M.length, m: M, at: Date.now()}).catch(() => {});
+    this.started = true; Store.fs.updateDoc(this.ref(this.pid), {st: "play", n: M.length, m: M, at: CLOCK.now()}).catch(() => {});
     const sids = M.map(sidOf), seed = Math.floor(Math.random()*1e9) + 1, remote = {};
     this.startMsg = {t: "start", g: "rd", sids, seed};
     M.forEach((no, i) => { if (i){ const P = this.peers.get(no); if (P){ P.idx = i; P.inN = 0; P.last = {}; remote[i] = no; this.send(P, {t: "start", g: "rd", sids, idx: i, seed}); } } });
@@ -2178,7 +2178,7 @@ const RDMIG = {
     const P = PARTY; if (!this.on() || P.role !== "host") return Promise.resolve(null);
     const o = {at: CLOCK.now(), host: ARC.me, m: P.members.slice(), st: P.started ? "play" : "open", gen: P.gen || 0}; let s = null;
     if (P.started && this.playing("host") && NG.cur.pack){ try { const d = NG.cur.pack(); if (d){ s = JSON.stringify(d); if (s.length < 850000) o.d = s; else s = null; } } catch(e){ console.warn(e); } }
-    if (!P.started){ o.d = ""; Store.fs.updateDoc(P.ref(P.pid), {at: Date.now(), n: P.members.length}).catch(() => {}); }   // 🚪 대기실: 방 목록에 '살아 있는 방'으로 자주 표시 (꺼진 방은 금방 사라져요)
+    if (!P.started){ o.d = ""; Store.fs.updateDoc(P.ref(P.pid), {at: CLOCK.now(), n: P.members.length}).catch(() => {}); }   // 🚪 대기실: 방 목록에 '살아 있는 방'으로 자주 표시 (꺼진 방은 금방 사라져요)
     return Store.fs.setDoc(this.sref(), o, {merge: true}).then(() => s, e => { console.warn(e); return s; });
   },
   beat(){ clearInterval(PARTY.migT); PARTY.migT = setInterval(() => this.write(), this.T); this.write(); },
@@ -2192,7 +2192,7 @@ const RDMIG = {
     let d = null; try { d = P.started && this.playing("host") && NG.cur.pack ? JSON.stringify(NG.cur.pack()) : null; } catch(e) {}
     P.peers.forEach(q => P.send(q, Object.assign({t: "mig", host: succ, gen}, q.no === succ && d && d.length < 200000 ? {d} : {})));
     if (P.rly) P.rlyFlush();
-    this.write().then(() => Store.fs.updateDoc(PARTY.ref(pid), {host: succ, gen, at: Date.now()}).catch(e => console.warn(e)));
+    this.write().then(() => Store.fs.updateDoc(PARTY.ref(pid), {host: succ, gen, at: CLOCK.now()}).catch(e => console.warn(e)));
     P._keepRoom = true;
     try { toast(`👑 ${who(succ)}에게 방장을 넘겼어요 · 친구들은 계속 이어서 해요`); } catch(e) {}
     return true;
@@ -2223,7 +2223,7 @@ const RDMIG = {
       await fs.runTransaction(Store.db, async t => { const s = await t.get(rref); const r = s.exists() ? s.data() : null;
         if (!r || r.st === "closed"){ took = "gone"; return; }
         if (r.host !== me && r.host !== old){ took = r.host; return; }
-        t.update(rref, {host: me, gen: Math.max(P.gen || 0, r.gen || 0) + (r.host === me ? 0 : 1), at: Date.now()}); took = me; });
+        t.update(rref, {host: me, gen: Math.max(P.gen || 0, r.gen || 0) + (r.host === me ? 0 : 1), at: CLOCK.now()}); took = me; });
       if (took === "gone"){ this.becoming = false; P.hostGone("방이 닫혔어요"); return; }
       if (took !== me){ this.becoming = false; this.migTo(took); return; }
       let S = null; try { const s = await fs.getDoc(this.sref(pid)); S = s.exists() ? s.data() : null; } catch(e) {}
@@ -2236,18 +2236,18 @@ const RDMIG = {
       fs.deleteDoc(P.ref(pid, "peers", String(me))).catch(() => {});
       P.role = "host"; P.host = me; P.peers = new Map(); P.myRef = null; P.spec = false; P.seq = 0; P.lastGv = -1; P.rly = null;
       P.un.push(fs.onSnapshot(P.col(pid, "peers"), qs => qs.docChanges().forEach(ch => P.onPeerDoc(ch.type, ch.doc.id, ch.doc.data())), e => console.warn(e)));
-      clearInterval(P.beat); P.beat = setInterval(() => { if (P.role === "host") fs.updateDoc(P.ref(P.pid), {at: Date.now(), n: P.members.length, w: P.specs().length}).catch(() => {}); }, 25000);
+      clearInterval(P.beat); P.beat = setInterval(() => { if (P.role === "host") fs.updateDoc(P.ref(P.pid), {at: CLOCK.now(), n: P.members.length, w: P.specs().length}).catch(() => {}); }, 25000);
       if (blob){
         const sids = NG.sids.slice(), myIdx = NG.opt.idx, remote = {};
         P.members = sids.map(noOf_); P.started = true; P.startMsg = {t: "start", g: "rd", sids, seed: blob.seed};
         P.members.forEach((no, i) => { if (i !== myIdx) remote[i] = no; });
-        fs.updateDoc(rref, {st: "play", m: P.members, n: P.members.length, at: Date.now()}).catch(() => {});
+        fs.updateDoc(rref, {st: "play", m: P.members, n: P.members.length, at: CLOCK.now()}).catch(() => {});
         getAC(); NG.play("rd", sids, {party: "host", local: [myIdx], remote, seed: blob.seed, mig: blob});
         toast("👑 내가 새 방장이 됐어요! 친구들이 내 기기로 이어져요");
       } else {
         const oldM = (S && S.m) || P.members || [];
         P.started = false; P.startMsg = null; P.members = [me].concat(oldM.filter(no => no !== me && no !== old));
-        fs.updateDoc(rref, {st: "open", n: 1, at: Date.now()}).catch(() => {});
+        fs.updateDoc(rref, {st: "open", n: 1, at: CLOCK.now()}).catch(() => {});
         if (NG.cur && !$("#ng").hidden){ const r = P.role; P.role = null; NG.close(); P.role = r; setTimeout(() => RDM.menu(), 60); }
         else P.renderRooms();
         P.lobbyMsg(); toast("👑 내가 새 방장이 됐어요! 친구들이 다시 들어오면 ▶ 시작을 눌러요");
