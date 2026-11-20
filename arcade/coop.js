@@ -32,7 +32,7 @@ const COOP = {
   list(){
     if (!this.ok()) return [];
     const now = Date.now();
-    return this.all.filter(r => { const g = r.g || "wb"; return this.G.includes(g) && gameOn(g) && now - (r.at || 0) < 90000 && r.host !== ARC.me; })
+    return this.all.filter(r => { const g = r.g || "wb"; return this.G.includes(g) && gameOn(g) && now - (r.at || 0) < (g === "rd" ? 30000 : 90000) && r.host !== ARC.me; })
       .sort((a, b) => (this.full(a) - this.full(b)) || (this.coop(b.g || "wb") - this.coop(a.g || "wb")) || (b.at || 0) - (a.at || 0));
   },
   full(r){ return (r.n || 1) >= this.max(r.g || "wb"); },
@@ -65,7 +65,7 @@ const COOP = {
     if (p) ARC.play(p.dataset.cplay);
     else if (n){ const gid = n.dataset.cnew; if (!this.ok()) return; if (this.openMenu(gid) && !PARTY.role) PARTY.create(); }
     else if (j){ const gid = j.dataset.g, pid = j.dataset.cjoin, host = +j.dataset.h, r = this.all.find(x => x.id === pid);
-      if (!r || Date.now() - (r.at || 0) > 90000){ toast("방이 없어졌어요. 다른 방을 골라 봐요"); return; }
+      if (!r || Date.now() - (r.at || 0) > ((r.g || "wb") === "rd" ? 30000 : 90000)){ toast("방이 없어졌어요. 다른 방을 골라 봐요"); return; }
       if (this.full(r)){ toast("벌써 꽉 찼어요"); return; }
       if (this.openMenu(gid) && !PARTY.role) PARTY.join(pid, host); }
     this.sync();

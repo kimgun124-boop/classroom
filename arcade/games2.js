@@ -599,7 +599,7 @@ const PARTY = {
     /* 👀 (2026.11.19) 관전: 하는 중인 방(st: play)도 함께 받아요 — 관전이 되는 게임만 목록에 보여요 */
     this.unRooms = fs.onSnapshot(fs.query(this.col(), fs.where("st", "in", ["open", "play"])), qs => { this.allRooms = qs;
       const l = []; qs.forEach(d => l.push(Object.assign({id: d.id}, d.data())));
-      this.rooms = l.filter(r => Date.now() - (r.at || 0) < (r.st === "play" ? 100000 : 90000) && (r.g || "wb") === this.gid && (r.st !== "play" || this.canSpec())).sort((a, b) => (a.st === "play") - (b.st === "play") || (a.t0 || 0) - (b.t0 || 0)); this.renderRooms();
+      this.rooms = l.filter(r => Date.now() - (r.at || 0) < (r.st === "play" ? 100000 : (r.g === "rd" ? 30000 : 90000)) && (r.g || "wb") === this.gid && (r.st !== "play" || this.canSpec())).sort((a, b) => (a.st === "play") - (b.st === "play") || (a.t0 || 0) - (b.t0 || 0)); this.renderRooms();
     }, e => console.warn(e));
   },
   unwatchRooms(){ if (this.unRooms) this.unRooms(); this.unRooms = null; },
@@ -658,7 +658,7 @@ const PARTY = {
     } catch(e){ console.error(e); toast("⚠️ 방을 만들지 못했어요. 인터넷을 확인해 주세요."); this.leave(); this.renderRooms(); }
   },
   async onPeerDoc(type, id, d){
-    if (this.role !== "host" || id === "_relay") return;
+    if (this.role !== "host" || id === "_relay" || id === "_save") return;
     const no = +id;
     if (type === "removed"){ if (!this.started) this.drop(no); return; }
     let P = this.peers.get(no);
@@ -678,7 +678,7 @@ const PARTY = {
       catch(e){ console.warn(e); this.drop(no, P); }
       return; }
     /* 🔁 튕긴 친구가 다시 문을 두드리면: 예전 연결은 조용히 정리하고 새로 이어요 (그 친구 동물·금은 그대로) */
-    const back = this.started && this.canRejoin() && this.members.indexOf(no) > 0;
+    const back = this.started && this.canRejoin() && this.members.indexOf(no) >= 0 && no !== ARC.me;   // 👑 방장이 바뀐 뒤에는 예전 방장도 '다시 들어오는 친구'예요
     if (P && d.st === "knock" && back && P.kAt !== d.at){ this.peers.delete(no); const pc0 = P.pc; setTimeout(() => { try { pc0 && pc0.close(); } catch(e) {} }, 0); P = null; }
     if (!P && d.st === "knock"){
       if ((this.started && !back) || (!this.started && this.members.length + this.peers.size - this.connected().length >= this.MAX)){ Store.fs.updateDoc(this.ref(this.pid, "peers", id), {st: "full"}).catch(() => {}); return; }
@@ -699,7 +699,7 @@ const PARTY = {
       if (!this.members.includes(P.no)){ if (this.started || this.members.length >= this.MAX){ this.send(P, {t: "full"}); return; } this.members.push(P.no); }
       try { tone(660, 990, .1, "triangle", .1); } catch(e) {}
       if (this.started && this.startMsg && this.canRejoin()){ const i = this.members.indexOf(P.no);
-        if (i > 0){ P.idx = i; P.inN = 0; P.last = {}; this.send(P, Object.assign({}, this.startMsg, {idx: i})); this.lastGv = -1; toast(`🔁 ${who(P.no)} 다시 들어왔어요! 동물·금은 그대로예요`); return; } }
+        if (i >= 0 && P.no !== ARC.me){ P.idx = i; P.inN = 0; P.last = {}; this.send(P, Object.assign({}, this.startMsg, {idx: i})); this.lastGv = -1; toast(`🔁 ${who(P.no)} 다시 들어왔어요! 동물·금은 그대로예요`); return; } }
       this.lobbyMsg(); this.renderRooms(); };
     P.r.onopen = onOpen; P.u.onopen = onOpen;
     const onMsg = e => { let m; try { m = JSON.parse(e.data); } catch(er){ return; }
@@ -803,7 +803,7 @@ const PARTY = {
       P = {no, relay: true, open: true, r: ch, u: ch, last: {}, inN: 0, idx: -1, ngK: 0}; this.peers.set(no, P);
       if (d.w && (!this.started || !this.canSpec())){ this.rlyPut(no, JSON.stringify({t: "full", why: this.canSpec() ? "wait" : "game"})); this.peers.delete(no); return; }   // 👀 관전은 판이 진행 중일 때만 (대기실 친구로 끼지 않게)
       if (this.started && d.w && this.canSpec()){ P.spec = true; if (this.startMsg) this.rlyPut(no, JSON.stringify(Object.assign({}, this.startMsg, {idx: -1, spec: 1}))); this.lastGv = -1; this.rlyStart(); }   // 👀 관전도 다리로
-      else if (this.started){ const i = this.members.indexOf(no); if (i <= 0){ this.rlyPut(no, '{"t":"full"}'); this.peers.delete(no); return; }
+      else if (this.started){ const i = this.members.indexOf(no); if (i < 0 || no === ARC.me){ this.rlyPut(no, '{"t":"full"}'); this.peers.delete(no); return; }
         P.idx = i; if (this.startMsg) this.rlyPut(no, JSON.stringify(Object.assign({}, this.startMsg, {idx: i}))); this.lastGv = -1; toast(`☁️ ${who(no)} 기기는 다리(저장소)로 이어졌어요`); }
       else { if (!this.members.includes(no)){ if (this.members.length >= this.MAX){ this.rlyPut(no, '{"t":"full"}'); this.peers.delete(no); return; } this.members.push(no); } this.lobbyMsg(); this.renderRooms(); }
       this.rlyStart();
@@ -880,7 +880,8 @@ const PARTY = {
       this.un.push(fs.onSnapshot(myRef, s => this.onMyDoc(s.exists() ? s.data() : null), () => {}));
       this.un.push(fs.onSnapshot(this.ref(pid), s => { const d = s.exists() ? s.data() : null; if (this.role !== "guest") return;
         if (!d && s.metadata && s.metadata.fromCache) return;   // 인터넷이 잠깐 끊겨 '기기 저장본'에 없을 뿐이면 기다려요 (방이 사라진 게 아니에요)
-        if (!d || d.st === "closed"){ this.hostGone("방장이 방을 닫았어요"); } }, () => {}));
+        if (!d || d.st === "closed"){ this.hostGone("방장이 방을 닫았어요"); return; }
+        if (d.host != null && d.host !== this.host && this.onHostMove) this.onHostMove(d); }, () => {}));   // 👑 방장이 바뀌었어요 → 새 방장 기기로 이어요
       this.armCon = () => { clearTimeout(this.conT); this.conT = setTimeout(() => { if (this.role === "guest" && !this.on() && !this.specWait){ if (this.canRelay()) this.relayJoin(); else this.hostGone("🔌 방장 기기와 연결되지 않았어요. 같은 와이파이인지 확인하고 다시 해 보세요."); } }, this.canRelay() ? 7000 : 20000); };
       this.myRef = myRef; this.specTry = 0; this.specWait = false; this.armCon();
     } catch(e){ console.error(e); toast("⚠️ 방에 들어가지 못했어요"); this.leave(); this.renderRooms(); }
@@ -932,6 +933,7 @@ const PARTY = {
     else if (m.t === "full" && this.spec && m.why === "wait" && (this.specTry || 0) < 40){ this.specTry = (this.specTry || 0) + 1; this.specWait = true; clearTimeout(this.specT);   // 👀 판과 판 사이: 내쫓지 않고 조금 뒤 다시
       this.specT = setTimeout(() => { if (this.role !== "guest" || !this.myRef) return; this.specWait = false; Store.fs.setDoc(this.myRef, Object.assign({no: ARC.me, st: this.hp && this.hp.relay ? "relay" : "knock", at: Date.now(), w: 1})).catch(() => {}); }, 3000); }
     else if (m.t === "full"){ this.hostGone(this.spec ? (m.why === "wait" ? "👀 지금은 판과 판 사이예요 · 친구가 다음 판을 시작하면 다시 눌러 보세요" : m.why === "game" ? "👀 이 게임은 관전할 수 없어요" : `👀 관전 자리(${this.SPECMAX}명)가 꽉 찼어요`) : "방이 꽉 찼거나 이미 시작했어요"); }
+    else if (m.t === "mig"){ if (this.onMig) this.onMig(m); }   // 👑 방장이 나가면서 방장을 넘겨줬어요
     else if (m.t === "bye"){ this.hostGone("방장이 방을 나갔어요"); }
   },
   tickGuest(){
@@ -973,10 +975,12 @@ const PARTY = {
     this.role = null; this.spec = false; this.specWait = false; this.reTry = 0; this.reKnockT = 0; clearTimeout(this.specT); this.myRef = null; clearInterval(this.beat); clearTimeout(this.conT); clearInterval(this.wdT); clearTimeout(this.waitT); this.waitT = 0; this.rlyStop();
     this.un.forEach(f => { try { f(); } catch(e) {} }); this.un = [];
     const fs = Store.fs, pid = this.pid;
+    clearInterval(this.migT); this.migT = 0;
     if (role === "host"){
-      this.sendAll({t: "bye"}); const ps = [...this.peers.values()]; this.peers.clear();
-      setTimeout(() => ps.forEach(P => { try { P.pc.close(); } catch(e) {} }), 300);
-      if (pid && fs){ ps.forEach(P => fs.deleteDoc(this.ref(pid, "peers", String(P.no))).catch(() => {})); fs.deleteDoc(this.ref(pid, "peers", "_relay")).catch(() => {}); fs.deleteDoc(this.ref(pid)).catch(() => {}); }
+      const keep = this._keepRoom; this._keepRoom = false;   // 👑 방장을 넘겨줬으면 방·쪽지는 그대로 두고 나만 나가요
+      if (!keep) this.sendAll({t: "bye"}); const ps = [...this.peers.values()]; this.peers.clear();
+      setTimeout(() => ps.forEach(P => { try { P.pc && P.pc.close(); } catch(e) {} }), keep ? 900 : 300);
+      if (pid && fs && !keep){ ps.forEach(P => fs.deleteDoc(this.ref(pid, "peers", String(P.no))).catch(() => {})); fs.deleteDoc(this.ref(pid, "peers", "_relay")).catch(() => {}); fs.deleteDoc(this.ref(pid)).catch(() => {}); }
     } else {
       const H = this.hp; this.hp = null;
       if (H && !H.relay){ try { H.r && H.r.readyState === "open" && H.r.send('{"t":"bye"}'); } catch(e) {} setTimeout(() => { try { H.pc.close(); } catch(e) {} }, 300); }
