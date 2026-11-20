@@ -309,7 +309,8 @@ const RD_MS = {
   merge: {e: "🔀", t: n => `이번 단계에 합치기 ${n}번`},
   sum:   {e: "📥", t: n => `이번 단계에 동물 ${n}마리 데려오기`},
   kill:  {e: "⚔️", t: n => `이번 단계에 몬스터 ${n}마리 잡기`},
-  mk:    {e: "🧪", t: (n, x) => x && RD_A[x] ? `이번 단계에 ${RD_A[x].e} ${RD_A[x].n} 만들기` : "조합하기"}   // 🆕 머리 쓰기: 정해진 동물 조합
+  mk:    {e: "🧪", t: (n, x) => x && RD_A[x] ? `이번 단계에 ${RD_A[x].e} ${RD_A[x].n} 만들기` : "만들기"},   // 🆕 머리 쓰기: 정해진 동물 만들기
+  cb:    {e: "💞", t: (n, x) => { const cb = typeof RD_CB !== "undefined" && RD_CB.find(c => c.id === x); return cb ? `이번 단계에 ${cb.e} ${cb.n} 조합 발동 (${cb.m.map(k => RD_A[k].e).join("")})` : "특별 조합 발동"; }}   // 💞 (2026.11.20)
 };
 
 /* 🎨 맵마다 다른 입체 소품 (네 귀퉁이) */
@@ -470,6 +471,7 @@ const RD_RC = {
   chrono:  [["sunbird", 1], ["moonrab", 2], ["gdragon", 1]],
   gfox:    [["suzaku", 1], ["nine", 2], ["moonrab", 1]]
 };
+Object.keys(RD_RC).forEach(t => { if (!RD_A[t] || RD_RC[t].some(([k]) => !RD_A[k])) delete RD_RC[t]; });   // 🔁 (2026.11.20) 없어진 높은 등급 동물의 조합은 빼요
 const RD_RCK = Object.keys(RD_RC);
 /* ⚔️ 딜러 · 🛡️ 서포터 — 👑 보스는 단단해서(20단계부터 받는 피해 -50%) 🛡️ 서포터가 먼저 때려 '💥 약점'을 드러내야 딜러가 세게(+40%) 때려요 */
 const RD_JOB = {d: {e: "🗡️", n: "딜러", c: "#ff8787", t: "몬스터를 세게 때려 쓰러뜨려요"}, s: {e: "🛡️", n: "서포터", c: "#63e6be", t: "느리게·멈추게·응원 + 👑 보스 약점 드러내기"}};
