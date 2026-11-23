@@ -7,7 +7,7 @@ self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
 self.addEventListener("fetch", e => {
   const r = e.request, u = new URL(r.url);
   if (r.method !== "GET" || u.origin !== location.origin) return;
-  if (!/\/(arcade\.html|arcade\.webmanifest|arcade-version\.json|fonts\/|icons\/)/.test(u.pathname)) return;
+  if (!/\/(arcade\.html|arcade\.webmanifest|arcade-version\.json|fonts\/|icons\/|lib\/three\/)/.test(u.pathname)) return;   // 🧊 3D 체스(three.js)도 저장해 두어요
   const html = /arcade\.(html|webmanifest)$/.test(u.pathname) || /arcade-version\.json$/.test(u.pathname);
   e.respondWith((html ? fetch(r.url, {cache: "no-store", credentials: "same-origin"}) : fetch(r)).then(res => { if (res.ok){ const c = res.clone(); caches.open(C).then(x => x.put(r, c)); } return res; })
     .catch(() => caches.match(r, {ignoreSearch: true}).then(m => m || Response.error())));

@@ -237,7 +237,7 @@ function bdGlyph(ch, white, s){
   BDSPR.set(key, c); return c;
 }
 NG.defs.ch = () => {
-  let b, turn, cast, ep, half, last, selQ = -1, tgts = [], win = null, chk = false, capd = [[], []], plies = 0;
+  let b, turn, cast, ep, half, last, selQ = -1, tgts = [], win = null, chk = false, capd = [[], []], plies = 0, anim = null, a3 = false;   // 🧊 anim: 말이 움직이는 모습(3D)
   const side = p => p ? (p === p.toUpperCase() ? 0 : 1) : -1, low = p => p.toLowerCase();
   const rc = i => [i >> 3, i & 7], on = (r, c) => r >= 0 && r < 8 && c >= 0 && c < 8;
   const KN = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]], KG = [[-1, -1], [-1, 0], [-1, 1], [0, -1], [0, 1], [1, -1], [1, 0], [1, 1]];
@@ -297,11 +297,11 @@ NG.defs.ch = () => {
     return best;
   }
   const G = {
-    ar: 1, names: ["⚪ 흰색", "⚫ 검은색"], undoOK: true,
-    reset(){ b = "rnbqkbnrpppppppp".split("").concat(Array(32).fill(""), "PPPPPPPPRNBQKBNR".split("")); turn = 0; cast = [1, 1, 1, 1]; ep = -1; half = 0; last = null; selQ = -1; tgts = []; win = null; chk = false; capd = [[], []]; plies = 0; this.resigned = null; },
+    ar: 1.22, names: ["⚪ 흰색", "⚫ 검은색"], undoOK: true,   // 🧊 3D 판은 비스듬히 보여서 옆으로 조금 넓게
+    reset(){ b = "rnbqkbnrpppppppp".split("").concat(Array(32).fill(""), "PPPPPPPPRNBQKBNR".split("")); turn = 0; cast = [1, 1, 1, 1]; ep = -1; half = 0; last = null; selQ = -1; tgts = []; win = null; chk = false; capd = [[], []]; plies = 0; anim = null; this.resigned = null; },
     turn: () => turn,
     apply(mv){ const L = legal(turn), m = L.find(x => x.f === mv[0] && x.t === mv[1]); if (!m || win) return false;
-      const s = turn; make(m); plies++; last = m; selQ = -1; tgts = []; if (m.c) capd[s].push(low(m.c));
+      const s = turn, hr = s ? 0 : 7; anim = {f: m.f, t: m.t, p: b[m.f], c: m.c, cs: m.ep ? m.t + (s ? -8 : 8) : m.t, rf: m.cs ? hr*8 + (m.cs === 1 ? 7 : 0) : null, rt: m.cs ? hr*8 + (m.cs === 1 ? 5 : 3) : null, t0: performance.now(), dur: 420}; make(m); plies++; last = m; selQ = -1; tgts = []; if (m.c) capd[s].push(low(m.c));
       (m.c ? SFX.hit : SFX.pong)();
       const nl = legal(turn); chk = attacked(kingSq(turn), 1 - turn);
       if (!nl.length) win = chk ? {w: s, txt: "체크메이트!"} : {w: -1, txt: "스테일메이트 (움직일 수가 없어요)"};
@@ -313,15 +313,22 @@ NG.defs.ch = () => {
     status(){ return chk && !win ? {t: "⚠️ 체크! 킹을 지켜요", c: "#ff8787"} : null; },
     cardTxt: s => capd[s].length ? "잡은 말 " + capd[s].map(t => CH_G[t]).join("") : "",
     chip(g, x, y, r, s){ g.beginPath(); g.arc(x, y, r, 0, 7); g.fillStyle = s ? "#212529" : "#fff"; g.fill(); g.lineWidth = 2; g.strokeStyle = "#868e96"; g.stroke(); },
+    step: () => a3 || (CH3D.st === 2 && chk && !win),   // 🧊 3D: 움직이는 동안·체크 반짝임만 다시 그려요
     down(x, y, B, flip, can){
-      const c = B.w/8; let C = Math.floor((x - B.x)/c), R = Math.floor((y - B.y)/c); if (C < 0 || R < 0 || C > 7 || R > 7){ selQ = -1; tgts = []; return null; }
-      if (flip){ C = 7 - C; R = 7 - R; } const i = R*8 + C;
+      let i;
+      if (CH3D.st === 2){ i = CH3D.pick(x, y, B); if (i < 0){ selQ = -1; tgts = []; return null; } }
+      else { B = this.sq2(B); const c = B.w/8; let C = Math.floor((x - B.x)/c), R = Math.floor((y - B.y)/c); if (C < 0 || R < 0 || C > 7 || R > 7){ selQ = -1; tgts = []; return null; }
+        if (flip){ C = 7 - C; R = 7 - R; } i = R*8 + C; }
       if (!can) return null;
       if (selQ >= 0 && tgts.includes(i)) return [selQ, i];
       if (b[i] && side(b[i]) === turn){ selQ = i; tgts = legal(turn).filter(m => m.f === i).map(m => m.t); tone(700, 700, .03, "sine", .05); if (!tgts.length) this.ctl.say(`${CH_N[low(b[i])]}은(는) 지금 못 움직여요`, "#ffc9c9", 40); }
       else { selQ = -1; tgts = []; }
       return null; },
+    sq2: B => ({x: B.x + (B.w - B.h)/2, y: B.y, w: B.h, h: B.h}),   // 2D 판은 가운데 정사각형
     draw(g, B, flip){
+      if (CH3D.st === 0) CH3D.load(() => this.ctl.dirty());
+      if (CH3D.st === 2){ try { a3 = CH3D.draw(g, B, flip, {b, sel: selQ, tgts, last, chk: chk && !win ? kingSq(turn) : -1, epT: selQ >= 0 && low(b[selQ] || "") === "p" ? ep : -1, anim}, NG.k || 1); return; } catch(e){ console.warn("[3D 체스]", e); CH3D.st = -1; } }
+      a3 = false; B = this.sq2(B);
       const c = B.w/8, P = i => { let R = i >> 3, C = i & 7; if (flip){ R = 7 - R; C = 7 - C; } return [B.x + C*c, B.y + R*c]; };
       g.save(); rrect(g, B.x - 10, B.y - 10, B.w + 20, B.h + 20, 14); g.fillStyle = "#5c3d1e"; g.fill();
       for (let i = 0; i < 64; i++){ const [x, y] = P(i); g.fillStyle = ((i >> 3) + (i & 7)) % 2 ? "#b58863" : "#f0d9b5"; g.fillRect(x, y, c + .5, c + .5); }
@@ -332,6 +339,7 @@ NG.defs.ch = () => {
       tgts.forEach(i => { const [x, y] = P(i); g.beginPath(); if (b[i] || (i === ep && selQ >= 0 && low(b[selQ]) === "p")){ g.lineWidth = c*.08; g.strokeStyle = "rgba(81,207,102,.9)"; g.arc(x + c/2, y + c/2, c*.44, 0, 7); g.stroke(); } else { g.fillStyle = "rgba(55,178,77,.75)"; g.arc(x + c/2, y + c/2, c*.16, 0, 7); g.fill(); } });
       g.fillStyle = "rgba(255,255,255,.75)"; g.font = `${Math.round(c*.18)}px ${BD_FONT}`; g.textAlign = "left";
       for (let k = 0; k < 8; k++){ const [x, y] = P(flip ? k : 56 + k); g.fillText("abcdefgh"[k], x + 3, y + c - 4); }
+      if (CH3D.st === 1){ g.fillStyle = "rgba(10,6,30,.6)"; g.fillRect(B.x, B.y + B.h - 44, B.w, 40); outlined(g, "🧊 3D 체스판을 불러오는 중…", B.x + B.w/2, B.y + B.h - 24, 22, "#c5f6fa"); }
       g.restore();
     },
     ai(lv, done){
