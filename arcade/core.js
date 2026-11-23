@@ -1,5 +1,5 @@
 /* =====================================================================
-   🕹️ 우리반 오락실 — 로그인 · 저장(이 기기 / Firebase) · 홈 · 랭킹 · 선생님 화면
+   🎲 우리반 보드게임 — 로그인 · 저장(이 기기 / Firebase) · 홈 · 랭킹 · 선생님 화면
    ===================================================================== */
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -479,7 +479,7 @@ const who = no => +no === TEACHER ? "🧑‍🏫 선생님" : `${no}번 ${nameOf
    ===================================================================== */
 
 /* =====================================================================
-   📲 앱으로 설치 — 홈 화면 아이콘을 누르면 바로 우리 반 오락실로 들어와요
+   📲 앱으로 설치 — 홈 화면 아이콘을 누르면 바로 우리 반 보드게임으로 들어와요
    ===================================================================== */
 const joinUrl = () => { const j = Store.join(); return j ? `${location.origin}${location.pathname}#join=${b64e({c: j.c, i: j.i})}` : ""; };
 const APP = {
@@ -489,7 +489,7 @@ const APP = {
   init(){
     if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("arcade-sw.js").catch(e => console.warn(e));
     addEventListener("beforeinstallprompt", e => { e.preventDefault(); this.ev = e; this.paint(); });
-    addEventListener("appinstalled", () => { this.ev = null; this.paint(); ARC.modal("#mdApp", false); toast("📲 설치했어요! 이제 홈 화면의 오락실 아이콘으로 바로 들어와요"); });
+    addEventListener("appinstalled", () => { this.ev = null; this.paint(); ARC.modal("#mdApp", false); toast("📲 설치했어요! 이제 홈 화면의 보드게임 아이콘으로 바로 들어와요"); });
     $$(".app-inst").forEach(b => b.onclick = () => this.go());
     this.paint();
   },
@@ -506,8 +506,8 @@ const APP = {
   /* 설치 버튼이 안 뜨는 기기(아이패드 등)에서 하는 방법 */
   how(){
     const url = joinUrl(), ios = this.ios();
-    $("#apHow").innerHTML = (ios ? `<ol class="ap-st"><li>사파리 아래(또는 위) <b>공유 버튼 <span class="k">⬆️</span></b>을 눌러요</li><li><b>홈 화면에 추가</b>를 누르고 <b>추가</b>를 눌러요</li><li>홈 화면의 <b>🕹️ 오락실</b> 아이콘을 눌러요</li></ol>`
-      : `<ol class="ap-st"><li>크롬 주소창 오른쪽 <b>설치 아이콘 <span class="k">⊕</span></b>을 누르거나, 메뉴 <b>⋮</b> → <b>앱 설치</b>(또는 <b>홈 화면에 추가</b>)를 눌러요</li><li>홈 화면·앱 목록의 <b>🕹️ 오락실</b> 아이콘을 눌러요</li></ol>`)
+    $("#apHow").innerHTML = (ios ? `<ol class="ap-st"><li>사파리 아래(또는 위) <b>공유 버튼 <span class="k">⬆️</span></b>을 눌러요</li><li><b>홈 화면에 추가</b>를 누르고 <b>추가</b>를 눌러요</li><li>홈 화면의 <b>🎲 보드게임</b> 아이콘을 눌러요</li></ol>`
+      : `<ol class="ap-st"><li>크롬 주소창 오른쪽 <b>설치 아이콘 <span class="k">⊕</span></b>을 누르거나, 메뉴 <b>⋮</b> → <b>앱 설치</b>(또는 <b>홈 화면에 추가</b>)를 눌러요</li><li>홈 화면·앱 목록의 <b>🎲 보드게임</b> 아이콘을 눌러요</li></ol>`)
       + (url ? `<p class="arc-small">아이콘으로 처음 열었는데 <b>“학생이에요?”</b> 화면이 나오면, 아래 <b>반 입장 주소</b>를 복사해 두었다가 붙여 넣어요 (아이패드는 앱이 따로 저장해서 한 번 필요해요).</p>
         <div class="arc-link"><input readonly value="${esc(url)}" id="apUrl"><button class="arc-btn p" id="apCopy">📋 복사</button></div>` : "");
     const c = $("#apCopy"); if (c) c.onclick = () => { const i = $("#apUrl"); i.select(); (navigator.clipboard ? navigator.clipboard.writeText(i.value) : Promise.reject()).catch(() => document.execCommand("copy")); toast("📋 반 입장 주소를 복사했어요"); };
@@ -538,8 +538,8 @@ const ARC = {
     if (h){ try { const j = b64d(h[1]); localStorage.setItem(KEY + ".join", JSON.stringify({c: j.c, i: j.i})); } catch(e) { alert("반 입장 주소가 잘못됐어요."); } history.replaceState(null, "", location.pathname); }
     $$("[data-close]").forEach(b => b.onclick = () => b.closest(".arc-modal").hidden = true);
     APP.init();
-    // 가져온 게임의 '친구 고르기' 버튼은 오락실에서는 홈으로 가요
-    ["#flOther", "#trOther", "#vbToSel", "#ahToSel"].forEach(s => { const el = $(s); if (el) el.textContent = "🏠 오락실 홈"; });
+    // 가져온 게임의 '친구 고르기' 버튼은 보드게임에서는 홈으로 가요
+    ["#flOther", "#trOther", "#vbToSel", "#ahToSel"].forEach(s => { const el = $(s); if (el) el.textContent = "🏠 보드게임 홈"; });
     $$(".arc-modal").forEach(m => m.addEventListener("pointerdown", e => { if (e.target === m && m.id !== "mdPw" && m.id !== "mdNet") m.hidden = true; }));
     Store.subs.push(() => this.refresh());
     let ok = false;
@@ -594,9 +594,9 @@ const ARC = {
           const cfg = parseCfg($("#suCfg").value); if (!cfg) throw new Error("Firebase 설정을 찾지 못했어요. apiKey, projectId 가 들어 있는 설정을 붙여 넣어 주세요.");
           await Store.connect(cfg, cid, cls);
         } else { Store.mode = "local"; Store.cls = cls; Store.recs = {}; Store.saveLocal(); }
-      } catch(e){ $("#suGo").disabled = false; $("#suGo").textContent = "🎮 오락실 만들기"; return alert("만들지 못했어요: " + (e.message || e)); }
+      } catch(e){ $("#suGo").disabled = false; $("#suGo").textContent = "🎮 보드게임 만들기"; return alert("만들지 못했어요: " + (e.message || e)); }
       this.login(); this.teacher("kids");
-      toast("🎉 오락실이 만들어졌어요! 아이들 비밀번호 쪽지를 인쇄해 나눠 주세요.");
+      toast("🎉 보드게임이 만들어졌어요! 아이들 비밀번호 쪽지를 인쇄해 나눠 주세요.");
     };
   },
 
@@ -810,20 +810,20 @@ const ARC = {
       };
     } else if (this.tcTab === "link"){
       const url = Store.mode === "cloud" ? joinUrl() : "";
-      body.innerHTML = Store.mode === "cloud" ? `<p>아이들 태블릿·크롬북에서 <b>이 주소(또는 QR)를 한 번만</b> 열면 우리 반 오락실로 들어와요. 그다음부터는 그냥 오락실 주소로 열어도 돼요.</p>
+      body.innerHTML = Store.mode === "cloud" ? `<p>아이들 태블릿·크롬북에서 <b>이 주소(또는 QR)를 한 번만</b> 열면 우리 반 보드게임으로 들어와요. 그다음부터는 그냥 보드게임 주소로 열어도 돼요.</p>
         <div class="arc-link"><input readonly value="${esc(url)}" id="tlUrl"><button class="arc-btn p" id="tlCopy">📋 복사</button></div>
         <div class="tl-qrw"><div class="tl-qr" id="tlQr" title="누르면 크게 보여요">QR 만드는 중…</div>
-          <div class="tl-app"><h4>📲 우리 반 오락실 앱 만들기</h4>
+          <div class="tl-app"><h4>📲 우리 반 보드게임 앱 만들기</h4>
             <ol><li>아이 기기에서 위 주소를 열거나 <b>QR을 찍어요</b> → 우리 반 로그인 화면이 떠요</li>
               <li>화면의 <b>📲 앱으로 설치</b>를 눌러요 (크롬: 주소창 오른쪽 설치 아이콘 · 아이패드: 공유 ⬆️ → 홈 화면에 추가)</li>
-              <li>이제 홈 화면의 <b>🕹️ 오락실</b> 아이콘을 누르면 <b>바로 ${esc(Store.cls.name || "우리 반")} 오락실</b>로 들어와요</li></ol>
+              <li>이제 홈 화면의 <b>🎲 보드게임</b> 아이콘을 누르면 <b>바로 ${esc(Store.cls.name || "우리 반")} 보드게임</b>로 들어와요</li></ol>
             <button class="arc-btn" id="tlBig">🔍 QR 크게 띄우기 (TV·칠판용)</button></div></div>
-        <p class="arc-small">이 주소를 아는 사람은 우리 반 오락실에 들어올 수 있어서 깃허브 같은 공개된 곳에는 넣지 않았어요. 클래스룸·학급 게시판처럼 반 안에서만 나눠 주세요.</p>`
+        <p class="arc-small">이 주소를 아는 사람은 우리 반 보드게임에 들어올 수 있어서 깃허브 같은 공개된 곳에는 넣지 않았어요. 클래스룸·학급 게시판처럼 반 안에서만 나눠 주세요.</p>`
         : `<p>지금은 <b>💻 이 기기에만</b> 기록하고 있어요. 이 기기에서 아이들이 돌아가며 들어오면 돼요.</p><p>아이들 각자 태블릿·크롬북에서 하려면 <b>☁️ 저장</b> 탭에서 Firebase를 연결해 주세요. 그러면 여기에 반 입장 주소가 생겨요.</p>`;
       const c = $("#tlCopy"); if (c) c.onclick = () => { $("#tlUrl").select(); navigator.clipboard.writeText($("#tlUrl").value).then(() => toast("📋 복사했어요"), () => document.execCommand("copy")); };
       if (url) qrSvg(url).then(svg => {
         const q = $("#tlQr"); if (!q) return; q.innerHTML = svg;
-        const big = () => { const d = document.createElement("div"); d.className = "tl-qrbig"; d.innerHTML = `<div><h2>🕹️ ${esc(Store.cls.name || "우리 반")} 오락실</h2>${svg}<p>카메라로 찍으면 우리 반 오락실로 들어와요 · 누르면 닫혀요</p></div>`; d.onclick = () => d.remove(); document.body.appendChild(d); };
+        const big = () => { const d = document.createElement("div"); d.className = "tl-qrbig"; d.innerHTML = `<div><h2>🎲 ${esc(Store.cls.name || "우리 반")} 보드게임</h2>${svg}<p>카메라로 찍으면 우리 반 보드게임으로 들어와요 · 누르면 닫혀요</p></div>`; d.onclick = () => d.remove(); document.body.appendChild(d); };
         q.onclick = big; $("#tlBig").onclick = big;
       }).catch(() => { const q = $("#tlQr"); if (q) q.textContent = "QR을 만들지 못했어요 (인터넷 확인)"; });
     } else if (this.tcTab === "coin"){
@@ -878,17 +878,17 @@ const ARC = {
           <label class="arc-f">Firebase 설정 <textarea id="tsCfg" rows="5" placeholder="const firebaseConfig = { apiKey: ... };"></textarea></label>
           <div class="arc-row"><button class="arc-btn p" id="tsGo">☁️ 연결하고 기록 옮기기</button></div>`
         : `<p class="arc-small">반 정보와 랭킹이 Firebase에 저장돼요. 아이들 비밀번호는 바꿔서(암호처럼) 저장하고, 사진은 올리지 않아요.</p><textarea readonly class="arc-rules" rows="9">${esc(RULES)}</textarea>`}
-        <hr><div class="arc-row"><button class="arc-btn" id="tsPin">🔑 선생님 비밀번호 바꾸기</button><button class="arc-btn" id="tsLeave">🚪 이 기기에서 오락실 빼기</button></div>`;
+        <hr><div class="arc-row"><button class="arc-btn" id="tsPin">🔑 선생님 비밀번호 바꾸기</button><button class="arc-btn" id="tsLeave">🚪 이 기기에서 보드게임 빼기</button></div>`;
       const go = $("#tsGo"); if (go) go.onclick = async () => { const cfg = parseCfg($("#tsCfg").value); if (!cfg) return alert("Firebase 설정을 찾지 못했어요."); go.disabled = true; go.textContent = "연결하는 중…";
         try { await Store.toCloud(cfg); toast("☁️ 연결했어요! 🔗 반 입장 주소를 아이들에게 알려 주세요."); this.teacher("link"); } catch(e){ go.disabled = false; go.textContent = "☁️ 연결하고 기록 옮기기"; alert("연결하지 못했어요: " + (e.message || e) + "\n(익명 로그인을 켰는지, 규칙을 게시했는지 확인해 주세요)"); } };
       $("#tsPin").onclick = async () => { const p = prompt("새 선생님 비밀번호 (숫자 4~8자리)"); if (!p) return; if (!/^\d{4,8}$/.test(p)) return alert("숫자 4~8자리로 적어 주세요."); const nc = Object.assign({}, cls, {admin: sha256(`${cls.cid}:teacher:${p}`)}); await Store.putClass(nc); toast("🔑 바꿨어요"); };
-      $("#tsLeave").onclick = () => { if (!confirm(Store.mode === "cloud" ? "이 기기에서만 오락실 연결을 빼요. (Firebase의 기록은 그대로 남아요)" : "이 기기의 오락실 반 정보와 기록을 모두 지울까요? 되돌릴 수 없어요.")) return; ["local","join","me"].forEach(k => localStorage.removeItem(KEY + "." + k)); location.reload(); };
+      $("#tsLeave").onclick = () => { if (!confirm(Store.mode === "cloud" ? "이 기기에서만 보드게임 연결을 빼요. (Firebase의 기록은 그대로 남아요)" : "이 기기의 보드게임 반 정보와 기록을 모두 지울까요? 되돌릴 수 없어요.")) return; ["local","join","me"].forEach(k => localStorage.removeItem(KEY + "." + k)); location.reload(); };
     }
     if (H[this.tcTab]) body.insertAdjacentHTML("afterbegin", `<h3>${H[this.tcTab]}</h3>`);
   }
 };
 function fbHow(open){ return `<details class="arc-how"${open ? " open" : ""}><summary>☁️ Firebase 연결 방법 (처음 한 번, 10분쯤)</summary><ol>
-          <li><a href="https://console.firebase.google.com/" target="_blank" rel="noopener">Firebase 콘솔</a>에 구글 계정으로 들어가 <b>프로젝트 만들기</b> (이름 예: 우리반오락실, 애널리틱스는 꺼도 돼요)</li>
+          <li><a href="https://console.firebase.google.com/" target="_blank" rel="noopener">Firebase 콘솔</a>에 구글 계정으로 들어가 <b>프로젝트 만들기</b> (이름 예: 우리반보드게임, 애널리틱스는 꺼도 돼요)</li>
           <li>왼쪽 <b>빌드 → Authentication → 시작하기 → 로그인 방법</b>에서 <b>익명</b>을 켜요. 같은 화면 <b>설정 → 승인된 도메인</b>에 <code>${esc(location.hostname || "kimgun124-boop.github.io")}</code>을 추가해요</li>
           <li><b>빌드 → Firestore Database → 데이터베이스 만들기</b> (위치: asia-northeast3 서울, <b>프로덕션 모드</b>)</li>
           <li>Firestore의 <b>규칙</b> 탭에 아래 규칙을 붙여 넣고 <b>게시</b>해요</li>
@@ -921,8 +921,8 @@ function printSlips(){
   const cls = Store.cls, plain = loadPlain(cls.cid), miss = cls.roster.filter(s => !plain[s.no]);
   if (miss.length && !confirm(`${miss.map(s => s.no).join(", ")}번은 이 기기에 비밀번호가 없어서 쪽지에 빈칸으로 나와요. 그래도 인쇄할까요? (🎲 새로 → 저장 하면 채워져요)`)) return;
   const w = window.open("", "_blank"); if (!w) return alert("팝업이 막혀 있어요. 팝업을 허용해 주세요.");
-  w.document.write(`<!doctype html><meta charset="utf-8"><title>오락실 비밀번호 쪽지</title><style>body{font-family:sans-serif;margin:10mm}.g{display:grid;grid-template-columns:repeat(3,1fr);gap:0}.s{border:1px dashed #999;padding:12px 10px;text-align:center;page-break-inside:avoid}.s b{font-size:20px}.s .p{font-size:28px;letter-spacing:6px;font-weight:bold;margin-top:4px}.s small{color:#666}</style>
-    <div class="g">${cls.roster.map(s => `<div class="s"><small>🕹️ ${esc(cls.name)} 오락실</small><div><b>${s.no}번 ${esc(s.name)}</b></div><div class="p">${plain[s.no] || "____"}</div><small>친구에게 알려 주지 마세요!</small></div>`).join("")}</div><script>setTimeout(()=>print(),300)<\/script>`);
+  w.document.write(`<!doctype html><meta charset="utf-8"><title>보드게임 비밀번호 쪽지</title><style>body{font-family:sans-serif;margin:10mm}.g{display:grid;grid-template-columns:repeat(3,1fr);gap:0}.s{border:1px dashed #999;padding:12px 10px;text-align:center;page-break-inside:avoid}.s b{font-size:20px}.s .p{font-size:28px;letter-spacing:6px;font-weight:bold;margin-top:4px}.s small{color:#666}</style>
+    <div class="g">${cls.roster.map(s => `<div class="s"><small>🎲 ${esc(cls.name)} 보드게임</small><div><b>${s.no}번 ${esc(s.name)}</b></div><div class="p">${plain[s.no] || "____"}</div><small>친구에게 알려 주지 마세요!</small></div>`).join("")}</div><script>setTimeout(()=>print(),300)<\/script>`);
   w.document.close();
 }
 

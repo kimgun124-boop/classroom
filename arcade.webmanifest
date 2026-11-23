@@ -1,8 +1,8 @@
 {
   "id": "arcade.html",
-  "name": "우리반 오락실",
-  "short_name": "우리반 오락실",
-  "description": "우리 반 친구들과 함께하는 오락실 · made by 효석쌤",
+  "name": "우리반 보드게임",
+  "short_name": "우리반 보드게임",
+  "description": "우리 반 친구들과 함께하는 보드게임 · made by 효석쌤",
   "lang": "ko",
   "start_url": "arcade.html",
   "scope": "./",

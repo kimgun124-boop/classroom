@@ -1,4 +1,4 @@
-/* ===================== 🕹️ 우리반 오락실 ===================== */
+/* ===================== 🎲 우리반 보드게임 ===================== */
 body.arc-body{
   margin:0; min-height:100vh; color:#f3f0ff; font-family:"Jua","Gowun Dodum",system-ui,sans-serif;
   background:radial-gradient(circle at 20% 0%, #3b1d75 0, transparent 45%), radial-gradient(circle at 90% 100%, #0b3d6e 0, transparent 50%), #140f2e !important;
@@ -131,7 +131,7 @@ body.arc-body{
 .arc-body hr{border:0;border-top:1px solid #3e3494;margin:16px 0}
 @media (max-width:640px){ .arc-kids .h{display:none} .arc-kids .r{grid-template-columns:56px 1fr 40px;grid-auto-rows:auto} .arc-kids .r>span:nth-child(4),.arc-kids .r>span:nth-child(5){grid-column:span 3} }
 
-/* 게임 화면은 오락실 위에 */
+/* 게임 화면은 보드게임 위에 */
 #volley,#airh,#flappy,#train,#memo,#guess{z-index:400}
 .toast{z-index:900}
 

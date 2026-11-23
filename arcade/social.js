@@ -78,7 +78,7 @@ const CROOM = {
     if (isT(me)) return "";
     if (CHAT.banned(me)) return "🚫 채팅방에서 추방됐어요";
     if (this.off()) return "⏸️ 선생님이 대화방을 잠깐 닫았어요";
-    if ((Store.cls || {}).closed) return "🔒 지금은 오락실 쉬는 시간이에요";
+    if ((Store.cls || {}).closed) return "🔒 지금은 보드게임 쉬는 시간이에요";
     return "";
   },
   nameBad(n){

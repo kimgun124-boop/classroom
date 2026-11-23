@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-🕹️ 우리반 오락실(arcade.html) 만들기
+🎲 우리반 보드게임(arcade.html) 만들기
 
 손들고 말해요(index.html)에 있는 게임 4개(얼굴 배구·에어하키·얼굴 날기·얼굴 기차)를
-그대로 가져와서, 오락실용으로 몇 군데만 바꿔 끼우고 새 게임들과 합쳐 arcade.html 하나로 만들어요.
-index.html의 게임을 고친 뒤에는 이 파일을 다시 실행하면 오락실에도 반영돼요.
+그대로 가져와서, 보드게임용으로 몇 군데만 바꿔 끼우고 새 게임들과 합쳐 arcade.html 하나로 만들어요.
+index.html의 게임을 고친 뒤에는 이 파일을 다시 실행하면 보드게임에도 반영돼요.
 
     python3 arcade/build.py
 """
@@ -45,7 +45,7 @@ overlays = [block_from(f'<div id="{i}"', "html") for i in ("volley", "airh", "fl
 overlays += [block_from(f'<div id="{i}" class="gm-ov"', "html") for i in ("memo", "guess", "train")]
 game_html = "\n".join(overlays)
 
-# ---- 3) 게임 코드 + 오락실용으로 바꿔 끼우기
+# ---- 3) 게임 코드 + 보드게임용으로 바꿔 끼우기
 mods = {
     "vb": module_containing('const cv = $("#vbCanvas")'),
     "ah": module_containing('const cv = $("#ahCanvas")'),
@@ -61,12 +61,12 @@ def patch(key, a, b, count=1):
     mods[key] = mods[key].replace(a, b)
 
 
-# 결과를 오락실 랭킹으로 보내기
+# 결과를 보드게임 랭킹으로 보내기
 patch("vb", "function endMatch(w){", 'function endMatch(w){ window.ARC && ARC.duel("vb", P[w].sid, P[1 - w].sid, P[1].ctl === "cpu", score);')
 patch("ah", "function endMatch(w){", 'function endMatch(w){ window.ARC && ARC.duel("ah", M[w].sid, M[1 - w].sid, M[1].ctl === "cpu", score);')
 patch("fl", "const st = stu(sid), res = saveResult();", 'const st = stu(sid), res = saveResult(); window.ARC && ARC.score("fl", sid, recOf(sid));')
 patch("tr", "const res = saveResult(), st = stu(sid), r = recOf(sid);", 'const res = saveResult(), st = stu(sid), r = recOf(sid); window.ARC && ARC.score("tr", sid, r);')
-# '캐릭터/친구 고르기'로 가면 → 오락실 홈으로 (다른 친구로 바꿔서 하지 못하게)
+# '캐릭터/친구 고르기'로 가면 → 보드게임 홈으로 (다른 친구로 바꿔서 하지 못하게)
 patch("vb", "function toSel(){", "function toSel(){ if (window.ARC && ARC.busy){ closeVb(); return; }")
 patch("ah", "function toSel(){", "function toSel(){ if (window.ARC && ARC.busy){ closeAh(); return; }")
 patch("fl", "function toSel(){", "function toSel(){ if (window.ARC && ARC.busy){ closeFl(); return; }")
@@ -76,7 +76,7 @@ patch("vb", "function closeVb(){", "function closeVb(){ window.ARC && ARC.back()
 patch("ah", "function closeAh(){", "function closeAh(){ window.ARC && ARC.back();")
 patch("fl", "function closeFl(){", "function closeFl(){ window.ARC && ARC.back();")
 patch("tr", "function closeTr(){", "function closeTr(){ window.ARC && ARC.back();")
-# 오락실에서 쓸 시작 함수 내보내기
+# 보드게임에서 쓸 시작 함수 내보내기
 patch("vb", "window.__vbTest = {", "window.__vbOpen = openVb; window.__vbTest = { setLv(v){ lv = v; }, setTarget(v){ target = v; },")
 patch("ah", "window.__ahTest = {", "window.__ahOpen = openAh; window.__ahTest = { setLv(v){ lv = v; }, setTarget(v){ target = v; },")
 patch("fl", "window.__flTest = {", "window.__flOpen = openFl; window.__flTest = { begin,")
@@ -223,7 +223,7 @@ patch("ah", "    window.__ahOpen = openAh;", r'''    /* 🌐 수락한 친구 �
 
 game_js = "\n".join(mods[k] for k in ("vb", "ah", "fl", "tr"))
 
-# ---- 3-1) 👕 아바타 그리기 (index.html의 아바타 모듈 + 오락실 고급 아이템 자리)
+# ---- 3-1) 👕 아바타 그리기 (index.html의 아바타 모듈 + 보드게임 고급 아이템 자리)
 s = src.index("  /* ---------- 👕 아바타: 부위별로 골라서 SVG로 그려요 ---------- */")
 e = src.index("  const avMood = sid =>")
 av_js = src[s:e]
@@ -255,7 +255,7 @@ for k, v in {
 }.items():
     assert out.count(k) == 1, k
     out = out.replace(k, v)
-# ---- 5) ⚡ 렉 줄이기 · 화면 꽉 채우기 (오락실에서만)
+# ---- 5) ⚡ 렉 줄이기 · 화면 꽉 채우기 (보드게임에서만)
 def swap(a, b, at_least=1):
     global out
     c = out.count(a)
@@ -269,7 +269,7 @@ swap("Math.min(2, window.devicePixelRatio || 1)", "ARCDPR()", 6)
 swap("w = st.clientWidth - 24, h = st.clientHeight - 12", "w = st.clientWidth - 6, h = st.clientHeight - 4", 4)
 swap("const pad = cur.full ? 0 : 16,", "const pad = cur.full ? 0 : 6,")
 
-# 손들고 말해요에서 가져온 CSS 중 오락실에서 안 쓰는 규칙 빼기
+# 손들고 말해요에서 가져온 CSS 중 보드게임에서 안 쓰는 규칙 빼기
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from cssprune import prune
 _s, _e = out.index("<style>"), out.index("</style>")
@@ -278,7 +278,7 @@ assert _css.count(css_app) == 1
 _slim, _k, _d = (css_app, 0, 0) if os.environ.get("NOPRUNE") else prune(css_app, out[:_s] + out[_e:])
 out = out[:_s + 7] + _css.replace(css_app, _slim) + out[_e:]
 print(f"CSS 정리: 안 쓰는 규칙 {_d}개 뺌 ({_k}개 남김)")
-# 🔄 버전 표시: 내용이 바뀌면 번호도 바뀌어서, 열려 있는 오락실이 새 버전을 알아채요
+# 🔄 버전 표시: 내용이 바뀌면 번호도 바뀌어서, 열려 있는 보드게임이 새 버전을 알아채요
 import hashlib, json
 _build = hashlib.sha1(out.encode("utf-8")).hexdigest()[:10]
 out = out.replace("{{BUILD}}", _build)
@@ -286,6 +286,6 @@ open(os.path.join(ROOT, "arcade-version.json"), "w", encoding="utf-8").write(jso
 open(os.path.join(ROOT, "arcade.html"), "w", encoding="utf-8").write(out)
 print(f"arcade.html 완성 ({len(out.encode('utf-8'))//1024} KB)")
 
-# 📢 새 소식(패치노트) 확인: 오락실을 고쳤으면 arcade/patchnotes.js 맨 위에 아이들용 안내를 더해요
+# 📢 새 소식(패치노트) 확인: 보드게임을 고쳤으면 arcade/patchnotes.js 맨 위에 아이들용 안내를 더해요
 _m = re.search(r'\{id: "([^"]+)", d: "([^"]+)", e: "[^"]*", t: "([^"]+)"', rd("patchnotes.js"))
 print(f"📢 새 소식 맨 위: {_m.group(1)} · {_m.group(2)} · {_m.group(3)}  ← 이번에 고친 내용이 들어 있나요?" if _m else "⚠️ patchnotes.js에서 새 소식을 찾지 못했어요")

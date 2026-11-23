@@ -110,7 +110,7 @@ const NET = {
       if (this.pc !== pc) return;
       this.rid = await this.S().create({g: gid, from: this.a, to, st: "wait", offer: pc.localDescription.sdp, at: CLOCK.now()});
       if (this.pc !== pc){ this.S().del(this.rid); return; }
-      this.wait(`📨 <b>${esc(who(to))}</b>의 화면에 신청이 떴어요.<br>친구가 <b>⚔️ 수락</b>을 누르면 바로 시작해요!<br><small>친구도 자기 기기에서 오락실에 로그인해 있어야 해요.</small>`);
+      this.wait(`📨 <b>${esc(who(to))}</b>의 화면에 신청이 떴어요.<br>친구가 <b>⚔️ 수락</b>을 누르면 바로 시작해요!<br><small>친구도 자기 기기에서 보드게임에 로그인해 있어야 해요.</small>`);
       this.unRoom = this.S().watch(this.rid, d => {
         if (this.pc !== pc || this.on) return;
         if (!d) return this.fail("신청이 사라졌어요. 다시 신청해 보세요.");
@@ -118,7 +118,7 @@ const NET = {
         if (d.rl && this.TB.includes(this.gid)) return this.goRelay();
         if (d.answer && !pc.currentRemoteDescription){ pc.setRemoteDescription({type: "answer", sdp: d.answer}).catch(e => this.fail("연결하지 못했어요: " + e.message)); this.wait("🔌 친구 기기와 연결하는 중…"); this.connWait(); }
       });
-      this.timer = setTimeout(() => { if (this.pc === pc && !this.on && !pc.currentRemoteDescription) this.fail(`⌛ <b>${esc(iga(who(to)))}</b> 대답이 없어요.<br><small>친구가 자기 기기에서 오락실에 로그인해 있는지 확인해요.</small>`); }, 60000);
+      this.timer = setTimeout(() => { if (this.pc === pc && !this.on && !pc.currentRemoteDescription) this.fail(`⌛ <b>${esc(iga(who(to)))}</b> 대답이 없어요.<br><small>친구가 자기 기기에서 보드게임에 로그인해 있는지 확인해요.</small>`); }, 60000);
     } catch(e){ console.error(e); this.fail("신청하지 못했어요: " + (e.message || e)); }
   },
   async accept(x){

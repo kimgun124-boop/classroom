@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="bfdc8245a5">
+<meta name="arc-build" content="d257cf1e49">
 <script>
-/* 🔄 늘 최신 오락실: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
+/* 🔄 늘 최신 보드게임: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "bfdc8245a5", K = "arcade.reloaded";
+  var B = "d257cf1e49", K = "arcade.reloaded";
   function saving(){ try { return typeof Store !== "undefined" && Store.saving && Store.saving(); } catch(e){ return false; } }
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !saving() && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
@@ -17,7 +17,7 @@
       var u = new URL(location.href); u.searchParams.set("v", j.b); location.replace(u.toString());
     }).catch(function(){});
   }
-  /* 🔄 새로고침 단추: 저장해 둔 예전 파일을 버리고 서버의 최신 오락실을 받아요 */
+  /* 🔄 새로고침 단추: 저장해 둔 예전 파일을 버리고 서버의 최신 보드게임을 받아요 */
   window.arcRefresh = function(btn){
     if (window.ARC && ARC.busy) return;
     if (btn){ btn.disabled = true; btn.classList.add("spin"); }
@@ -37,17 +37,17 @@
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#140f2e">
-<title>🕹️ 우리반 오락실 · made by 효석쌤</title>
+<title>🎲 우리반 보드게임 · made by 효석쌤</title>
 <meta name="author" content="효석쌤">
 <link rel="manifest" href="arcade.webmanifest">
 <link rel="apple-touch-icon" href="icons/arcade-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="우리반 오락실">
+<meta name="apple-mobile-web-app-title" content="우리반 보드게임">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <!-- 이 파일은 arcade/build.py 가 만들어요. 고칠 때는 arcade 폴더의 파일을 고친 뒤 다시 만들어 주세요. -->
 <link href="fonts/fonts.css" rel="stylesheet">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕹️</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎲</text></svg>">
 <style>
 :root{
     --bg:#fbf6ee; --paper:#ffffff; --ink:#2e2a26; --ink-soft:#6f665d; --line:#ece3d6;
@@ -1256,7 +1256,7 @@ body.big .card .name .face.av{width:144px;height:144px}
  }
 
 
-/* ===================== 🕹️ 우리반 오락실 ===================== */
+/* ===================== 🎲 우리반 보드게임 ===================== */
 body.arc-body{
   margin:0; min-height:100vh; color:#f3f0ff; font-family:"Jua","Gowun Dodum",system-ui,sans-serif;
   background:radial-gradient(circle at 20% 0%, #3b1d75 0, transparent 45%), radial-gradient(circle at 90% 100%, #0b3d6e 0, transparent 50%), #140f2e !important;
@@ -1389,7 +1389,7 @@ body.arc-body{
 .arc-body hr{border:0;border-top:1px solid #3e3494;margin:16px 0}
 @media (max-width:640px){ .arc-kids .h{display:none} .arc-kids .r{grid-template-columns:56px 1fr 40px;grid-auto-rows:auto} .arc-kids .r>span:nth-child(4),.arc-kids .r>span:nth-child(5){grid-column:span 3} }
 
-/* 게임 화면은 오락실 위에 */
+/* 게임 화면은 보드게임 위에 */
 #volley,#airh,#flappy,#train,#memo,#guess{z-index:400}
 .toast{z-index:900}
 
@@ -1595,7 +1595,7 @@ body.arc-lite .arc-logo .g{animation:none !important}
 @keyframes cgFx{0%{opacity:0;transform:translateY(6px)}20%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-14px)}}
 @media (max-width:700px){.arc-coins .r{flex-wrap:wrap}.arc-coins .nm{width:auto;flex:1}.arc-coins .bb{width:100%;justify-content:flex-end}.cg-amt input{width:96px}}
 
-/* ===================== 🏠 오락실 로비 (2026.11.13) : 첫 화면 랭킹 · 대결방 · 채팅 · 관리자 ===================== */
+/* ===================== 🏠 보드게임 로비 (2026.11.13) : 첫 화면 랭킹 · 대결방 · 채팅 · 관리자 ===================== */
 /* ⚡ 렉 줄이기: 고정 배경(background-attachment:fixed)·글자 번짐 필터·모달 흐림은 화면 전체를 계속 다시 그려서 뺐어요 */
 body.arc-body{background:#140f2e !important;background-attachment:scroll !important}
 .arc-body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
@@ -2324,8 +2324,8 @@ body.arc-lite .rh-song{transition:none}
 <!-- ===== 처음 설정 (선생님) ===== -->
 <section class="arc-scr" id="scrSetup" hidden>
   <div class="arc-card arc-wide">
-    <h1 class="arc-logo"><span class="e">🕹️</span> <span class="g">우리반 오락실</span></h1>
-    <div class="su-kid"><b>🎒 학생이에요?</b> 선생님이 알려 준 <b>반 입장 주소</b>를 붙여 넣으면 우리 반 오락실로 들어가요.
+    <h1 class="arc-logo"><span class="e">🎲</span> <span class="g">우리반 보드게임</span></h1>
+    <div class="su-kid"><b>🎒 학생이에요?</b> 선생님이 알려 준 <b>반 입장 주소</b>를 붙여 넣으면 우리 반 보드게임으로 들어가요.
       <div class="arc-link"><input id="suJoin" placeholder="https://…/arcade.html#join=…" autocomplete="off"><button class="arc-btn p" id="suJoinGo" style="white-space:nowrap">🚪 들어가기</button></div></div>
     <p class="arc-sub">선생님, 처음 한 번만 우리 반을 만들어 주세요.</p>
     <label class="arc-f">반 이름 <input id="suName" placeholder="예) 6학년 2반" maxlength="20"></label>
@@ -2340,7 +2340,7 @@ body.arc-lite .rh-song{transition:none}
     <div id="suHow" hidden></div>
     <label class="arc-f" id="suCfgBox" hidden>Firebase 설정 붙여넣기 <small>Firebase 콘솔의 웹 앱 설정(<code>const firebaseConfig = {...}</code>)을 통째로 붙여 넣어요</small>
       <textarea id="suCfg" rows="6" placeholder='const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "...", ... };'></textarea></label>
-    <div class="arc-row"><button class="arc-btn p" id="suGo">🎮 오락실 만들기</button></div>
+    <div class="arc-row"><button class="arc-btn p" id="suGo">🎮 보드게임 만들기</button></div>
     <p class="arc-credit in">✋ made by 효석쌤</p>
     <p class="arc-small">이미 다른 기기에서 만들었다면, 선생님 화면의 <b>🔗 반 입장 주소</b>로 열어 주세요.</p>
   </div>
@@ -2349,7 +2349,7 @@ body.arc-lite .rh-song{transition:none}
 <!-- ===== 로그인 (첫 화면) ===== -->
 <section class="arc-scr" id="scrLogin" hidden>
   <div class="lg-hero">
-    <h1 class="arc-logo"><span class="e">🕹️</span> <span class="g"><span id="lgClass">우리반</span> 오락실</span></h1>
+    <h1 class="arc-logo"><span class="e">🎲</span> <span class="g"><span id="lgClass">우리반</span> 보드게임</span></h1>
     <div class="arc-online" id="lgOnline"></div>
     <p class="arc-sub">👋 내 번호를 누르고 비밀번호를 입력해요</p>
   </div>
@@ -2361,15 +2361,15 @@ body.arc-lite .rh-song{transition:none}
   <button class="arc-teach arc-refresh lg-refresh" onclick="arcRefresh(this)" title="최신 버전으로 새로고침">🔄 새로고침</button>
   <button class="arc-btn app-inst lg-inst" hidden>📲 앱으로 설치</button>
   <div class="arc-sync" id="lgSync"></div>
-  <div class="arc-credit">🕹️ 우리반 오락실 · made by <b>효석쌤</b></div>
+  <div class="arc-credit">🎲 우리반 보드게임 · made by <b>효석쌤</b></div>
 </section>
 
 <!-- ===== 홈 (로비) ===== -->
 <section class="arc-scr" id="scrHome" hidden>
   <header class="arc-top">
     <div class="arc-me" id="hmMe"></div>
-    <div class="arc-brand"><h1 class="arc-logo sm"><span class="e">🕹️</span> <span class="g"><span id="hmClass">우리반</span> 오락실</span></h1><div class="arc-online" id="hmOnline"></div></div>
-    <div class="arc-topb"><button class="arc-btn app-inst" hidden title="홈 화면에 오락실 아이콘 만들기"><span class="ic">📲</span><span class="lb"> 앱 설치</span></button><button class="arc-btn" id="hmAdmin" hidden title="관리자"><span class="ic">🛠️</span><span class="lb"> 관리자</span></button><button class="arc-btn p" id="hmFace" title="꾸미기·상점"><span class="ic">👕</span><span class="lb"> 꾸미기·상점</span></button><button class="arc-btn snd-btn" title="소리 끄기"><span class="ic">🔊</span><span class="lb"> 소리 켜짐</span></button><button class="arc-btn arc-refresh" onclick="arcRefresh(this)" title="최신 버전으로 새로고침"><span class="ic">🔄</span><span class="lb"> 새로고침</span></button><button class="arc-btn" id="hmOut" title="로그아웃"><span class="ic">🚪</span><span class="lb"> 로그아웃</span></button></div>
+    <div class="arc-brand"><h1 class="arc-logo sm"><span class="e">🎲</span> <span class="g"><span id="hmClass">우리반</span> 보드게임</span></h1><div class="arc-online" id="hmOnline"></div></div>
+    <div class="arc-topb"><button class="arc-btn app-inst" hidden title="홈 화면에 보드게임 아이콘 만들기"><span class="ic">📲</span><span class="lb"> 앱 설치</span></button><button class="arc-btn" id="hmAdmin" hidden title="관리자"><span class="ic">🛠️</span><span class="lb"> 관리자</span></button><button class="arc-btn p" id="hmFace" title="꾸미기·상점"><span class="ic">👕</span><span class="lb"> 꾸미기·상점</span></button><button class="arc-btn snd-btn" title="소리 끄기"><span class="ic">🔊</span><span class="lb"> 소리 켜짐</span></button><button class="arc-btn arc-refresh" onclick="arcRefresh(this)" title="최신 버전으로 새로고침"><span class="ic">🔄</span><span class="lb"> 새로고침</span></button><button class="arc-btn" id="hmOut" title="로그아웃"><span class="ic">🚪</span><span class="lb"> 로그아웃</span></button></div>
   </header>
   <div class="arc-notice" id="hmNotice" hidden></div>
   <div class="arc-lobby">
@@ -2410,7 +2410,7 @@ body.arc-lite .rh-song{transition:none}
   <div class="arc-closed" id="hmClosed" hidden></div>
   <button hidden id="hmRank"></button>
   <div class="arc-sync" id="hmSync"></div>
-  <div class="arc-credit">🕹️ 우리반 오락실 · made by <b>효석쌤</b></div>
+  <div class="arc-credit">🎲 우리반 보드게임 · made by <b>효석쌤</b></div>
 </section>
 
 <!-- ===== 비밀번호 입력 / 상대 로그인 ===== -->
@@ -2477,8 +2477,8 @@ body.arc-lite .rh-song{transition:none}
 <!-- ===== 📲 앱으로 설치 ===== -->
 <div class="arc-modal" id="mdApp" hidden>
   <div class="arc-card arc-app">
-    <h2>📲 오락실을 앱처럼 쓰기</h2>
-    <p>홈 화면에 <b>오락실 아이콘</b>이 생겨요. 아이콘을 누르면 주소를 치지 않아도 <b>바로 우리 반 오락실</b>로 들어와요.</p>
+    <h2>📲 보드게임을 앱처럼 쓰기</h2>
+    <p>홈 화면에 <b>보드게임 아이콘</b>이 생겨요. 아이콘을 누르면 주소를 치지 않아도 <b>바로 우리 반 보드게임</b>로 들어와요.</p>
     <div id="apHow"></div>
     <button class="arc-x" data-close>×</button>
   </div>
@@ -2523,7 +2523,7 @@ body.arc-lite .rh-song{transition:none}
     <div class="ad-side">
       <h2>🛠️ 관리자</h2><div class="ad-cls" id="tcCls"></div>
       <div class="arc-tabs" id="tcTabs"><button data-t="live">📊 지금 현황<i id="tbLive"></i></button><button data-t="chat">💬 채팅 관리</button><button data-t="room">⚔️ 대결방</button><button data-t="game">🎮 게임 · 문 닫기</button><button data-t="kids">👧 학생 · 비밀번호</button><button data-t="gift">🎁 칭찬 상 주기</button><button data-t="coin">🪙 코인</button><button data-t="rank">🏆 랭킹 관리</button><button data-t="link">🔗 반 입장 주소</button><button data-t="store">☁️ 저장</button></div>
-      <div class="ad-who">🕹️ 우리반 오락실<br>made by 효석쌤</div>
+      <div class="ad-who">🎲 우리반 보드게임<br>made by 효석쌤</div>
     </div>
     <div class="ad-body"><div id="tcBody"></div></div>
     <button class="arc-x" data-close>×</button>
@@ -2753,7 +2753,7 @@ body.arc-lite .rh-song{transition:none}
 
 <script>
 /* =====================================================================
-   🕹️ 우리반 오락실 — 로그인 · 저장(이 기기 / Firebase) · 홈 · 랭킹 · 선생님 화면
+   🎲 우리반 보드게임 — 로그인 · 저장(이 기기 / Firebase) · 홈 · 랭킹 · 선생님 화면
    ===================================================================== */
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
@@ -3233,7 +3233,7 @@ const who = no => +no === TEACHER ? "🧑‍🏫 선생님" : `${no}번 ${nameOf
    ===================================================================== */
 
 /* =====================================================================
-   📲 앱으로 설치 — 홈 화면 아이콘을 누르면 바로 우리 반 오락실로 들어와요
+   📲 앱으로 설치 — 홈 화면 아이콘을 누르면 바로 우리 반 보드게임으로 들어와요
    ===================================================================== */
 const joinUrl = () => { const j = Store.join(); return j ? `${location.origin}${location.pathname}#join=${b64e({c: j.c, i: j.i})}` : ""; };
 const APP = {
@@ -3243,7 +3243,7 @@ const APP = {
   init(){
     if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) navigator.serviceWorker.register("arcade-sw.js").catch(e => console.warn(e));
     addEventListener("beforeinstallprompt", e => { e.preventDefault(); this.ev = e; this.paint(); });
-    addEventListener("appinstalled", () => { this.ev = null; this.paint(); ARC.modal("#mdApp", false); toast("📲 설치했어요! 이제 홈 화면의 오락실 아이콘으로 바로 들어와요"); });
+    addEventListener("appinstalled", () => { this.ev = null; this.paint(); ARC.modal("#mdApp", false); toast("📲 설치했어요! 이제 홈 화면의 보드게임 아이콘으로 바로 들어와요"); });
     $$(".app-inst").forEach(b => b.onclick = () => this.go());
     this.paint();
   },
@@ -3260,8 +3260,8 @@ const APP = {
   /* 설치 버튼이 안 뜨는 기기(아이패드 등)에서 하는 방법 */
   how(){
     const url = joinUrl(), ios = this.ios();
-    $("#apHow").innerHTML = (ios ? `<ol class="ap-st"><li>사파리 아래(또는 위) <b>공유 버튼 <span class="k">⬆️</span></b>을 눌러요</li><li><b>홈 화면에 추가</b>를 누르고 <b>추가</b>를 눌러요</li><li>홈 화면의 <b>🕹️ 오락실</b> 아이콘을 눌러요</li></ol>`
-      : `<ol class="ap-st"><li>크롬 주소창 오른쪽 <b>설치 아이콘 <span class="k">⊕</span></b>을 누르거나, 메뉴 <b>⋮</b> → <b>앱 설치</b>(또는 <b>홈 화면에 추가</b>)를 눌러요</li><li>홈 화면·앱 목록의 <b>🕹️ 오락실</b> 아이콘을 눌러요</li></ol>`)
+    $("#apHow").innerHTML = (ios ? `<ol class="ap-st"><li>사파리 아래(또는 위) <b>공유 버튼 <span class="k">⬆️</span></b>을 눌러요</li><li><b>홈 화면에 추가</b>를 누르고 <b>추가</b>를 눌러요</li><li>홈 화면의 <b>🎲 보드게임</b> 아이콘을 눌러요</li></ol>`
+      : `<ol class="ap-st"><li>크롬 주소창 오른쪽 <b>설치 아이콘 <span class="k">⊕</span></b>을 누르거나, 메뉴 <b>⋮</b> → <b>앱 설치</b>(또는 <b>홈 화면에 추가</b>)를 눌러요</li><li>홈 화면·앱 목록의 <b>🎲 보드게임</b> 아이콘을 눌러요</li></ol>`)
       + (url ? `<p class="arc-small">아이콘으로 처음 열었는데 <b>“학생이에요?”</b> 화면이 나오면, 아래 <b>반 입장 주소</b>를 복사해 두었다가 붙여 넣어요 (아이패드는 앱이 따로 저장해서 한 번 필요해요).</p>
         <div class="arc-link"><input readonly value="${esc(url)}" id="apUrl"><button class="arc-btn p" id="apCopy">📋 복사</button></div>` : "");
     const c = $("#apCopy"); if (c) c.onclick = () => { const i = $("#apUrl"); i.select(); (navigator.clipboard ? navigator.clipboard.writeText(i.value) : Promise.reject()).catch(() => document.execCommand("copy")); toast("📋 반 입장 주소를 복사했어요"); };
@@ -3292,8 +3292,8 @@ const ARC = {
     if (h){ try { const j = b64d(h[1]); localStorage.setItem(KEY + ".join", JSON.stringify({c: j.c, i: j.i})); } catch(e) { alert("반 입장 주소가 잘못됐어요."); } history.replaceState(null, "", location.pathname); }
     $$("[data-close]").forEach(b => b.onclick = () => b.closest(".arc-modal").hidden = true);
     APP.init();
-    // 가져온 게임의 '친구 고르기' 버튼은 오락실에서는 홈으로 가요
-    ["#flOther", "#trOther", "#vbToSel", "#ahToSel"].forEach(s => { const el = $(s); if (el) el.textContent = "🏠 오락실 홈"; });
+    // 가져온 게임의 '친구 고르기' 버튼은 보드게임에서는 홈으로 가요
+    ["#flOther", "#trOther", "#vbToSel", "#ahToSel"].forEach(s => { const el = $(s); if (el) el.textContent = "🏠 보드게임 홈"; });
     $$(".arc-modal").forEach(m => m.addEventListener("pointerdown", e => { if (e.target === m && m.id !== "mdPw" && m.id !== "mdNet") m.hidden = true; }));
     Store.subs.push(() => this.refresh());
     let ok = false;
@@ -3348,9 +3348,9 @@ const ARC = {
           const cfg = parseCfg($("#suCfg").value); if (!cfg) throw new Error("Firebase 설정을 찾지 못했어요. apiKey, projectId 가 들어 있는 설정을 붙여 넣어 주세요.");
           await Store.connect(cfg, cid, cls);
         } else { Store.mode = "local"; Store.cls = cls; Store.recs = {}; Store.saveLocal(); }
-      } catch(e){ $("#suGo").disabled = false; $("#suGo").textContent = "🎮 오락실 만들기"; return alert("만들지 못했어요: " + (e.message || e)); }
+      } catch(e){ $("#suGo").disabled = false; $("#suGo").textContent = "🎮 보드게임 만들기"; return alert("만들지 못했어요: " + (e.message || e)); }
       this.login(); this.teacher("kids");
-      toast("🎉 오락실이 만들어졌어요! 아이들 비밀번호 쪽지를 인쇄해 나눠 주세요.");
+      toast("🎉 보드게임이 만들어졌어요! 아이들 비밀번호 쪽지를 인쇄해 나눠 주세요.");
     };
   },
 
@@ -3564,20 +3564,20 @@ const ARC = {
       };
     } else if (this.tcTab === "link"){
       const url = Store.mode === "cloud" ? joinUrl() : "";
-      body.innerHTML = Store.mode === "cloud" ? `<p>아이들 태블릿·크롬북에서 <b>이 주소(또는 QR)를 한 번만</b> 열면 우리 반 오락실로 들어와요. 그다음부터는 그냥 오락실 주소로 열어도 돼요.</p>
+      body.innerHTML = Store.mode === "cloud" ? `<p>아이들 태블릿·크롬북에서 <b>이 주소(또는 QR)를 한 번만</b> 열면 우리 반 보드게임으로 들어와요. 그다음부터는 그냥 보드게임 주소로 열어도 돼요.</p>
         <div class="arc-link"><input readonly value="${esc(url)}" id="tlUrl"><button class="arc-btn p" id="tlCopy">📋 복사</button></div>
         <div class="tl-qrw"><div class="tl-qr" id="tlQr" title="누르면 크게 보여요">QR 만드는 중…</div>
-          <div class="tl-app"><h4>📲 우리 반 오락실 앱 만들기</h4>
+          <div class="tl-app"><h4>📲 우리 반 보드게임 앱 만들기</h4>
             <ol><li>아이 기기에서 위 주소를 열거나 <b>QR을 찍어요</b> → 우리 반 로그인 화면이 떠요</li>
               <li>화면의 <b>📲 앱으로 설치</b>를 눌러요 (크롬: 주소창 오른쪽 설치 아이콘 · 아이패드: 공유 ⬆️ → 홈 화면에 추가)</li>
-              <li>이제 홈 화면의 <b>🕹️ 오락실</b> 아이콘을 누르면 <b>바로 ${esc(Store.cls.name || "우리 반")} 오락실</b>로 들어와요</li></ol>
+              <li>이제 홈 화면의 <b>🎲 보드게임</b> 아이콘을 누르면 <b>바로 ${esc(Store.cls.name || "우리 반")} 보드게임</b>로 들어와요</li></ol>
             <button class="arc-btn" id="tlBig">🔍 QR 크게 띄우기 (TV·칠판용)</button></div></div>
-        <p class="arc-small">이 주소를 아는 사람은 우리 반 오락실에 들어올 수 있어서 깃허브 같은 공개된 곳에는 넣지 않았어요. 클래스룸·학급 게시판처럼 반 안에서만 나눠 주세요.</p>`
+        <p class="arc-small">이 주소를 아는 사람은 우리 반 보드게임에 들어올 수 있어서 깃허브 같은 공개된 곳에는 넣지 않았어요. 클래스룸·학급 게시판처럼 반 안에서만 나눠 주세요.</p>`
         : `<p>지금은 <b>💻 이 기기에만</b> 기록하고 있어요. 이 기기에서 아이들이 돌아가며 들어오면 돼요.</p><p>아이들 각자 태블릿·크롬북에서 하려면 <b>☁️ 저장</b> 탭에서 Firebase를 연결해 주세요. 그러면 여기에 반 입장 주소가 생겨요.</p>`;
       const c = $("#tlCopy"); if (c) c.onclick = () => { $("#tlUrl").select(); navigator.clipboard.writeText($("#tlUrl").value).then(() => toast("📋 복사했어요"), () => document.execCommand("copy")); };
       if (url) qrSvg(url).then(svg => {
         const q = $("#tlQr"); if (!q) return; q.innerHTML = svg;
-        const big = () => { const d = document.createElement("div"); d.className = "tl-qrbig"; d.innerHTML = `<div><h2>🕹️ ${esc(Store.cls.name || "우리 반")} 오락실</h2>${svg}<p>카메라로 찍으면 우리 반 오락실로 들어와요 · 누르면 닫혀요</p></div>`; d.onclick = () => d.remove(); document.body.appendChild(d); };
+        const big = () => { const d = document.createElement("div"); d.className = "tl-qrbig"; d.innerHTML = `<div><h2>🎲 ${esc(Store.cls.name || "우리 반")} 보드게임</h2>${svg}<p>카메라로 찍으면 우리 반 보드게임으로 들어와요 · 누르면 닫혀요</p></div>`; d.onclick = () => d.remove(); document.body.appendChild(d); };
         q.onclick = big; $("#tlBig").onclick = big;
       }).catch(() => { const q = $("#tlQr"); if (q) q.textContent = "QR을 만들지 못했어요 (인터넷 확인)"; });
     } else if (this.tcTab === "coin"){
@@ -3632,17 +3632,17 @@ const ARC = {
           <label class="arc-f">Firebase 설정 <textarea id="tsCfg" rows="5" placeholder="const firebaseConfig = { apiKey: ... };"></textarea></label>
           <div class="arc-row"><button class="arc-btn p" id="tsGo">☁️ 연결하고 기록 옮기기</button></div>`
         : `<p class="arc-small">반 정보와 랭킹이 Firebase에 저장돼요. 아이들 비밀번호는 바꿔서(암호처럼) 저장하고, 사진은 올리지 않아요.</p><textarea readonly class="arc-rules" rows="9">${esc(RULES)}</textarea>`}
-        <hr><div class="arc-row"><button class="arc-btn" id="tsPin">🔑 선생님 비밀번호 바꾸기</button><button class="arc-btn" id="tsLeave">🚪 이 기기에서 오락실 빼기</button></div>`;
+        <hr><div class="arc-row"><button class="arc-btn" id="tsPin">🔑 선생님 비밀번호 바꾸기</button><button class="arc-btn" id="tsLeave">🚪 이 기기에서 보드게임 빼기</button></div>`;
       const go = $("#tsGo"); if (go) go.onclick = async () => { const cfg = parseCfg($("#tsCfg").value); if (!cfg) return alert("Firebase 설정을 찾지 못했어요."); go.disabled = true; go.textContent = "연결하는 중…";
         try { await Store.toCloud(cfg); toast("☁️ 연결했어요! 🔗 반 입장 주소를 아이들에게 알려 주세요."); this.teacher("link"); } catch(e){ go.disabled = false; go.textContent = "☁️ 연결하고 기록 옮기기"; alert("연결하지 못했어요: " + (e.message || e) + "\n(익명 로그인을 켰는지, 규칙을 게시했는지 확인해 주세요)"); } };
       $("#tsPin").onclick = async () => { const p = prompt("새 선생님 비밀번호 (숫자 4~8자리)"); if (!p) return; if (!/^\d{4,8}$/.test(p)) return alert("숫자 4~8자리로 적어 주세요."); const nc = Object.assign({}, cls, {admin: sha256(`${cls.cid}:teacher:${p}`)}); await Store.putClass(nc); toast("🔑 바꿨어요"); };
-      $("#tsLeave").onclick = () => { if (!confirm(Store.mode === "cloud" ? "이 기기에서만 오락실 연결을 빼요. (Firebase의 기록은 그대로 남아요)" : "이 기기의 오락실 반 정보와 기록을 모두 지울까요? 되돌릴 수 없어요.")) return; ["local","join","me"].forEach(k => localStorage.removeItem(KEY + "." + k)); location.reload(); };
+      $("#tsLeave").onclick = () => { if (!confirm(Store.mode === "cloud" ? "이 기기에서만 보드게임 연결을 빼요. (Firebase의 기록은 그대로 남아요)" : "이 기기의 보드게임 반 정보와 기록을 모두 지울까요? 되돌릴 수 없어요.")) return; ["local","join","me"].forEach(k => localStorage.removeItem(KEY + "." + k)); location.reload(); };
     }
     if (H[this.tcTab]) body.insertAdjacentHTML("afterbegin", `<h3>${H[this.tcTab]}</h3>`);
   }
 };
 function fbHow(open){ return `<details class="arc-how"${open ? " open" : ""}><summary>☁️ Firebase 연결 방법 (처음 한 번, 10분쯤)</summary><ol>
-          <li><a href="https://console.firebase.google.com/" target="_blank" rel="noopener">Firebase 콘솔</a>에 구글 계정으로 들어가 <b>프로젝트 만들기</b> (이름 예: 우리반오락실, 애널리틱스는 꺼도 돼요)</li>
+          <li><a href="https://console.firebase.google.com/" target="_blank" rel="noopener">Firebase 콘솔</a>에 구글 계정으로 들어가 <b>프로젝트 만들기</b> (이름 예: 우리반보드게임, 애널리틱스는 꺼도 돼요)</li>
           <li>왼쪽 <b>빌드 → Authentication → 시작하기 → 로그인 방법</b>에서 <b>익명</b>을 켜요. 같은 화면 <b>설정 → 승인된 도메인</b>에 <code>${esc(location.hostname || "kimgun124-boop.github.io")}</code>을 추가해요</li>
           <li><b>빌드 → Firestore Database → 데이터베이스 만들기</b> (위치: asia-northeast3 서울, <b>프로덕션 모드</b>)</li>
           <li>Firestore의 <b>규칙</b> 탭에 아래 규칙을 붙여 넣고 <b>게시</b>해요</li>
@@ -3675,8 +3675,8 @@ function printSlips(){
   const cls = Store.cls, plain = loadPlain(cls.cid), miss = cls.roster.filter(s => !plain[s.no]);
   if (miss.length && !confirm(`${miss.map(s => s.no).join(", ")}번은 이 기기에 비밀번호가 없어서 쪽지에 빈칸으로 나와요. 그래도 인쇄할까요? (🎲 새로 → 저장 하면 채워져요)`)) return;
   const w = window.open("", "_blank"); if (!w) return alert("팝업이 막혀 있어요. 팝업을 허용해 주세요.");
-  w.document.write(`<!doctype html><meta charset="utf-8"><title>오락실 비밀번호 쪽지</title><style>body{font-family:sans-serif;margin:10mm}.g{display:grid;grid-template-columns:repeat(3,1fr);gap:0}.s{border:1px dashed #999;padding:12px 10px;text-align:center;page-break-inside:avoid}.s b{font-size:20px}.s .p{font-size:28px;letter-spacing:6px;font-weight:bold;margin-top:4px}.s small{color:#666}</style>
-    <div class="g">${cls.roster.map(s => `<div class="s"><small>🕹️ ${esc(cls.name)} 오락실</small><div><b>${s.no}번 ${esc(s.name)}</b></div><div class="p">${plain[s.no] || "____"}</div><small>친구에게 알려 주지 마세요!</small></div>`).join("")}</div><script>setTimeout(()=>print(),300)<\/script>`);
+  w.document.write(`<!doctype html><meta charset="utf-8"><title>보드게임 비밀번호 쪽지</title><style>body{font-family:sans-serif;margin:10mm}.g{display:grid;grid-template-columns:repeat(3,1fr);gap:0}.s{border:1px dashed #999;padding:12px 10px;text-align:center;page-break-inside:avoid}.s b{font-size:20px}.s .p{font-size:28px;letter-spacing:6px;font-weight:bold;margin-top:4px}.s small{color:#666}</style>
+    <div class="g">${cls.roster.map(s => `<div class="s"><small>🎲 ${esc(cls.name)} 보드게임</small><div><b>${s.no}번 ${esc(s.name)}</b></div><div class="p">${plain[s.no] || "____"}</div><small>친구에게 알려 주지 마세요!</small></div>`).join("")}</div><script>setTimeout(()=>print(),300)<\/script>`);
   w.document.close();
 }
 
@@ -4024,11 +4024,11 @@ window.ARC = ARC;   // 가져온 게임들이 window.ARC 로 찾아요
   }
 
 /* =====================================================================
-   👕 오락실 아바타 — 코인 상점 · 오락실 전용 고급 아이템(움직이는 배경·테두리·날개·효과·펫·칭호)
+   👕 보드게임 아바타 — 코인 상점 · 보드게임 전용 고급 아이템(움직이는 배경·테두리·날개·효과·펫·칭호)
    손들고 말해요의 avatarSVG 위에 AVX 훅으로 덧그려요.
    ===================================================================== */
 
-/* ---------- 오락실 전용 아이템 목록 [값, 이름, 가격] ---------- */
+/* ---------- 보드게임 전용 아이템 목록 [값, 이름, 가격] ---------- */
 const XI = {
   xbg: [["none","없음",0],["aurora","오로라",300],["fireworks","불꽃놀이",400],["sakura","벚꽃비",250],["snowfall","함박눈",200],["waves","노을 바다",250],
         ["neoncity","네온 시티",400],["vortex","소용돌이 은하",500],["lavaflow","용암 화산",400],["pixel","8비트 오락실",300],["heaven","구름 위 천국",600],["diamondcave","다이아 동굴",800],["dragonsky","드래곤 하늘",1200]],
@@ -4037,8 +4037,8 @@ const XI = {
   fx: [["none","없음",0],["sparkle","반짝반짝",150],["hearts","두근 하트",150],["notes","음표",150],["bubbles","비눗방울",120],["snow","눈송이",150],["confetti","꽃가루",300],["orbit","도는 별",300]],
   pet: [["none","없음",0],["chick","🐥 병아리",120],["dog","🐶 강아지",150],["cat","🐱 고양이",150],["bunny","🐰 토끼",150],["hamster","🐹 햄스터",150],["panda","🐼 판다",250],["fox","🦊 여우",250],
         ["penguin","🐧 펭귄",250],["ghost","👻 유령",300],["robot","🤖 로봇",500],["dino","🦖 공룡",500],["unicorn","🦄 유니콘",600],["dragon","🐲 아기 용",1000]],
-  title: [["none","없음",0],["sprout","🌱 오락실 새싹",50],["jumper","🦘 점프왕",150],["star","⭐ 반짝 스타",200],["combo","🔥 콤보 장인",300],["brain","🧠 천재 두뇌",300],
-          ["ace","🎯 에이스",500],["champ","🏆 챔피언",800],["legend","👑 전설의 게이머",1500],["king","💎 오락실의 왕",2500]]
+  title: [["none","없음",0],["sprout","🌱 보드게임 새싹",50],["jumper","🦘 점프왕",150],["star","⭐ 반짝 스타",200],["combo","🔥 콤보 장인",300],["brain","🧠 천재 두뇌",300],
+          ["ace","🎯 에이스",500],["champ","🏆 챔피언",800],["legend","👑 전설의 게이머",1500],["king","💎 보드게임의 왕",2500]]
 };
 const PET_E = {chick:"🐥",dog:"🐶",cat:"🐱",bunny:"🐰",hamster:"🐹",panda:"🐼",fox:"🦊",penguin:"🐧",ghost:"👻",robot:"🤖",dino:"🦖",unicorn:"🦄",dragon:"🐲"};
 
@@ -4125,7 +4125,7 @@ function avHTMLof(sid, o = {}){
 function titleHTML(sid){ const t = avOf(sid).title; if (!t || t === "none") return ""; return `<span class="${ttlCls(t)}">${esc(itemName("title", t))}</span>`; }
 
 /* =====================================================================
-   AVX: 오락실 전용 고급 아이템 그리기 (손들고 말해요 avatarSVG 훅)
+   AVX: 보드게임 전용 고급 아이템 그리기 (손들고 말해요 avatarSVG 훅)
    ===================================================================== */
 const AVX = {
   still: false,
@@ -7722,7 +7722,7 @@ const NET = {
       if (this.pc !== pc) return;
       this.rid = await this.S().create({g: gid, from: this.a, to, st: "wait", offer: pc.localDescription.sdp, at: CLOCK.now()});
       if (this.pc !== pc){ this.S().del(this.rid); return; }
-      this.wait(`📨 <b>${esc(who(to))}</b>의 화면에 신청이 떴어요.<br>친구가 <b>⚔️ 수락</b>을 누르면 바로 시작해요!<br><small>친구도 자기 기기에서 오락실에 로그인해 있어야 해요.</small>`);
+      this.wait(`📨 <b>${esc(who(to))}</b>의 화면에 신청이 떴어요.<br>친구가 <b>⚔️ 수락</b>을 누르면 바로 시작해요!<br><small>친구도 자기 기기에서 보드게임에 로그인해 있어야 해요.</small>`);
       this.unRoom = this.S().watch(this.rid, d => {
         if (this.pc !== pc || this.on) return;
         if (!d) return this.fail("신청이 사라졌어요. 다시 신청해 보세요.");
@@ -7730,7 +7730,7 @@ const NET = {
         if (d.rl && this.TB.includes(this.gid)) return this.goRelay();
         if (d.answer && !pc.currentRemoteDescription){ pc.setRemoteDescription({type: "answer", sdp: d.answer}).catch(e => this.fail("연결하지 못했어요: " + e.message)); this.wait("🔌 친구 기기와 연결하는 중…"); this.connWait(); }
       });
-      this.timer = setTimeout(() => { if (this.pc === pc && !this.on && !pc.currentRemoteDescription) this.fail(`⌛ <b>${esc(iga(who(to)))}</b> 대답이 없어요.<br><small>친구가 자기 기기에서 오락실에 로그인해 있는지 확인해요.</small>`); }, 60000);
+      this.timer = setTimeout(() => { if (this.pc === pc && !this.on && !pc.currentRemoteDescription) this.fail(`⌛ <b>${esc(iga(who(to)))}</b> 대답이 없어요.<br><small>친구가 자기 기기에서 보드게임에 로그인해 있는지 확인해요.</small>`); }, 60000);
     } catch(e){ console.error(e); this.fail("신청하지 못했어요: " + (e.message || e)); }
   },
   async accept(x){
@@ -7818,7 +7818,7 @@ function iga(s){ const c = String(s).charCodeAt(String(s).length - 1); return c 
 window.NET = NET;
 
 /* =====================================================================
-   🏠 오락실 로비 (2026.11.13)
+   🏠 보드게임 로비 (2026.11.13)
    - 첫 화면(로그인)에 🏆 명예의 전당 · 🟢 지금 접속 중
    - 홈: 게임 카드 + 옆 패널 [🏆 랭킹 | 🤝 협동방 | ⚔️ 대결방 | 💬 채팅]
    - 🛠️ 관리자: 지금 현황 · 채팅 관리 · 대결방 · 게임 끄기/문 닫기
@@ -7917,7 +7917,7 @@ const LIVE = {
   start(){
     if (this.started || !Store.cls) return; this.started = true;
     if (this.cloud()){
-      const fs = Store.fs, warn = e => console.warn("[오락실 실시간]", e);
+      const fs = Store.fs, warn = e => console.warn("[보드게임 실시간]", e);
       // 채팅은 마지막 50개만 받아요 (반 친구 모두가 받으니까 적게)
       this.un.push(fs.onSnapshot(fs.query(this.col("chat"), fs.orderBy("at", "desc"), fs.limit(50)), qs => { const l = []; qs.forEach(d => l.push(Object.assign({id: d.id}, d.data()))); this.chat = l.reverse(); this.emit("chat"); }, warn));
       CLOCK.sync();
@@ -8004,7 +8004,7 @@ const CHAT = {
     if (isT(no)) return "";
     if (this.banned(no)) return "🚫 채팅방에서 추방됐어요";
     const R = this.rules();
-    if ((Store.cls || {}).closed) return "🔒 지금은 오락실 쉬는 시간이에요";
+    if ((Store.cls || {}).closed) return "🔒 지금은 보드게임 쉬는 시간이에요";
     if (R.off) return "🤫 선생님이 채팅을 잠깐 껐어요";
     const m = this.muted(no); if (m) return `🔇 ${hhmm(m)}까지 채팅을 쉬어요`;
     return "";
@@ -8106,7 +8106,7 @@ const LOBBY = {
   blocked(gid){
     if (isT(ARC.me)) return "";
     const c = Store.cls || {};
-    if (c.closed) return "🔒 지금은 오락실 쉬는 시간이에요";
+    if (c.closed) return "🔒 지금은 보드게임 쉬는 시간이에요";
     if (gid && (c.off || {})[gid]) return `⏸️ 선생님이 ${GAME[gid].e} ${GAME[gid].n}을(를) 잠깐 껐어요`;
     return "";
   },
@@ -8251,7 +8251,7 @@ const LOBBY = {
     this.put("hmOnline", this.onlineHTML());
     const nt = (c.notice || {}).t; $("#hmNotice").hidden = !nt; this.put("hmNotice", nt ? `<b>📢 선생님 알림</b><span>${esc(nt)}</span>` : "");
     const cl = c.closed && !isT(me); $("#hmClosed").hidden = !cl;
-    this.put("hmClosed", cl ? `<div class="bx"><span class="f">🔒</span>지금은 오락실 쉬는 시간이에요<small>${esc(c.closedMsg || "선생님이 문을 열면 다시 놀 수 있어요")}</small></div>` : "");
+    this.put("hmClosed", cl ? `<div class="bx"><span class="f">🔒</span>지금은 보드게임 쉬는 시간이에요<small>${esc(c.closedMsg || "선생님이 문을 열면 다시 놀 수 있어요")}</small></div>` : "");
     this.renderGames(); this.renderSide();
     setTimeout(() => GIFTBOX.check(), 300);
   },
@@ -8389,8 +8389,8 @@ const ADMIN = {
           <div class="arc-row" style="margin-top:8px"><button class="arc-btn" id="acoAll">🧹 열린 협동방 모두 닫기</button></div></div>
         <div class="ad-sec"><h4>🚪 지금 열린 방</h4><div id="adRooms"></div><div class="arc-row"><button class="arc-btn" id="arAll">🧹 모든 방 닫기</button></div></div>`
       : `
-        <div class="ad-sec"><h4>🔒 오락실 문</h4>
-          ${this.sw("agOpen", !c.closed, "🔓 오락실 열기", "닫으면 아이들은 로그인은 되지만 게임·채팅을 할 수 없어요 (수업 시간·청소 시간에)")}
+        <div class="ad-sec"><h4>🔒 보드게임 문</h4>
+          ${this.sw("agOpen", !c.closed, "🔓 보드게임 열기", "닫으면 아이들은 로그인은 되지만 게임·채팅을 할 수 없어요 (수업 시간·청소 시간에)")}
           <div class="ad-in" style="margin-top:10px"><input id="agMsg" maxlength="60" value="${esc(c.closedMsg || "")}" placeholder="닫혔을 때 보일 말 (예: 쉬는 시간에 다시 열어요!)"><button class="arc-btn" id="agMsgSave">💾 저장</button></div></div>
         <div class="ad-sec"><h4>🎮 게임 켜기 · 끄기 <small style="font:13px 'Gowun Dodum',sans-serif;color:#b9b0dd">끈 게임은 아이들 화면에서 사라져요 (랭킹·코인은 그대로)</small></h4>
           <div class="ad-games">${GAMES.map(g => `<label><input type="checkbox" data-g="${g.id}" ${gameOn(g.id) ? "checked" : ""}><span class="f">${g.e}</span>${g.n}</label>`).join("")}</div></div>`);
@@ -8421,7 +8421,7 @@ const ADMIN = {
       $("#arAll").onclick = async () => { for (const r of LIVE.rooms.slice()) await LIVE.delRoom(r.id); toast("🧹 모든 방을 닫았어요"); };
       $("#adRooms").onclick = e => { const x = e.target.closest("[data-rm]"); if (x) LIVE.delRoom(x.dataset.rm); };
     } else if (tab === "game"){
-      $("#agOpen").onchange = e => this.patch({closed: !e.target.checked}, e.target.checked ? "🔓 오락실 문을 열었어요" : "🔒 오락실 문을 닫았어요");
+      $("#agOpen").onchange = e => this.patch({closed: !e.target.checked}, e.target.checked ? "🔓 보드게임 문을 열었어요" : "🔒 보드게임 문을 닫았어요");
       $("#agMsgSave").onclick = () => this.patch({closedMsg: $("#agMsg").value.trim()}, "💾 저장했어요");
       body.querySelector(".ad-games").onchange = e => { const i = e.target.closest("[data-g]"); if (i) this.patch({off: {[i.dataset.g]: !i.checked}}, `${GAME[i.dataset.g].e} ${GAME[i.dataset.g].n} ${i.checked ? "켰어요" : "껐어요"}`); };
     } else if (tab === "live"){
@@ -8452,7 +8452,7 @@ const ADMIN = {
           <div class="bb">${mu ? `<button class="arc-btn sm" data-unmute="${s.no}">🔊 풀기</button>` : `<button class="arc-btn sm" data-mute="${s.no}" data-min="10" title="10분 동안 채팅 못 해요">🔇 10분</button>`}<button class="arc-btn sm" data-kick="${s.no}" title="로그아웃시키기">🚪</button></div></div>`; };
       const sorted = K.sort((a, b) => (!!LIVE.online(sidOf(b.no)) - !!LIVE.online(sidOf(a.no))) || a.no - b.no);
       const html = `<div class="ad-cards"><div><b>${on.length}<small> / ${K.length}명</small></b><small>🟢 지금 접속 중</small></div><div><b>${play.length}</b><small>🎮 게임하는 중</small></div><div><b>${plays}</b><small>📅 오늘 게임 판 수 (점수전)</small></div><div><b>${coins.toLocaleString()}</b><small>🪙 오늘 모은 코인</small></div><div><b>${LIVE.chat.filter(m => !m.sys && new Date(m.at).toDateString() === new Date().toDateString()).length}</b><small>💬 오늘 채팅</small></div></div>
-        ${Store.cls.closed ? `<p class="arc-notice" style="margin:0 0 12px">🔒 지금 오락실 문이 닫혀 있어요 → 🎮 게임 · 문 닫기 탭에서 열 수 있어요</p>` : ""}
+        ${Store.cls.closed ? `<p class="arc-notice" style="margin:0 0 12px">🔒 지금 보드게임 문이 닫혀 있어요 → 🎮 게임 · 문 닫기 탭에서 열 수 있어요</p>` : ""}
         <div class="ad-kids">${sorted.map(kidRow).join("")}</div>`;
       if (html !== this.sig){ this.sig = html; $("#adLive").innerHTML = html; }
     }
@@ -14487,7 +14487,7 @@ QDM.result2 = function(R, o){
    🛒 용사 대모험 상점 (2026.11.17)
    - 영웅(검객·창장수·궁장·책사)마다 따로: ⚔️ 무기 · 🛡️ 갑옷 · ⛑️ 투구 · 👢 신발 · 🪽 날개 (0~12강)
    - 🐾 펫: 한 번 사면 모든 영웅이 데려갈 수 있어요 · 따라다니며 콕콕 공격 + 펫 스킬(P 키)
-   - 코인은 오락실 코인(지갑)을 써요 · 산 장비는 지갑(kids/{sid}.qd)에 저장돼서 앱을 바꿔도 그대로예요
+   - 코인은 보드게임 코인(지갑)을 써요 · 산 장비는 지갑(kids/{sid}.qd)에 저장돼서 앱을 바꿔도 그대로예요
    - 단계가 올라갈수록 몬스터가 훨씬 세져요 → 장비를 강화해야 더 멀리 갈 수 있어요 (추천 ⭐ 표시)
    ===================================================================== */
 const QG = (() => {
@@ -19088,7 +19088,7 @@ function rdGen(N, v, land){
 
 /* =====================================================================
    🏪 동물 랜덤 디펜스 · 코인 상점 & 🔬 동물 연구소 (2026.11.17)
-   - 오락실 코인(지갑)을 써요. 산 것은 지갑(kids/{sid}.rd)에 저장돼서 앱을 바꿔도 그대로예요.
+   - 보드게임 코인(지갑)을 써요. 산 것은 지갑(kids/{sid}.rd)에 저장돼서 앱을 바꿔도 그대로예요.
    - 🔬 연구(영원히): 💪 공격력 · ⚡ 공격 속도 · 🎯 치명타 · 🍀 대기 줄 행운 · 💰 시작 금 · 🎒 가방 칸
      → 연구를 할 때마다 🎓 사육사 레벨이 올라가요(칭호가 바뀌어요). 함께 지키기에서도 내 길에 그대로 적용!
    - 🎒 준비물(한 번 쓰면 사라져요): 아이템 6종 · 🦸 영웅 동물 상자 · 🌟 전설 동물 상자 · 👑 희귀 이상 소환권(2,000)
@@ -19638,7 +19638,7 @@ window.RUN = RUN;
 
 /* =====================================================================
    🎵 리듬 스타 (2026.11.16) — 5줄 리듬게임 · 난이도 5단계(Lv.1~15) · 혼자 점수전
-   - 노래 62곡은 오락실이 직접 만든 오리지널 곡이에요(13가지 장르 · 저작권 걱정 없음).
+   - 노래 62곡은 보드게임이 직접 만든 오리지널 곡이에요(13가지 장르 · 저작권 걱정 없음).
      처음 고를 때 이 기기에서 한 번 '녹음'해 두고(OfflineAudioContext), 그 소리 그대로 틀어요.
    - 🎧 내 노래: 이 기기에 있는 음악 파일을 넣으면 박자를 찾아 악보를 저절로 만들어요(이 기기에만 저장).
    - ⚡ 렉 없이: 판정은 화면 장면이 아니라 '소리 시계'로 해요 → 화면이 잠깐 버벅여도 판정은 정확해요.
@@ -19661,7 +19661,7 @@ const RH_EMO = [
   {n: "장난", e: ["🤪", "🎈", "🍭", "😜", "🦄"]}, {n: "동물", e: ["🐶", "🐱", "🐰", "🐼", "🐥"]}, {n: "우주", e: ["🚀", "⭐", "🪐", "🌙", "👽"]}
 ];
 const RH_CHEER = ["👏", "📣", "💕", "🙌", "🎶", "💜", "🥳"];
-/* 장르: 빠르기·조·멜로디 소리·드럼 모양 (모두 오락실이 직접 만드는 오리지널 곡이라 저작권 걱정 없음) */
+/* 장르: 빠르기·조·멜로디 소리·드럼 모양 (모두 보드게임이 직접 만드는 오리지널 곡이라 저작권 걱정 없음) */
 const RH_GEN = {
   pop:    {n: "아이돌 팝",   bpm: [120, 134], mode: "maj", lead: ["bright", "square"], g: "four",  c: [["#7048e8", "#f06595"], ["#f76707", "#e64980"], ["#1c7ed6", "#f783ac"]]},
   cute:   {n: "귀염 팝",     bpm: [136, 150], mode: "maj", lead: ["square", "bell"],   g: "four",  c: [["#f783ac", "#ffa94d"], ["#da77f2", "#74c0fc"], ["#ff8787", "#ffd43b"]]},
@@ -20705,7 +20705,7 @@ const CROOM = {
     if (isT(me)) return "";
     if (CHAT.banned(me)) return "🚫 채팅방에서 추방됐어요";
     if (this.off()) return "⏸️ 선생님이 대화방을 잠깐 닫았어요";
-    if ((Store.cls || {}).closed) return "🔒 지금은 오락실 쉬는 시간이에요";
+    if ((Store.cls || {}).closed) return "🔒 지금은 보드게임 쉬는 시간이에요";
     return "";
   },
   nameBad(n){
@@ -21060,7 +21060,7 @@ const PROF = {
    💬 게임 중 채팅 (모든 게임에서)
    - 게임을 하는 동안 왼쪽 가장자리에 💬 단추가 떠요 → 누르면 반 전체 채팅이 옆에서 열려요
    - 닫혀 있을 때 친구 말이 오면 단추 옆에 잠깐 말풍선으로 보여 줘요
-   - 채팅 규칙(욕·비방 막기, 추방, 쉬는 시간)은 오락실 채팅과 똑같아요
+   - 채팅 규칙(욕·비방 막기, 추방, 쉬는 시간)은 보드게임 채팅과 똑같아요
    ⚡ 게임을 방해하지 않게: 글자를 칠 때는 게임 키가 눌리지 않고, 화면은 열려 있을 때만 다시 그려요
    ===================================================================== */
 const GCHAT = {
@@ -21774,7 +21774,7 @@ const VOICE = {
     if (!("RTCPeerConnection" in window)) return "😢 이 브라우저는 음성 채팅을 못 해요. 크롬이나 사파리 최신 버전으로 열어 주세요";
     if (isT(me)) return "";
     if (CHAT.banned(me)) return "🚫 채팅방에서 추방돼서 음성 채팅도 못 해요";
-    if ((Store.cls || {}).closed) return "🔒 지금은 오락실 쉬는 시간이에요";
+    if ((Store.cls || {}).closed) return "🔒 지금은 보드게임 쉬는 시간이에요";
     if (this.off()) return "🤫 선생님이 음성 채팅을 잠깐 껐어요";
     const m = CHAT.muted(me); if (m) return `🔇 ${hhmm(m)}까지 채팅을 쉬어요`;
     if (ch && /^g_/.test(ch)) return typeof PARTY !== "undefined" && PARTY.role && PARTY.pid === ch.slice(2) ? "" : "🎮 게임방에 있어야 그 방 음성 채팅을 할 수 있어요";   // 🎮 같은 게임방 친구들끼리
@@ -22251,7 +22251,7 @@ Object.assign(VOICE, {
 
 /* =====================================================================
    📢 새 소식 (패치노트)
-   - 오락실을 고칠 때마다 아래 NEWS 맨 위에 한 덩어리를 더해요 (id는 날짜+순서, 겹치지 않게)
+   - 보드게임을 고칠 때마다 아래 NEWS 맨 위에 한 덩어리를 더해요 (id는 날짜+순서, 겹치지 않게)
    - 아이가 로그인했을 때 아직 못 본 소식이 있으면 한 번 크게 보여 줘요 (못 본 게 여러 개면 모아서)
    - 위쪽 📢 새 소식 단추로 언제든 다시 볼 수 있어요 (안 본 소식이 있으면 빨간 점)
 
@@ -22261,6 +22261,9 @@ Object.assign(VOICE, {
    - k: "new"(새로 생겼어요) · "up"(더 좋아졌어요) · "fix"(고쳤어요)
    ===================================================================== */
 const NEWS = [
+  {id: "2026-11-23d", d: "11월 23일", e: "🎲", t: "이름이 바뀌었어요!", items: [
+    ["new", "🎲", "우리반 보드게임", "'우리반 오락실'이 '우리반 보드게임'으로 이름이 바뀌었어요! 게임, 코인, 아바타, 기록은 모두 그대로예요."]
+  ]},
   {id: "2026-11-23c", d: "11월 23일", e: "🏔️", t: "다시 1000단계까지!", items: [
     ["new", "🏔️", "1000단계 도전", "랜덤 디펜스가 다시 1000단계까지 가요! 50단계마다 👹 마왕 보스가 나오고, 잡으면 맵이 한 바퀴 돌아 더 센 몬스터가 와요."],
     ["new", "⚡", "빨리 깰수록 높은 점수", "한 단계의 몬스터를 빨리 다 잡으면 바로 다음 단계로 가고, 남은 시간만큼 빠르기 보너스 점수를 받아요. 보스를 빨리 잡으면 보너스가 두 배!"],
@@ -22382,7 +22385,7 @@ const NEWSUI = {
     if (!m){ m = document.createElement("div"); m.className = "arc-modal"; m.id = "mdNews"; m.hidden = true; document.body.appendChild(m);
       m.addEventListener("pointerdown", e => { if (e.target === m) this.close(); }); }
     m.innerHTML = `<div class="nw-box" role="dialog" aria-label="새 소식">
-      <div class="nw-top"><div class="nw-big">${auto ? "🎉" : "📢"}</div><h2>${auto ? "새 소식이 있어요!" : "오락실 새 소식"}</h2><p>${auto ? "오락실이 이렇게 바뀌었어요 👀" : "그동안 바뀐 것들을 모아 봤어요"}</p><button class="nw-x" data-nw="x" title="닫기">✕</button></div>
+      <div class="nw-top"><div class="nw-big">${auto ? "🎉" : "📢"}</div><h2>${auto ? "새 소식이 있어요!" : "보드게임 새 소식"}</h2><p>${auto ? "보드게임이 이렇게 바뀌었어요 👀" : "그동안 바뀐 것들을 모아 봤어요"}</p><button class="nw-x" data-nw="x" title="닫기">✕</button></div>
       <div class="nw-body">${list.map((n, i) => this.card(n, i === 0)).join("")}
         ${old.length ? `<details class="nw-old"><summary>📜 지난 소식 보기 (${old.length})</summary>${old.map(n => this.card(n)).join("")}</details>` : ""}</div>
       <div class="nw-foot"><button class="arc-btn p nw-ok" data-nw="ok">알겠어요! 👍</button><small>📢 위쪽 <b>새 소식</b> 단추로 언제든 다시 볼 수 있어요 · 만든 사람 효석쌤</small></div></div>`;

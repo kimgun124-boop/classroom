@@ -1,4 +1,4 @@
-/* ===================== 🏠 오락실 로비 (2026.11.13) : 첫 화면 랭킹 · 대결방 · 채팅 · 관리자 ===================== */
+/* ===================== 🏠 보드게임 로비 (2026.11.13) : 첫 화면 랭킹 · 대결방 · 채팅 · 관리자 ===================== */
 /* ⚡ 렉 줄이기: 고정 배경(background-attachment:fixed)·글자 번짐 필터·모달 흐림은 화면 전체를 계속 다시 그려서 뺐어요 */
 body.arc-body{background:#140f2e !important;background-attachment:scroll !important}
 .arc-body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;

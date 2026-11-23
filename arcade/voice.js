@@ -35,7 +35,7 @@ const VOICE = {
     if (!("RTCPeerConnection" in window)) return "😢 이 브라우저는 음성 채팅을 못 해요. 크롬이나 사파리 최신 버전으로 열어 주세요";
     if (isT(me)) return "";
     if (CHAT.banned(me)) return "🚫 채팅방에서 추방돼서 음성 채팅도 못 해요";
-    if ((Store.cls || {}).closed) return "🔒 지금은 오락실 쉬는 시간이에요";
+    if ((Store.cls || {}).closed) return "🔒 지금은 보드게임 쉬는 시간이에요";
     if (this.off()) return "🤫 선생님이 음성 채팅을 잠깐 껐어요";
     const m = CHAT.muted(me); if (m) return `🔇 ${hhmm(m)}까지 채팅을 쉬어요`;
     if (ch && /^g_/.test(ch)) return typeof PARTY !== "undefined" && PARTY.role && PARTY.pid === ch.slice(2) ? "" : "🎮 게임방에 있어야 그 방 음성 채팅을 할 수 있어요";   // 🎮 같은 게임방 친구들끼리

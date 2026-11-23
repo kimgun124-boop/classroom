@@ -1,6 +1,6 @@
 /* =====================================================================
    📢 새 소식 (패치노트)
-   - 오락실을 고칠 때마다 아래 NEWS 맨 위에 한 덩어리를 더해요 (id는 날짜+순서, 겹치지 않게)
+   - 보드게임을 고칠 때마다 아래 NEWS 맨 위에 한 덩어리를 더해요 (id는 날짜+순서, 겹치지 않게)
    - 아이가 로그인했을 때 아직 못 본 소식이 있으면 한 번 크게 보여 줘요 (못 본 게 여러 개면 모아서)
    - 위쪽 📢 새 소식 단추로 언제든 다시 볼 수 있어요 (안 본 소식이 있으면 빨간 점)
 
@@ -10,6 +10,9 @@
    - k: "new"(새로 생겼어요) · "up"(더 좋아졌어요) · "fix"(고쳤어요)
    ===================================================================== */
 const NEWS = [
+  {id: "2026-11-23d", d: "11월 23일", e: "🎲", t: "이름이 바뀌었어요!", items: [
+    ["new", "🎲", "우리반 보드게임", "'우리반 오락실'이 '우리반 보드게임'으로 이름이 바뀌었어요! 게임, 코인, 아바타, 기록은 모두 그대로예요."]
+  ]},
   {id: "2026-11-23c", d: "11월 23일", e: "🏔️", t: "다시 1000단계까지!", items: [
     ["new", "🏔️", "1000단계 도전", "랜덤 디펜스가 다시 1000단계까지 가요! 50단계마다 👹 마왕 보스가 나오고, 잡으면 맵이 한 바퀴 돌아 더 센 몬스터가 와요."],
     ["new", "⚡", "빨리 깰수록 높은 점수", "한 단계의 몬스터를 빨리 다 잡으면 바로 다음 단계로 가고, 남은 시간만큼 빠르기 보너스 점수를 받아요. 보스를 빨리 잡으면 보너스가 두 배!"],
@@ -131,7 +134,7 @@ const NEWSUI = {
     if (!m){ m = document.createElement("div"); m.className = "arc-modal"; m.id = "mdNews"; m.hidden = true; document.body.appendChild(m);
       m.addEventListener("pointerdown", e => { if (e.target === m) this.close(); }); }
     m.innerHTML = `<div class="nw-box" role="dialog" aria-label="새 소식">
-      <div class="nw-top"><div class="nw-big">${auto ? "🎉" : "📢"}</div><h2>${auto ? "새 소식이 있어요!" : "오락실 새 소식"}</h2><p>${auto ? "오락실이 이렇게 바뀌었어요 👀" : "그동안 바뀐 것들을 모아 봤어요"}</p><button class="nw-x" data-nw="x" title="닫기">✕</button></div>
+      <div class="nw-top"><div class="nw-big">${auto ? "🎉" : "📢"}</div><h2>${auto ? "새 소식이 있어요!" : "보드게임 새 소식"}</h2><p>${auto ? "보드게임이 이렇게 바뀌었어요 👀" : "그동안 바뀐 것들을 모아 봤어요"}</p><button class="nw-x" data-nw="x" title="닫기">✕</button></div>
       <div class="nw-body">${list.map((n, i) => this.card(n, i === 0)).join("")}
         ${old.length ? `<details class="nw-old"><summary>📜 지난 소식 보기 (${old.length})</summary>${old.map(n => this.card(n)).join("")}</details>` : ""}</div>
       <div class="nw-foot"><button class="arc-btn p nw-ok" data-nw="ok">알겠어요! 👍</button><small>📢 위쪽 <b>새 소식</b> 단추로 언제든 다시 볼 수 있어요 · 만든 사람 효석쌤</small></div></div>`;

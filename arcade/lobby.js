@@ -1,5 +1,5 @@
 /* =====================================================================
-   🏠 오락실 로비 (2026.11.13)
+   🏠 보드게임 로비 (2026.11.13)
    - 첫 화면(로그인)에 🏆 명예의 전당 · 🟢 지금 접속 중
    - 홈: 게임 카드 + 옆 패널 [🏆 랭킹 | 🤝 협동방 | ⚔️ 대결방 | 💬 채팅]
    - 🛠️ 관리자: 지금 현황 · 채팅 관리 · 대결방 · 게임 끄기/문 닫기
@@ -98,7 +98,7 @@ const LIVE = {
   start(){
     if (this.started || !Store.cls) return; this.started = true;
     if (this.cloud()){
-      const fs = Store.fs, warn = e => console.warn("[오락실 실시간]", e);
+      const fs = Store.fs, warn = e => console.warn("[보드게임 실시간]", e);
       // 채팅은 마지막 50개만 받아요 (반 친구 모두가 받으니까 적게)
       this.un.push(fs.onSnapshot(fs.query(this.col("chat"), fs.orderBy("at", "desc"), fs.limit(50)), qs => { const l = []; qs.forEach(d => l.push(Object.assign({id: d.id}, d.data()))); this.chat = l.reverse(); this.emit("chat"); }, warn));
       CLOCK.sync();
@@ -185,7 +185,7 @@ const CHAT = {
     if (isT(no)) return "";
     if (this.banned(no)) return "🚫 채팅방에서 추방됐어요";
     const R = this.rules();
-    if ((Store.cls || {}).closed) return "🔒 지금은 오락실 쉬는 시간이에요";
+    if ((Store.cls || {}).closed) return "🔒 지금은 보드게임 쉬는 시간이에요";
     if (R.off) return "🤫 선생님이 채팅을 잠깐 껐어요";
     const m = this.muted(no); if (m) return `🔇 ${hhmm(m)}까지 채팅을 쉬어요`;
     return "";
@@ -287,7 +287,7 @@ const LOBBY = {
   blocked(gid){
     if (isT(ARC.me)) return "";
     const c = Store.cls || {};
-    if (c.closed) return "🔒 지금은 오락실 쉬는 시간이에요";
+    if (c.closed) return "🔒 지금은 보드게임 쉬는 시간이에요";
     if (gid && (c.off || {})[gid]) return `⏸️ 선생님이 ${GAME[gid].e} ${GAME[gid].n}을(를) 잠깐 껐어요`;
     return "";
   },
@@ -432,7 +432,7 @@ const LOBBY = {
     this.put("hmOnline", this.onlineHTML());
     const nt = (c.notice || {}).t; $("#hmNotice").hidden = !nt; this.put("hmNotice", nt ? `<b>📢 선생님 알림</b><span>${esc(nt)}</span>` : "");
     const cl = c.closed && !isT(me); $("#hmClosed").hidden = !cl;
-    this.put("hmClosed", cl ? `<div class="bx"><span class="f">🔒</span>지금은 오락실 쉬는 시간이에요<small>${esc(c.closedMsg || "선생님이 문을 열면 다시 놀 수 있어요")}</small></div>` : "");
+    this.put("hmClosed", cl ? `<div class="bx"><span class="f">🔒</span>지금은 보드게임 쉬는 시간이에요<small>${esc(c.closedMsg || "선생님이 문을 열면 다시 놀 수 있어요")}</small></div>` : "");
     this.renderGames(); this.renderSide();
     setTimeout(() => GIFTBOX.check(), 300);
   },
@@ -570,8 +570,8 @@ const ADMIN = {
           <div class="arc-row" style="margin-top:8px"><button class="arc-btn" id="acoAll">🧹 열린 협동방 모두 닫기</button></div></div>
         <div class="ad-sec"><h4>🚪 지금 열린 방</h4><div id="adRooms"></div><div class="arc-row"><button class="arc-btn" id="arAll">🧹 모든 방 닫기</button></div></div>`
       : `
-        <div class="ad-sec"><h4>🔒 오락실 문</h4>
-          ${this.sw("agOpen", !c.closed, "🔓 오락실 열기", "닫으면 아이들은 로그인은 되지만 게임·채팅을 할 수 없어요 (수업 시간·청소 시간에)")}
+        <div class="ad-sec"><h4>🔒 보드게임 문</h4>
+          ${this.sw("agOpen", !c.closed, "🔓 보드게임 열기", "닫으면 아이들은 로그인은 되지만 게임·채팅을 할 수 없어요 (수업 시간·청소 시간에)")}
           <div class="ad-in" style="margin-top:10px"><input id="agMsg" maxlength="60" value="${esc(c.closedMsg || "")}" placeholder="닫혔을 때 보일 말 (예: 쉬는 시간에 다시 열어요!)"><button class="arc-btn" id="agMsgSave">💾 저장</button></div></div>
         <div class="ad-sec"><h4>🎮 게임 켜기 · 끄기 <small style="font:13px 'Gowun Dodum',sans-serif;color:#b9b0dd">끈 게임은 아이들 화면에서 사라져요 (랭킹·코인은 그대로)</small></h4>
           <div class="ad-games">${GAMES.map(g => `<label><input type="checkbox" data-g="${g.id}" ${gameOn(g.id) ? "checked" : ""}><span class="f">${g.e}</span>${g.n}</label>`).join("")}</div></div>`);
@@ -602,7 +602,7 @@ const ADMIN = {
       $("#arAll").onclick = async () => { for (const r of LIVE.rooms.slice()) await LIVE.delRoom(r.id); toast("🧹 모든 방을 닫았어요"); };
       $("#adRooms").onclick = e => { const x = e.target.closest("[data-rm]"); if (x) LIVE.delRoom(x.dataset.rm); };
     } else if (tab === "game"){
-      $("#agOpen").onchange = e => this.patch({closed: !e.target.checked}, e.target.checked ? "🔓 오락실 문을 열었어요" : "🔒 오락실 문을 닫았어요");
+      $("#agOpen").onchange = e => this.patch({closed: !e.target.checked}, e.target.checked ? "🔓 보드게임 문을 열었어요" : "🔒 보드게임 문을 닫았어요");
       $("#agMsgSave").onclick = () => this.patch({closedMsg: $("#agMsg").value.trim()}, "💾 저장했어요");
       body.querySelector(".ad-games").onchange = e => { const i = e.target.closest("[data-g]"); if (i) this.patch({off: {[i.dataset.g]: !i.checked}}, `${GAME[i.dataset.g].e} ${GAME[i.dataset.g].n} ${i.checked ? "켰어요" : "껐어요"}`); };
     } else if (tab === "live"){
@@ -633,7 +633,7 @@ const ADMIN = {
           <div class="bb">${mu ? `<button class="arc-btn sm" data-unmute="${s.no}">🔊 풀기</button>` : `<button class="arc-btn sm" data-mute="${s.no}" data-min="10" title="10분 동안 채팅 못 해요">🔇 10분</button>`}<button class="arc-btn sm" data-kick="${s.no}" title="로그아웃시키기">🚪</button></div></div>`; };
       const sorted = K.sort((a, b) => (!!LIVE.online(sidOf(b.no)) - !!LIVE.online(sidOf(a.no))) || a.no - b.no);
       const html = `<div class="ad-cards"><div><b>${on.length}<small> / ${K.length}명</small></b><small>🟢 지금 접속 중</small></div><div><b>${play.length}</b><small>🎮 게임하는 중</small></div><div><b>${plays}</b><small>📅 오늘 게임 판 수 (점수전)</small></div><div><b>${coins.toLocaleString()}</b><small>🪙 오늘 모은 코인</small></div><div><b>${LIVE.chat.filter(m => !m.sys && new Date(m.at).toDateString() === new Date().toDateString()).length}</b><small>💬 오늘 채팅</small></div></div>
-        ${Store.cls.closed ? `<p class="arc-notice" style="margin:0 0 12px">🔒 지금 오락실 문이 닫혀 있어요 → 🎮 게임 · 문 닫기 탭에서 열 수 있어요</p>` : ""}
+        ${Store.cls.closed ? `<p class="arc-notice" style="margin:0 0 12px">🔒 지금 보드게임 문이 닫혀 있어요 → 🎮 게임 · 문 닫기 탭에서 열 수 있어요</p>` : ""}
         <div class="ad-kids">${sorted.map(kidRow).join("")}</div>`;
       if (html !== this.sig){ this.sig = html; $("#adLive").innerHTML = html; }
     }
