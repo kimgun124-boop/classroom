@@ -45,9 +45,9 @@ const SCHOOL = {
         return `<div class="sc-r${me ? " me" : ""}" data-cid="${cid}"><b>🎲 ${esc(n)}</b>${me ? `<i>지금 이 반</i>` : ""}
           <span class="sc-pin">${me ? "선생님 비밀번호: (지금 쓰는 것)" : pin ? `🔑 선생님 비밀번호 <b>${pin}</b>` : "🔑 비밀번호는 만든 기기에만 있어요"}</span>
           <span class="bb"><button class="arc-btn sm" data-copy="${cid}">📋 입장 주소</button><button class="arc-btn sm" data-dl="${cid}">📥 파일</button><button class="arc-btn sm p" data-print="${cid}">🖨️ 안내장</button></span></div>`; }).join("")}</div>
-      <div class="arc-row"><button class="arc-btn p" id="scDl">📥 선생님 안내 파일 받기 (전체)</button><button class="arc-btn p" id="scAll">🖨️ 모든 반 안내장 한꺼번에 인쇄</button><button class="arc-btn" id="scHub">🏫 반 고르기 주소 복사</button></div>
+      <div class="arc-row"><button class="arc-btn p" id="scDl">📥 선생님 안내 파일 받기 (전체)</button><button class="arc-btn p" id="scAll">🖨️ 모든 반 안내장 한꺼번에 인쇄</button><button class="arc-btn" id="scHub">🏫 모든 반 같은 주소 복사</button></div>
       <p class="arc-small">📥 <b>선생님 안내 파일</b>: 안내문 + 반마다 안내장(입장 주소·QR·선생님 비밀번호·학생 비밀번호)이 든 파일과, 엑셀에서 열리는 <b>비밀번호 표</b>를 받아요. 각 반 선생님께는 줄마다 있는 <b>📥 파일</b>(그 반 것만)을 보내 주세요.</p>
-      <p class="arc-small">🏫 <b>반 고르기 주소</b>를 열면 반 목록이 나와서 자기 반을 눌러 들어가요 (반 입장 주소는 반마다 달라요). 이 주소들은 우리 학교 안에서만 나눠 주세요.</p>
+      <p class="arc-small">🏫 <b>모든 반이 같은 주소</b>(반 고르기 주소)를 써요. 열면 1반~8반 목록이 나와서 자기 반을 눌러 들어가요 · 각 반 선생님의 🔗 반 입장 주소 탭에도 이 주소가 나와요. 이 주소들은 우리 학교 안에서만 나눠 주세요.</p>
       <details class="arc-how"><summary>⚡ 반이 많을 때 꼭 확인해요 (Firebase 사용량)</summary><ul>
         <li>여러 반이 하루 종일 쓰면 Firebase <b>무료(Spark) 하루 읽기 5만 번</b>을 넘을 수 있어요. 넘으면 그날 밤(한국 오후 4~5시쯤 초기화)까지 기록이 안 올라가요.
           Firebase 콘솔 → ⚙️ 사용량 및 결제에서 <b>Blaze(쓴 만큼 결제)</b>로 바꾸면 끊기지 않아요 (무료 양은 그대로이고, 넘은 만큼만 아주 조금 내요). <b>예산 알림</b>도 꼭 걸어 두세요.</li>
@@ -59,7 +59,7 @@ const SCHOOL = {
     };
     $("#scAll").onclick = () => this.print(this.pairs(sc.l).map(x => x[1]));
     $("#scDl").onclick = () => this.download(this.pairs(sc.l).map(x => x[1]), true);
-    $("#scHub").onclick = () => this.copy(hub, "📋 반 고르기 주소를 복사했어요");
+    $("#scHub").onclick = () => this.copy(hub, "📋 모든 반 같은 주소를 복사했어요");
   },
   copy(t, msg){ if (!t) return; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast(msg), () => prompt("복사해 주세요", t)); },
 
@@ -93,14 +93,15 @@ const SCHOOL = {
   /* ---------- 🖨️ 반마다 선생님 안내장 (입장 주소 · QR · 선생님 비밀번호 · 학생 비밀번호 쪽지) ---------- */
   /* 반마다 안내에 필요한 것 모으기: 이름 · 입장 주소 · QR · 선생님 비밀번호 · 학생 명단과 비밀번호 */
   async collect(cids){
-    const sc = Store.cls.school, sec = this.secret(sc.id), fs = Store.fs, out = [];
+    const sc = Store.cls.school, sec = this.secret(sc.id), fs = Store.fs, out = [], hub = this.hubUrl();
+    let hqr = ""; try { hqr = hub ? await qrSvg(hub) : ""; } catch(e){}
     for (const cid of cids){
-      const name = (this.pairs(sc.l).find(x => x[1] === cid) || [])[0] || "", url = this.joinOf(cid), me = cid === Store.cls.cid;
+      const name = (this.pairs(sc.l).find(x => x[1] === cid) || [])[0] || "", url = hub || this.joinOf(cid), me = cid === Store.cls.cid;
       let roster = [];
       if (me) roster = Store.cls.roster;
       else try { const d = await fs.getDoc(fs.doc(Store.db, "arcade", cid)); if (d.exists()) roster = d.data().roster || []; } catch(e){ console.warn(e); }
       const plain = loadPlain(cid), pin = me ? "" : (sec.t || {})[cid] || "";
-      let qr = ""; try { qr = await qrSvg(url); } catch(e){}
+      let qr = hqr; if (!qr) try { qr = await qrSvg(url); } catch(e){}
       out.push({cid, name, url, me, pin, qr, kids: roster.map(k => ({no: k.no, name: k.name && k.name !== `${k.no}번` ? k.name : "", pw: plain[k.no] || ""}))});
     }
     return out;
@@ -110,27 +111,27 @@ const SCHOOL = {
     const guide = o.guide ? `<section class="pg guide"><h1>🎲 우리반 보드게임 — 선생님 안내</h1><p class="sub">${esc(sc.n || "")} · 반 ${this.pairs(sc.l).length}개 · 반마다 따로 들어가는 채널이에요</p>
       <h3>무엇인가요?</h3><p>아이들이 각자 태블릿·크롬북으로 들어와 반 친구들과 함께 하는 학급 보드게임이에요. 게임으로 모은 코인으로 아바타를 꾸미고, 반마다 <b>랭킹 · 코인 · 채팅 · 대결방이 따로</b> 돌아가서 다른 반과 섞이지 않아요.</p>
       <h3>처음 한 번 (선생님, 5분)</h3><ol>
-        <li>다음 장의 <b>우리 반 안내장</b>에 있는 <b>반 입장 주소</b>(또는 QR)를 교실 컴퓨터에서 열어요.</li>
+        <li>다음 장의 <b>보드게임 주소</b>(또는 QR, <b>모든 반 같은 주소</b>)를 교실 컴퓨터에서 열고, 반 고르기에서 <b>우리 반</b>을 눌러요.</li>
         <li>로그인 화면 아래 <b>🛠️ 관리자</b>를 누르고 <b>선생님 비밀번호(6자리)</b>를 넣어요.</li>
         <li><b>👧 학생 · 비밀번호</b> 탭에서 학생 이름(별명)을 고치고 <b>💾 저장</b>해요. 학생 수가 다르면 <b>➕ 학생 추가</b> / <b>✕</b>로 맞춰요.</li>
         <li><b>☁️ 저장 → 🔑 선생님 비밀번호 바꾸기</b>로 선생님만 아는 비밀번호로 바꿔요.</li>
-        <li><b>🔗 반 입장 주소</b> 탭의 주소나 QR을 아이들에게 보여 줘요 (클래스룸·학급 게시판 등 반 안에서만).</li></ol>
-      <h3>아이들은</h3><ol><li>반 입장 주소(또는 QR)로 <b>한 번만</b> 들어오면, 다음부터는 같은 기기에서 바로 열려요. <b>📲 앱으로 설치</b>를 누르면 홈 화면 아이콘이 생겨요.</li>
+        <li>같은 주소나 QR을 아이들에게 보여 줘요 (<b>🔗 반 입장 주소</b> 탭에도 있어요 · 클래스룸·학급 게시판 등 학교 안에서만).</li></ol>
+      <h3>아이들은</h3><ol><li>보드게임 주소(또는 QR)로 <b>한 번만</b> 들어와 <b>우리 반</b>을 고르면, 다음부터는 같은 기기에서 바로 열려요. <b>📲 앱으로 설치</b>를 누르면 홈 화면 아이콘이 생겨요.</li>
         <li>자기 <b>번호</b>를 누르고 <b>비밀번호 4자리</b>(학생 쪽지)를 넣어요.</li>
         <li>다른 반 화면이 나오면 로그인 화면 아래 <b>🏫 반 바꾸기</b>로 우리 반을 골라요.</li></ol>
       <h3>선생님 화면에서 할 수 있는 것</h3><ul><li>📊 지금 누가 무엇을 하는지 · 💬 채팅 끄기/추방 · 🎮 게임별 문 닫기(수업 중 잠그기)</li>
         <li>🎁 수업 시간에 잘한 아이에게 코인·칭호 주기 · 🪙 하루 코인 한도 · 🏆 랭킹 지우기</li>
         <li>🔑 비밀번호를 잊은 아이는 👧 학생 탭에서 <b>🎲 새로 → 💾 저장</b>으로 다시 만들어 주면 돼요.</li></ul>
-      <h3>꼭 지켜 주세요</h3><ul><li>선생님 비밀번호와 학생 비밀번호는 <b>우리 반 것만</b> 나눠 주세요. 반 입장 주소도 반 안에서만 써요.</li>
+      <h3>꼭 지켜 주세요</h3><ul><li>선생님 비밀번호와 학생 비밀번호는 <b>우리 반 것만</b> 나눠 주세요. 보드게임 주소도 학교 안에서만 써요.</li>
         <li>처음 시작하는 날에는 같은 학교 와이파이에서 새 기기가 한꺼번에 많이 들어오면 잠깐 막힐 수 있어요. <b>반마다 시간을 나눠</b> 처음 접속해 주세요.</li></ul>
       ${hub ? `<p class="url">🏫 반 고르기 주소(반 목록이 나와요): ${esc(hub)}</p>` : ""}</section>` : "";
     const pages = D.map(c => `<section class="pg"><h1>🎲 ${esc(c.name)} 보드게임 <small>${esc(sc.n || "")}</small></h1>
         <div class="top"><div class="qr">${c.qr}</div><div><h2>🔑 선생님 비밀번호: <b>${esc(pinTxt(c))}</b></h2>
-          <ol><li>교실 컴퓨터에서 아래 <b>반 입장 주소</b>를 열어요 (또는 QR)</li>
+          <ol><li>교실 컴퓨터에서 아래 <b>보드게임 주소</b>(모든 반 같은 주소)를 열고 <b>반 고르기</b>에서 <b>${esc(c.name)}</b>을 눌러요 (또는 QR)</li>
             <li>로그인 화면 아래 <b>🛠️ 관리자</b> → 선생님 비밀번호</li>
             <li><b>👧 학생 · 비밀번호</b> 탭에서 이름(별명)을 고치고 <b>💾 저장</b> · 학생 수가 다르면 ➕/✕</li>
             <li><b>☁️ 저장 → 🔑 선생님 비밀번호 바꾸기</b>로 내 비밀번호로 바꿔요</li>
-            <li>아이들은 같은 주소·QR로 들어와 <b>번호 + 아래 비밀번호 4자리</b>로 로그인해요</li></ol>
+            <li>아이들도 같은 주소·QR로 들어와 <b>${esc(c.name)}</b>을 누르고 <b>번호 + 아래 비밀번호 4자리</b>로 로그인해요</li></ol>
           <p class="url">${esc(c.url)}</p></div></div>
         <div class="g">${c.kids.map(k => `<div class="s"><small>🎲 ${esc(c.name)} 보드게임</small><div><b>${k.no}번${k.name ? " " + esc(k.name) : ""}</b></div><div class="p">${k.pw || "____"}</div><small>친구에게 알려 주지 마세요!</small></div>`).join("")}</div></section>`).join("");
     return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${esc(o.title || "우리반 보드게임 선생님 안내")}</title><style>
@@ -143,7 +144,7 @@ const SCHOOL = {
     </style></head><body>${guide}${pages}${o.print ? `<script>setTimeout(()=>print(),400)<\/script>` : ""}</body></html>`;
   },
   csv(D){
-    const q = v => `"${String(v == null ? "" : v).replace(/"/g, '""')}"`, rows = [["반", "선생님 비밀번호", "번호", "이름", "학생 비밀번호", "반 입장 주소"]];
+    const q = v => `"${String(v == null ? "" : v).replace(/"/g, '""')}"`, rows = [["반", "선생님 비밀번호", "번호", "이름", "학생 비밀번호", "보드게임 주소(모든 반 같음)"]];
     D.forEach(c => c.kids.forEach((k, i) => rows.push([c.name, i ? "" : (c.me ? "(지금 쓰는 것)" : c.pin), k.no, k.name, k.pw, i ? "" : c.url])));
     return "﻿" + rows.map(r => r.map(q).join(",")).join("\r\n");
   },

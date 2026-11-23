@@ -825,12 +825,14 @@ const ARC = {
         try { await Store.putClass(nc); toast("💾 저장했어요"); this.teacher("kids"); } catch(e){ alert("저장하지 못했어요: " + e.message); }
       };
     } else if (this.tcTab === "link"){
-      const url = Store.mode === "cloud" ? joinUrl() : "";
-      body.innerHTML = Store.mode === "cloud" ? `<p>아이들 태블릿·크롬북에서 <b>이 주소(또는 QR)를 한 번만</b> 열면 우리 반 보드게임으로 들어와요. 그다음부터는 그냥 보드게임 주소로 열어도 돼요.</p>
+      /* 🏫 학교 채널이면 모든 반이 같은 주소(반 고르기 주소)를 써요 → 열면 1반~8반 고르기가 나와요 */
+      const hub = Store.mode === "cloud" ? SCHOOL.hubUrl() : "", url = Store.mode === "cloud" ? hub || joinUrl() : "";
+      body.innerHTML = Store.mode === "cloud" ? (hub ? `<p>🏫 <b>모든 반이 같은 주소</b>예요. 아이들 기기에서 <b>이 주소(또는 QR)를 한 번만</b> 열면 <b>반 고르기</b> 화면이 나오고, 우리 반(<b>${esc(Store.cls.name || "")}</b>)을 눌러 들어와요. 그다음부터는 그냥 보드게임 주소나 앱 아이콘으로 열어도 돼요.</p>`
+        : `<p>아이들 태블릿·크롬북에서 <b>이 주소(또는 QR)를 한 번만</b> 열면 우리 반 보드게임으로 들어와요. 그다음부터는 그냥 보드게임 주소로 열어도 돼요.</p>`) + `
         <div class="arc-link"><input readonly value="${esc(url)}" id="tlUrl"><button class="arc-btn p" id="tlCopy">📋 복사</button></div>
         <div class="tl-qrw"><div class="tl-qr" id="tlQr" title="누르면 크게 보여요">QR 만드는 중…</div>
           <div class="tl-app"><h4>📲 우리 반 보드게임 앱 만들기</h4>
-            <ol><li>아이 기기에서 위 주소를 열거나 <b>QR을 찍어요</b> → 우리 반 로그인 화면이 떠요</li>
+            <ol><li>아이 기기에서 위 주소를 열거나 <b>QR을 찍어요</b> → ${hub ? `반 고르기에서 <b>${esc(Store.cls.name || "우리 반")}</b>을 눌러요` : "우리 반 로그인 화면이 떠요"}</li>
               <li>화면의 <b>📲 앱으로 설치</b>를 눌러요 (크롬: 주소창 오른쪽 설치 아이콘 · 아이패드: 공유 ⬆️ → 홈 화면에 추가)</li>
               <li>이제 홈 화면의 <b>🎲 보드게임</b> 아이콘을 누르면 <b>바로 ${esc(Store.cls.name || "우리 반")} 보드게임</b>로 들어와요</li></ol>
             <button class="arc-btn" id="tlBig">🔍 QR 크게 띄우기 (TV·칠판용)</button></div></div>
@@ -839,7 +841,7 @@ const ARC = {
       const c = $("#tlCopy"); if (c) c.onclick = () => { $("#tlUrl").select(); navigator.clipboard.writeText($("#tlUrl").value).then(() => toast("📋 복사했어요"), () => document.execCommand("copy")); };
       if (url) qrSvg(url).then(svg => {
         const q = $("#tlQr"); if (!q) return; q.innerHTML = svg;
-        const big = () => { const d = document.createElement("div"); d.className = "tl-qrbig"; d.innerHTML = `<div><h2>🎲 ${esc(Store.cls.name || "우리 반")} 보드게임</h2>${svg}<p>카메라로 찍으면 우리 반 보드게임으로 들어와요 · 누르면 닫혀요</p></div>`; d.onclick = () => d.remove(); document.body.appendChild(d); };
+        const big = () => { const d = document.createElement("div"); d.className = "tl-qrbig"; d.innerHTML = `<div><h2>🎲 ${esc(hub ? (Store.cls.school.n || "우리 학교") : Store.cls.name || "우리 반")} 보드게임</h2>${svg}<p>카메라로 찍으면 우리 반 보드게임으로 들어와요 · 누르면 닫혀요</p></div>`; d.onclick = () => d.remove(); document.body.appendChild(d); };
         q.onclick = big; $("#tlBig").onclick = big;
       }).catch(() => { const q = $("#tlQr"); if (q) q.textContent = "QR을 만들지 못했어요 (인터넷 확인)"; });
     } else if (this.tcTab === "coin"){
