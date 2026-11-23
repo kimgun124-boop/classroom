@@ -10591,8 +10591,8 @@
     }, 650);
   }
   $("#enterBtn").onclick = () => enterShow(true);
-  function applyTheme(){ const on = S.theme !== "classic"; document.body.classList.toggle("arcade", on); const t = $("#themeBtn"); if (t) t.textContent = on ? "🎨 아케이드" : "🎨 기본"; }
-  $("#themeBtn").onclick = () => { S.theme = S.theme === "classic" ? "arcade" : "classic"; save(); applyTheme(); };
+  function applyTheme(){ const on = S.theme === "arcade";   /* 🎨 (2026.11.23) 처음 열면 기본(칠판) 테마 — 공유 파일도 효석쌤 반 화면처럼 */ document.body.classList.toggle("arcade", on); const t = $("#themeBtn"); if (t) t.textContent = on ? "🎨 아케이드" : "🎨 기본"; }
+  $("#themeBtn").onclick = () => { S.theme = S.theme === "arcade" ? "classic" : "arcade"; save(); applyTheme(); };
   applyTheme();
   enterShow(false);
   setInterval(() => { autoCheck(); renderHeader(); if (!ttEditing) renderTT(); }, 30*1000);
