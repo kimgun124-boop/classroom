@@ -536,6 +536,7 @@ const ARC = {
     // 반 입장 주소로 들어왔어요
     const h = location.hash.match(/join=([\w-]+)/);
     if (h){ try { const j = b64d(h[1]); localStorage.setItem(KEY + ".join", JSON.stringify({c: j.c, i: j.i})); } catch(e) { alert("반 입장 주소가 잘못됐어요."); } history.replaceState(null, "", location.pathname); }
+    SCHOOL.fromHash();   // 🏫 반 고르기 주소로 들어왔어요
     $$("[data-close]").forEach(b => b.onclick = () => b.closest(".arc-modal").hidden = true);
     APP.init();
     // 가져온 게임의 '친구 고르기' 버튼은 보드게임에서는 홈으로 가요
@@ -603,7 +604,7 @@ const ARC = {
   /* ---------- 로그인 ---------- */
   login(){ this.me = null; this.show("scrLogin"); LIVE.start(); LOBBY.sig = {}; this.renderLogin(); },
   renderLogin(){
-    LOBBY.renderLogin();
+    LOBBY.renderLogin(); SCHOOL.loginBtn();
     $("#lgNums").onclick = e => { const b = e.target.closest("[data-no]"); if (b) this.askPw(+b.dataset.no, no => { this.me = no; localStorage.setItem(KEY + ".me", no); localStorage.setItem(KEY + ".in", Date.now()); this.home(); if (!(Store.kids[sidOf(no)] || {}).av) setTimeout(() => SHOP.open(sidOf(no), true), 300); }); };
     $("#lgTeach").onclick = () => this.teacherGate();
   },
@@ -781,6 +782,7 @@ const ARC = {
     const cls = Store.cls, plain = loadPlain(cls.cid), body = $("#tcBody");
     $("#tcCls").textContent = cls.name || ""; body.onclick = null; if (!same) body.parentNode.scrollTop = 0;   // 같은 탭을 다시 그릴 때는 보던 자리 그대로
     if (ADMIN.has(this.tcTab)) return ADMIN.render(this.tcTab, body);
+    if (this.tcTab === "school") return SCHOOL.render(body);
     const H = {kids: "👧 학생 · 비밀번호", coin: "🪙 코인", rank: "🏆 랭킹 관리", link: "🔗 반 입장 주소", store: "☁️ 저장"};
     if (this.tcTab === "kids"){
       body.innerHTML = `<p class="arc-small">비밀번호는 숫자 4자리예요. 이 기기에서 정한 비밀번호만 여기에 보이고, 다른 기기에서는 <b>🎲 새로</b>로 다시 정할 수 있어요.</p>

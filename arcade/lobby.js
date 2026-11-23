@@ -109,7 +109,7 @@ const LIVE = {
       addEventListener("storage", e => { if (e.key && e.key.startsWith(`${KEY}.live.`)) this.lload(); });
     }
     setInterval(() => this.emit("tick"), 30000);                         // '몇 분 전' · 접속 표시 새로
-    setInterval(() => { if (ARC.me !== null && !document.hidden) this.ping(this.cur.st, this.cur.g, true); }, 4*60000);   // 4분마다 '나 여기 있어요'
+    setInterval(() => { if (ARC.me !== null && !document.hidden) this.ping(this.cur.st, this.cur.g, true); }, 5*60000);   // 5분마다 '나 여기 있어요' (반 8개·200명이 써도 읽기 수가 적게)
     document.addEventListener("visibilitychange", () => { if (ARC.me === null) return; if (document.hidden) this.ping("off", "", true, true); else this.ping(this.cur.st === "off" ? "home" : this.cur.st, this.cur.g, true); });
     addEventListener("pagehide", () => { ROOMS.leaveMine(); if (ARC.me !== null) this.ping("off", "", true, true); });
   },
@@ -121,10 +121,17 @@ const LIVE = {
     const sid = sidOf(ARC.me), o = {no: ARC.me, st, g: g || "", at: CLOCK.now()};
     if (!force && this.last && this.last.st === o.st && this.last.g === o.g && o.at - this.last.at < 60000) return;
     this.last = o; this.on[sid] = o; this.emit("on");
-    if (this.cloud()) Store.fs.setDoc(Store.fs.doc(this.col("on"), sid), o).catch(() => {});
+    /* ⚡ (2026.11.23 · 학교 8개 반) 화면을 옮길 때마다 바로 올리면 반 친구 모두가 그만큼 읽어요 →
+       '나가기(off)'·하트비트는 바로, 그 밖의 바뀜은 30초에 한 번만 (마지막 상태로) 올려요 */
+    if (this.cloud()){
+      const put = () => { this._lw = Date.now(); clearTimeout(this._pw); this._pw = 0; const v = this.last; if (v) Store.fs.setDoc(Store.fs.doc(this.col("on"), sidOf(v.no)), Object.assign({}, v, {at: CLOCK.now()})).catch(() => {}); };
+      const gap = 30000, since = Date.now() - (this._lw || 0);
+      if (force || st === "off" || since >= gap || this._ls !== sid){ this._ls = sid; put(); }
+      else if (!this._pw) this._pw = setTimeout(put, gap - since);
+    }
     else { const m = this.lget("on", {}); m[sid] = o; this.lset("on", m); }
   },
-  online(sid){ const o = this.on[sid]; return o && o.st !== "off" && Math.abs(CLOCK.now() - (o.at || 0)) < 6*60000 ? o : null; },
+  online(sid){ const o = this.on[sid]; return o && o.st !== "off" && Math.abs(CLOCK.now() - (o.at || 0)) < 8*60000 ? o : null; },
   onlineList(){ return roster().filter(s => this.online(sidOf(s.no))); },
 
   /* ---- 💬 채팅 ---- */
