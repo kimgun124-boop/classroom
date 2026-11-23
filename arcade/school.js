@@ -18,10 +18,41 @@ const SCHOOL = {
   hubUrl(){ const c = this.cfg(), s = Store.cls && Store.cls.school; return c && s ? `${location.origin}${location.pathname}?s=2#school=${b64e({c, n: s.n, l: this.pairs(s.l)})}` : ""; },
   pin6: () => String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000)),
 
+  /* ---------- 👑 여러 반 관리자 (2026.11.23) — 한 선생님이 비밀번호 하나로 모든 반 채널의 관리자에 들어가요 ----------
+     - 학교 채널(school)에 m = sha256(학교id:master:비밀번호) 를 넣어 두고, 반마다 문서에 똑같이 들어 있어요
+     - 맞게 넣은 기기는 기억해요 → 🏫 반 바꾸기로 다른 반에 가도 비밀번호 없이 바로 선생님·관리자예요
+     - 각 반 선생님도 자기 반 비밀번호로 동시에 들어올 수 있어요 (선생님 자리 하나에 여러 기기) */
+  MK: () => `${KEY}.master`,
+  masterOK(v){ const sc = Store.cls && Store.cls.school; return !!(sc && sc.m && v && sha256(`${sc.id}:master:${v}`) === sc.m); },
+  isMaster(){ const sc = Store.cls && Store.cls.school; if (!sc || !sc.m) return false; try { const o = JSON.parse(localStorage.getItem(this.MK())); return !!o && o.id === sc.id && o.h === sc.m; } catch(e){ return false; } },
+  remember(){ const sc = Store.cls && Store.cls.school; if (sc && sc.m) try { localStorage.setItem(this.MK(), JSON.stringify({id: sc.id, h: sc.m})); } catch(e){} },
+  forget(){ try { localStorage.removeItem(this.MK()); } catch(e){} },
+  /* 다른 반으로 옮겨 가기 (👑 관리자 기기는 그 반 선생님으로 바로 로그인) */
+  go(cid, asT){
+    localStorage.setItem(KEY + ".join", JSON.stringify({c: this.cfg(), i: cid}));
+    try { sessionStorage.setItem(KEY + ".picked", cid); } catch(e){}
+    if (asT){ localStorage.setItem(KEY + ".me", String(TEACHER)); localStorage.setItem(KEY + ".in", Date.now()); localStorage.setItem(KEY + ".goAdmin", "1"); }
+    else localStorage.removeItem(KEY + ".me");
+    location.reload();
+  },
+  async setMaster(){
+    const sc = Store.cls.school, mine = this.isOwner();
+    if (sc.m && !this.isMaster()){ const old = prompt("지금의 👑 여러 반 관리자 비밀번호를 넣어 주세요"); if (old === null) return; if (!this.masterOK(old.trim())) return alert("비밀번호가 달라요."); }
+    else if (!sc.m && !mine) return alert("👑 여러 반 관리자 비밀번호는 반 채널을 만든 컴퓨터에서 처음 정할 수 있어요.");
+    const p = prompt("👑 여러 반 관리자 비밀번호 (숫자 6~8자리)\n이 비밀번호 하나로 모든 반의 🛠️ 관리자에 들어갈 수 있어요. 학생에게 알려 주지 마세요."); if (p === null) return;
+    if (!/^\d{6,8}$/.test(p.trim())) return alert("숫자 6~8자리로 정해 주세요.");
+    const m = sha256(`${sc.id}:master:${p.trim()}`), fs = Store.fs; toast("👑 모든 반에 저장하는 중…");
+    try {
+      for (const [, cid] of this.pairs(sc.l)) if (cid !== Store.cls.cid) await fs.setDoc(fs.doc(Store.db, "arcade", cid), {school: {m}}, {merge: true});
+      await Store.patch({school: {m}}); this.remember();
+      toast("👑 여러 반 관리자 비밀번호를 정했어요! 이 기기는 기억해 둘게요"); ARC.teacher("school");
+    } catch(e){ console.error(e); alert("저장하지 못했어요: " + (e.message || e)); }
+  },
+
   /* ---------- 🛠️ 관리자 → 🏫 학교 채널 ---------- */
   render(body){
     const cls = Store.cls, sc = cls.school;
-    if (!this.isOwner()){ body.innerHTML = `<h3>🏫 학교 채널</h3><p>학교 채널(반 만들기 · 안내장 · 비밀번호)은 <b>채널을 만든 총관리자 선생님</b>만 관리해요. 우리 반 학생·비밀번호·코인은 다른 탭에서 관리하면 돼요.</p>`; return; }
+    if (!this.isOwner() && !this.isMaster()){ body.innerHTML = `<h3>🏫 학교 채널</h3><p>학교 채널(반 만들기 · 안내장 · 비밀번호)은 <b>채널을 만든 총관리자 선생님</b>만 관리해요. 우리 반 학생·비밀번호·코인은 다른 탭에서 관리하면 돼요.</p>`; return; }
     if (Store.mode !== "cloud"){ body.innerHTML = `<h3>🏫 학교 채널</h3><p>학교 채널은 <b>☁️ Firebase에 연결된 보드게임</b>에서만 만들 수 있어요. 먼저 <b>☁️ 저장</b> 탭에서 연결해 주세요.</p>`; return; }
     if (!sc){
       body.innerHTML = `<h3>🏫 학교 채널 만들기</h3>
@@ -38,13 +69,16 @@ const SCHOOL = {
       $("#scGo").onclick = () => this.create();
       return;
     }
-    const sec = this.secret(sc.id), hub = this.hubUrl();
+    const sec = this.secret(sc.id), hub = this.hubUrl(), MS = this.isMaster();
     body.innerHTML = `<h3>🏫 학교 채널 · ${esc(sc.n || "")}</h3>
       <p class="arc-small">반마다 <b>따로</b> 들어가는 채널이에요. 각 반 선생님께 <b>🖨️ 안내장</b>을 드리면, 선생님 비밀번호로 🛠️ 관리자에 들어가 학생 이름을 고치고 쓰시면 돼요.</p>
       <div class="sc-list">${this.pairs(sc.l).map(([n, cid], i) => { const me = cid === cls.cid, pin = (sec.t || {})[cid];
         return `<div class="sc-r${me ? " me" : ""}" data-cid="${cid}"><b>🎲 ${esc(n)}</b>${me ? `<i>지금 이 반</i>` : ""}
           <span class="sc-pin">${me ? "선생님 비밀번호: (지금 쓰는 것)" : pin ? `🔑 선생님 비밀번호 <b>${pin}</b>` : "🔑 비밀번호는 만든 기기에만 있어요"}</span>
-          <span class="bb"><button class="arc-btn sm" data-copy="${cid}">📋 입장 주소</button><button class="arc-btn sm" data-dl="${cid}">📥 파일</button><button class="arc-btn sm p" data-print="${cid}">🖨️ 안내장</button></span></div>`; }).join("")}</div>
+          <span class="bb">${MS && !me ? `<button class="arc-btn sm p" data-go="${cid}">🛠️ 관리하러 가기</button>` : ""}<button class="arc-btn sm" data-copy="${cid}">📋 입장 주소</button><button class="arc-btn sm" data-dl="${cid}">📥 파일</button><button class="arc-btn sm p" data-print="${cid}">🖨️ 안내장</button></span></div>`; }).join("")}</div>
+      <div class="sc-master"><h4>👑 여러 반 관리자 <small>${sc.m ? (MS ? "✅ 이 기기는 모든 반 관리자예요" : "✅ 정해져 있어요") : "아직 없어요"}</small></h4>
+        <p class="arc-small">한 선생님(학년 부장님 등)이 <b>비밀번호 하나로 모든 반</b>의 🛠️ 관리자에 들어가요. 한 번 넣은 기기는 기억해서, 줄마다 있는 <b>🛠️ 관리하러 가기</b>나 로그인 화면의 <b>🏫 반 바꾸기</b>로 옮겨 가면 그 반 선생님으로 바로 들어가요. 각 반 선생님도 자기 반 비밀번호로 <b>동시에</b> 들어올 수 있어요.</p>
+        <div class="arc-row"><button class="arc-btn${sc.m ? "" : " p"}" id="scMs">🔑 ${sc.m ? "여러 반 관리자 비밀번호 바꾸기" : "여러 반 관리자 비밀번호 정하기"}</button>${sc.m && !MS ? `<button class="arc-btn p" id="scMsIn">👑 이 기기를 여러 반 관리자로</button>` : ""}${MS ? `<button class="arc-btn" id="scMsOut">🚪 이 기기 기억 지우기</button>` : ""}</div></div>
       <div class="arc-row"><button class="arc-btn p" id="scDl">📥 선생님 안내 파일 받기 (전체)</button><button class="arc-btn p" id="scAll">🖨️ 모든 반 안내장 한꺼번에 인쇄</button><button class="arc-btn" id="scHub">🏫 모든 반 같은 주소 복사</button></div>
       <p class="arc-small">📥 <b>선생님 안내 파일</b>: 안내문 + 반마다 안내장(입장 주소·QR·선생님 비밀번호·학생 비밀번호)이 든 파일과, 엑셀에서 열리는 <b>비밀번호 표</b>를 받아요. 각 반 선생님께는 줄마다 있는 <b>📥 파일</b>(그 반 것만)을 보내 주세요.</p>
       <p class="arc-small">🏫 <b>모든 반이 같은 주소</b>(반 고르기 주소)를 써요. 열면 1반~8반 목록이 나와서 자기 반을 눌러 들어가요 · 각 반 선생님의 🔗 반 입장 주소 탭에도 이 주소가 나와요. 이 주소들은 우리 학교 안에서만 나눠 주세요.</p>
@@ -53,11 +87,15 @@ const SCHOOL = {
           Firebase 콘솔 → ⚙️ 사용량 및 결제에서 <b>Blaze(쓴 만큼 결제)</b>로 바꾸면 끊기지 않아요 (무료 양은 그대로이고, 넘은 만큼만 아주 조금 내요). <b>예산 알림</b>도 꼭 걸어 두세요.</li>
         <li>같은 학교 와이파이에서 <b>처음 들어오는 기기</b>가 한 시간에 100대를 넘으면 잠깐 막힐 수 있어요 (Firebase 익명 로그인 한도). 처음 나눠 줄 때는 <b>반마다 시간을 나눠서</b> 들어오거나, 콘솔 → Authentication → 설정에서 <b>가입 한도를 잠깐 늘려</b> 두세요. 한 번 들어온 기기는 다시 세지 않아요.</li></ul></details>`;
     body.onclick = e => {
+      const gg = e.target.closest("[data-go]"); if (gg) return this.go(gg.dataset.go, true);
       const c = e.target.closest("[data-copy]"); if (c) return this.copy(this.joinOf(c.dataset.copy), "📋 반 입장 주소를 복사했어요");
       const p = e.target.closest("[data-print]"); if (p) return this.print([p.dataset.print]);
       const d = e.target.closest("[data-dl]"); if (d) return this.download([d.dataset.dl]);
     };
     $("#scAll").onclick = () => this.print(this.pairs(sc.l).map(x => x[1]));
+    $("#scMs").onclick = () => this.setMaster();
+    if ($("#scMsIn")) $("#scMsIn").onclick = () => { const v = prompt("👑 여러 반 관리자 비밀번호"); if (v === null) return; if (this.masterOK(v.trim())){ this.remember(); toast("👑 이 기기는 이제 모든 반 관리자예요"); ARC.teacher("school"); } else alert("비밀번호가 달라요."); };
+    if ($("#scMsOut")) $("#scMsOut").onclick = () => { if (!confirm("이 기기에서 👑 여러 반 관리자 기억을 지울까요? (다음엔 비밀번호를 다시 넣어요)")) return; this.forget(); ARC.teacher("school"); };
     $("#scDl").onclick = () => this.download(this.pairs(sc.l).map(x => x[1]), true);
     $("#scHub").onclick = () => this.copy(hub, "📋 모든 반 같은 주소를 복사했어요");
   },
@@ -176,7 +214,9 @@ const SCHOOL = {
       const b = e.target.closest("[data-cid]"); if (!b) return;
       try { sessionStorage.setItem(KEY + ".picked", b.dataset.cid); } catch(e2){}
       if (b.dataset.cid === cur){ el.hidden = true; return; }
-      if (o.close && !confirm(`${b.querySelector("b").textContent}(으)로 옮길까요? 이 기기의 로그인이 풀려요.`)) return;
+      const MS = this.isMaster();
+      if (o.close && !confirm(MS ? `${b.querySelector("b").textContent}(으)로 옮길까요? 👑 그 반 선생님으로 바로 들어가요.` : `${b.querySelector("b").textContent}(으)로 옮길까요? 이 기기의 로그인이 풀려요.`)) return;
+      if (MS && JSON.stringify(o.c) === JSON.stringify(this.cfg())) return this.go(b.dataset.cid, true);
       localStorage.setItem(KEY + ".join", JSON.stringify({c: o.c, i: b.dataset.cid})); localStorage.removeItem(KEY + ".me"); location.reload(); };
   },
   /* 🚪 (2026.11.23) 처음 화면은 '반 채널 고르기': 학교 채널이면 로그인 전에 1반~8반 중 우리 반을 먼저 골라요
@@ -207,6 +247,9 @@ const SCHOOL = {
   css(){ if ($("#scCss")) return; const st = document.createElement("style"); st.id = "scCss"; st.textContent = `
 .sc-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:12px 0}
 .sc-list{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.sc-master{margin:14px 0;padding:12px 16px;border-radius:16px;background:linear-gradient(135deg,rgba(255,212,59,.14),rgba(177,151,252,.12));border:1px solid rgba(255,212,59,.45)}
+.sc-master h4{margin:0 0 6px;font:20px "Jua",sans-serif;color:#ffe066}
+.sc-master h4 small{font:14px "Gowun Dodum",sans-serif;color:#d3f9d8;margin-left:8px}
 .sc-r{display:flex;align-items:center;flex-wrap:wrap;gap:10px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:10px 14px}
 .sc-r.me{border-color:#ffd43b;background:rgba(255,212,59,.1)}.sc-r>b{font:20px "Jua",sans-serif;min-width:130px}.sc-r>i{font-style:normal;font-size:12px;background:#ffd43b;color:#3b2a00;border-radius:999px;padding:2px 8px}
 .sc-r .sc-pin{flex:1;font-size:14px;color:#c5bfe6}.sc-r .sc-pin b{font-size:18px;letter-spacing:2px;color:#ffe066}.sc-r .bb{display:flex;gap:6px}

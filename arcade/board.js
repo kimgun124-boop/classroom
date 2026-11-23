@@ -136,7 +136,7 @@ function bdCtl(gid, G){
       if (code === "Escape") return false;
       if (G.key && G.key(code, canMove())){ dirty = true; return true; } return false; },
     destroy(){},
-    dbg: {G, play: mv => play(mv, "me"), hist: () => hist}
+    dbg: {G, play: mv => play(mv, "me"), hist: () => hist, bx: () => Bx, ui: () => ui}
   };
   function onNet(d){
     if (d.rs != null){ doResign(d.rs); return; }

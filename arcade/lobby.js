@@ -286,7 +286,7 @@ const ROOMS = {
    🖼️ 화면 그리기 (바뀐 칸만 다시 그려요)
    ===================================================================== */
 const LOBBY = {
-  sig: {}, filter: "all", tab: "rank", rk: {g: "fl", day: false}, fame: 0, fameTouch: 0, fameTimer: 0, seen: 0, chatSig: "",
+  sig: {}, filter: "board", tab: "rank", rk: {g: "yt", day: false}, fame: 0, fameTouch: 0, fameTimer: 0, seen: 0, chatSig: "",
   put(id, html){ if (this.sig[id] === html) return false; this.sig[id] = html; const el = document.getElementById(id); if (el) el.innerHTML = html; return true; },
   visGames(){ const t = isT(ARC.me); return GAMES.filter(g => t || gameOn(g.id)); },
 
@@ -444,12 +444,18 @@ const LOBBY = {
     setTimeout(() => GIFTBOX.check(), 300);
   },
   renderGames(){
-    const me = ARC.me, sid = sidOf(me), L = this.visGames().filter(g => this.filter === "all" || g.kind === this.filter);
-    this.put("hmGames", L.map(g => {
+    const me = ARC.me, sid = sidOf(me), F = this.filter, cat = g => g.c || "arcade";
+    const L = this.visGames().filter(g => F === "all" || cat(g) === F);
+    /* 🎲 보드게임 / 🕹️ 아케이드 칸 제목 */
+    const SEC = {board: `<div class="ag-sec board"><b>🎲 보드게임</b><span>수업 시간에 같이 해요 · 🧒 한 기기에서 둘이 · 🤖 컴퓨터와 · 🌐 다른 기기 친구와</span></div>`,
+                 arcade: `<div class="ag-sec arcade"><b>🕹️ 아케이드</b><span>쉬는 시간에 신나게! 점수 대결 · 협동 · 액션 게임</span></div>`};
+    let prev = "";
+    this.put("hmGames", (L.length ? "" : `<p class="arc-empty">${F === "board" ? "선생님이 보드게임을 모두 꺼 두었어요" : "선생님이 아케이드 게임을 모두 꺼 두었어요"}</p>`) + L.map(g => {
+      const head = cat(g) !== prev ? SEC[cat(g)] : ""; prev = cat(g);
       const B = board(g.id), mine = B.find(x => x.sid === sid), top = B[0], off = !gameOn(g.id);
       const myTxt = mine ? `내 기록 <b>${valTxt(g, mine.r)}</b> · <b>${mine.rank}</b>등` : g.kind === "duel" ? "아직 대결 기록이 없어요" : "아직 기록이 없어요";
       const topTxt = top ? `${avI(top.sid)} <span>${esc(isT(top.st.no) ? "선생님" : nameOf(top.st.no))}</span> <b>${valTxt(g, top.r)}</b>` : `<i>1등 자리가 비어 있어요!</i>`;
-      return `<button class="arc-game ${g.kind} g-${g.id}${off ? " off" : ""}" data-g="${g.id}">
+      return head + `<button class="arc-game ${g.kind} g-${g.id}${off ? " off" : ""}" data-g="${g.id}">
         <span class="ag-ic f">${g.e}</span><span class="ag-tag">${g.tag ? g.tag : g.multi ? "🎉 최대 6명 · 승리전" : g.kind === "duel" ? "⚔️ 둘이서 · 승리전" : "🏆 혼자 · 점수전"}</span>
         <b class="ag-nm">${g.n}</b><small class="ag-ds">${g.d}</small><span class="ag-play">▶ PLAY</span>
         <span class="ag-top">👑 ${topTxt}</span><span class="ag-my">${myTxt}</span>${off ? `<span class="ag-off">⏸️ 꺼 둔 게임 (선생님만 보여요)</span>` : ""}</button>`;
@@ -581,6 +587,7 @@ const ADMIN = {
           ${this.sw("agOpen", !c.closed, "🔓 보드게임 열기", "닫으면 아이들은 로그인은 되지만 게임·채팅을 할 수 없어요 (수업 시간·청소 시간에)")}
           <div class="ad-in" style="margin-top:10px"><input id="agMsg" maxlength="60" value="${esc(c.closedMsg || "")}" placeholder="닫혔을 때 보일 말 (예: 쉬는 시간에 다시 열어요!)"><button class="arc-btn" id="agMsgSave">💾 저장</button></div></div>
         <div class="ad-sec"><h4>🎮 게임 켜기 · 끄기 <small style="font:13px 'Gowun Dodum',sans-serif;color:#b9b0dd">끈 게임은 아이들 화면에서 사라져요 (랭킹·코인은 그대로)</small></h4>
+          <div class="arc-row" style="margin:6px 0 10px"><button class="arc-btn p" id="agBoard" title="아케이드 게임은 끄고 보드게임만 보여요">📚 수업 모드 · 보드게임만 켜기</button><button class="arc-btn" id="agAll">🎮 모두 켜기</button></div>
           <div class="ad-games">${GAMES.map(g => `<label><input type="checkbox" data-g="${g.id}" ${gameOn(g.id) ? "checked" : ""}><span class="f">${g.e}</span>${g.n}</label>`).join("")}</div></div>`);
     if (tab === "chat"){
       $("#acOn").onchange = e => this.patch({chat: {off: !e.target.checked}}, e.target.checked ? "💬 채팅을 켰어요" : "🤫 채팅을 껐어요");
@@ -611,6 +618,9 @@ const ADMIN = {
     } else if (tab === "game"){
       $("#agOpen").onchange = e => this.patch({closed: !e.target.checked}, e.target.checked ? "🔓 보드게임 문을 열었어요" : "🔒 보드게임 문을 닫았어요");
       $("#agMsgSave").onclick = () => this.patch({closedMsg: $("#agMsg").value.trim()}, "💾 저장했어요");
+      const setAll = (on, msg) => this.patch({off: Object.fromEntries(GAMES.map(g => [g.id, !on(g)]))}, msg).then(() => setTimeout(() => ARC.teacher(ARC.tcTab), 300));
+      $("#agBoard").onclick = () => setAll(g => (g.c || "arcade") === "board", "📚 수업 모드: 보드게임만 켰어요");
+      $("#agAll").onclick = () => setAll(() => true, "🎮 모든 게임을 켰어요");
       body.querySelector(".ad-games").onchange = e => { const i = e.target.closest("[data-g]"); if (i) this.patch({off: {[i.dataset.g]: !i.checked}}, `${GAME[i.dataset.g].e} ${GAME[i.dataset.g].n} ${i.checked ? "켰어요" : "껐어요"}`); };
     } else if (tab === "live"){
       $("#adLive").onclick = e => {

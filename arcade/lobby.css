@@ -273,3 +273,11 @@ body.arc-playing #lgFame, body.arc-playing .arc-lobby{display:none !important}
 .ch-in[hidden],.ch-quick[hidden]{display:none !important}
 /* 🌸 차분한 퍼즐 4종 카드 색 */
 .g-bp{--c1:#e64980;--c2:#5c1638;--gl:255,143,177}.g-fm{--c1:#f76707;--c2:#6b2a05;--gl:255,184,107}.g-jm{--c1:#7048e8;--c2:#2b1a63;--gl:177,151,252}.g-ws{--c1:#0ca678;--c2:#06402f;--gl:126,224,181}
+/* 🎲 보드게임 / 🕹️ 아케이드 칸 제목 (2026.11.23) */
+.ag-sec{grid-column:1/-1;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:6px 2px -4px;padding:0 0 6px;border-bottom:2px solid rgba(177,151,252,.25)}
+.ag-sec b{font:24px "Jua",sans-serif;color:#fff}
+.ag-sec span{font:14px "Gowun Dodum",sans-serif;color:#b9b0dd}
+.ag-sec.board b{color:#ffe066}
+.ag-sec+.arc-game{margin-top:2px}
+.arc-game.g-yt,.arc-game.g-ot,.arc-game.g-c4,.arc-game.g-gd,.arc-game.g-ck,.arc-game.g-qr,.arc-game.g-bx,.arc-game.g-mk,.arc-game.g-jg,.arc-game.g-ch,.arc-game.g-om{--c1:#6b4423;--c2:#2e1c0e;--gl:255,192,120}
+@media (max-width:700px){ .ag-sec{margin:10px 2px 0} .ag-sec b{font-size:19px} .ag-sec span{font-size:12px} }

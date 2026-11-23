@@ -127,6 +127,12 @@ try { S.vb = JSON.parse(localStorage.getItem(KEY + ".vb")) || {}; } catch(e) {}
 function save(){ try { localStorage.setItem(KEY + ".vb", JSON.stringify(S.vb || {})); } catch(e) {} }
 const sidOf = no => "n" + no;
 const noOf_ = sid => +String(sid).slice(1);
+/* 🔑 선생님 비밀번호 확인: 이 반 선생님 비밀번호 · 또는 학교 채널의 👑 여러 반 관리자 비밀번호 (맞으면 이 기기를 기억해요) */
+function tPinOK(v){
+  if (sha256(`${Store.cls.cid}:teacher:${v}`) === Store.cls.admin) return true;
+  if (typeof SCHOOL !== "undefined" && SCHOOL.masterOK(v)){ SCHOOL.remember(); return true; }
+  return false;
+}
 const TEACHER = 0;   // 🧑‍🏫 선생님도 같이 하는 자리 (번호 0 · 비밀번호는 선생님 비밀번호)
 const faceOf = sid => (Store.cls && Store.cls.faces && Store.cls.faces[noOf_(sid)]) || (noOf_(sid) === TEACHER ? "🧑‍🏫" : "🙂");
 /* 게임·랭킹·대결에 나오는 사람: 학생 명단 + 선생님 */
@@ -432,6 +438,17 @@ function parseCfg(t){
    게임 목록
    ===================================================================== */
 const GAMES = [
+  {id: "yt", e: "🎋", n: "윷놀이",      kind: "duel", c: "board", tag: "🆕 우리 전통 놀이 · 🤖 컴퓨터와도", d: "도·개·걸·윷·모! 말 4개를 먼저 한 바퀴 · 업고·잡고·지름길"},
+  {id: "ot", e: "⚪", n: "오델로",      kind: "duel", c: "board", tag: "🆕 둘이서 · 🤖 컴퓨터와도", d: "상대 돌을 사이에 끼우면 뒤집혀요! 돌이 많은 쪽이 승리"},
+  {id: "c4", e: "🔴", n: "사목",        kind: "duel", c: "board", tag: "🆕 둘이서 · 🤖 컴퓨터와도", d: "떨어뜨려서 네 개를 먼저 한 줄로! (커넥트 포)"},
+  {id: "jg", e: "🀄", n: "장기",        kind: "duel", c: "board", tag: "♟️ 둘이서 · 🤖 컴퓨터와도", d: "초와 한의 한판 승부! 장군 받고 외통수로 이겨요"},
+  {id: "ch", e: "♟️", n: "체스",        kind: "duel", c: "board", tag: "♟️ 둘이서 · 🤖 컴퓨터와도", d: "킹을 체크메이트! 캐슬링·앙파상까지 진짜 규칙"},
+  {id: "om", e: "⚫", n: "오목",        kind: "duel", c: "board", tag: "♟️ 둘이서 · 🤖 컴퓨터와도", d: "돌 다섯 개를 먼저 한 줄로! 두 번 톡톡 눌러 놓아요"},
+  {id: "gd", e: "☯️", n: "따먹기 바둑", kind: "duel", c: "board", tag: "🆕 9줄 바둑 · 🤖 컴퓨터와도", d: "둘러싸서 잡아요! 상대 돌을 먼저 5개 잡으면 승리"},
+  {id: "ck", e: "🟥", n: "체커",        kind: "duel", c: "board", tag: "🆕 둘이서 · 🤖 컴퓨터와도", d: "대각선으로 뛰어넘어 잡기! 끝까지 가면 👑 왕"},
+  {id: "qr", e: "🚧", n: "쿼리도",      kind: "duel", c: "board", tag: "🆕 길 찾기 전략 · 🤖 컴퓨터와도", d: "건너편 끝줄에 먼저! 벽 10개로 친구 길을 막아요"},
+  {id: "bx", e: "🟪", n: "블로커스",    kind: "duel", c: "board", tag: "🆕 땅따먹기 · 🤖 컴퓨터와도", d: "조각 21개를 모서리끼리만 닿게! 많이 놓는 쪽이 승리"},
+  {id: "mk", e: "🫘", n: "만칼라",      kind: "duel", c: "board", tag: "🆕 씨앗 뿌리기 · 🤖 컴퓨터와도", d: "씨앗을 하나씩 뿌려 내 창고에 많이 모아요"},
   {id: "rd", e: "🐾", n: "동물 랜덤 디펜스", kind: "score", tag: "⭐ 대표 게임 · 🤝 최대 6명 협동", d: "동물을 뽑고 3마리 합쳐 더 세게! 1000단계 · 차원 보스 · 친구와 함께 지켜요"},
   {id: "qd", e: "👹", n: "불가능한 보스 잡기", kind: "score", tag: "⭐ 대표 게임 · 👑 보스 100단계", d: "빨간 경고를 피해 무시무시한 보스 100단계에 도전! 🛒 장비·🐾펫·🎨 꾸미기 · 많이 이기면 ✨오로라"},
   {id: "fl", e: "🐤", n: "얼굴 날기",   kind: "score", d: "연필 사이를 날아요 · 아이템과 맵 6단계"},
@@ -449,9 +466,6 @@ const GAMES = [
   {id: "jj", e: "🥋", n: "주짓수 한판", kind: "duel", tag: "🆕 둘이서 · 🤖 컴퓨터와도", d: "넘기고·누르고·조르기! 기술이 걸리면 연타 대결 · 탭 받으면 승리"},
   {id: "pp", e: "🏓", n: "얼굴 탁구",   kind: "duel",  d: "둘이서 탁구 대결"},
   {id: "wb", e: "💦", n: "물풍선 대작전", kind: "duel", multi: 1, d: "미로에서 물풍선 펑! 최대 6명"},
-  {id: "jg", e: "🀄", n: "장기",        kind: "duel",  tag: "🆕 둘이서 · 🤖 컴퓨터와도", d: "초와 한의 한판 승부! 장군 받고 외통수로 이겨요"},
-  {id: "ch", e: "♟️", n: "체스",        kind: "duel",  tag: "🆕 둘이서 · 🤖 컴퓨터와도", d: "킹을 체크메이트! 캐슬링·앙파상까지 진짜 규칙"},
-  {id: "om", e: "⚫", n: "오목",        kind: "duel",  tag: "🆕 둘이서 · 🤖 컴퓨터와도", d: "돌 다섯 개를 먼저 한 줄로! 두 번 톡톡 눌러 놓아요"},
   {id: "bl", e: "🎱", n: "당구",        kind: "duel",  tag: "🆕 둘이서 · 🤖 컴퓨터와도", d: "포켓볼 점수 대결! 넣으면 한 번 더 · ⭐9번 공은 3점"},
   {id: "bs", e: "🫧", n: "버블 특공대", kind: "score", d: "로봇을 거품에 가둬 날려 보내요"},
   {id: "sk", e: "🌥️", n: "하늘 무사단", kind: "score", tag: "🤝 최대 4명 · 협동 점수전", d: "구름 위 슈팅! 30단계 · 6가지 하늘 · 스킬 · 보스"},
@@ -561,7 +575,10 @@ const ARC = {
       this.syncMsg(`⚠️ 반 전체 기록에 연결하지 못했어요: ${e.message || e}`); $("#lgSync").innerHTML = `⚠️ 반 기록에 연결하지 못했어요. 인터넷을 확인하고 <button class="arc-btn" onclick="location.reload()">다시 연결</button>`; this.show("scrLogin"); return; }
     if (!ok) return this.setup();
     const meRaw = localStorage.getItem(KEY + ".me"), me = meRaw === null || meRaw === "" ? null : +meRaw;
-    if (this.inRoster(me)){ this.me = me; this.home(); } else { this.login(); SCHOOL.entry(); }
+    if (this.inRoster(me)){ this.me = me; this.home();
+      /* 👑 여러 반 관리자: 🏫 반을 옮겨 오면 관리자 화면을 바로 열어요 */
+      if (localStorage.getItem(KEY + ".goAdmin")){ localStorage.removeItem(KEY + ".goAdmin"); if (isT(me) && SCHOOL.isMaster()) setTimeout(() => { this.teacher("live"); toast(`👑 ${Store.cls.name || "이 반"} 관리자로 들어왔어요`); }, 400); }
+    } else { localStorage.removeItem(KEY + ".goAdmin"); this.login(); SCHOOL.entry(); }
   },
   inRoster(no){ return no !== null && no !== undefined && roster().some(s => s.no == no); },
   refresh(){
@@ -644,8 +661,10 @@ const ARC = {
     dots(); $("#pwPick").hidden = true; this.modal("#mdPw", true);
   },
   askPw(no, ok, title){
-    if (+no === TEACHER) return this.pad({who: `<span class="avf">${avHTMLof(sidOf(TEACHER), {still: true, face: true})}</span><b>선생님</b>`, title: title || "선생님 비밀번호",
-      check: v => { if (sha256(`${Store.cls.cid}:teacher:${v}`) === Store.cls.admin){ ok(TEACHER); return true; } return "비밀번호가 달라요"; }});
+    if (+no === TEACHER){
+      if (SCHOOL.isMaster() && !title){ setTimeout(() => ok(TEACHER), 0); return; }   // 👑 여러 반 관리자 기기: 비밀번호 없이 바로
+      return this.pad({who: `<span class="avf">${avHTMLof(sidOf(TEACHER), {still: true, face: true})}</span><b>선생님</b>`, title: title || "선생님 비밀번호",
+        check: v => { if (tPinOK(v)){ ok(TEACHER); return true; } return "비밀번호가 달라요"; }}); }
     this.pad({who: `<span class="avf">${avHTMLof(sidOf(no), {still: true, face: true})}</span><b>${esc(who(no))}</b>`, title: title || "비밀번호 4자리", len: 4,
       check: v => { if (Store.cls.pw[no] && pwHash(no, v) === Store.cls.pw[no]){ ok(no); return true; } return Store.cls.pw[no] ? "비밀번호가 달라요" : "아직 비밀번호가 없어요. 선생님께 말해요."; }});
   },
@@ -689,6 +708,7 @@ const ARC = {
     const BDH = {jg: "말을 톡 눌러 고르고, 초록 점을 눌러 옮겨요. 장군을 받으면 꼭 막아요!", ch: "말을 톡 눌러 고르고, 초록 점을 눌러 옮겨요. 폰이 끝까지 가면 퀸이 돼요!", om: "놓고 싶은 곳을 두 번 톡톡! 가로·세로·대각선 다섯 개를 먼저 만들면 승리", bl: "판을 끌어 방향을 정하고, 힘 막대를 당겼다 놓아 쳐요. 공을 넣으면 한 번 더!",
       jj: "⚡ 기술 · 🛡️ 탈출 · 🔒 조르기 단추를 눌러요. 기술이 걸리면 둘 다 빠르게 연타! (키보드: 1P F·G·H / 2P J·K·L)",
       kf: "👊 펀치 · 🦵 킥 · ✨ 기술 · 💥 필살! 뒤로 누르면 막기 (키보드: 1P W·A·S·D + F·G·H·T / 2P 방향키 + J·K·L·I)"};
+    Object.assign(BDH, window.BD2_HELP || {});
     $("#duHelp").textContent = BDH[gid] ? BDH[gid] : gid === "vb" ? "태블릿에서는 화면 양쪽 아래 버튼으로 움직여요 (키보드: 1P W·A·D·F / 2P 방향키·Enter)" : gid === "ah" ? "자기 쪽 화면을 손가락으로 끌어서 말렛을 움직여요" : "자기 쪽 화면을 손가락으로 위아래로 끌어요 (키보드: 1P W·S / 2P ↑·↓)";
     $$("#duLv button").forEach(b => b.classList.toggle("on", +b.dataset.v === lv));
     $("#duLv").onclick = e => { const b = e.target.closest("button"); if (b){ lv = +b.dataset.v; $$("#duLv button").forEach(x => x.classList.toggle("on", x === b)); } };
@@ -785,16 +805,17 @@ const ARC = {
 
   /* ---------- 선생님 ---------- */
   teacherGate(){
-    this.pad({who: "<b>🛠️ 관리자 화면</b>", title: "선생님 비밀번호", check: v => { if (sha256(`${Store.cls.cid}:teacher:${v}`) === Store.cls.admin){ setTimeout(() => this.teacher("live"), 50); return true; } return "비밀번호가 달라요"; }});
+    if (SCHOOL.isMaster()) return this.teacher("live");   // 👑 여러 반 관리자 기기
+    this.pad({who: "<b>🛠️ 관리자 화면</b>", title: "선생님 비밀번호 (또는 👑 여러 반 관리자 비밀번호)", check: v => { if (tPinOK(v)){ setTimeout(() => this.teacher("live"), 50); return true; } return "비밀번호가 달라요"; }});
   },
   teacher(tab){
     const same = (tab || this.tcTab) === this.tcTab && !$("#mdTeach").hidden;
     this.tcTab = tab || this.tcTab || "live"; this.modal("#mdTeach", true); LIVE.start();
     $$("#tcTabs button").forEach(b => b.classList.toggle("on", b.dataset.t === this.tcTab));
-    { const sb = $('#tcTabs [data-t="school"]'); if (sb) sb.hidden = !SCHOOL.isOwner(); }
+    { const sb = $('#tcTabs [data-t="school"]'); if (sb) sb.hidden = !(SCHOOL.isOwner() || SCHOOL.isMaster()); }
     $("#tcTabs").onclick = e => { const b = e.target.closest("[data-t]"); if (b) this.teacher(b.dataset.t); };
     const cls = Store.cls, plain = loadPlain(cls.cid), body = $("#tcBody");
-    $("#tcCls").textContent = cls.name || ""; body.onclick = null; if (!same) body.parentNode.scrollTop = 0;   // 같은 탭을 다시 그릴 때는 보던 자리 그대로
+    $("#tcCls").textContent = (cls.name || "") + (SCHOOL.isMaster() ? " · 👑 여러 반 관리자" : ""); body.onclick = null; if (!same) body.parentNode.scrollTop = 0;   // 같은 탭을 다시 그릴 때는 보던 자리 그대로
     if (ADMIN.has(this.tcTab)) return ADMIN.render(this.tcTab, body);
     if (this.tcTab === "school") return SCHOOL.render(body);
     const H = {kids: "👧 학생 · 비밀번호", coin: "🪙 코인", rank: "🏆 랭킹 관리", link: "🔗 반 입장 주소", store: "☁️ 저장"};
