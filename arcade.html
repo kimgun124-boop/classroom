@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="31fdce96a4">
+<meta name="arc-build" content="a985a4b40c">
 <script>
 /* 🔄 늘 최신 오락실: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "31fdce96a4", K = "arcade.reloaded";
+  var B = "a985a4b40c", K = "arcade.reloaded";
   function saving(){ try { return typeof Store !== "undefined" && Store.saving && Store.saving(); } catch(e){ return false; } }
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !saving() && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
@@ -15058,6 +15058,13 @@ RD_K.forEach(k => { RD_A[k].dk = []; });
 RD_DKK.forEach(d => { RD_DK[d].mk = RD_DK[d].m.split(" ").filter(k => RD_A[k]); RD_DK[d].mk.forEach(k => RD_A[k].dk.push(d)); });
 const rdDkT = n => n >= RD_DKN[2] ? 3 : n >= RD_DKN[1] ? 2 : n >= RD_DKN[0] ? 1 : 0;
 const rdStar = T => T ? "⭐".repeat(T) : "";
+/* 🌈 덱 섞기 (2026.11.23 b)
+   · 🌈 덱 연합: 우리 팀(나+친구들 마당)에 켜진(⭐ 이상) 덱이 3·4·5가지면 모든 동물 공격 UP
+   · 🤝 친구 덱 나눠 받기: 친구가 켠 덱은 내 같은 덱 동물에게도 ⭐ 하나 낮게 효과 (내 것이 더 높으면 내 것)
+   · 💥 와장창: 켜진 덱 동물이 때리면 몬스터에 덱 색 표식이 붙어요 → 서로 다른 덱 3색이 모이면 깨져서 더 아파요, 5색이면 🌈 오색 와장창 폭발! */
+const RD_UNI = [1, 1, 1, 1.1, 1.2, 1.35];   // 켜진 덱 가짓수 → 모두 공격×
+const RD_BRK = {n: 3, t: 240, mk: 150, m: 1.5, mb: 1.3};   // 3색이면 깨짐 · 깨짐 4초 · 표식 2.5초 · 깨지면 피해 ×1.5 (보스 ×1.3)
+const rdBits = m => { let c = 0; for (; m; m &= m - 1) c++; return c; };
 /* 마당(칸 목록) → 덱마다 모인 '종류' 수 */
 function rdDkCount(S){ const n = {}; RD_DKK.forEach(d => n[d] = 0); const seen = new Set();
   S.forEach(q => { if (!q.k || seen.has(q.k) || !RD_A[q.k]) return; seen.add(q.k); RD_A[q.k].dk.forEach(d => n[d]++); }); return n; }
@@ -15813,7 +15820,7 @@ NG.defs.rd = () => {
   function nbOf(z, i){ const [x, y] = slotXY(z, i), L = []; Z[z].s.forEach((q, j) => { if (j === i || !q.k) return; const [x2, y2] = slotXY(z, j); if ((x2 - x)**2 + (y2 - y)**2 < 2.1) L.push(q); }); return L; }
   /* 💞 특별 조합 찾기 — 마당마다 · 조합 동물끼리 이웃(대각선 포함)으로 이어진 묶음에 모든 동물이 있으면 발동 */
   let CBA = null, CBS = null, AX = null, cbSig = "", CBN = 0; const cbOn = {};
-  let DKL = null; const dkOn = {};   // 🃏 덱 단계 (마당마다 {beast: 0~3, …, n: 종류 수})
+  let DKL = null, DKE = null, DKU = 0, dkU0 = 0; const dkOn = {};   // DKE: 친구 덱까지 더한 효과 단계 · DKU: 팀에 켜진 덱 가짓수   // 🃏 덱 단계 (마당마다 {beast: 0~3, …, n: 종류 수})
   const adjS = (z, i, j) => { const [x, y] = slotXY(z, i), [x2, y2] = slotXY(z, j); return (x2 - x)**2 + (y2 - y)**2 < 2.1; };
   function cbCalc(){
     const sig = Z.map(p => p.s.map(q => q.k || "").join(",")).join("|") + "|" + MAPI; if (sig === cbSig && CBA) return CBA; cbSig = sig;
@@ -15836,13 +15843,20 @@ NG.defs.rd = () => {
     /* 🃏 덱 효과: 같은 덱 동물이 서로 다른 종류로 2·3·4종 → 그 덱 동물이 세져요 */
     DKL = Z.map((p, z) => LN[z] ? rdDkLv(p.s) : rdDkLv([]));
     DKL.forEach(L => RD_DKK.forEach(d => { const T = L[d]; if (T && RD_DK[d].fx[T - 1].lm) CBL += RD_DK[d].fx[T - 1].lm; }));
-    Z.forEach((p, z) => p.s.forEach((q, i) => { if (!q.k) return; const L = DKL[z];
+    /* 🤝 친구 덱 나눠 받기 + 🌈 덱 연합 */
+    DKE = DKL.map((L, z) => { const o = {fr: {}}; RD_DKK.forEach(d => { let v = L[d]; DKL.forEach((L2, z2) => { if (z2 !== z && LN[z2] && L2[d] - 1 > v){ v = L2[d] - 1; o.fr[d] = 1; } }); o[d] = v; }); return o; });
+    DKU = RD_DKK.filter(d => DKL.some((L, z) => LN[z] && L[d] >= 1)).length;
+    Z.forEach((p, z) => p.s.forEach((q, i) => { if (!q.k) return; const L = DKE[z];
+      let bits = 0; RD_A[q.k].dk.forEach(d => { if (L[d]) bits |= 1 << RD_DKK.indexOf(d); });
+      if (bits){ const A1 = Object.create(AX[z][i] || RD_A[q.k]); A1.dkb = bits; AX[z][i] = A1; }   // 💥 켜진 덱 동물만 몬스터에 덱 색 표식을 남겨요
       RD_A[q.k].dk.forEach(d => { const T = L[d]; if (!T) return; const f = RD_DK[d].fx[T - 1]; if (!(f.s || f.r || f.cr || f.mt || f.sp || f.sl || f.st)) return;
         const base = AX[z][i] || RD_A[q.k], A2 = Object.create(base);
         if (f.s) A2.cd = base.cd/f.s; if (f.r) A2.r = base.r + f.r; if (f.cr) A2.cr = (base.cr || 0) + f.cr; if (f.mt) A2.mt = (base.mt || 1) + f.mt; if (f.sp) A2.sp = Math.max(base.sp || 0, f.sp);
         if (f.sl) A2.sl = Math.min(.8, (base.sl || 0) + f.sl); if (f.st) A2.st = Math.min(.6, (base.st || 0) + f.st);
         AX[z][i] = A2; }); }));
     /* 🎉 덱 단계가 오르면 알려 줘요 (초월·불멸·태초를 만들 수 있게 되면 크게!) */
+    if (DKU > dkU0 && DKU >= 3 && Z.some((p, z) => isMine(z))){ banner = {t: `🌈 덱 연합 ${DKU}색!`, s: `서로 다른 덱이 모였어요 → 모든 동물 공격 +${Math.round((RD_UNI[DKU] - 1)*100)}% · 몬스터가 더 잘 💥 깨져요`, k: 170, c: "#ffe066"}; playS("big"); }
+    dkU0 = DKU;
     DKL.forEach((L, z) => { if (!isMine(z)) return; const was = dkOn[z]; dkOn[z] = L; if (!was) return;
       RD_DKK.forEach(d => { if (L[d] <= was[d]) return; const D = RD_DK[d], T = L[d];
         const un = T === 2 ? "💠 초월" : T === 3 ? (RD_DKK.some(x => x !== d && L[x] >= 2) ? "🔥 불멸 · 🌟 태초" : "🔥 불멸") : "";
@@ -15893,7 +15907,7 @@ NG.defs.rd = () => {
       o.slots.forEach(i => { if (f.a) B[z][i] *= f.a; if (!SY[z][i].includes(o.cb.e)) SY[z][i] = o.cb.e + SY[z][i]; });
       if (f.au) Z[z].s.forEach((q, j) => { if (q.k && !o.slots.includes(j) && o.slots.some(i => adjS(z, i, j))) B[z][j] *= f.au; }); }));
     /* 🃏 덱 효과: 공격× (✨ 마법단은 내 마당 모든 동물) */
-    if (DKL) Z.forEach((p, z) => { const L = DKL[z], all = L.magic ? RD_DK.magic.fx[L.magic - 1].all || 1 : 1;
+    if (DKE) Z.forEach((p, z) => { const L = DKE[z], all = (L.magic ? RD_DK.magic.fx[L.magic - 1].all || 1 : 1)*RD_UNI[DKU];
       p.s.forEach((q, i) => { if (!q.k) return; let m = all; RD_A[q.k].dk.forEach(d => { const T = L[d], a = T && RD_DK[d].fx[T - 1].a; if (a) m *= a; }); B[z][i] *= m; }); });
     SYN = SY; return B; };
   /* 🌍 땅 효과: 자기 땅 칸 ×1.35 (다른 땅 ×0.8) · 🗺️ 이 맵에서 센 곳 ×1.3 · 같은 곳 무리 3·6·9칸 (🌳 공격 · 🌊 느리게 · ☁️ 빠르고 멀리) */
@@ -15991,6 +16005,14 @@ NG.defs.rd = () => {
     if (N > 1 && z != null){ if (e.lz !== z){ if (e.lz != null) e.co = Math.min(5, (e.co || 0) + 1); e.lz = z; } if (e.co) dm *= 1 + .1*e.co; }
     /* 👑 단단한 보스: 20단계부터 받는 피해 -50% · 🛡️ 서포터가 때리면 4초 동안 💥 약점 → 모두 +40% */
     if (e.kind === 1 || e.kind === 2){ if (A.job === "s") e.exT = 240; dm *= e.exT > 0 ? 1.4 : wave >= 20 ? (e.kind === 2 ? .65 : .8) : 1; }
+    /* 💥 와장창: 서로 다른 덱 색 표식 3개 → 깨짐(더 아파요) · 5개 → 🌈 오색 와장창 폭발 (친구 동물의 표식도 함께 모여요!) */
+    if (A.dkb){ const was = e.mk || 0; e.mk = was | A.dkb; e.mkT = RD_BRK.mk;
+      if (e.mk !== was){ const c = rdBits(e.mk), bs = e.kind === 1 || e.kind === 2;
+        if (c >= RD_BRK.n && !(e.brT > 0)){ e.brT = RD_BRK.t; if (fxN.t < 6){ fxN.t++; FX.push({tx: "💥 와장창!", x: e.x, y: e.y - .5, t: 40, c: "#ffe066", cell: 1, sm: 1}); } }
+        if (e.mk === 31){ e.mk = 0; const bd = e.mhp*(e.kind === 2 ? .04 : e.kind === 1 ? .08 : .3); e.hp -= bd; if (z != null) DMGZ[z] = (DMGZ[z] || 0) + bd;
+          if (fxN.r < 14){ fxN.r++; FX.push({ring: 1, x: e.x, y: e.y, t: 24, c: "#ffe066", r: 1.2, k: 1}); } if (fxN.t < 6){ fxN.t++; FX.push({tx: "🌈 오색 와장창!", x: e.x, y: e.y - .7, t: 50, c: "#ff8fab", cell: 1, sm: 1}); }
+          for (const o of E){ if (o !== e && (o.x - e.x)**2 + (o.y - e.y)**2 < 1.6) o.hp -= bd*(o.kind === 2 || o.kind === 1 ? .1 : .5); } } } }
+    if (e.brT > 0) dm *= e.kind === 1 || e.kind === 2 ? RD_BRK.mb : RD_BRK.m;
     if (z != null && dm > 0) DMGZ[z] = (DMGZ[z] || 0) + Math.min(dm, Math.max(0, e.hp));   // 🤝 누가 얼마나 함께 때렸는지
     e.hp -= dm; if (A.sl){ e.slT = 90; e.slF = Math.max(e.slF, A.sl); } if (A.st && R.f() < A.st) e.stT = 40;
     const bn = (A.burn || 0) + (z != null ? .15*RL(z, "burn") : 0); if (bn){ e.bnT = 180; e.bnD = Math.max(e.bnD || 0, dm*bn/60); }
@@ -16007,7 +16029,7 @@ NG.defs.rd = () => {
     trayTick();
     const slw = (1 - slowAll())*(honT > 0 ? .35 : 1), bsl = 1 - Math.min(.5, .2*Z.reduce((a, p, z) => a + RL(z, "icecrown"), 0)); Z.forEach(p => { if (p.fev > 0) p.fev--; }); if (TB.length) TB = TB.filter(b => --b.t > 0);
     for (let i = E.length - 1; i >= 0; i--){ const e = E[i]; if (e.kind === 3 && e.tr > plOf(e.l)*(N > 1 ? 1 : 1.5)){ E.splice(i, 1); msFail("🟡 황금 슬라임이 도망갔어요!"); } }
-    for (const e of E){ if (e.exT > 0) e.exT--; if (e.bnT > 0){ e.bnT--; e.hp -= e.bnD; } else if (e.tt === 5 && e.hp < e.mhp) e.hp = Math.min(e.mhp, e.hp + e.mhp*.0006); if (e.stT > 0){ e.stT--; } else { const v = e.spd*(e.slT > 0 ? 1 - e.slF : 1)*slw*(e.kind === 1 || e.kind === 2 ? bsl : 1); e.d += v; e.tr += v; } if (e.slT > 0 && --e.slT === 0) e.slF = 0; const pp = posAt(e.d, e.l); e.x = pp[0]; e.y = pp[1]; e.f++; }
+    for (const e of E){ if (e.exT > 0) e.exT--; if (e.brT > 0 && --e.brT === 0) e.mk = 0; else if (e.mkT > 0 && --e.mkT === 0 && !(e.brT > 0)) e.mk = 0; if (e.bnT > 0){ e.bnT--; e.hp -= e.bnD; } else if (e.tt === 5 && e.hp < e.mhp) e.hp = Math.min(e.mhp, e.hp + e.mhp*.0006); if (e.stT > 0){ e.stT--; } else { const v = e.spd*(e.slT > 0 ? 1 - e.slF : 1)*slw*(e.kind === 1 || e.kind === 2 ? bsl : 1); e.d += v; e.tr += v; } if (e.slT > 0 && --e.slT === 0) e.slF = 0; const pp = posAt(e.d, e.l); e.x = pp[0]; e.y = pp[1]; e.f++; }
     attack(false);
     for (let i = E.length - 1; i >= 0; i--){ const e = E[i]; if (e.hp > 0) continue; E.splice(i, 1); kills++; teamK++; msTick("kill");
       const gd = Math.floor((e.kind === 2 ? 120 : e.kind === 1 ? 35 : e.kind === 3 ? 60 + wave*3 : e.kind === 4 ? 40 : 1 + Math.floor(wave/15))*gmul()); Z.forEach((p, z) => p.gold += gd*(1 + RL(z, "greed")));
@@ -16049,7 +16071,7 @@ NG.defs.rd = () => {
     E: encE()}; }
   /* 📦 몬스터 목록을 짧은 글자로 (2026.11.18): "번호차,종류,거리,체력%,상태,길,특성,방패;…" · 끝의 0은 빼요 → 예전보다 40%쯤 작아서 느린 와이파이에서도 덜 밀려요 */
   function encE(){ let pid = 0, out = "";
-    for (const e of E){ const a = [e.id - pid, e.kind, Math.round(e.d*100), Math.max(1, Math.round(e.hp/e.mhp*100)), (e.slT > 0 ? 1 : 0) | (e.stT > 0 ? 2 : 0) | (e.bnT > 0 ? 4 : 0) | ((e.co || 0) >= 3 ? 8 : 0) | (e.exT > 0 ? 16 : 0), e.l || 0, e.tt || 0, e.sh || 0];
+    for (const e of E){ const a = [e.id - pid, e.kind, Math.round(e.d*100), Math.max(1, Math.round(e.hp/e.mhp*100)), (e.slT > 0 ? 1 : 0) | (e.stT > 0 ? 2 : 0) | (e.bnT > 0 ? 4 : 0) | ((e.co || 0) >= 3 ? 8 : 0) | (e.exT > 0 ? 16 : 0) | ((e.mk || 0) << 5) | (e.brT > 0 ? 1024 : 0), e.l || 0, e.tt || 0, e.sh || 0];
       pid = e.id; let n = a.length; while (n > 4 && !a[n - 1]) n--; out += (out ? ";" : "") + a.slice(0, n).join(","); }
     return out; }
   function decE(v){ if (Array.isArray(v)) return v; if (!v) return []; let pid = 0;
@@ -16076,7 +16098,7 @@ NG.defs.rd = () => {
     const old = new Map(E.map(e => [e.id, e]));
     E = decE(s.E).map(a => { const o = old.get(a[0]), d0 = a[2]/100, kind = a[1];
       const e = o || {id: a[0], kind, l: a[5] || 0, d: d0, tr: d0, spd: KSPD(kind), f: a[0]*7, x: 0, y: 0};
-      if (o){ let dd = d0 - o.d; if (Math.abs(dd) > 2) o.d = d0; else o.d += dd*.5; } e.hpR = a[3]/100; e.sl = a[4] & 1; e.stn = a[4] & 2; e.bn = a[4] & 4; e.cm = a[4] & 8; e.ex = a[4] & 16; e.tt = a[6] || 0; e.sh = a[7] || 0; return e; });
+      if (o){ let dd = d0 - o.d; if (Math.abs(dd) > 2) o.d = d0; else o.d += dd*.5; } e.hpR = a[3]/100; e.sl = a[4] & 1; e.stn = a[4] & 2; e.bn = a[4] & 4; e.cm = a[4] & 8; e.ex = a[4] & 16; e.mkG = (a[4] >> 5) & 31; e.brG = a[4] & 1024; e.tt = a[6] || 0; e.sh = a[7] || 0; return e; });
     if (s.gv !== gv) PARTY.needGrid();
   }
   function guestStep(){
@@ -16254,6 +16276,10 @@ NG.defs.rd = () => {
       if ((e.co || 0) >= 3 || e.cm) g.drawImage(ttSpr(8), x - sz*.5 - 6, y - sz*.95, 20, 20);
       if (e.bnT > 0 || e.bn){ g.globalAlpha = .7 + Math.sin(e.f*.4)*.3; g.drawImage(ttSpr(9), x - 10, y - sz*.4, 20, 20); g.globalAlpha = 1; }
       if (e.stT > 0 || e.stn) outlined(g, "💫", x, y - sz*.8, 16, "#fff");
+      { const mk = party === "guest" ? e.mkG : e.mk, br = party === "guest" ? e.brG : e.brT > 0;   // 💥 덱 색 표식 · 깨짐
+        if (br){ g.strokeStyle = "#fff"; g.lineWidth = 2.5; g.globalAlpha = .75 + Math.sin(e.f*.5)*.25; g.beginPath(); g.moveTo(x - sz*.22, y - sz*.55); g.lineTo(x - sz*.05, y - sz*.3); g.lineTo(x - sz*.16, y - sz*.12); g.lineTo(x + sz*.02, y + sz*.05);
+          g.moveTo(x + sz*.2, y - sz*.5); g.lineTo(x + sz*.08, y - sz*.28); g.lineTo(x + sz*.22, y - sz*.12); g.stroke(); g.strokeStyle = "#ffe066"; g.lineWidth = 3; g.beginPath(); g.arc(x, y - sz*.25, sz*.5, 0, 7); g.stroke(); g.globalAlpha = 1; }
+        if (mk){ const bw = sz*.7; let n = 0; for (let b = 0; b < 5; b++) if (mk & (1 << b)){ g.fillStyle = RD_DK[RD_DKK[b]].c; g.beginPath(); g.arc(x - bw/2 + 4 + n*9, y - sz*.72 - 7, 3.6, 0, 7); g.fill(); g.strokeStyle = "rgba(0,0,0,.6)"; g.lineWidth = 1; g.stroke(); n++; } } }
       if (e.kind === 1 || e.kind === 2){ const ex = e.exT > 0 || e.ex; if (ex){ g.globalAlpha = .7 + Math.sin(e.f*.3)*.3; outlined(g, "💥 약점!", x, y - sz*1.02, 15, "#ffe066"); g.globalAlpha = 1; } else if (wave >= 20) outlined(g, "🛡️", x + sz*.42, y - sz*.62, 18, "#fff"); }
       if (e.slT > 0 || e.sl){ g.fillStyle = "rgba(116,192,252,.35)"; g.beginPath(); g.ellipse(x, y + sz*.18, sz*.4, sz*.12, 0, 0, 7); g.fill(); } }
     // 총알
@@ -16345,8 +16371,9 @@ NG.defs.rd = () => {
       parts.push({l: lbl(rg === "*" ? ["🗺️", "모두 +15%"] : ["🗺️", RD_HBI[rg].e, `${RD_HBI[rg].n} +30%`], 14, rg === "*" ? "#ffe066" : RD_HBI[rg].c), c: "rgba(15,10,40,.72)"});
       const sp0 = ["l", "s", "a"].filter(h => hz[h]).flatMap(h => { const T = rdSetT(hz[h]); return [RD_HBI[h].e, `${hz[h]}${T ? "★".repeat(T) : ""}`]; });
       if (sp0.length) parts.push({l: lbl(sp0, 14, "#fff"), c: "rgba(15,10,40,.6)"});
-      const DL = DKL && DKL[local[0]], dk0 = DL ? RD_DKK.filter(d => DL.n[d] >= 1).sort((a, b) => DL.n[b] - DL.n[a]).slice(0, 3).flatMap(d => [RD_DK[d].e, `${DL.n[d]}종${DL[d] ? rdStar(DL[d]) : ""}`]) : [];   // 🃏 내 덱
-      if (dk0.length) parts.push({l: lbl(["🃏", ...dk0], 14, "#ffe3fa"), c: "rgba(70,20,80,.7)"}); }
+      const DL = DKL && DKL[local[0]], DE = DKE && DKE[local[0]], dk0 = DL ? RD_DKK.filter(d => DL.n[d] >= 1 || (DE && DE[d])).sort((a, b) => DL.n[b] - DL.n[a]).slice(0, N > 1 ? 4 : 3).flatMap(d => [RD_DK[d].e, DE && DE.fr[d] ? `🤝${rdStar(DE[d])}` : `${DL.n[d]}종${DL[d] ? rdStar(DL[d]) : ""}`]) : [];   // 🃏 내 덱 (🤝 = 친구 덱 나눠 받기)
+      if (dk0.length) parts.push({l: lbl(["🃏", ...dk0], 14, "#ffe3fa"), c: "rgba(70,20,80,.7)"});
+      if (DKU >= 2) parts.push({l: lbl(["🌈", DKU >= 3 ? `연합 ${DKU}색 +${Math.round((RD_UNI[DKU] - 1)*100)}%` : `연합 ${DKU}색 · 1색 더!`], 14, DKU >= 3 ? "#ffe066" : "#ced4da"), c: "rgba(70,40,10,.7)"}); }
     parts.push({l: lbl(["🏁", `${wave}/${RD_END}단계`], 14, "#e5dbff"), c: "rgba(60,20,90,.7)"});
     if (N >= 3) parts.push({l: lbl(["🎌", TEAM > 1 ? `역할 분담 +${Math.round((TEAM - 1)*100)}%` : "역할 분담: 친구마다 ⚔️🏹✨ 주력을 나눠요"], 14, TEAM > 1 ? "#8ce99a" : "#ced4da"), c: "rgba(15,10,40,.6)"});
     const rel = Object.entries(Z[local[0]].rel || {}); if (rel.length) parts.push({l: lbl(rel.flatMap(([k, v]) => [RD_REL[k].e, v > 1 ? `${v}` : ""]).filter(Boolean), 14, "#ffe066"), c: "rgba(15,10,40,.6)"});
@@ -16846,7 +16873,7 @@ NG.defs.rd = () => {
       (window.requestIdleCallback || setTimeout)(run, {timeout: 300});
     },
     slotPt(z, i){ const [x, y] = slotXY(z, i); return [cx(x), cy(y)]; },   // (시험·도우미) 칸 가운데 판 좌표
-    dockClick, ownHTML, rdInfo(){ const z = local[0]; return {dk: dkLv(z), cb: (CBA && CBA[z] || []).map(o => o.cb.id), rc: rrCost(z), tw: trayW(z), wave, gold: Z[z].gold, gems: Z[z].gems, H: haveOf(z), pin, yh: yardH(z), N}; },
+    dockClick, ownHTML, rdInfo(){ const z = local[0]; return {dk: dkLv(z), du: DKU, de: DKE && DKE[z],  cb: (CBA && CBA[z] || []).map(o => o.cb.id), rc: rrCost(z), tw: trayW(z), wave, gold: Z[z].gold, gems: Z[z].gems, H: haveOf(z), pin, yh: yardH(z), N}; },
     /* 🧪 (시험·도우미) 빠른 계산 · 행동 · 땅 */
     T: {sim: () => sim(), act: (z, a) => doAct(z, a), terr: (z, i) => TERR(z, i), front: (z, i) => isFront(z, i), hbc: () => HBC, trayW, buf: () => BUF, crList, upCost, rrCost, bestTk, set hpk(v){ HPK = v; }, set nrm(v){ NRM = v; }, set rmp(v){ RMP = v; }, E: () => E, LIMIT: () => LIMIT, get state(){ return state; }, get wave(){ return wave; }},
     apply, dropIdx(i){ /* 나간 친구 자리의 동물은 그대로 싸워요 */ },
@@ -17264,6 +17291,13 @@ body.rdb-split #ngStage{margin-right:var(--rdbw);margin-bottom:var(--rdbh)}
         <li>🔥 <b>🐉 흑룡</b> = 🐦 불사조 + 🐲 용 + 🦉 부엉이 2</li>
         <li>다른 덱도 ⭐⭐로! 예: 🌊 🐸 개구리 · 🐧 펭귄 · 🐊 악어 · 🐳 고래 <small>(🌟 태초 열림)</small></li>
         <li>🌟 <b>🌟 황룡</b> = 🐉 흑룡 + 🐦 불사조 + 🐲 용 <small>(그때도 🪶 ⭐⭐⭐이어야 해요)</small></li></ol></div>
+      <div class="rdb-dkx rdb-mix"><h4>🌈 덱을 섞으면 몬스터가 와장창! ${L ? `<small>지금 우리 팀 켜진 덱 ${I.du}가지</small>` : ""}</h4>
+        <div class="rdb-dkh">
+          <div><b>💥</b> <b>와장창 깨기</b><small>덱이 켜진(⭐ 이상) 동물이 때리면 몬스터 머리 위에 그 덱 색 점이 붙어요. 서로 다른 색 <b>3개</b>가 모이면 몬스터가 <b>💥 깨져서</b> 모두에게 훨씬 더 아파요! <b>5색</b>을 다 모으면 <b>🌈 오색 와장창</b> 폭발!</small></div>
+          <div><b>🌈</b> <b>덱 연합</b><small>우리 팀에 켜진 덱이 <b>3가지</b>면 모든 동물 공격 +${Math.round((RD_UNI[3] - 1)*100)}%, <b>4가지</b>면 +${Math.round((RD_UNI[4] - 1)*100)}%, <b>5가지</b>면 +${Math.round((RD_UNI[5] - 1)*100)}%! 한 덱만 키우지 말고 섞어요.</small></div>
+          <div><b>🤝</b> <b>친구 덱 나눠 받기</b><small>친구가 켠 덱은 내 같은 덱 동물에게도 ⭐ 하나 낮게 효과가 와요 (위쪽 띠의 🤝). 같이 할 때 친구마다 다른 덱을 맡으면 연합도 쉽고, 표식도 다 같이 모여 잘 깨져요!</small></div>
+          <div><b>🧩</b> <b>추천 섞기</b><small>🌊 물결단·🛡️ 수호단이 느리게·기절시켜 붙잡고 → 🦁 맹수단·🪶 날개단이 깨진 몬스터를 세게 · ✨ 마법단이 모두를 응원! 🐊 악어·🦈 상어·🐲 용처럼 덱이 두 개인 동물은 색 점도 두 개!</small></div>
+        </div></div>
       <div class="rdb-dkl">${RD_DKK.map(d => { const D = RD_DK[d], T = L ? L[d] : 0, n = L ? L.n[d] : 0;
         return `<div class="rdb-dk ${T ? "on" : ""}" style="--c:${D.c}"><h4>${D.e} ${D.n}${L ? ` <small>지금 ${n}종 ${T ? rdStar(T) + " 켜짐" : "· 꺼짐"}</small>` : ""}</h4><p>${D.t}</p>
           <ul>${D.fx.map((f, i) => `<li class="${T >= i + 1 ? "y" : ""}"><b>${rdStar(i + 1)} ${RD_DKN[i]}종</b> ${rdDkFx(f).join(" · ")}${opn[i + 1] ? ` <i>${opn[i + 1]}</i>` : ""}</li>`).join("")}</ul>
@@ -22219,6 +22253,12 @@ Object.assign(VOICE, {
    - k: "new"(새로 생겼어요) · "up"(더 좋아졌어요) · "fix"(고쳤어요)
    ===================================================================== */
 const NEWS = [
+  {id: "2026-11-23b", d: "11월 23일", e: "🌈", t: "덱을 섞으면 와장창!", items: [
+    ["new", "💥", "와장창 깨기", "덱이 켜진 동물이 때리면 몬스터 머리 위에 덱 색 점이 붙어요. 서로 다른 색 3개가 모이면 몬스터가 깨져서 훨씬 더 아파요!"],
+    ["new", "🌈", "오색 와장창", "맹수·날개·물결·수호·마법 다섯 색을 한 몬스터에 다 모으면 큰 폭발이 터져요!"],
+    ["new", "🤝", "덱 연합", "우리 팀에 켜진 덱이 세 가지, 네 가지, 다섯 가지로 늘어날수록 모든 동물이 세져요. 한 덱만 키우지 말고 섞어 봐요."],
+    ["new", "🫂", "친구 덱 나눠 받기", "같이 할 때 친구가 켠 덱은 내 같은 덱 동물도 조금 도와줘요. 친구마다 다른 덱을 맡으면 더 잘 깨져요!"]
+  ], tip: "💡 몬스터 머리 위 색 점을 봐요! 점이 세 개면 💥 와장창이에요. 도감 🃏 덱 탭에 섞는 요령이 있어요."},
   {id: "2026-11-23a", d: "11월 23일", e: "🃏", t: "덱을 모아 신화 위로!", items: [
     ["new", "🃏", "동물 덱 5가지", "동물마다 덱이 생겼어요: 🦁 맹수단 · 🪶 날개단 · 🌊 물결단 · 🛡️ 수호단 · ✨ 마법단. 같은 덱 동물을 여러 종류 모으면 ⭐ → ⭐⭐ → ⭐⭐⭐ 덱 효과가 켜져요!"],
     ["new", "🌟", "신화 위 3단계", "💠 초월 → 🔥 불멸 → 🌟 태초가 돌아왔어요. 대기 줄에는 안 오고, 덱을 완성해야만 🧪 만들기로 만들 수 있어요."],
