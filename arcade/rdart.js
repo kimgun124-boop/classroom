@@ -471,6 +471,29 @@ const RD_RC = {
   chrono:  [["sunbird", 1], ["moonrab", 2], ["gdragon", 1]],
   gfox:    [["suzaku", 1], ["nine", 2], ["moonrab", 1]]
 };
+/* 🃏 (2026.11.23) 신화 위 3단계 조합 — 🃏 덱을 완성해야 만들 수 있어서 재료는 가볍게 (같은 덱 동물로!) */
+Object.assign(RD_RC, {
+  /* 💠 초월 = 신화 1 + 같은 덱 친구 */
+  phoenix: [["dragon", 1], ["eagle", 1], ["chick", 2]],
+  griffin: [["eagle", 1], ["lion", 1], ["parrot", 2]],
+  levi:    [["whale", 1], ["shark", 1], ["penguin", 2]],
+  kirin:   [["unicorn", 1], ["fox", 1], ["rabbit", 2]],
+  rhino:   [["mammoth", 1], ["panda", 1], ["hedgehog", 2]],
+  /* 🔥 불멸 = 초월 1 + 같은 덱 친구 */
+  bdragon: [["phoenix", 1], ["dragon", 1], ["owl", 2]],
+  thunder: [["griffin", 1], ["eagle", 1], ["parrot", 2]],
+  wtiger:  [["rhino", 1], ["tiger", 1], ["lion", 1]],
+  squid:   [["levi", 1], ["shark", 1], ["croc", 2]],
+  icewolf: [["levi", 1], ["tiger", 1], ["penguin", 2]],
+  nine:    [["kirin", 1], ["unicorn", 1], ["fox", 2]],
+  /* 🌟 태초 = 불멸 1 + 초월 1 + 신화 1 */
+  gdragon: [["bdragon", 1], ["phoenix", 1], ["dragon", 1]],
+  pegasus: [["nine", 1], ["kirin", 1], ["unicorn", 1]],
+  titan:   [["wtiger", 1], ["rhino", 1], ["trex", 1]],
+  kraken:  [["squid", 1], ["levi", 1], ["whale", 1]],
+  moonrab: [["nine", 1], ["kirin", 1], ["rabbit", 2]],
+  hydra:   [["icewolf", 1], ["levi", 1], ["shark", 1]]
+});
 Object.keys(RD_RC).forEach(t => { if (!RD_A[t] || RD_RC[t].some(([k]) => !RD_A[k])) delete RD_RC[t]; });   // 🔁 (2026.11.20) 없어진 높은 등급 동물의 조합은 빼요
 const RD_RCK = Object.keys(RD_RC);
 /* ⚔️ 딜러 · 🛡️ 서포터 — 👑 보스는 단단해서(20단계부터 받는 피해 -50%) 🛡️ 서포터가 먼저 때려 '💥 약점'을 드러내야 딜러가 세게(+40%) 때려요 */
