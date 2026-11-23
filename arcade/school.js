@@ -10,10 +10,12 @@ const SCHOOL = {
   LK: id => `${KEY}.school.${id}`,
   secret(id){ try { return JSON.parse(localStorage.getItem(this.LK(id))) || {}; } catch(e){ return {}; } },
   keep(id, o){ try { localStorage.setItem(this.LK(id), JSON.stringify(Object.assign(this.secret(id), o))); } catch(e){} },
-  list(){ const s = Store.cls && Store.cls.school; return s && Array.isArray(s.l) ? s.l : []; },
+  /* Firestore는 '배열 속 배열'을 못 넣어요 → 저장은 [{n, c}], 쓸 때는 [이름, cid] 짝으로 */
+  pairs: l => (Array.isArray(l) ? l : []).map(x => Array.isArray(x) ? x : [x.n, x.c]),
+  list(){ const s = Store.cls && Store.cls.school; return s ? this.pairs(s.l) : []; },
   cfg(){ const j = Store.join(); return j ? j.c : null; },
   joinOf(cid){ const c = this.cfg(); return c ? `${location.origin}${location.pathname}#join=${b64e({c, i: cid})}` : ""; },
-  hubUrl(){ const c = this.cfg(), s = Store.cls && Store.cls.school; return c && s ? `${location.origin}${location.pathname}#school=${b64e({c, n: s.n, l: s.l})}` : ""; },
+  hubUrl(){ const c = this.cfg(), s = Store.cls && Store.cls.school; return c && s ? `${location.origin}${location.pathname}#school=${b64e({c, n: s.n, l: this.pairs(s.l)})}` : ""; },
   pin6: () => String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000)),
 
   /* ---------- 🛠️ 관리자 → 🏫 학교 채널 ---------- */
@@ -38,7 +40,7 @@ const SCHOOL = {
     const sec = this.secret(sc.id), hub = this.hubUrl();
     body.innerHTML = `<h3>🏫 학교 채널 · ${esc(sc.n || "")}</h3>
       <p class="arc-small">반마다 <b>따로</b> 들어가는 채널이에요. 각 반 선생님께 <b>🖨️ 안내장</b>을 드리면, 선생님 비밀번호로 🛠️ 관리자에 들어가 학생 이름을 고치고 쓰시면 돼요.</p>
-      <div class="sc-list">${sc.l.map(([n, cid], i) => { const me = cid === cls.cid, pin = (sec.t || {})[cid];
+      <div class="sc-list">${this.pairs(sc.l).map(([n, cid], i) => { const me = cid === cls.cid, pin = (sec.t || {})[cid];
         return `<div class="sc-r${me ? " me" : ""}" data-cid="${cid}"><b>🎲 ${esc(n)}</b>${me ? `<i>지금 이 반</i>` : ""}
           <span class="sc-pin">${me ? "선생님 비밀번호: (지금 쓰는 것)" : pin ? `🔑 선생님 비밀번호 <b>${pin}</b>` : "🔑 비밀번호는 만든 기기에만 있어요"}</span>
           <span class="bb"><button class="arc-btn sm" data-copy="${cid}">📋 입장 주소</button><button class="arc-btn sm p" data-print="${cid}">🖨️ 안내장</button></span></div>`; }).join("")}</div>
@@ -52,7 +54,7 @@ const SCHOOL = {
       const c = e.target.closest("[data-copy]"); if (c) return this.copy(this.joinOf(c.dataset.copy), "📋 반 입장 주소를 복사했어요");
       const p = e.target.closest("[data-print]"); if (p) return this.print([p.dataset.print]);
     };
-    $("#scAll").onclick = () => this.print(sc.l.map(x => x[1]));
+    $("#scAll").onclick = () => this.print(this.pairs(sc.l).map(x => x[1]));
     $("#scHub").onclick = () => this.copy(hub, "📋 반 고르기 주소를 복사했어요");
   },
   copy(t, msg){ if (!t) return; (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(() => toast(msg), () => prompt("복사해 주세요", t)); },
@@ -72,7 +74,7 @@ const SCHOOL = {
       docs.push({cid, plain, doc: {v: 1, cid, name, roster, faces, pw, admin: sha256(`${cid}:teacher:${pin}`)}});
       tp[cid] = pin; l.push([name, cid]);
     }
-    const school = {id, n, l};
+    const school = {id, n, l: l.map(([nm, c]) => ({n: nm, c}))};
     const b = $("#scGo"); b.disabled = true; b.textContent = "만드는 중…";
     this.keep(id, {t: tp}); docs.forEach(d => savePlain(d.cid, d.plain));
     try {
@@ -91,7 +93,7 @@ const SCHOOL = {
     w.document.write("<p style='font-family:sans-serif'>안내장을 만드는 중…</p>");
     const fs = Store.fs, pages = [];
     for (const cid of cids){
-      const name = (sc.l.find(x => x[1] === cid) || [])[0] || "", url = this.joinOf(cid);
+      const name = (this.pairs(sc.l).find(x => x[1] === cid) || [])[0] || "", url = this.joinOf(cid);
       let roster = [];
       if (cid === Store.cls.cid) roster = Store.cls.roster;
       else try { const s = await fs.getDoc(fs.doc(Store.db, "arcade", cid)); if (s.exists()) roster = s.data().roster || []; } catch(e){ console.warn(e); }
@@ -123,7 +125,7 @@ const SCHOOL = {
     let el = $("#scPick"); if (!el){ el = document.createElement("div"); el.id = "scPick"; el.className = "sc-pick"; document.body.appendChild(el); }
     const cur = Store.cls ? Store.cls.cid : "";
     el.innerHTML = `<div class="sc-box"><h2>🏫 ${esc(o.n || "우리 학교")} 보드게임</h2><p>우리 반을 눌러요</p>
-      <div class="sc-grid">${o.l.map(([n, cid]) => `<button data-cid="${cid}" class="${cid === cur ? "on" : ""}">🎲<b>${esc(n)}</b>${cid === cur ? "<small>지금 반</small>" : ""}</button>`).join("")}</div>
+      <div class="sc-grid">${this.pairs(o.l).map(([n, cid]) => `<button data-cid="${cid}" class="${cid === cur ? "on" : ""}">🎲<b>${esc(n)}</b>${cid === cur ? "<small>지금 반</small>" : ""}</button>`).join("")}</div>
       ${o.close ? `<button class="arc-btn" data-x>닫기</button>` : ""}</div>`;
     el.hidden = false;
     el.onclick = e => { if (e.target.closest("[data-x]") || e.target === el && o.close){ el.hidden = true; return; }
@@ -145,7 +147,7 @@ const SCHOOL = {
     if (!sc){ if (b) b.hidden = true; return; }
     if (!b){ b = document.createElement("button"); b.id = "lgSchool"; b.className = "arc-teach lg-school"; b.title = "다른 반 보드게임으로"; const t = $("#lgTeach"); t.parentNode.insertBefore(b, t); }
     b.hidden = false; b.textContent = `🏫 반 바꾸기 · ${Store.cls.name || ""}`;
-    b.onclick = () => this.pick({c: this.cfg(), n: sc.n, l: sc.l, close: true});
+    b.onclick = () => this.pick({c: this.cfg(), n: sc.n, l: this.pairs(sc.l), close: true});
   },
   css(){ if ($("#scCss")) return; const st = document.createElement("style"); st.id = "scCss"; st.textContent = `
 .sc-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:12px 0}
