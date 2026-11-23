@@ -1567,9 +1567,30 @@ const BSP = (() => {
     if (up){ R(t, 17, 15, 3, 3, v3); R(t, 19, 12, 3, 3, sk); R(t, 20, 0, 5, 14, gn); R(t, 24, 0, 1, 14, gn2); R(t, 20, 0, 1, 14, "#fff"); R(t, 20, 0, 5, 2, tk2); R(t, 21, 0, 3, 1, tk); R(t, 22, 14, 2, 3, gn2); R(t, 20, 6, 5, 2, v1); }
     else { R(t, 15, 16, 4, 3, v3); R(t, 18, 18, 3, 2, sk); R(t, 16, 17, 9, 4, gn); R(t, 16, 17, 9, 1, "#fff"); R(t, 16, 20, 9, 1, gn2); R(t, 19, 17, 3, 4, v1); R(t, 24, 16, 3, 6, tk2); R(t, 24, 16, 3, 1, tk); R(t, 27, 18, 1, 2, tk); R(t, 18, 21, 2, 3, gn2); }
     return c; });
-  function hero(ci, sid, f, up, dir, sad){ const im = avImg(sid), fk = im ? "i" + im.id : "e" + faceOf(sid);
-    return memo(`hr${ci}${f}${up}${dir}${sad ? 1 : 0}${fk}`, () => { const c = cv(28, 34), t = c.getContext("2d");
-      t.drawImage(heroBody(ci, f, up), 0, 0); t.drawImage(pface(sid, sad), 5, 0); R(t, 6, 3, 13, 1, "#e03131"); R(t, 7, 4, 11, 1, "#a61e1e");
+  /* 🛒 장비 그림: 🔫 거품총 색 · 🦺 방탄 갑옷 · ⛑️ 헬멧 (단계마다 색·모양이 달라져요) */
+  function gearOv(t, g, f, up){
+    const TC = BSG.TIER, A = g.arm || 0, Hh = g.helm || 0, G = g.gun || 0;
+    if (A){ const c = TC[A].c, d = mixCol(c, "#16121c", .35), l = mixCol(c, "#ffffff", .45);
+      R(t, 9, 15, 10, 9, c); R(t, 9, 15, 10, 1, l); R(t, 9, 22, 10, 2, d); R(t, 13, 15, 2, 9, d);        // 조끼 · 가운데 여밈
+      R(t, 10, 17, 2, 2, l); R(t, 16, 17, 2, 2, l);                                                        // 판
+      if (A >= 4){ R(t, 8, 14, 3, 3, d); R(t, 8, 14, 3, 1, l); }                                           // 어깨 보호대
+      if (A >= 7){ R(t, 10, 20, 2, 2, d); R(t, 16, 20, 2, 2, d); R(t, 13, 18, 2, 2, "#ffffff"); }
+      if (A >= 10){ R(t, 13, 18, 2, 2, "#fff3bf"); R(t, 12, 19, 4, 1, "#ffe066"); } }
+    if (Hh){ const c = TC[Hh].c, d = mixCol(c, "#16121c", .35), l = mixCol(c, "#ffffff", .5);
+      R(t, 6, 1, 13, 4, c); R(t, 8, 0, 9, 1, c); R(t, 8, 0, 6, 1, l); R(t, 6, 1, 3, 2, l); R(t, 5, 4, 15, 1, d);   // 헬멧 덮개 · 챙
+      if (Hh >= 4){ R(t, 5, 5, 2, 4, d); R(t, 18, 5, 2, 4, d); }                                           // 볼 보호대
+      if (Hh >= 7){ R(t, 8, 5, 9, 1, "#74c0fc"); R(t, 9, 5, 3, 1, "#d0ebff"); }                             // 고글
+      if (Hh >= 10){ R(t, 10, 0, 5, 1, "#ffe066"); R(t, 12, 0, 1, 1, "#fff"); } }                         // 금빛 장식
+    if (G){ const c = TC[G].c, l = mixCol(c, "#ffffff", .5);
+      if (up){ R(t, 20, 0, 5, 14, c); R(t, 20, 0, 1, 14, l); if (G >= 5) R(t, 21, 0, 3, 1, "#ffffff"); }
+      else { R(t, 16, 17, 9, 4, c); R(t, 16, 17, 9, 1, l); if (G >= 5){ R(t, 24, 16, 3, 6, mixCol(c, "#16121c", .3)); R(t, 24, 16, 3, 1, l); }
+        if (G >= 9){ R(t, 27, 17, 1, 4, "#ffffff"); } } }
+  }
+  function hero(ci, sid, f, up, dir, sad, g){ const im = avImg(sid), fk = im ? "i" + im.id : "e" + faceOf(sid), gk = g && (g.gun || g.arm || g.helm) ? BSG.sig(g) : "";
+    return memo(`hr${ci}${f}${up}${dir}${sad ? 1 : 0}${fk}${gk}`, () => { const c = cv(28, 34), t = c.getContext("2d");
+      t.drawImage(heroBody(ci, f, up), 0, 0); t.drawImage(pface(sid, sad), 5, 0);
+      if (!g || !g.helm){ R(t, 6, 3, 13, 1, "#e03131"); R(t, 7, 4, 11, 1, "#a61e1e"); }
+      if (gk) gearOv(t, g, f, up);
       const o = outl(c); return dir < 0 ? flip(o) : o; }); }
 
   /* ---------- 로봇 6종 ---------- */
@@ -1794,12 +1815,15 @@ NG.defs.bs = () => {
     return sp(`ico${fs}${key}`, w, h, t => { let x = 2; list.forEach(([e, v], i) => { if (e){ G2.emo(t, e, x + fs*.55, h/2, fs*.95); x += fs*1.15; } if (v !== "" && v != null){ outlinedRaw(t, String(v), x + 2, h/2 + 1, fs, "#fff", undefined, "left"); } x = 2 + cw.slice(0, i + 1).reduce((a, b) => a + b, 0); }); }); }
 
   /* ---------- 판 만들기 ---------- */
-  function mkP(i){ return {i, sid: SIDS[i], x: 180 + i*70, y: GY - 80, w: 44, h: 80, vx: 0, vy: 0, dir: 1, ground: true, coy: 0, jumps: 0, run: 0, aimUp: false, jb: 0, hearts: 3, inv: 90, dead: false, gone: false, deadT: 0, gx: 0, gy: 0,
-    wpn: "", wpnT: 0, shield: 0, bombs: 2, cd: 0, bcSeen: 0, in: {l: 0, r: 0, u: 0, s: 0, jh: 0}, tx: null, ty: null}; }
+  /* 🛒 장비(버블 특공대 상점): 친구마다 자기 장비로 출동해요 */
+  const gearOf = sid => { try { return BSG.of(sid); } catch(e){ return {gun: 0, arm: 0, helm: 0}; } };
+  function mkP(i){ const g = gearOf(SIDS[i]), gs = BSG.stats(g);
+    return {i, sid: SIDS[i], g, gs, x: 180 + i*70, y: GY - 80, w: 44, h: 80, vx: 0, vy: 0, dir: 1, ground: true, coy: 0, jumps: 0, run: 0, aimUp: false, jb: 0, hearts: 3 + gs.hb, inv: 90, dead: false, gone: false, deadT: 0, gx: 0, gy: 0,
+    wpn: "", wpnT: 0, shield: gs.sh ? 1 : 0, bombs: 2 + gs.bm, cd: 0, bcSeen: 0, in: {l: 0, r: 0, u: 0, s: 0, jh: 0}, tx: null, ty: null}; }
   function newStage(){
     stLen = 5000 + 350*Math.min(D(), 8); stEnd = (stEnd || 0) + stLen; camMax = -1; boss = null;
     backdrop(); msg = {t: `STAGE ${stage}`, s: th().n + (loopN() ? ` · ${loopN() + 1}회차!` : ""), k: 160};
-    P.forEach(p => { if (p.gone) return; if (p.dead){ revive(p, cam + 200 + p.i*60, GY - 300); } else p.hearts = Math.min(5, p.hearts + (stage > 1 ? 1 : 0)); });
+    P.forEach(p => { if (p.gone) return; if (p.dead){ revive(p, cam + 200 + p.i*60, GY - 300); } else p.hearts = Math.min(p.gs.hm, p.hearts + (stage > 1 ? 1 : 0)); if (p.gs.sh && stage > 1 && !p.shield) p.shield = 1; });
   }
   function gen(upto){
     while (genX < upto){
@@ -1850,8 +1874,8 @@ NG.defs.bs = () => {
   function fire(p){
     const up = p.aimUp, w = p.wpn, ox = up ? p.x + p.w/2 + p.dir*12 : p.x + p.w/2 + p.dir*44, oy = up ? p.y - 30 : p.y + 34;
     const base = up ? -Math.PI/2 : p.dir > 0 ? 0 : Math.PI, angs = w === "s" ? [-.22, 0, .22] : [0], spd = w === "p" ? 10.5 : 13.5;
-    angs.forEach(a => { const an = base + a; shots.push({x: ox, y: oy, vx: Math.cos(an)*spd + (up ? 0 : p.vx*.3), vy: Math.sin(an)*spd, t: w === "p" ? 90 : 72, r: w === "p" ? 22 : w === "r" ? 11 : 13, dm: w === "p" ? 3 : 1, pc: w === "p" ? 4 : 1, o: p.i}); });
-    p.cd = w === "r" ? 6 : w === "p" ? 17 : w === "s" ? 12 : 11;
+    angs.forEach(a => { const an = base + a; shots.push({x: ox, y: oy, vx: Math.cos(an)*spd + (up ? 0 : p.vx*.3), vy: Math.sin(an)*spd, t: w === "p" ? 90 : 72, r: w === "p" ? 22 : w === "r" ? 11 : 13, dm: (w === "p" ? 3 : 1)*p.gs.dm, pc: (w === "p" ? 4 : 1) + p.gs.pc, o: p.i, gt: p.g.gun || 0}); });
+    p.cd = Math.max(4, Math.round((w === "r" ? 6 : w === "p" ? 17 : w === "s" ? 12 : 11)*p.gs.cdm));
     if (isLocal(p.i)) playS("shot");
   }
   function popBomb(p){
@@ -1868,7 +1892,8 @@ NG.defs.bs = () => {
   function hurt(p){
     if (p.inv || p.dead) return;
     if (p.shield){ p.shield = 0; p.inv = 70; sfx("shield"); return; }
-    p.hearts--; p.inv = 110; sfx("hurt"); if (isLocal(p.i)){ flash = 10; shake = 6; }
+    if (p.gs.blk && rnd() < p.gs.blk){ p.inv = 50; sfx("shield"); txt("🦺 튕겨 냈다!", p.x + p.w/2, p.y - 10, "#a5d8ff"); return; }
+    p.hearts--; p.inv = p.gs.inv; sfx("hurt"); if (isLocal(p.i)){ flash = 10; shake = 6; }
     if (isLocal(p.i) || !party){ p.vy = -7; p.vx = -p.dir*5; } else if (remote(p.i)) NQ.push(["kb", p.i, p.dir]);
     if (p.hearts <= 0) die(p);
   }
@@ -1877,7 +1902,7 @@ NG.defs.bs = () => {
     if (!alive().length){ overT = 130; setMsg("GAME OVER", `STAGE ${stage} · ${score.toLocaleString()}점`, 999); }
     else txt("💫 친구가 거품을 터뜨려 구해 줘요!", p.x + p.w/2, p.y - 20, "#ffe066");
   }
-  function revive(p, x, y){ p.dead = false; p.hearts = 2; p.inv = 140; p.x = x; p.y = y; p.vx = 0; p.vy = 0; puff(x + p.w/2, y + p.h/2, 16, "#ffe066"); sfx("revive"); }
+  function revive(p, x, y){ p.dead = false; p.hearts = p.gs.rv; p.inv = 140; p.x = x; p.y = y; p.vx = 0; p.vy = 0; puff(x + p.w/2, y + p.h/2, 16, "#ffe066"); sfx("revive"); }
 
   /* ---------- 효과 (방장은 친구 기기에도 보내요) ---------- */
   function puff(x, y, n, col, localOnly){ if (fx.length > 300) fx.splice(0, 80); for (let i = 0; i < n; i++){ const a = rnd()*6.28, v = 1.5 + rnd()*4; fx.push({x, y, vx: Math.cos(a)*v, vy: Math.sin(a)*v - 1, t: 24 + rnd()*16, c: col || "#a5d8ff", r: 3 + rnd()*5}); }
@@ -1993,7 +2018,7 @@ NG.defs.bs = () => {
       const p = P.find(p => !p.dead && hitR({x: p.x, y: p.y, w: p.w, h: p.h}, it)); if (!p) return true;
       const k = it.k; if (k === "c"){ score += 50; sfx("coin"); return false; }
       sfx("item"); score += 100;
-      if ("srp".includes(k)){ p.wpn = k; p.wpnT = 60*15; } else if (k === "h") p.hearts = Math.min(5, p.hearts + 1); else if (k === "d") p.shield = 1; else if (k === "b") p.bombs = Math.min(5, p.bombs + 1);
+      if ("srp".includes(k)){ p.wpn = k; p.wpnT = 60*15; } else if (k === "h") p.hearts = Math.min(p.gs.hm, p.hearts + 1); else if (k === "d") p.shield = 1; else if (k === "b") p.bombs = Math.min(5, p.bombs + 1);
       txt({s: "🔱 세 갈래 거품!", r: "⚡ 연사 거품!", p: "💥 왕거품 관통!", h: "❤️ 하트 +1", d: "🛡️ 방패!", b: "💣 거품 폭탄 +1"}[k], it.x + 20, it.y, "#ffe066");
       return false; });
     // 갇힌 로봇은 둥실둥실 (몸으로 터뜨리면 +50)
@@ -2022,7 +2047,7 @@ NG.defs.bs = () => {
     return {c: +cam.toFixed(1), cm: camMax, st: stage, sc: score, cl: clearT, ov: overT, kl: kills,
       P: P.map(p => [R0(p.x), R0(p.y), p.dir, p.aimUp ? 1 : 0, +p.run.toFixed(2), p.hearts, p.inv, p.dead ? 1 : 0, p.wpn, Math.ceil(p.wpnT/60), p.shield, p.bombs, p.ground ? 1 : 0, R0(p.gx), R0(p.gy), p.gone ? 1 : 0, p.deadT]),
       E: ens.filter(e => e.on && inV(e)).map(e => [e.id, e.k, R0(e.x), R0(e.y), e.t, e.hit, e.dir, e.el ? 1 : 0, R0(e.w), R0(e.h)]),
-      S: shots.filter(inV).map(s => [R0(s.x), R0(s.y), +s.vx.toFixed(1), +s.vy.toFixed(1), s.r]),
+      S: shots.filter(inV).map(s => [R0(s.x), R0(s.y), +s.vx.toFixed(1), +s.vy.toFixed(1), s.r, s.gt || 0]),
       B: ebul.filter(inV).map(b => [R0(b.x), R0(b.y), +b.vx.toFixed(2), +b.vy.toFixed(2), b.ty]),
       I: items.filter(inV).map(i => [i.k, R0(i.x), R0(i.y), i.fix ? 1 : 0]), C: crates.filter(inV).map(c => [R0(c.x), R0(c.y)]), L: plats.filter(inV).map(q => [R0(q.x), R0(q.y), q.w]),
       T: trapped.filter(inV).map(t => [t.k, R0(t.x), R0(t.y), t.t, t.big ? 1 : 0, t.el ? 1 : 0, R0(t.w), R0(t.h)]),
@@ -2042,7 +2067,7 @@ NG.defs.bs = () => {
       if (p.tx == null || p.dead){ p.x = a[0]; p.y = a[1]; } p.tx = a[0]; p.ty = a[1]; p.dir = a[2]; p.aimUp = !!a[3]; p.run = a[4]; p.ground = !!a[12]; });
     const old = new Map(ens.map(e => [e.id, e]));
     ens = s.E.map(a => { const o = old.get(a[0]) || {x: a[2], y: a[3]}; return {id: a[0], k: a[1], x: o.x, y: o.y, tx: a[2], ty: a[3], t: a[4], hit: a[5], dir: a[6], el: !!a[7], w: a[8], h: a[9], on: true}; });
-    shots = s.S.map(a => ({x: a[0], y: a[1], vx: a[2], vy: a[3], r: a[4]}));
+    shots = s.S.map(a => ({x: a[0], y: a[1], vx: a[2], vy: a[3], r: a[4], gt: a[5] || 0}));
     ebul = s.B.map(a => ({x: a[0], y: a[1], vx: a[2], vy: a[3], ty: a[4], rot: 0}));
     items = s.I.map(a => ({k: a[0], x: a[1], y: a[2], fix: a[3], w: 44, h: 44})); crates = s.C.map(a => ({x: a[0], y: a[1], w: 58, h: 58})); plats = s.L.map(a => ({x: a[0], y: a[1], w: a[2], h: 24}));
     trapped = s.T.map(a => ({k: a[0], x: a[1], y: a[2], t: a[3], big: a[4], el: a[5], w: a[6], h: a[7]}));
@@ -2051,7 +2076,7 @@ NG.defs.bs = () => {
   function guestStep(){
     const me = P[myIdx];
     cam += ((camT ?? cam) - cam)*.5;
-    if (!me.dead){ if (me.inv) me.inv--; phys(me, me.in); if (me.in.s && (me.cd = (me.cd || 0) - 1) <= 0){ me.cd = me.wpn === "r" ? 6 : me.wpn === "p" ? 17 : 11; playS("shot"); } }
+    if (!me.dead){ if (me.inv) me.inv--; phys(me, me.in); if (me.in.s && (me.cd = (me.cd || 0) - 1) <= 0){ me.cd = Math.max(4, Math.round((me.wpn === "r" ? 6 : me.wpn === "p" ? 17 : 11)*me.gs.cdm)); playS("shot"); } }
     if (NG.frame % 2 === 0 || bcLocal !== lastS){ const rel = bcLocal !== lastS; lastS = bcLocal;
       PARTY.sendIn({sd: O.seed, x: R0(me.x), y: R0(me.y), vx: +me.vx.toFixed(2), vy: +me.vy.toFixed(2), dr: me.dir, u: me.aimUp ? 1 : 0, g: me.ground ? 1 : 0, rn: +me.run.toFixed(2), s: me.in.s ? 1 : 0, bc: bcLocal}, rel); }
     P.forEach(p => { if (p.i === myIdx || p.tx == null) return; const dx = p.tx - p.x, dy = p.ty - p.y; if (Math.abs(dx) + Math.abs(dy) > 200){ p.x = p.tx; p.y = p.ty; } else { p.x += dx*.4; p.y += dy*.4; } });
@@ -2075,7 +2100,7 @@ NG.defs.bs = () => {
       if (party) PARTY.attach(self, null);
       // ⚡ 그림은 쉬는 틈에 조금씩 미리 그려 둬요 (한꺼번에 그리면 처음에 멈칫해요)
       const Q = BSP, id0 = th().id, jobs = [() => Q.skyImg(id0, Math.round(W/Q.P), Math.round(VH/Q.P)), () => { Q.farImg(id0, Math.round(GY/Q.P)); Q.midImg(id0, Math.round(GY/Q.P)); Q.groundImg(id0, Math.round(GT/Q.P)); }];
-      P.forEach(p => [0, 1, 2, 3, 4].forEach(f => jobs.push(() => [1, -1].forEach(d => { Q.hero(p.i % 4, p.sid, f, 0, d); Q.hero(p.i % 4, p.sid, f, 1, d); }))));
+      P.forEach(p => [0, 1, 2, 3, 4].forEach(f => jobs.push(() => [1, -1].forEach(d => { Q.hero(p.i % 4, p.sid, f, 0, d, false, p.g); Q.hero(p.i % 4, p.sid, f, 1, d, false, p.g); }))));
       Object.keys(BS_EN).forEach(k => jobs.push(() => [0, 1].forEach(f => [0, 1, 2].forEach(m => Q.enemy(k, f, false, m)))));
       jobs.push(() => { "srphdb".split("").forEach(k => Q.item(k)); [0, 1, 2, 3].forEach(f => Q.item("c", f)); [4, 7, 17, 20, 48].forEach(r => Q.bub(r)); Q.orb(3); Q.shell(); Q.crate(); }, () => { Q.boss(id0, 0, false); Q.boss(id0, 1, false); }, () => { Q.boss(id0, 0, true); Q.boss(id0, 1, true); });
       const run = dl => { if (NG.cur !== self) return; do { const j = jobs.shift(); if (!j) return; j(); } while (dl && dl.timeRemaining && dl.timeRemaining() > 8); (window.requestIdleCallback || setTimeout)(run, {timeout: 300}); };
@@ -2084,7 +2109,7 @@ NG.defs.bs = () => {
     dropIdx(i){ const p = P[i]; if (!p) return; p.gone = true; p.dead = true; if (!alive().length && overT <= 0) overT = 60; },
     end(w, ws, m){ if (party !== "guest" || ended) return; ended = true; if (m){ score = m.score; stage = m.stage; kills = m.kills; } BS.guestOver(score, stage, kills); },
     /* ▶ 이어하기: 모두 다시 일어나서 지금 스테이지 그대로 */
-    revive(){ if (!ended) return; ended = false; overT = 0; P.forEach(p => { if (p.gone) return; if (p.dead) revive(p, cam + 200 + p.i*60, GY - 300); p.hearts = 3; }); setMsg("▶ 이어하기!", "모두 다시 출동!", 100); },
+    revive(){ if (!ended) return; ended = false; overT = 0; P.forEach(p => { if (p.gone) return; if (p.dead) revive(p, cam + 200 + p.i*60, GY - 300); p.hearts = 3 + p.gs.hb; }); setMsg("▶ 이어하기!", "모두 다시 출동!", 100); },
     cont(){ ended = false; },
     apply,
     step(){
@@ -2174,13 +2199,13 @@ NG.defs.bs = () => {
       if (p.dead){ const gx = X(p.gx + 22), gyy = Y(p.gy + 40); L.drawImage(Q.bub(17, BS_PC[p.i][0]), gx - 17, gyy - 17); const fc = Q.pface(p.sid, true); L.drawImage(fc, gx - 7, gyy - 7); return; }
       if (p.inv && Math.floor(fr/4) % 2 && p.inv < 100) return;
       const run = p.ground && (Math.abs(p.vx) > .6 || (p.tx != null && Math.abs(p.tx - p.x) > 1)), f = p.ground ? (run ? Math.floor(p.run) % 4 : 0) : 4;
-      const hs = Q.hero(p.i % 4, p.sid, f, p.aimUp ? 1 : 0, p.dir, false), feet = Y(p.y + p.h), hx = X(p.x + p.w/2), bob = run && f % 2 ? -1 : 0;
+      const hs = Q.hero(p.i % 4, p.sid, f, p.aimUp ? 1 : 0, p.dir, false, p.g), feet = Y(p.y + p.h), hx = X(p.x + p.w/2), bob = run && f % 2 ? -1 : 0;
       if (p.shield) L.drawImage(Q.bub(20, "#74c0fc"), hx - 20, feet - 37);
       L.drawImage(hs, hx - 15, feet - 34 + bob);
       if (p.cd > (p.wpn === "r" ? 3 : 8)){ const up = p.aimUp, mx = up ? hx + p.dir*8 : hx + p.dir*14, my = up ? feet - 35 : feet - 15;
         Q.R(L, mx - 1, my - 1, 3, 3, "#ffffff"); Q.R(L, mx - 3, my, 1, 1, "#a5d8ff"); Q.R(L, mx + 3, my, 1, 1, "#a5d8ff"); Q.R(L, mx, my - 3, 1, 1, "#a5d8ff"); Q.R(L, mx, my + 3, 1, 1, "#a5d8ff"); } });
     // 거품 총알 · 로봇 총알
-    shots.forEach(s => { const r = s.r > 18 ? 7 : 4; L.drawImage(Q.bub(r), X(s.x) - r, Y(s.y) - r); });
+    shots.forEach(s => { const r = s.r > 18 ? 7 : 4; L.drawImage(Q.bub(r, s.gt ? BSG.TIER[s.gt].c : ""), X(s.x) - r, Y(s.y) - r); });
     ebul.forEach(b => { const x = X(b.x), y = Y(b.y);
       if (b.ty === 1) L.drawImage(Q.rollBall(id, ((Math.round((b.rot || 0)/0.785) % 4) + 4) % 4), x - 8, y - 8);
       else if (b.ty === 2) L.drawImage(Q.shell(), x - 4, y - 5);
@@ -2266,10 +2291,11 @@ const BSBG = {cache: new Map(), want: "", busy: {}};
 const BS = {
   menu(){
     const me = ARC.me, box = partyModal("bs"), body = $("#wbBody");
-    body.innerHTML = `<p class="arc-small">달리고 뛰며 거품총으로 로봇을 <b>거품에 가둬</b> 날려 보내요! 맵 5곳 끝마다 <b>왕로봇</b>이 기다리고, 갈수록 로봇이 많고 빠르고 단단해져요. 쓰러진 친구는 다른 친구가 거품을 터뜨려 구해 줄 수 있어요.</p>
+    body.innerHTML = `<button class="arc-btn p bs-shopb" id="bsShop">🛒 장비 상점 <small>🔫 거품총 · 🦺 방탄 갑옷 · ⛑️ 헬멧 · 12단계</small></button><p class="arc-small">달리고 뛰며 거품총으로 로봇을 <b>거품에 가둬</b> 날려 보내요! 맵 5곳 끝마다 <b>왕로봇</b>이 기다리고, 갈수록 로봇이 많고 빠르고 단단해져요. 쓰러진 친구는 다른 친구가 거품을 터뜨려 구해 줄 수 있어요.</p>
       <div class="wb-sec"><h3>🧒 혼자 출동 <small>최고 점수로 랭킹!</small></h3><button class="arc-btn p" id="bsSolo">▶ 출동!</button></div>
       <div class="wb-sec"><h3>👫 이 기기에서 둘이 협동 <small>한 화면에서 같이 · 둘 다 같은 점수로 기록돼요</small></h3><button class="arc-btn p" id="bsDuo">👫 친구 들어오기</button></div>
       <div class="wb-sec"><h3>🌐 온라인 협동 <small>각자 기기로 최대 4명 · ☁️ Firebase 반에서만</small></h3><div id="wbRooms"></div></div>`;
+    $("#bsShop").onclick = () => BSG.UI.open(sidOf(me));
     $("#bsSolo").onclick = () => { box.hidden = true; ARC.enter(); ARC.prep(); getAC(); NG.play("bs", [sidOf(me)]); };
     $("#bsDuo").onclick = () => { box.hidden = true; ARC.pickRival("bs", opp => { ARC.enter(); ARC.prep(); getAC(); NG.play("bs", [sidOf(me), sidOf(opp)], {local: [0, 1]}); }); };
     PARTY.renderRooms(); box.hidden = false;
