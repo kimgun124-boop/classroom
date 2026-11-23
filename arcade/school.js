@@ -21,6 +21,7 @@ const SCHOOL = {
   /* ---------- 🛠️ 관리자 → 🏫 학교 채널 ---------- */
   render(body){
     const cls = Store.cls, sc = cls.school;
+    if (!this.isOwner()){ body.innerHTML = `<h3>🏫 학교 채널</h3><p>학교 채널(반 만들기 · 안내장 · 비밀번호)은 <b>채널을 만든 총관리자 선생님</b>만 관리해요. 우리 반 학생·비밀번호·코인은 다른 탭에서 관리하면 돼요.</p>`; return; }
     if (Store.mode !== "cloud"){ body.innerHTML = `<h3>🏫 학교 채널</h3><p>학교 채널은 <b>☁️ Firebase에 연결된 보드게임</b>에서만 만들 수 있어요. 먼저 <b>☁️ 저장</b> 탭에서 연결해 주세요.</p>`; return; }
     if (!sc){
       body.innerHTML = `<h3>🏫 학교 채널 만들기</h3>
@@ -77,7 +78,7 @@ const SCHOOL = {
       docs.push({cid, plain, doc: {v: 1, cid, name, roster, faces, pw, admin: sha256(`${cid}:teacher:${pin}`)}});
       tp[cid] = pin; l.push([name, cid]);
     }
-    const school = {id, n, l: l.map(([nm, c]) => ({n: nm, c}))};
+    const school = {id, n, own: cls.cid, l: l.map(([nm, c]) => ({n: nm, c}))};
     const b = $("#scGo"); b.disabled = true; b.textContent = "만드는 중…";
     this.keep(id, {t: tp}); docs.forEach(d => savePlain(d.cid, d.plain));
     try {
@@ -166,16 +167,27 @@ const SCHOOL = {
   pick(o){
     let el = $("#scPick"); if (!el){ el = document.createElement("div"); el.id = "scPick"; el.className = "sc-pick"; document.body.appendChild(el); }
     const cur = Store.cls ? Store.cls.cid : "";
-    el.innerHTML = `<div class="sc-box"><h2>🏫 ${esc(o.n || "우리 학교")} 보드게임</h2><p>우리 반을 눌러요</p>
-      <div class="sc-grid">${this.pairs(o.l).map(([n, cid]) => `<button data-cid="${cid}" class="${cid === cur ? "on" : ""}">🎲<b>${esc(n)}</b>${cid === cur ? "<small>지금 반</small>" : ""}</button>`).join("")}</div>
+    el.innerHTML = `<div class="sc-box"><h2>🏫 ${esc(o.n || "우리 학교")} 보드게임</h2><p>우리 반 채널을 눌러 들어가요${o.entry ? `<br><small>선생님도 자기 반으로 들어가 아래 🛠️ 관리자를 눌러요</small>` : ""}</p>
+      <div class="sc-grid">${this.pairs(o.l).map(([n, cid]) => `<button data-cid="${cid}" class="${cid === cur && !o.entry ? "on" : ""}">🎲<b>${esc(n)}</b>${cid === cur && !o.entry ? "<small>지금 반</small>" : ""}</button>`).join("")}</div>
       ${o.close ? `<button class="arc-btn" data-x>닫기</button>` : ""}</div>`;
     el.hidden = false;
     el.onclick = e => { if (e.target.closest("[data-x]") || e.target === el && o.close){ el.hidden = true; return; }
       const b = e.target.closest("[data-cid]"); if (!b) return;
+      try { sessionStorage.setItem(KEY + ".picked", b.dataset.cid); } catch(e2){}
       if (b.dataset.cid === cur){ el.hidden = true; return; }
       if (o.close && !confirm(`${b.querySelector("b").textContent}(으)로 옮길까요? 이 기기의 로그인이 풀려요.`)) return;
       localStorage.setItem(KEY + ".join", JSON.stringify({c: o.c, i: b.dataset.cid})); localStorage.removeItem(KEY + ".me"); location.reload(); };
   },
+  /* 🚪 (2026.11.23) 처음 화면은 '반 채널 고르기': 학교 채널이면 로그인 전에 1반~8반 중 우리 반을 먼저 골라요
+     (이 탭에서 한 번 고르면 다시 묻지 않아요 · 로그아웃하면 다시 골라요) */
+  entry(){
+    const sc = Store.mode === "cloud" && Store.cls && Store.cls.school; if (!sc) return false;
+    let p = ""; try { p = sessionStorage.getItem(KEY + ".picked") || ""; } catch(e){}
+    if (p === Store.cls.cid) return false;
+    this.pick({c: this.cfg(), n: sc.n, l: this.pairs(sc.l), entry: true}); return true;
+  },
+  /* 👑 학교 채널 관리는 만든 선생님(총관리자) 한 분만 */
+  isOwner(){ const sc = Store.cls && Store.cls.school; if (!sc) return true; return sc.own ? sc.own === Store.cls.cid : !!(this.secret(sc.id).t); },
   /* 반 고르기 주소로 들어왔어요 → 반 목록 (반을 누르면 그 반으로) */
   fromHash(){
     const h = location.hash.match(/school=([\w-]+)/); if (!h) return false;
@@ -188,7 +200,7 @@ const SCHOOL = {
     let b = $("#lgSchool"); const sc = Store.mode === "cloud" && Store.cls && Store.cls.school;
     if (!sc){ if (b) b.hidden = true; return; }
     if (!b){ b = document.createElement("button"); b.id = "lgSchool"; b.className = "arc-teach lg-school"; b.title = "다른 반 보드게임으로"; const t = $("#lgTeach"); t.parentNode.insertBefore(b, t); }
-    b.hidden = false; b.textContent = `🏫 반 바꾸기 · ${Store.cls.name || ""}`;
+    b.hidden = false; b.textContent = `🏫 ${Store.cls.name || ""} · 반 고르기`;
     b.onclick = () => this.pick({c: this.cfg(), n: sc.n, l: this.pairs(sc.l), close: true});
   },
   css(){ if ($("#scCss")) return; const st = document.createElement("style"); st.id = "scCss"; st.textContent = `

@@ -527,6 +527,8 @@ function qrSvg(text){
 }
 /* 반 입장 주소를 붙여 넣어서 들어가기 */
 function joinFrom(text){
+  const sh = String(text || "").match(/school=([\w-]+)/);   // 🏫 반 고르기 주소를 붙여 넣었어요
+  if (sh){ try { const o = b64d(sh[1]); if (!o.c || !Array.isArray(o.l)) throw 0; SCHOOL.pick(Object.assign(o, {entry: true})); } catch(e){ alert("반 고르기 주소가 잘못됐어요."); } return; }
   const m = String(text || "").match(/join=([\w-]+)/) || String(text || "").trim().match(/^([\w-]{40,})$/);
   if (!m) return alert("반 입장 주소를 찾지 못했어요. 선생님이 알려 준 주소를 통째로 붙여 넣어 주세요.");
   try { const j = b64d(m[1]); if (!j.c || !j.i) throw 0; localStorage.setItem(KEY + ".join", JSON.stringify({c: j.c, i: j.i})); location.reload(); }
@@ -559,7 +561,7 @@ const ARC = {
       this.syncMsg(`⚠️ 반 전체 기록에 연결하지 못했어요: ${e.message || e}`); $("#lgSync").innerHTML = `⚠️ 반 기록에 연결하지 못했어요. 인터넷을 확인하고 <button class="arc-btn" onclick="location.reload()">다시 연결</button>`; this.show("scrLogin"); return; }
     if (!ok) return this.setup();
     const meRaw = localStorage.getItem(KEY + ".me"), me = meRaw === null || meRaw === "" ? null : +meRaw;
-    if (this.inRoster(me)){ this.me = me; this.home(); } else this.login();
+    if (this.inRoster(me)){ this.me = me; this.home(); } else { this.login(); SCHOOL.entry(); }
   },
   inRoster(no){ return no !== null && no !== undefined && roster().some(s => s.no == no); },
   refresh(){
@@ -647,7 +649,7 @@ const ARC = {
     this.pad({who: `<span class="avf">${avHTMLof(sidOf(no), {still: true, face: true})}</span><b>${esc(who(no))}</b>`, title: title || "비밀번호 4자리", len: 4,
       check: v => { if (Store.cls.pw[no] && pwHash(no, v) === Store.cls.pw[no]){ ok(no); return true; } return Store.cls.pw[no] ? "비밀번호가 달라요" : "아직 비밀번호가 없어요. 선생님께 말해요."; }});
   },
-  async logout(){ if (Store.saving()){ toast("💾 산 것을 저장하는 중이에요… 잠깐만요"); await Store.flush(); } ROOMS.leaveMine(); LIVE.ping("off"); NET.unlisten(); localStorage.removeItem(KEY + ".me"); this.me = null; this.login(); },
+  async logout(){ if (Store.saving()){ toast("💾 산 것을 저장하는 중이에요… 잠깐만요"); await Store.flush(); } ROOMS.leaveMine(); LIVE.ping("off"); NET.unlisten(); localStorage.removeItem(KEY + ".me"); this.me = null; this.login(); try { sessionStorage.removeItem(KEY + ".picked"); } catch(e){} SCHOOL.entry(); },
 
   /* ---------- 캐릭터 ---------- */
   pickFace(first){
@@ -789,6 +791,7 @@ const ARC = {
     const same = (tab || this.tcTab) === this.tcTab && !$("#mdTeach").hidden;
     this.tcTab = tab || this.tcTab || "live"; this.modal("#mdTeach", true); LIVE.start();
     $$("#tcTabs button").forEach(b => b.classList.toggle("on", b.dataset.t === this.tcTab));
+    { const sb = $('#tcTabs [data-t="school"]'); if (sb) sb.hidden = !SCHOOL.isOwner(); }
     $("#tcTabs").onclick = e => { const b = e.target.closest("[data-t]"); if (b) this.teacher(b.dataset.t); };
     const cls = Store.cls, plain = loadPlain(cls.cid), body = $("#tcBody");
     $("#tcCls").textContent = cls.name || ""; body.onclick = null; if (!same) body.parentNode.scrollTop = 0;   // 같은 탭을 다시 그릴 때는 보던 자리 그대로
