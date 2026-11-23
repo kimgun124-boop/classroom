@@ -102,8 +102,12 @@ const LIVE = {
       // 채팅은 마지막 50개만 받아요 (반 친구 모두가 받으니까 적게)
       this.un.push(fs.onSnapshot(fs.query(this.col("chat"), fs.orderBy("at", "desc"), fs.limit(50)), qs => { const l = []; qs.forEach(d => l.push(Object.assign({id: d.id}, d.data()))); this.chat = l.reverse(); this.emit("chat"); }, warn));
       CLOCK.sync();
-      this.un.push(fs.onSnapshot(this.col("on"), qs => { const o = {}; qs.forEach(d => o[d.id] = d.data()); this.on = o; this.emit("on"); }, warn));
-      this.un.push(fs.onSnapshot(this.col("lobby"), qs => { const l = []; qs.forEach(d => l.push(Object.assign({id: d.id}, d.data()))); this.rooms = l; this.loaded = true; this.emit("rooms"); }, warn));
+      /* ⚡ (2026.11.23 · 100명) '누가 접속 중'·대결방 목록 듣기도 홈 화면을 볼 때만 (게임 중·다른 화면이면 꺼요) */
+      const on2 = () => [fs.onSnapshot(this.col("on"), qs => { const o = {}; qs.forEach(d => o[d.id] = d.data()); this.on = o; this.emit("on"); }, warn),
+        fs.onSnapshot(this.col("lobby"), qs => { const l = []; qs.forEach(d => l.push(Object.assign({id: d.id}, d.data()))); this.rooms = l; this.loaded = true; this.emit("rooms"); }, warn)];
+      let u2 = on2(); const want = () => !ARC.busy && !document.hidden;
+      const sync = () => { if (want() && !u2) u2 = on2(); else if (!want() && u2){ u2.forEach(f => { try { f(); } catch(e){} }); u2 = null; } };
+      setInterval(sync, 2500); document.addEventListener("visibilitychange", sync);
     } else {
       this.lload();
       addEventListener("storage", e => { if (e.key && e.key.startsWith(`${KEY}.live.`)) this.lload(); });

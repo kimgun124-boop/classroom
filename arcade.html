@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="3f6f8d1e69">
+<meta name="arc-build" content="37c6e10e78">
 <script>
 /* 🔄 늘 최신 보드게임: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "3f6f8d1e69", K = "arcade.reloaded";
+  var B = "37c6e10e78", K = "arcade.reloaded";
   function saving(){ try { return typeof Store !== "undefined" && Store.saving && Store.saving(); } catch(e){ return false; } }
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !saving() && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
@@ -342,6 +342,7 @@ body.sc-quake{animation:scQuake .5s linear 2}
 @keyframes fameShine{0%,100%{transform:rotate(0) scale(1)}50%{transform:rotate(-8deg) scale(1.12)}}
 @keyframes fameIn{from{opacity:0;transform:translateY(8px) scale(.85)}}
 .card .crown{font-size:20px;line-height:1;filter:drop-shadow(0 2px 2px rgba(160,120,0,.3))}
+.card.dropped{animation:dropped 1s ease}
 @keyframes dropped{0%{box-shadow:0 0 0 0 rgba(124,199,160,.9)}100%{box-shadow:0 0 0 18px rgba(124,199,160,0)}}
 .card{cursor:grab;touch-action:manipulation}
 .card .minus,.card .tag{cursor:pointer}
@@ -2990,10 +2991,18 @@ const Store = {
     this.mode = "cloud"; this.cls = first.data();
     localStorage.setItem(KEY + ".join", JSON.stringify({c: cfg, i: cid}));
     fs.onSnapshot(this.refCls, s => { if (s.exists()){ this.cls = s.data(); this.ok = true; this.emit(); } }, e => { this.ok = false; this.err = e.message; this.emit(); });
-    fs.onSnapshot(fs.collection(db, "arcade", cid, "kids"), qs => { const k = {}; qs.forEach(d => k[d.id] = d.data()); this._raw = JSON.parse(JSON.stringify(k)); this.kids = this.withPending(k); this.ok = true; this.emit(); if (!this._rp){ this._rp = 1; setTimeout(() => this.replayBackup(), 4000); } }, e => { this.ok = false; this.err = e.message; this.emit(); });
-    fs.onSnapshot(fs.collection(db, "arcade", cid, "recs"), qs => { const r = {}; qs.forEach(d => r[d.id] = d.data()); this.recs = r; this.ok = true; this.emit(); }, e => { this.ok = false; this.err = e.message; this.emit(); });
+    /* ⚡ (2026.11.23 · 100명) 반 친구 지갑(kids)·기록(recs) 실시간 듣기는 '홈 화면을 보고 있을 때'만 켜요
+       - 게임하는 동안·다른 탭/화면에 가 있는 동안은 꺼요 → 친구가 코인을 벌 때마다 내 기기가 읽는 일이 없어져요 (Firebase 읽기의 대부분)
+       - 다시 켜면 기기 저장소 덕분에 그사이 '바뀐 문서'만 받아요 (30분 안이면) */
+    this._lsn = () => [
+  fs.onSnapshot(fs.collection(db, "arcade", cid, "kids"), qs => { const k = {}; qs.forEach(d => k[d.id] = d.data()); this._raw = JSON.parse(JSON.stringify(k)); this.kids = this.withPending(k); this.ok = true; this.emit(); if (!this._rp){ this._rp = 1; setTimeout(() => this.replayBackup(), 4000); } }, e => { this.ok = false; this.err = e.message; this.emit(); }),
+  fs.onSnapshot(fs.collection(db, "arcade", cid, "recs"), qs => { const r = {}; qs.forEach(d => r[d.id] = d.data()); this.recs = r; this.ok = true; this.emit(); }, e => { this.ok = false; this.err = e.message; this.emit(); })];
+    this.listen(true);
+    setInterval(() => this.listen(!(typeof ARC !== "undefined" && ARC.busy) && !document.hidden), 2500);
+    document.addEventListener("visibilitychange", () => this.listen(!document.hidden && !(typeof ARC !== "undefined" && ARC.busy)));
     return true;
   },
+  listen(on){ if (this.mode !== "cloud" || !this._lsn || on === !!this._un) return; if (on) this._un = this._lsn(); else { this._un.forEach(f => { try { f(); } catch(e){} }); this._un = null; } },
   /* 반 정보 통째로 (선생님) */
   async putClass(cls){
     this.cls = cls; this.emit();
@@ -7977,8 +7986,12 @@ const LIVE = {
       // 채팅은 마지막 50개만 받아요 (반 친구 모두가 받으니까 적게)
       this.un.push(fs.onSnapshot(fs.query(this.col("chat"), fs.orderBy("at", "desc"), fs.limit(50)), qs => { const l = []; qs.forEach(d => l.push(Object.assign({id: d.id}, d.data()))); this.chat = l.reverse(); this.emit("chat"); }, warn));
       CLOCK.sync();
-      this.un.push(fs.onSnapshot(this.col("on"), qs => { const o = {}; qs.forEach(d => o[d.id] = d.data()); this.on = o; this.emit("on"); }, warn));
-      this.un.push(fs.onSnapshot(this.col("lobby"), qs => { const l = []; qs.forEach(d => l.push(Object.assign({id: d.id}, d.data()))); this.rooms = l; this.loaded = true; this.emit("rooms"); }, warn));
+      /* ⚡ (2026.11.23 · 100명) '누가 접속 중'·대결방 목록 듣기도 홈 화면을 볼 때만 (게임 중·다른 화면이면 꺼요) */
+      const on2 = () => [fs.onSnapshot(this.col("on"), qs => { const o = {}; qs.forEach(d => o[d.id] = d.data()); this.on = o; this.emit("on"); }, warn),
+        fs.onSnapshot(this.col("lobby"), qs => { const l = []; qs.forEach(d => l.push(Object.assign({id: d.id}, d.data()))); this.rooms = l; this.loaded = true; this.emit("rooms"); }, warn)];
+      let u2 = on2(); const want = () => !ARC.busy && !document.hidden;
+      const sync = () => { if (want() && !u2) u2 = on2(); else if (!want() && u2){ u2.forEach(f => { try { f(); } catch(e){} }); u2 = null; } };
+      setInterval(sync, 2500); document.addEventListener("visibilitychange", sync);
     } else {
       this.lload();
       addEventListener("storage", e => { if (e.key && e.key.startsWith(`${KEY}.live.`)) this.lload(); });
@@ -9684,7 +9697,7 @@ const PARTY = {
     if (str.startsWith('{"t":"s"')){ R.s = str; R.n++; return; }
     if (str.startsWith('{"t":"ev"')){ try { const ev = JSON.parse(str).ev.filter(e => !["x", "s", "r"].includes(e[0])); if (!ev.length) return; str = JSON.stringify({t: "ev", ev}); } catch(e){ return; } }   // 다리로는 반짝이·소리는 빼고 꼭 필요한 알림만
     const t = (str.match(/^\{"t":"(\w+)"/) || [])[1];
-    if (t === "grid" || t === "lobby") R.log = R.log.filter(e => !(e.t === t && e.to.length === 1 && e.to[0] === no));   // 판·대기실은 최신 것만
+    if (t === "grid" || t === "lobby" || t === "bs") R.log = R.log.filter(e => !(e.t === t && e.to.length === 1 && e.to[0] === no));   // 판·대기실은 최신 것만
     const last = R.log[R.log.length - 1];
     if (last && last.m === str && !last.sent) last.to.push(no); else R.log.push({k: ++R.k, to: [no], m: str, t});
     const now = Date.now(); R.log = R.log.filter(e => !e.sent || now - e.sent < 8000).slice(-80); },
@@ -23099,6 +23112,794 @@ const CH3D = {
 };
 
 /* =====================================================================
+   🎲 보드게임 모음 (2026.11.23) — 초6이 좋아하는 보드게임을 반 친구와 '온라인'으로
+   - 🌐 온라인 방(기본): 한 친구가 방을 만들고, 친구들은 자기 태블릿·크롬북에서 들어와요 (2~4명)
+     · 연결은 기존 PARTY(방장 기기가 심판) 그대로: 기기끼리 바로(WebRTC) → 학교 와이파이에서 막히면 Firebase 다리
+     · 한 수(행동)만 주고받아요 → Firebase 사용량이 거의 없어요 (방 쪽지·연결 때만 조금)
+     · 방장 기기만 진짜 판을 알고, 친구 기기에는 '그 친구가 봐도 되는 것'만 보내요(손패·숨긴 패는 가려서)
+   - 🤖 컴퓨터와 연습 · 🧒 한 기기에서 친구와(숨긴 패 게임은 차례마다 가림막)
+   - 결과: 사람 2명 이상이 한 판만 랭킹(이긴 친구 +1승, 나머지 +1패)과 코인 — 기록은 한 번에 한 문서만 써요
+   - 게임 한 개 = BG.def({...}) 한 덩어리: setup · turn · act · over · view · ai · draw · tap
+   ===================================================================== */
+const BG = {
+  D: {}, ids: [], lv: 1, n: {},
+  def(G){
+    G.min = G.min || 2; G.max = G.max || 2;
+    this.D[G.id] = G; this.ids.push(G.id);
+    NG.defs[G.id] = () => bgGame(G);
+    const g = {id: G.id, e: G.e, n: G.n, kind: "duel", c: "board", bg: 1, multi: 1, tag: G.tag || (G.max > 2 ? `🌐 온라인 ${G.min}~${G.max}명 · 🤖 컴퓨터와도` : "🌐 온라인 둘이서 · 🤖 컴퓨터와도"), d: G.d};
+    { let k = 0; GAMES.forEach((x, i) => { if (x.c === "board") k = i + 1; }); GAMES.splice(k, 0, g); } GAME[G.id] = g;   // 🎲 보드게임 칸 끝에 붙여요
+    if (typeof PARTY !== "undefined") PARTY.CFG[G.id] = {max: G.max, bots: 1, min: G.min, relay: 1};   // 🌉 학교 와이파이에서 기기끼리 못 이으면 Firebase 다리로
+    if (window.COOP && !COOP.G.includes(G.id)) COOP.G.push(G.id);   // 홈 옆 🤝 방 목록에도 보여요
+  },
+  rng(seed){ let s = (seed >>> 0) || 1; return () => (s = (Math.imul(s, 1664525) + 1013904223) >>> 0)/4294967296; },
+  shuffle(a, R){ for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(R()*(i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; },
+  /* ---------- 시작 창: 🌐 온라인 방 · 🤖 컴퓨터 · 🧒 한 기기 ---------- */
+  menu(gid){
+    const G = this.D[gid], me = ARC.me, box = partyModal(gid), body = $("#wbBody");
+    const nOpt = Array.from({length: G.max - G.min + 1}, (_, i) => G.min + i);
+    this.n[gid] = Math.min(G.max, Math.max(G.min, this.n[gid] || G.min));
+    const seg = (id, L, v, f) => `<div class="arc-seg" id="${id}">${L.map(x => `<button data-v="${x}" class="${x === v ? "on" : ""}">${f(x)}</button>`).join("")}</div>`;
+    body.innerHTML = `<div class="bg-intro"><span class="f">${G.e}</span><div><b>${G.n}</b><small>${G.like ? `${esc(G.like)} · ` : ""}${G.min === G.max ? `${G.min}명` : `${G.min}~${G.max}명`} · ${esc(G.time || "10분")}</small><p>${esc(G.d)}</p></div></div>
+      <details class="bg-rules"><summary>📖 규칙 보기</summary><ol>${G.rules.map(r => `<li>${r}</li>`).join("")}</ol></details>
+      <div class="wb-sec bg-on"><h3>🌐 온라인 방 <small>친구는 자기 기기에서 들어와요 · 이기면 랭킹 1승!</small></h3><div id="wbRooms"></div></div>
+      <div class="wb-sec bg-x"><h3>🤖 컴퓨터와 연습 <small>랭킹에는 안 들어가요</small></h3>
+        ${G.max > 2 ? `<div class="wb-row"><span>몇 명이서?</span>${seg("bgN", nOpt, this.n[gid], x => `${x}명`)}</div>` : ""}
+        <div class="wb-row"><span>난이도</span>${seg("bgLv", [0, 1, 2], this.lv, x => ["🐣 쉬움", "🐥 보통", "🦅 어려움"][x])}</div>
+        <button class="arc-btn p" id="bgCpu">▶ 컴퓨터와 시작</button></div>
+      <div class="wb-sec bg-x"><h3>🧒 이 기기에서 친구와 <small>한 화면을 같이 봐요${G.hidden ? " · 차례마다 가림막" : ""}</small></h3><button class="arc-btn" id="bgFriend">🧒 친구 들어오기</button></div>`;
+    const on = (id, f) => { const s = $("#" + id); if (s) s.onclick = e => { const b = e.target.closest("button"); if (!b) return; s.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b)); f(+b.dataset.v); }; };
+    on("bgN", v => this.n[gid] = v); on("bgLv", v => this.lv = v);
+    $("#bgCpu").onclick = () => { box.hidden = true; PARTY.leave(); this.start(gid, [me], this.n[gid] - 1); };
+    $("#bgFriend").onclick = () => { box.hidden = true; PARTY.leave(); ARC.pickRival(gid, opp => this.start(gid, [me, opp], Math.max(0, this.n[gid] - 2))); };
+    PARTY.renderRooms();
+    box.hidden = false;
+  },
+  start(gid, humans, nBots){
+    const G = this.D[gid]; nBots = Math.max(0, Math.min(G.max - humans.length, nBots)); if (humans.length + nBots < G.min) nBots = G.min - humans.length;
+    const bots = WB.pickBots(humans, nBots), sids = humans.concat(bots).map(sidOf);
+    ARC.game = gid; ARC.enter && ARC.enter(); ARC.prep(); getAC();
+    NG.play(gid, sids, {local: humans.map((_, i) => i), bots: bots.map((_, i) => humans.length + i), lv: this.lv, cpu: humans.length === 1, seed: Math.floor(Math.random()*1e9) + 1});
+  }
+};
+
+/* ---------- 그림 도우미 ---------- */
+const BGD = {
+  F: `"Jua","Gowun Dodum",sans-serif`,
+  txt(g, t, x, y, s, c = "#fff", al = "center", b = ""){ g.font = `${b}${Math.round(s)}px ${this.F}`; g.textAlign = al; g.textBaseline = "middle"; g.fillStyle = c; g.fillText(t, x, y); },
+  box(g, x, y, w, h, r, fill, stroke, lw = 2){ rrect(g, x, y, w, h, r); if (fill){ g.fillStyle = fill; g.fill(); } if (stroke){ g.lineWidth = lw; g.strokeStyle = stroke; g.stroke(); } },
+  lg(g, x0, y0, x1, y1, st){ const q = g.createLinearGradient(x0, y0, x1, y1); st.forEach((c, i) => q.addColorStop(i/(st.length - 1), c)); return q; },
+  shadow(g, on, b = 12, y = 4, c = "rgba(0,0,0,.35)"){ if (on){ g.shadowColor = c; g.shadowBlur = b; g.shadowOffsetY = y; } else { g.shadowColor = "transparent"; g.shadowBlur = 0; g.shadowOffsetY = 0; } },
+  /* 반짝이는 돌·말 */
+  disc(g, x, y, r, c, c2){ g.save(); this.shadow(g, true, r*.5, r*.15); const q = g.createRadialGradient(x - r*.35, y - r*.4, r*.1, x, y, r); q.addColorStop(0, c2 || "#fff"); q.addColorStop(.35, c); q.addColorStop(1, this.dark(c)); g.fillStyle = q; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.restore();
+    g.fillStyle = "rgba(255,255,255,.35)"; g.beginPath(); g.ellipse(x - r*.3, y - r*.42, r*.32, r*.18, -.5, 0, 7); g.fill(); },
+  dark(c){ const m = /^#?([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i.exec(c); if (!m) return c; const f = v => Math.max(0, Math.round(parseInt(v, 16)*.55)).toString(16).padStart(2, "0"); return "#" + f(m[1]) + f(m[2]) + f(m[3]); },
+  /* 카드·타일 */
+  tile(g, x, y, w, h, fill, edge, r = 10){ g.save(); this.shadow(g, true, 8, 3); this.box(g, x, y, w, h, r, fill); g.restore(); this.box(g, x + 1, y + 1, w - 2, h - 2, r - 1, null, edge || "rgba(0,0,0,.25)", 2);
+    g.fillStyle = "rgba(255,255,255,.22)"; rrect(g, x + 3, y + 3, w - 6, h*.38, r*.8); g.fill(); },
+  wood(g, x, y, w, h, r = 18){ g.save(); this.shadow(g, true, 22, 8); this.box(g, x, y, w, h, r, this.lg(g, x, y, x + w, y + h, ["#c8935a", "#a8713e", "#8a5a30"])); g.restore();
+    g.save(); rrect(g, x, y, w, h, r); g.clip(); g.globalAlpha = .12; g.strokeStyle = "#3b220e"; for (let i = 0; i < 26; i++){ const yy = y + (i + .5)*h/26; g.lineWidth = 1 + (i*7 % 3); g.beginPath(); g.moveTo(x, yy); g.bezierCurveTo(x + w*.3, yy + 6, x + w*.6, yy - 6, x + w, yy + 2); g.stroke(); } g.restore();
+    this.box(g, x, y, w, h, r, null, "rgba(60,30,10,.7)", 3); },
+  felt(g, x, y, w, h, r = 18, c = "#1f6e4a"){ g.save(); this.shadow(g, true, 22, 8); this.box(g, x, y, w, h, r, this.lg(g, x, y, x, y + h, [c, this.dark(c)])); g.restore(); this.box(g, x, y, w, h, r, null, "rgba(255,255,255,.15)", 3); },
+  btn(g, b, on){ g.save(); this.shadow(g, true, 8, 3); this.box(g, b.x, b.y, b.w, b.h, Math.min(16, b.h/3), b.off ? "rgba(255,255,255,.1)" : on || b.p ? this.lg(g, b.x, b.y, b.x, b.y + b.h, b.c ? [b.c, this.dark(b.c)] : ["#ffd43b", "#f59f00"]) : "rgba(255,255,255,.16)"); g.restore();
+    this.box(g, b.x, b.y, b.w, b.h, Math.min(16, b.h/3), null, "rgba(255,255,255,.35)", 2); outlined(g, b.t, b.x + b.w/2, b.y + b.h/2, Math.min(26, b.h*.42), b.off ? "#999" : "#fff"); },
+  hit: (b, x, y) => b && x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h
+};
+
+/* =====================================================================
+   공통 진행 틀 (NG 게임 한 개)
+   ===================================================================== */
+function bgGame(G){
+  let W = 1280, H = 760, land = true, A = {x: 0, y: 0, w: 100, h: 100}, PC = [], btns = [], dirty = true, S = null, R = null, ui = {}, seq = 0, lastN = {},
+    endShown = false, banner = null, aiBusy = false, castT = 0, needCast = false, curtain = -1, lastView = -1, help = false, dropped = {}, turnF = 0, lastTurn = -9, fxN = 0, endInfo = null;
+  const O = () => NG.opt || {}, party = () => O().party, host = () => party() === "host", guest = () => party() === "guest", auth = () => !guest();
+  const N = () => NG.sids.length, bots = () => O().bots || [], isBot = i => bots().includes(i) || !!dropped[i];
+  const local = () => guest() ? [O().idx] : host() ? [0] : (O().local || [0]);
+  const turn = () => S ? G.turn(S) : -1;
+  const remoteHuman = i => host() && i > 0 && !isBot(i);
+  /* 지금 이 기기에서 판을 보는 사람 */
+  function viewer(){
+    if (party()) return guest() ? O().idx : 0;
+    const t = turn(), L = local();
+    if (L.includes(t)) return t;
+    return lastView >= 0 && L.includes(lastView) ? lastView : L[0];
+  }
+  const canAct = (a) => { if (endShown || NG.ended || !S || curtain >= 0) return false; const v = viewer(), t = turn(); return t === v || (G.free && G.free(S, v, a)); };
+  const say = (t, c = "#fff", k = 80) => { banner = {t, c, k}; dirty = true; };
+  const nameOf_ = i => isBot(i) && !dropped[i] ? "🤖 컴퓨터" : who(noOf_(NG.sids[i]));
+  const short = i => { if (isBot(i) && !dropped[i]) return "🤖 컴퓨터"; const no = noOf_(NG.sids[i]); return +no === TEACHER ? "선생님" : `${no}번 ${nameOf(no)}`; };
+  const ctx = () => ({N: N(), me: viewer(), name: short, bots: bots().concat(Object.keys(dropped).map(Number)), lv: O().lv ?? 1, R, say, local: local(), party: party()});
+
+  /* ---- 행동 ---- */
+  function doAct(p, a, from){
+    if (!S || endShown) return false;
+    if (guest()){ PARTY.sendIn({a}, true); return true; }
+    if (!G.act(S, p, a, R, ctx())) { if (from === "me" && G.bad) say(G.bad(S, p, a), "#ffa8a8", 50); return false; }
+    changed(); return true;
+  }
+  function changed(){
+    dirty = true; ui.an = Math.max(ui.an || 0, 24);
+    if (S.fxN && S.fxN !== fxN){ fxN = S.fxN; ui.fx = S.fx; ui.fxT = 0; if (S.fx && S.fx.say) say(S.fx.say, S.fx.c || "#ffe066", S.fx.k || 70); if (S.fx && S.fx.snd) try { SFX[S.fx.snd] && SFX[S.fx.snd](); } catch(e) {} else try { SFX.pt(); } catch(e) {} }
+    if (host()) cast();
+    checkEnd();
+  }
+  function viewFor(i){ return G.view ? G.view(S, i) : S; }
+  /* 📡 판 보내기: 친구마다 '볼 수 있는 것만'(손패 가림) · 꼭 도착하는 통로로
+     - 바뀌면 바로 · 안 바뀌어도 가끔(바로 이어진 친구 1.5초, 🌉 다리로 이어진 친구 6초 — Firebase 쓰기를 아껴요) */
+  function cast(periodic){ if (!host()) return; castT = 0; needCast = false; const now = Date.now();
+    PARTY.connected().forEach(P => { const i = P.spec ? -1 : P.idx; if (i == null) return; if (periodic && P.relay && now - (P.bgT || 0) < 6000) return; P.bgT = now;
+      try { P.r.send(JSON.stringify({t: "bs", n: ++seq, s: {v: viewFor(i)}})); } catch(e) {} }); }
+  function checkEnd(){
+    if (endShown || !S) return; const o = guest() ? null : G.over(S); if (!o) return;
+    endShown = true; dirty = true; endInfo = o;
+    say(o.w < 0 ? "🤝 비겼어요!" : `🏆 ${short(o.w)} 승리!`, "#ffe066", 999);
+    if (host()) PARTY.sendAll({t: "end", w: o.w, wins: [], txt: o.txt || "", rk: o.rank || null});
+    setTimeout(() => { if (NG.cur === def) result(o); }, 1400);
+  }
+  /* ---- 결과: 사람 2명 이상이면 랭킹·코인 (방장/이 기기만 한 번 올려요) ---- */
+  function result(o){
+    if (NG.ended && $("#ngOver") && !$("#ngOver").hidden) return;
+    NG.ended = true;
+    const humans = NG.sids.map((s, i) => i).filter(i => !bots().includes(i)), sids = NG.sids;
+    const ranked = !guest() && humans.length >= 2 && o.w >= 0 && humans.includes(o.w);
+    let coin = {};
+    if (ranked){ const ws = sids[o.w], ls = humans.filter(i => i !== o.w).map(i => sids[i]);
+      Store.putMulti(G.id, ws, ls); humans.forEach(i => coin[i] = Store.earn(sids[i], i === o.w ? WIN_COIN : LOSE_COIN)); }
+    const me = viewer(), meWon = o.w === me && !isBot(me), isB = o.w >= 0 && bots().includes(o.w);
+    const order = o.rank || (o.w >= 0 ? [o.w].concat(NG.sids.map((_, i) => i).filter(i => i !== o.w)) : NG.sids.map((_, i) => i));
+    const rows = order.map((i, k) => `<div class="bg-rr${i === me ? " me" : ""}"><span class="rk">${o.w < 0 ? "🤝" : k === 0 ? "🏆" : k + 1}</span>${bots().includes(i) ? `<span class="f">🤖</span>` : `<span class="avf">${avHTMLof(sids[i], {still: true, face: true})}</span>`}<b>${esc(short(i))}</b><small>${esc(G.pinfo ? G.pinfo(S, i, true) || "" : "")}</small>${coin[i] ? `<em>🪙 +${coin[i]}</em>` : ""}</div>`).join("");
+    const info = ranked ? "이긴 친구 랭킹 +1승! 함께 한 친구들도 코인을 받아요" : guest() ? "랭킹과 코인은 방장 기기가 올려요" : humans.length < 2 ? "🤖 컴퓨터 연습은 랭킹에 들어가지 않아요" : o.w < 0 ? "비긴 판은 랭킹에 들어가지 않아요" : "컴퓨터가 이긴 판은 랭킹에 들어가지 않아요";
+    $("#ngOver").innerHTML = `${meWon || (!party() && !isB && o.w >= 0) ? NG.conf(90) : ""}<div class="ng-box bg-res"><span class="f">${o.w < 0 ? "🤝" : isB ? "🤖" : "🏆"}</span>
+      <h3>${o.w < 0 ? "비겼어요!" : party() ? (meWon ? "🏆 내가 이겼어요!" : `${esc(short(o.w))} 승리!`) : `${esc(short(o.w))} 승리!`}</h3>
+      ${o.txt ? `<div class="sc">${esc(o.txt)}</div>` : ""}<div class="bg-rows">${rows}</div><div class="info">${info}</div>
+      <div class="arc-row">${guest() ? `<button class="arc-btn" data-bgr="wait">⏳ 방장이 다시 시작하길 기다려요</button>` : `<button class="arc-btn p" data-bgr="again">🔁 한 판 더</button>`}<button class="arc-btn" data-bgr="home">🏠 홈으로</button></div></div>`;
+    $("#ngOver").hidden = false;
+    $("#ngOver").onclick = e => { const b = e.target.closest("[data-bgr]"); if (!b) return; e.stopPropagation();
+      if (b.dataset.bgr === "home"){ PARTY.leave(); NG.close(); }
+      else if (b.dataset.bgr === "again"){ if (host()) PARTY.again(); else NG.play(G.id, NG.sids, Object.assign({}, O(), {seed: Math.floor(Math.random()*1e9) + 1})); } };
+    try { (meWon || (!party() && !isB) ? SFX.rec : SFX.over)(); } catch(e) {}
+  }
+
+  /* ---- 화면 배치 ---- */
+  function layout(w, h){
+    land = w >= h*1.02;
+    if (land){ H = 760; W = Math.round(Math.max(1060, Math.min(1700, H*w/Math.max(1, h)))); }
+    else { W = 760; H = Math.round(Math.max(1080, Math.min(1700, W*h/Math.max(1, w)))); }
+    def.W = W; def.H = H;
+    const n = N();
+    if (land){ const pw = 300, px = W - pw - 14; A = {x: 14, y: 14, w: px - 28, h: H - 28};
+      const ch = Math.min(118, (H - 28 - 140)/n - 8); PC = Array.from({length: n}, (_, i) => ({x: px, y: 14 + i*(ch + 8), w: pw, h: ch}));
+      const by = H - 14 - 58; btns = [{id: "help", t: "📖 규칙", x: px, y: by, w: pw/2 - 5, h: 58}, {id: "quit", t: party() ? "🚪 나가기" : "🏳️ 그만", x: px + pw/2 + 5, y: by, w: pw/2 - 5, h: 58}];
+    } else { const cw = (W - 24 - (n - 1)*8)/n; PC = Array.from({length: n}, (_, i) => ({x: 12 + i*(cw + 8), y: 10, w: cw, h: 112}));
+      A = {x: 10, y: 132, w: W - 20, h: H - 132 - 96};
+      btns = [{id: "help", t: "📖 규칙", x: 12, y: H - 84, w: (W - 34)/2, h: 72}, {id: "quit", t: party() ? "🚪 나가기" : "🏳️ 그만", x: 22 + (W - 34)/2, y: H - 84, w: (W - 34)/2, h: 72}]; }
+    if (G.layout) G.layout(A, land, ui);
+    dirty = true;
+  }
+  function card(g, R0, i){
+    const on = turn() === i && !endShown, me = i === viewer() && (party() || local().length === 1), sid = NG.sids[i], col = G.col ? G.col[i] : "#ffd43b";
+    g.save(); BGD.shadow(g, on, 18, 0, col); BGD.box(g, R0.x, R0.y, R0.w, R0.h, 18, on ? "rgba(255,255,255,.18)" : "rgba(255,255,255,.07)"); g.restore();
+    BGD.box(g, R0.x, R0.y, R0.w, R0.h, 18, null, on ? col : "rgba(255,255,255,.18)", on ? 4 : 2);
+    const small = R0.w < 200, fr = Math.min(small ? 26 : 34, R0.h*.3), fx = R0.x + (small ? R0.w/2 : 14 + fr), fy = R0.y + (small ? 12 + fr : R0.h/2);
+    if (isBot(i) && !dropped[i]) outlined(g, "🤖", fx, fy, fr*1.5); else try { faceAt(g, sid, fx, fy, fr, on ? col : null); } catch(e) {}
+    g.fillStyle = col; g.beginPath(); g.arc(fx + fr*.78, fy + fr*.7, fr*.34, 0, 7); g.fill(); g.lineWidth = 2; g.strokeStyle = "#fff"; g.stroke();
+    let nm = short(i) + (me ? " (나)" : ""); const sub = G.pinfo ? G.pinfo(S, i) || "" : "";
+    if (small){ if (nm.length > 7) nm = nm.slice(0, 7) + "…"; outlined(g, nm, R0.x + R0.w/2, R0.y + R0.h - 38, 18, on ? "#ffe066" : "#fff"); outlined(g, sub.length > 9 ? sub.slice(0, 9) + "…" : sub, R0.x + R0.w/2, R0.y + R0.h - 16, 15, "#c5f6fa"); }
+    else { if (nm.length > 11) nm = nm.slice(0, 11) + "…"; const tx = fx + fr + 12; g.save();
+      outlined(g, nm, tx, fy - R0.h*.17, Math.min(24, R0.h*.21), on ? "#ffe066" : "#fff", undefined, "left");
+      outlined(g, (on ? "▶ 차례! " : "") + (sub.length > 14 ? sub.slice(0, 14) + "…" : sub), tx, fy + R0.h*.17, Math.min(19, R0.h*.17), on ? "#ffe066" : "#c5f6fa", undefined, "left"); g.restore(); }
+    if (on && party() && remoteHuman(i) && turnF > 60*20){ const left = Math.max(0, 45 - Math.floor(turnF/60)); outlined(g, `⏰${left}`, R0.x + R0.w - 26, R0.y + 20, 16, "#ffa8a8"); }
+  }
+  /* ---- NG 게임 ---- */
+  const def = {
+    W, H, maxSteps: 3, layout,
+    init(){
+      R = BG.rng(O().seed || 1); ui = {}; endShown = false; banner = null; dropped = {}; seq = 0; lastN = {}; curtain = -1; help = false; fxN = 0; endInfo = null;
+      if (!guest()) S = G.setup(N(), R, ctx());
+      else S = null;
+      if (host()){ PARTY.attach({dropIdx: i => { dropped[i] = 1; dirty = true; }, end(){}, apply(){}}, () => { needCast = true; return {t: "hi"}; }); setTimeout(() => cast(), 300); }
+      if (guest()) PARTY.attach({apply: d => { if (d && d.s && d.s.v){ const first = !S; S = d.s.v; if (S.fxN && S.fxN !== fxN){ fxN = S.fxN; ui.fx = S.fx; ui.fxT = 0; if (S.fx && S.fx.say && !first) say(S.fx.say, S.fx.c || "#ffe066", S.fx.k || 70); if (!first) try { SFX[(S.fx && S.fx.snd) || "pt"](); } catch(e) {} } ui.an = Math.max(ui.an || 0, 24); dirty = true; } },
+        end: (w, wins, m) => { if (endShown) return; endShown = true; say(w < 0 ? "🤝 비겼어요!" : `🏆 ${short(w)} 승리!`, "#ffe066", 999); setTimeout(() => { if (NG.cur === def) result({w, txt: m.txt, rank: m.rk}); }, 1200); },
+        dropIdx(){} }, null);
+      say(`${G.e} ${G.n}`, "#fff", 70);
+      if (G.start && S) G.start(S, ui, ctx());
+      dirty = true;
+    },
+    step(){
+      if (!S){ dirty = true; return; }
+      const t = turn(); if (t !== lastTurn){ lastTurn = t; turnF = 0; if (!party() && G.hidden && local().length > 1 && local().includes(t) && lastView >= 0 && lastView !== t && !endShown) curtain = t; if (local().includes(t)) lastView = t; ui.sel = null; dirty = true; } else turnF++;
+      if (ui.an > 0){ ui.an--; dirty = true; } if (ui.fx){ ui.fxT = (ui.fxT || 0) + 1; }
+      if (banner && banner.k < 900 && --banner.k <= 0){ banner = null; dirty = true; } if (banner) dirty = true;
+      if (G.live && G.live(S, ui)) dirty = true;
+      if (guest() || endShown || NG.ended) return;
+      /* 🌐 친구 기기가 보낸 행동 */
+      if (host()) for (const P of PARTY.peers.values()){ if (P.idx >= 0 && P.last && (P.last.n || 0) > (lastN[P.idx] || 0)){ lastN[P.idx] = P.last.n; if (P.last.a !== undefined) doAct(P.idx, P.last.a, "net"); } }
+      if (host() && (needCast || ++castT > 90)) cast(!needCast);
+      if (G.tick && G.tick(S, R, ctx())) changed();
+      /* 🤖 컴퓨터 차례 (끊긴 친구 자리도) · ⏰ 친구가 45초 넘게 안 두면 컴퓨터가 한 수 */
+      const late = remoteHuman(t) && turnF > 60*45;
+      if (t >= 0 && (isBot(t) || late) && !aiBusy){
+        aiBusy = true; const delay = late ? 50 : (window.__bgFast ? 30 : (G.aiDelay || 650) + R()*300);
+        setTimeout(() => { aiBusy = false; if (NG.cur !== def || endShown || turn() !== t) return; const a = G.ai(S, t, R, ctx()); if (a != null){ if (late) toast(`⏰ ${short(t)} 대신 컴퓨터가 한 수 뒀어요`); doAct(t, a, "ai"); turnF = 0; } }, delay);
+      }
+    },
+    draw(g){
+      if (!dirty) return; dirty = false;
+      g.clearRect(0, 0, W, H);
+      g.fillStyle = BGD.lg(g, 0, 0, 0, H, G.bg || ["#2a1f5e", "#140f2e"]); g.fillRect(0, 0, W, H);
+      if (!S){ outlined(g, "⏳ 방장 기기에서 판을 받는 중…", W/2, H/2, 30, "#d0bfff"); return; }
+      const V = G.view && !guest() ? G.view(S, viewer()) : S; ui.V = V;   // 🙈 이 기기에는 '내가 볼 수 있는 것'만 그려요 (방장 기기도 친구 손패를 못 봐요)
+      g.save(); try { G.draw(g, V, viewer(), A, ui, ctx()); } catch(e){ console.error(e); } g.restore();
+      for (let i = 0; i < N(); i++) card(g, PC[i], i);
+      btns.forEach(b => BGD.btn(g, b));
+      if (party() && !endShown && turn() >= 0 && turn() !== viewer() && !(G.free && G.free(S, viewer()))){ BGD.box(g, A.x + A.w/2 - 190, A.y + 6, 380, 40, 20, "rgba(10,6,30,.72)"); outlined(g, `⏳ ${short(turn())} 차례예요`, A.x + A.w/2, A.y + 26, 21, "#d0bfff"); }
+      if (banner){ g.globalAlpha = banner.k >= 900 ? 1 : Math.min(1, banner.k/15); BGD.box(g, A.x, A.y + A.h/2 - 44, A.w, 88, 0, "rgba(10,6,30,.6)"); outlined(g, banner.t, A.x + A.w/2, A.y + A.h/2, Math.min(46, A.w/13), banner.c || "#fff"); g.globalAlpha = 1; }
+      if (curtain >= 0){ g.fillStyle = "rgba(20,12,50,.96)"; g.fillRect(0, 0, W, H); outlined(g, "🙈", W/2, H/2 - 90, 90); outlined(g, `${short(curtain)} 차례!`, W/2, H/2 + 10, 46, "#ffe066"); outlined(g, "다른 친구는 화면을 보지 않아요 · 눌러서 시작", W/2, H/2 + 70, 26, "#d0bfff"); }
+      if (help){ g.fillStyle = "rgba(15,10,40,.95)"; g.fillRect(0, 0, W, H); outlined(g, `📖 ${G.n} 규칙`, W/2, 60, 40, "#ffe066");
+        const L = G.rules.map(r => r.replace(/<[^>]+>/g, "")); let y = 120; const fs = land ? 22 : 24, mw = W - 120;
+        g.font = `${fs}px ${BGD.F}`; L.forEach((t, k) => { const words = `${k + 1}. ${t}`.split(" "); let line = ""; words.forEach(wd => { const tt = line ? line + " " + wd : wd; if (g.measureText(tt).width > mw){ BGD.txt(g, line, 60, y, fs, "#fff", "left"); y += fs*1.45; line = wd; } else line = tt; }); if (line){ BGD.txt(g, line, 60, y, fs, "#fff", "left"); y += fs*1.45 + 6; } });
+        outlined(g, "화면을 누르면 닫혀요", W/2, H - 40, 22, "#d0bfff"); }
+    },
+    down(x, y){
+      if (NG.ended) return; dirty = true;
+      if (help){ help = false; return; }
+      if (curtain >= 0){ curtain = -1; return; }
+      for (const b of btns) if (BGD.hit(b, x, y)){ if (b.id === "help") help = true; else if (b.id === "quit"){ if (confirm(party() ? "방에서 나갈까요?" : "이 판을 그만할까요?")){ PARTY.leave(); NG.close(); } } return; }
+      if (!S) return;
+      const v = viewer(), a = G.tap(ui.V || S, v, x, y, A, ui, canAct(), ctx());
+      if (a != null){ if (canAct(a)) doAct(v, a, "me"); else if (!endShown) say(turn() >= 0 ? `⏳ ${short(turn())} 차례예요` : "잠깐만요!", "#d0bfff", 40); }
+    },
+    move(x, y){ if (G.drag && S){ G.drag(S, viewer(), x, y, A, ui); dirty = true; } },
+    up(x, y){ if (G.drop && S){ const a = G.drop(S, viewer(), x, y, A, ui, canAct()); dirty = true; if (a != null && canAct(a)) doAct(viewer(), a, "me"); } },
+    key(code, d){ if (!d || !S || !G.key) return false; const a = G.key(S, viewer(), code, ui, canAct()); dirty = true; if (a != null && canAct(a)) doAct(viewer(), a, "me"); return a != null; },
+    destroy(){},
+    dbg: {S: () => S, act: (p, a) => doAct(p, a, "me"), G, ui: () => ui, view: i => viewFor(i), A: () => A}
+  };
+  return def;
+}
+
+/* ---------- 연결: 시작 창 · 온라인 방 시작 · 기록 · 홈 목록 ---------- */
+(function(){
+  const play = ARC.play;
+  ARC.play = function(gid){ if (!BG.D[gid]) return play.call(this, gid); if (!LOBBY.canPlay(gid)) return; getAC(); this.game = gid; this.lastRank = gid; BG.menu(gid); };
+  const start = PARTY.start;
+  PARTY.start = function(again){
+    if (!BG.D[this.gid]) return start.call(this, again);
+    if (this.role !== "host") return;
+    const G = BG.D[this.gid], live = this.connected().map(p => p.no);
+    this.members = [ARC.me].concat(this.members.filter(no => no !== ARC.me && live.includes(no))).slice(0, G.max);
+    const M = this.members, nb = Math.max(0, Math.min(this.bots, G.max - M.length));
+    if (M.length + nb < G.min){ toast(`친구가 들어오거나 🤖 컴퓨터를 넣어야 시작할 수 있어요 (${G.min}명부터)`); this.renderRooms(); return; }
+    this.started = true; Store.fs.updateDoc(this.ref(this.pid), {st: "play", n: M.length}).catch(() => {});
+    const botNos = WB.pickBots(M, nb), sids = M.concat(botNos).map(sidOf), bots = botNos.map((_, i) => M.length + i), seed = Math.floor(Math.random()*1e9) + 1, remote = {};
+    M.forEach((no, i) => { if (i){ const P = this.peers.get(no); if (P){ P.idx = i; P.inN = 0; P.last = {}; remote[i] = no; this.send(P, {t: "start", g: this.gid, sids, idx: i, bots, seed, lv: BG.lv}); } } });
+    this.seq = 0; this.lastGv = -1;
+    const md = $("#mdWb"); if (md) md.hidden = true;
+    if (!again){ ARC.game = this.gid; ARC.enter(); ARC.prep(); }
+    getAC(); NG.play(this.gid, sids, {party: "host", local: [0], bots, remote, seed, lv: BG.lv});
+  };
+  /* 🎲 친구 기기: 방장이 보낸 판 받기 · 조용한 차례(생각하는 중)에도 '끊겼다'고 착각하지 않게 */
+  const onHost = PARTY.onHost;
+  PARTY.onHost = function(m){
+    if (m && m.t === "bs"){ this.rxT = this.snapT = performance.now(); if (!this.bsN || m.n > this.bsN || m.n <= 2){ this.bsN = m.n; this.safeApply({s: m.s}); } return; }
+    if (m && m.t === "start") this.bsN = 0;
+    return onHost.call(this, m);
+  };
+  const watch = PARTY.watch;
+  PARTY.watch = function(){
+    if (!BG.D[this.gid]) return watch.call(this);
+    clearInterval(this.wdT); this.snapT = performance.now();
+    this.wdT = setInterval(() => { if (this.role !== "guest" || $("#ng").hidden){ clearInterval(this.wdT); return; }
+      if (NG.ended || !$("#ngOver").hidden){ this.snapT = performance.now(); return; }
+      const gap = performance.now() - Math.max(this.snapT || 0, this.joinT || 0);
+      if (gap > 9000) this.needGrid();
+      if (gap > 25000 && this.canRelay() && !(this.hp && this.hp.relay)){ this.relayJoin(); this.joinT = performance.now(); } }, 3000);
+  };
+  /* 여럿이 한 판 기록: 이긴 친구 +1승 · 나머지 +1패 → 문서 한 번만 써요 */
+  Store.putMulti = async function(game, w, ls){
+    const R = this.recs[game] = this.recs[game] || {}, now = Date.now(), up = (s, k) => { R[s] = Object.assign({w: 0, l: 0}, R[s]); R[s][k]++; R[s].at = now; };
+    up(w, "w"); ls.forEach(l => up(l, "l")); this.emit();
+    if (this.mode === "local") return this.saveLocal();
+    const fs = this.fs, inc = fs.increment(1), o = {[w]: {w: inc, at: now}}; ls.forEach(l => o[l] = {l: inc, at: now});
+    try { await fs.setDoc(fs.doc(this.db, "arcade", this.cid, "recs", game), o, {merge: true}); } catch(e){ toast("⚠️ 승리 기록을 올리지 못했어요. 인터넷을 확인해 주세요."); console.error(e); }
+  };
+  /* 🤝 홈의 '협동방' 칸에도 보드게임 방이 보여요 */
+  if (window.COOP){ const coop = COOP.coop; COOP.coop = gid => BG.D[gid] ? false : coop.call(COOP, gid); }
+  const css = document.createElement("style");
+  css.textContent = `.bg-intro{display:flex;gap:14px;align-items:center;background:rgba(255,255,255,.07);border-radius:16px;padding:10px 14px;margin-bottom:8px}.bg-intro .f{font-size:54px}.bg-intro b{font:24px "Jua",sans-serif}.bg-intro small{display:block;color:#c5bfe6}.bg-intro p{margin:4px 0 0;font-size:14px}
+.bg-rules{background:rgba(255,255,255,.05);border-radius:12px;padding:6px 12px;margin-bottom:8px}.bg-rules summary{cursor:pointer;font:17px "Jua",sans-serif}.bg-rules ol{margin:6px 0;padding-left:22px;font-size:14px;line-height:1.65}
+.in-room>.wb-sec.bg-on{display:block!important}.in-room>.bg-x,.in-room>.bg-rules{display:none!important}.wb-sec.bg-on{border:2px solid #ffd43b;box-shadow:0 0 18px rgba(255,212,59,.18)}
+.bg-res{max-width:560px}.bg-rows{display:grid;gap:6px;margin:10px 0}.bg-rr{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.08);text-align:left}.bg-rr.me{outline:2px solid #4dabf7;background:rgba(77,171,247,.18)}
+.bg-rr .rk{width:30px;text-align:center;font:20px "Jua",sans-serif}.bg-rr .avf,.bg-rr .f{width:38px;height:38px;flex:none;display:grid;place-items:center;font-size:28px}.bg-rr b{flex:1;font:17px "Jua",sans-serif}.bg-rr small{opacity:.85}.bg-rr em{font-style:normal;color:#ffe066}`;
+  document.head.appendChild(css);
+})();
+
+/* =====================================================================
+   🎲 보드게임 모음 ① — 🔲 점 잇기 상자 · 🚢 바다 대작전
+   ===================================================================== */
+const bgFx = (S, o) => { S.fx = o; S.fxN = (S.fxN || 0) + 1; };
+const bgEase = t => t < 0 ? 0 : t > 1 ? 1 : 1 - Math.pow(1 - t, 3);
+
+/* ---------------- 🔲 점 잇기 상자 (2~4명) ---------------- */
+BG.def({
+  id: "db", e: "🔲", n: "점 잇기 상자", like: "도트 앤 박스", time: "10분", min: 2, max: 4, col: ["#ff6b6b", "#4dabf7", "#69db7c", "#ffd43b"],
+  d: "점 사이에 선을 하나씩! 네모의 마지막 선을 그은 사람이 그 칸을 차지하고 한 번 더",
+  rules: ["차례마다 이웃한 두 점 사이에 <b>선 하나</b>를 그어요.", "네모의 <b>네 번째 선</b>을 그으면 그 네모는 내 땅이 되고 <b>한 번 더</b> 그어요.", "모든 선을 다 그으면 끝! 네모를 가장 많이 가진 사람이 이겨요.", "💡 세 번째 선을 그으면 친구에게 네모를 주는 거예요. 조심!"],
+  setup(n){ const C = n > 2 ? 6 : 5, Rr = n > 2 ? 5 : 5; return {C, R: Rr, h: Array((Rr + 1)*C).fill(-1), v: Array(Rr*(C + 1)).fill(-1), box: Array(Rr*C).fill(-1), t: 0, n, left: (Rr + 1)*C + Rr*(C + 1)}; },
+  turn: S => S.left > 0 ? S.t : -1,
+  sides(S, b){ const r = Math.floor(b/S.C), c = b % S.C; return [["h", r*S.C + c], ["h", (r + 1)*S.C + c], ["v", r*(S.C + 1) + c], ["v", r*(S.C + 1) + c + 1]]; },
+  cnt(S, b){ return this.sides(S, b).filter(([k, j]) => S[k][j] >= 0).length; },
+  boxesOf(S, k, j){ const L = []; if (k === "h"){ const r = Math.floor(j/S.C), c = j % S.C; if (r > 0) L.push((r - 1)*S.C + c); if (r < S.R) L.push(r*S.C + c); }
+    else { const r = Math.floor(j/(S.C + 1)), c = j % (S.C + 1); if (c > 0) L.push(r*S.C + c - 1); if (c < S.C) L.push(r*S.C + c); } return L; },
+  act(S, p, a){ if (!a || !["h", "v"].includes(a[0]) || S[a[0]][a[1]] !== -1) return false; const [k, j] = a; S[k][j] = p; S.left--;
+    const got = this.boxesOf(S, k, j).filter(b => this.cnt(S, b) === 4); got.forEach(b => S.box[b] = p);
+    if (!got.length) S.t = (p + 1) % S.n; bgFx(S, {k: "line", a, got, snd: got.length ? "gold" : "pt", say: got.length ? "📦 네모를 차지! 한 번 더!" : null, k2: 40}); return true; },
+  sc: (S, i) => S.box.filter(x => x === i).length,
+  over(S){ if (S.left > 0) return null; const sc = Array.from({length: S.n}, (_, i) => this.sc(S, i)), m = Math.max(...sc), top = sc.map((v, i) => v === m ? i : -1).filter(i => i >= 0);
+    return {w: top.length > 1 ? -1 : top[0], txt: sc.map((v, i) => `${v}칸`).join(" : "), rank: sc.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]).map(x => x[1])}; },
+  pinfo(S, i){ return `📦 ${this.sc(S, i)}칸`; },
+  all(S){ const L = []; S.h.forEach((x, j) => { if (x < 0) L.push(["h", j]); }); S.v.forEach((x, j) => { if (x < 0) L.push(["v", j]); }); return L; },
+  ai(S, p, R, X){ const L = this.all(S); if (!L.length) return null;
+    const give = a => this.boxesOf(S, a[0], a[1]).some(b => this.cnt(S, b) === 2), take = a => this.boxesOf(S, a[0], a[1]).some(b => this.cnt(S, b) === 3);
+    const T = L.filter(take); if (T.length && (X.lv > 0 || R() < .7)) return T[0];
+    const safe = L.filter(a => !give(a)); if (safe.length && (X.lv > 0 || R() < .5)) return safe[Math.floor(R()*safe.length)];
+    if (X.lv === 2){ /* 가장 적게 내주는 선 */ let best = L[0], bv = 1e9; for (const a of L){ const c = JSON.parse(JSON.stringify(S)); c[a[0]][a[1]] = p; let n = 0, more = true;
+        while (more){ more = false; for (const b2 of this.all(c)) if (this.boxesOf(c, b2[0], b2[1]).some(b => this.cnt(c, b) === 3)){ c[b2[0]][b2[1]] = 9; n++; more = true; break; } } if (n < bv){ bv = n; best = a; } } return best; }
+    return L[Math.floor(R()*L.length)]; },
+  geo(S, A){ const cs = Math.min((A.w - 60)/S.C, (A.h - 80)/S.R); return {cs, x: A.x + (A.w - cs*S.C)/2, y: A.y + (A.h - cs*S.R)/2}; },
+  draw(g, S, me, A, ui){
+    const {cs, x, y} = this.geo(S, A); BGD.box(g, x - 30, y - 30, cs*S.C + 60, cs*S.R + 60, 24, "#fff9db"); g.strokeStyle = "rgba(76,110,245,.15)"; g.lineWidth = 1;
+    for (let k = 0; k * 22 < cs*S.R + 60; k++){ g.beginPath(); g.moveTo(x - 30, y - 30 + k*22); g.lineTo(x + cs*S.C + 30, y - 30 + k*22); g.stroke(); }
+    const fx = ui.fx && ui.fx.k === "line" ? ui.fx : null, t = fx ? Math.min(1, (ui.fxT || 0)/14) : 1;
+    S.box.forEach((o, b) => { if (o < 0) return; const r = Math.floor(b/S.C), c = b % S.C; let s = 1; if (fx && fx.got.includes(b) && t < 1) s = bgEase(t);
+      const bx = x + c*cs + cs/2, by = y + r*cs + cs/2; g.globalAlpha = .55; BGD.box(g, bx - cs*.44*s, by - cs*.44*s, cs*.88*s, cs*.88*s, 10, this.col[o]); g.globalAlpha = 1; if (s > .6) outlined(g, ["🍎", "🐳", "🍀", "⭐"][o], bx, by, cs*.42*s); });
+    const ln = (k, j, col, w) => { let x0, y0, x1, y1; if (k === "h"){ const r = Math.floor(j/S.C), c = j % S.C; x0 = x + c*cs; y0 = y + r*cs; x1 = x0 + cs; y1 = y0; } else { const r = Math.floor(j/(S.C + 1)), c = j % (S.C + 1); x0 = x + c*cs; y0 = y + r*cs; x1 = x0; y1 = y0 + cs; }
+      g.strokeStyle = col; g.lineWidth = w; g.lineCap = "round"; g.beginPath(); g.moveTo(x0 + 9*(x1 > x0), y0 + 9*(y1 > y0)); g.lineTo(x1 - 9*(x1 > x0), y1 - 9*(y1 > y0)); g.stroke(); };
+    S.h.forEach((o, j) => { if (o >= 0) ln("h", j, this.col[o], 9); }); S.v.forEach((o, j) => { if (o >= 0) ln("v", j, this.col[o], 9); });
+    if (fx && fx.a && t < 1){ g.globalAlpha = 1 - t; ln(fx.a[0], fx.a[1], "#fff", 16); g.globalAlpha = 1; }
+    if (ui.pv) ln(ui.pv[0], ui.pv[1], "rgba(0,0,0,.18)", 9);
+    for (let r = 0; r <= S.R; r++) for (let c = 0; c <= S.C; c++){ g.fillStyle = "#343a40"; g.beginPath(); g.arc(x + c*cs, y + r*cs, 8, 0, 7); g.fill(); }
+  },
+  tap(S, me, px, py, A, ui){ const {cs, x, y} = this.geo(S, A), fx = (px - x)/cs, fy = (py - y)/cs, c = Math.floor(fx), r = Math.floor(fy), dx = fx - c, dy = fy - r;
+    let best = null, bd = .35; const tryH = (rr, cc, d) => { if (rr >= 0 && rr <= S.R && cc >= 0 && cc < S.C && d < bd){ bd = d; best = ["h", rr*S.C + cc]; } }, tryV = (rr, cc, d) => { if (rr >= 0 && rr < S.R && cc >= 0 && cc <= S.C && d < bd){ bd = d; best = ["v", rr*(S.C + 1) + cc]; } };
+    tryH(r, c, dy); tryH(r + 1, c, 1 - dy); tryV(r, c, dx); tryV(r, c + 1, 1 - dx);
+    if (!best || S[best[0]][best[1]] >= 0) return null; ui.pv = null; return best; },
+  bad: () => "이미 그은 선이에요"
+});
+
+/* ---------------- 🚢 바다 대작전 (배틀십 같은) ---------------- */
+BG.def({
+  id: "sea", e: "🚢", n: "바다 대작전", like: "배틀십 같은 게임", time: "10분", min: 2, max: 2, col: ["#4dabf7", "#ff922b"], hidden: true,
+  d: "숨겨진 친구 배를 포탄으로 찾아 모두 가라앉혀요! 맞히면 한 번 더",
+  rules: ["처음에 내 배 5척(5·4·3·3·2칸)이 바다에 놓여요. <b>🔀 다시 섞기</b>로 바꾸고 <b>✅ 준비 완료</b>를 눌러요.", "차례마다 친구 바다의 칸 하나를 눌러 포탄을 쏴요.", "💥 맞히면 <b>한 번 더</b>! 💧 빗나가면 친구 차례예요.", "친구 배를 <b>모두</b> 가라앉히면 이겨요.", "💡 맞힌 칸 옆(위·아래·왼쪽·오른쪽)을 노려요!"],
+  SH: [5, 4, 3, 3, 2], Z: 9,
+  place(R){ const Z = this.Z, occ = Array(Z*Z).fill(-1), ships = [];
+    this.SH.forEach((len, k) => { for (let t = 0; t < 500; t++){ const hz = R() < .5, r = Math.floor(R()*(hz ? Z : Z - len + 1)), c = Math.floor(R()*(hz ? Z - len + 1 : Z)), cells = Array.from({length: len}, (_, i) => hz ? r*Z + c + i : (r + i)*Z + c);
+      if (cells.every(i => occ[i] < 0)){ cells.forEach(i => occ[i] = k); ships.push(cells); break; } } });
+    return ships; },
+  setup(n, R){ return {ph: "set", ready: [0, 0], ships: [this.place(R), this.place(R)], shot: [Array(81).fill(0), Array(81).fill(0)], t: 0, win: -1, seed: Math.floor(R()*1e9)}; },
+  turn: S => S.ph === "set" || S.win >= 0 ? -1 : S.t,
+  free: (S, p, a) => S.ph === "set",
+  sunk(S, p, k){ return S.ships[p][k].every(i => S.shot[1 - p][i] === 2); },
+  act(S, p, a, R){
+    if (S.ph === "set"){ if (a === "mix" && !S.ready[p]){ S.ships[p] = this.place(R); bgFx(S, {k: "mix", snd: "pt"}); return true; } if (a === "ok"){ S.ready[p] = 1; if (S.ready[0] && S.ready[1]){ S.ph = "go"; bgFx(S, {k: "go", say: "🚢 대작전 시작!", snd: "pt"}); } else bgFx(S, {k: "ok"}); return true; } return false; }
+    const i = a; if (typeof i !== "number" || i < 0 || i > 80 || S.shot[p][i]) return false;
+    const op = 1 - p, k = S.ships[op].findIndex(c => c.includes(i)); S.shot[p][i] = k >= 0 ? 2 : 1;
+    if (k >= 0){ const sk = this.sunk(S, op, k); if (S.ships[op].every((_, kk) => this.sunk(S, op, kk))) S.win = p; bgFx(S, {k: "shot", i, p, hit: 1, say: sk ? `💥 ${S.ships[op][k].length}칸 배를 가라앉혔어요!` : "💥 맞았어요! 한 번 더", snd: "gold"}); }
+    else { S.t = op; bgFx(S, {k: "shot", i, p, hit: 0, say: "💧 빗나갔어요", snd: "pt", k2: 30}); }
+    return true; },
+  over: S => S.win >= 0 ? {w: S.win, txt: "배를 모두 가라앉혔어요!"} : null,
+  view(S, p){ const V = JSON.parse(JSON.stringify(S)); [0, 1].forEach(q => { if (q !== p) V.ships[q] = S.ships[q].map((c, k) => this.sunk(S, q, k) ? c : c.map(() => -1)); }); return V; },
+  pinfo(S, i){ if (!S) return ""; if (S.ph === "set") return S.ready[i] ? "✅ 준비 완료" : "⏳ 배 놓는 중"; const left = S.ships[i].filter((c, k) => !c.every(x => x >= 0 && S.shot[1 - i][x] === 2)).length; return `🚢 남은 배 ${left}척`; },
+  tick(S, R, X){ if (S.ph !== "set") return false; let ch = false; X.bots.forEach(b => { if (!S.ready[b]){ S.ready[b] = 1; ch = true; } }); if (ch && S.ready[0] && S.ready[1]){ S.ph = "go"; bgFx(S, {k: "go", say: "🚢 대작전 시작!"}); } return ch; },
+  ai(S, p, R, X){ const sh = S.shot[p], Z = this.Z, op = 1 - p, open = [];
+    for (let i = 0; i < 81; i++) if (!sh[i]) open.push(i);
+    if (X.lv > 0){ const hits = []; for (let i = 0; i < 81; i++) if (sh[i] === 2 && !S.ships[op].some((c, k) => c.includes(i) && this.sunk(S, op, k))) hits.push(i);
+      for (const h of hits){ const r = Math.floor(h/Z), c = h % Z; const L = [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]].filter(([a, b]) => a >= 0 && b >= 0 && a < Z && b < Z).map(([a, b]) => a*Z + b).filter(i => !sh[i]); if (L.length) return L[Math.floor(R()*L.length)]; }
+      if (X.lv === 2){ const par = open.filter(i => (Math.floor(i/Z) + i % Z) % 2 === 0); if (par.length) return par[Math.floor(R()*par.length)]; } }
+    return open[Math.floor(R()*open.length)]; },
+  geo(A, land){ const two = A.w > A.h*1.2, cs = two ? Math.min((A.w - 60)/18, (A.h - 120)/9) : Math.min((A.w - 30)/9, (A.h - 180)/18);
+    const bw = cs*9; return two ? {cs, me: {x: A.x + (A.w/2 - bw)/2, y: A.y + 50}, op: {x: A.x + A.w/2 + (A.w/2 - bw)/2, y: A.y + 50}, by: A.y + 60 + bw}
+      : {cs, op: {x: A.x + (A.w - bw)/2, y: A.y + 34}, me: {x: A.x + (A.w - bw)/2, y: A.y + 74 + bw}, by: A.y + 84 + bw*2}; },
+  draw(g, S, me, A, ui){
+    const G = this.geo(A), cs = G.cs, op = 1 - me, Z = 9;
+    const sea = (o, lab, own) => { g.save(); BGD.shadow(g, true, 16, 6); BGD.box(g, o.x - 6, o.y - 6, cs*Z + 12, cs*Z + 12, 14, BGD.lg(g, o.x, o.y, o.x, o.y + cs*Z, ["#1971c2", "#0b3d6e"])); g.restore();
+      g.strokeStyle = "rgba(255,255,255,.18)"; g.lineWidth = 1; for (let k = 1; k < Z; k++){ g.beginPath(); g.moveTo(o.x + k*cs, o.y); g.lineTo(o.x + k*cs, o.y + cs*Z); g.moveTo(o.x, o.y + k*cs); g.lineTo(o.x + cs*Z, o.y + k*cs); g.stroke(); }
+      outlined(g, lab, o.x + cs*Z/2, o.y - 22, 22, own ? "#a5d8ff" : "#ffc078"); };
+    sea(G.op, S.ph === "set" ? "친구 바다" : S.t === me ? "🎯 여기를 눌러 쏴요!" : "친구 바다", false); sea(G.me, "내 바다", true);
+    const ship = (o, cells, col, ghost) => { const rs = cells.map(i => Math.floor(i/Z)), cl = cells.map(i => i % Z), x0 = o.x + Math.min(...cl)*cs, y0 = o.y + Math.min(...rs)*cs, w = (Math.max(...cl) - Math.min(...cl) + 1)*cs, h = (Math.max(...rs) - Math.min(...rs) + 1)*cs;
+      g.globalAlpha = ghost ? .55 : 1; BGD.tile(g, x0 + 4, y0 + 4, w - 8, h - 8, BGD.lg(g, x0, y0, x0 + w, y0 + h, [col, BGD.dark(col)]), null, Math.min(w, h)/2 - 2); g.globalAlpha = 1; };
+    S.ships[me].forEach(c => ship(G.me, c, "#ced4da")); S.ships[op].forEach(c => { if (c[0] >= 0) ship(G.op, c, "#868e96", true); });
+    const marks = (o, arr) => arr.forEach((v, i) => { if (!v) return; const cx = o.x + (i % Z + .5)*cs, cy = o.y + (Math.floor(i/Z) + .5)*cs; outlined(g, v === 2 ? "💥" : "💧", cx, cy, cs*.55); });
+    marks(G.op, S.shot[me]); marks(G.me, S.shot[op]);
+    const fx = ui.fx && ui.fx.k === "shot" ? ui.fx : null; if (fx && (ui.fxT || 0) < 30){ const o = fx.p === me ? G.op : G.me, cx = o.x + (fx.i % Z + .5)*cs, cy = o.y + (Math.floor(fx.i/Z) + .5)*cs, t = ui.fxT/30;
+      g.strokeStyle = fx.hit ? "#ffd43b" : "#a5d8ff"; g.lineWidth = 5*(1 - t); g.beginPath(); g.arc(cx, cy, cs*(.3 + t*1.2), 0, 7); g.stroke(); }
+    if (S.ph === "set" && !S.ready[me]){ const w = 220; [{id: "mix", t: "🔀 다시 섞기", x: A.x + A.w/2 - w - 10, y: G.by, w, h: 60}, {id: "ok", t: "✅ 준비 완료", x: A.x + A.w/2 + 10, y: G.by, w, h: 60, p: 1}].forEach(b => BGD.btn(g, b)); }
+    else if (S.ph === "set") outlined(g, "⏳ 친구가 배를 놓는 중이에요", A.x + A.w/2, G.by + 30, 24, "#d0bfff");
+  },
+  tap(S, me, px, py, A){ const G = this.geo(A), cs = G.cs;
+    if (S.ph === "set"){ if (py >= G.by && py <= G.by + 60) return px < A.x + A.w/2 ? "mix" : "ok"; return null; }
+    const c = Math.floor((px - G.op.x)/cs), r = Math.floor((py - G.op.y)/cs); if (c < 0 || r < 0 || c > 8 || r > 8) return null; return r*9 + c; },
+  bad: () => "이미 쏜 칸이에요"
+});
+
+
+/* ---------------- 🔢 숫자 암호 (다빈치 코드 같은) ---------------- */
+BG.def({
+  id: "dv", e: "🔢", n: "숫자 암호", like: "다빈치 코드 같은 게임", time: "10분", min: 2, max: 4, col: ["#ff8787", "#74c0fc", "#8ce99a", "#ffd43b"], hidden: true,
+  d: "친구가 숨긴 숫자 타일을 추리해서 맞혀요! 내 타일이 모두 들키면 탈락",
+  rules: ["검은 타일·흰 타일에 0~11 숫자가 있어요. 내 타일은 <b>작은 수부터 큰 수</b> 순서로 놓여요(같은 수는 검은 타일이 왼쪽).", "차례가 되면 <b>⚫ 또는 ⚪ 더미</b>에서 타일 1장을 가져와요(나만 보여요).", "친구의 숨은 타일 하나를 누르고 <b>숫자</b>를 골라 맞혀요. 맞으면 그 타일이 뒤집히고, <b>더 맞히거나 멈출</b> 수 있어요.", "틀리면 방금 가져온 내 타일이 모두에게 공개돼요.", "타일이 모두 공개되면 탈락! 마지막까지 남으면 이겨요.", "💡 순서 규칙을 이용해요. 옆에 공개된 숫자가 큰 힌트예요!"],
+  setup(n, R){ const pool = []; for (let v = 0; v < 12; v++){ pool.push({v, c: 0}); pool.push({v, c: 1}); } BG.shuffle(pool, R);
+    const k = n > 3 ? 3 : 4, hands = Array.from({length: n}, () => []);
+    for (let i = 0; i < n; i++) for (let j = 0; j < k; j++) this.ins(hands[i], Object.assign(pool.pop(), {o: 0}));
+    return {n, h: hands, pool: [pool.filter(t => t.c === 0), pool.filter(t => t.c === 1)], t: 0, ph: "draw", nw: -1, out: [], win: -1, log: ""}; },
+  key: t => t.v*2 + t.c,
+  ins(h, t){ let i = 0; while (i < h.length && this.key(h[i]) < this.key(t)) i++; h.splice(i, 0, t); return i; },
+  alive(S, p){ return S.h[p].some(t => !t.o); },
+  turn: S => S.win >= 0 ? -1 : S.t,
+  nextP(S){ let q = S.t; for (let k = 0; k < S.n; k++){ q = (q + 1) % S.n; if (this.alive(S, q)) break; } S.t = q; S.ph = "draw"; S.nw = -1; },
+  act(S, p, a){
+    if (a.k === "draw"){ if (S.ph !== "draw") return false; const P = S.pool[a.c] && S.pool[a.c].length ? S.pool[a.c] : S.pool[1 - a.c];
+      if (!P.length){ S.ph = "guess"; S.nw = -1; return true; } const t = Object.assign(P.pop(), {o: 0, nw: 1}); S.h[p].forEach(x => delete x.nw); S.nw = this.ins(S.h[p], t); S.ph = "guess"; bgFx(S, {k: "draw", snd: "pt"}); return true; }
+    if (a.k === "stop"){ if (S.ph !== "more") return false; S.h[p].forEach(x => delete x.nw); this.nextP(S); bgFx(S, {k: "stop", say: "멈췄어요"}); return true; }
+    if (a.k === "guess"){ if (S.ph !== "guess" && S.ph !== "more") return false; const q = a.p, T = S.h[q] && S.h[q][a.i]; if (q === p || !T || T.o || !this.alive(S, q)) return false;
+      if (T.v === a.v){ T.o = 1; let say = `⭕ 맞았어요! ${T.c ? "⚪" : "⚫"}${T.v}`;
+        if (!this.alive(S, q)){ S.out.push(q); say = `💥 탈락! ${say}`; }
+        const left = Array.from({length: S.n}, (_, i) => i).filter(i => this.alive(S, i)); if (left.length === 1){ S.win = left[0]; bgFx(S, {k: "ok", say, snd: "gold"}); return true; }
+        S.ph = "more"; bgFx(S, {k: "ok", q, i: a.i, say, snd: "gold"}); return true; }
+      let i = S.h[p].findIndex(x => x.nw); if (i < 0) i = S.h[p].findIndex(x => !x.o); if (i >= 0) S.h[p][i].o = 1;
+      S.h[p].forEach(x => delete x.nw);
+      if (!this.alive(S, p)) S.out.push(p);
+      const left = Array.from({length: S.n}, (_, i) => i).filter(i => this.alive(S, i)); if (left.length === 1){ S.win = left[0]; bgFx(S, {k: "no", say: "❌ 틀렸어요!", snd: "bad"}); return true; }
+      this.nextP(S); bgFx(S, {k: "no", say: `❌ ${a.v}이(가) 아니에요!`, snd: "bad"}); return true; }
+    return false; },
+  over(S){ if (S.win < 0) return null; return {w: S.win, rank: [S.win].concat(S.out.slice().reverse()), txt: "끝까지 암호를 지켰어요!"}; },
+  view(S, p){ const V = JSON.parse(JSON.stringify(S)); V.h.forEach((h, q) => { if (q !== p) h.forEach(t => { if (!t.o){ t.v = -1; delete t.nw; } }); }); V.pool = V.pool.map(P => P.map(() => ({c: 0}))); return V; },
+  pinfo(S, i){ if (!S) return ""; const h = S.h[i]; return this.alive(S, i) ? `🔒 숨은 ${h.filter(t => !t.o).length} / ${h.length}` : "💥 탈락"; },
+  cands(V, p, q, i){ const h = V.h[q], T = h[i], seen = new Set();
+    V.h.forEach((hh, qq) => hh.forEach(t => { if (t.v >= 0 && (t.o || qq === p)) seen.add(this.key(t)); }));
+    let lo = -1, hi = 99; for (let j = i - 1; j >= 0; j--) if (h[j].v >= 0){ lo = this.key(h[j]); break; } for (let j = i + 1; j < h.length; j++) if (h[j].v >= 0){ hi = this.key(h[j]); break; }
+    const L = []; for (let v = 0; v < 12; v++){ const k = v*2 + T.c; if (k > lo && k < hi && !seen.has(k)) L.push(v); } return L; },
+  ai(S, p, R, X){ const V = this.view(S, p);
+    if (V.ph === "draw") return {k: "draw", c: R() < .5 ? 0 : 1};
+    let best = null, bn = 99; for (let q = 0; q < V.n; q++){ if (q === p || !this.alive(S, q)) continue; V.h[q].forEach((t, i) => { if (t.o) return; const C = this.cands(V, p, q, i); if (C.length && C.length < bn){ bn = C.length; best = {q, i, C}; } }); }
+    if (V.ph === "more" && (!best || bn > (X.lv === 2 ? 2 : 1) || (X.lv === 0 && R() < .5))) return {k: "stop"};
+    if (!best) return V.ph === "more" ? {k: "stop"} : null;
+    const C = X.lv === 0 ? Array.from({length: 12}, (_, v) => v) : best.C; return {k: "guess", p: best.q, i: best.i, v: C[Math.floor(R()*C.length)]}; },
+  geo(S, A, me){ const rows = S.n, rh = Math.min(150, (A.h - 210)/rows); return {rh, top: A.y + 10}; },
+  tileDraw(g, t, x, y, w, h, mine, hl){ const blk = t.c === 0; g.save(); if (hl){ BGD.shadow(g, true, 18, 0, "#ffe066"); }
+    BGD.tile(g, x, y, w, h, blk ? BGD.lg(g, x, y, x, y + h, ["#495057", "#212529"]) : BGD.lg(g, x, y, x, y + h, ["#ffffff", "#dee2e6"]), hl ? "#ffe066" : null, 10); g.restore();
+    const show = t.v >= 0 && (t.o || mine); if (show) outlined(g, String(t.v), x + w/2, y + h/2 + 2, h*.5, blk ? "#fff" : "#212529", blk ? "rgba(0,0,0,.6)" : "rgba(255,255,255,.7)"); else outlined(g, "?", x + w/2, y + h/2, h*.42, blk ? "#868e96" : "#adb5bd");
+    if (t.o){ g.fillStyle = "rgba(255,80,80,.85)"; g.beginPath(); g.arc(x + w - 10, y + 10, 7, 0, 7); g.fill(); }
+    if (mine && t.nw){ outlined(g, "NEW", x + w/2, y - 10, 14, "#ffe066"); } },
+  rowsOf(S, me){ const L = []; for (let k = 1; k < S.n; k++) L.push((me + k) % S.n); L.push(me); return L; },
+  draw(g, S, me, A, ui, X){
+    ui.hit = {}; const {rh, top} = this.geo(S, A, me), order = this.rowsOf(S, me);
+    order.forEach((q, ri) => { const h = S.h[q], y = top + ri*rh + (q === me ? 16 : 0), tw = Math.min(70, (A.w - 140)/Math.max(6, h.length) - 8), th = Math.min(rh - 34, tw*1.4), x0 = A.x + 130;
+      BGD.box(g, A.x, y, A.w, th + 26, 16, q === S.t ? "rgba(255,212,59,.12)" : "rgba(255,255,255,.05)", q === me ? "#4dabf7" : null);
+      outlined(g, q === me ? "나" : X.name(q).slice(0, 6), A.x + 64, y + (th + 26)/2, 20, this.col[q]);
+      if (!this.alive(S, q)) outlined(g, "💥 탈락", A.x + 64, y + (th + 26)/2 + 22, 15, "#ffa8a8");
+      h.forEach((t, i) => { const x = x0 + i*(tw + 8), hl = ui.sel && ui.sel.q === q && ui.sel.i === i; this.tileDraw(g, t, x, y + 13, tw, th, q === me, hl);
+        (ui.hit = ui.hit || {})[q + ":" + i] = {x, y: y + 13, w: tw, h: th}; }); });
+    const by = top + S.n*rh + 26, myTurn = S.t === me && S.win < 0;
+    const pc = [S.pool[0].length, S.pool[1].length];
+    ui.pb = [0, 1].map(c => ({x: A.x + 20 + c*150, y: by, w: 136, h: 70, t: `${c ? "⚪" : "⚫"} 더미 ${pc[c]}`, p: myTurn && S.ph === "draw", off: !myTurn || S.ph !== "draw" || (!pc[0] && !pc[1])}));
+    ui.pb.forEach(b => BGD.btn(g, b));
+    if (myTurn && S.ph === "draw") outlined(g, "👈 더미를 눌러 타일을 가져와요", A.x + 520, by + 35, 22, "#ffe066");
+    if (myTurn && (S.ph === "guess" || S.ph === "more")){
+      if (!ui.sel) outlined(g, S.ph === "more" ? "또 맞히려면 친구 타일을 눌러요" : "🔍 친구의 숨은 타일을 눌러요", A.x + 520, by + 20, 21, "#ffe066");
+      if (S.ph === "more"){ ui.sb = {x: A.x + A.w - 200, y: by, w: 180, h: 70, t: "✋ 멈추기", p: 1, c: "#20c997"}; BGD.btn(g, ui.sb); } else ui.sb = null;
+      if (ui.sel){ const nw = Math.min(56, (A.w - 340)/12 - 4); ui.nb = Array.from({length: 12}, (_, v) => ({x: A.x + 320 + v*(nw + 4), y: by + 6, w: nw, h: 58, t: String(v), v}));
+        const C = new Set(this.cands(S, me, ui.sel.q, ui.sel.i)); ui.nb.forEach(b => BGD.btn(g, Object.assign({}, b, {p: C.has(b.v), c: "#7950f2"}))); }
+    } else { ui.nb = null; ui.sb = null; }
+  },
+  tap(S, me, px, py, A, ui){
+    if (ui.pb) for (const b of ui.pb) if (BGD.hit(b, px, py) && !b.off) return {k: "draw", c: b === ui.pb[0] ? 0 : 1};
+    if (ui.sb && BGD.hit(ui.sb, px, py)) return {k: "stop"};
+    if (ui.nb && ui.sel) for (const b of ui.nb) if (BGD.hit(b, px, py)){ const s = ui.sel; ui.sel = null; return {k: "guess", p: s.q, i: s.i, v: b.v}; }
+    if (ui.hit) for (const k in ui.hit){ const [q, i] = k.split(":").map(Number); if (q !== me && BGD.hit(ui.hit[k], px, py)){ const t = S.h[q][i]; if (t && !t.o) ui.sel = {q, i}; return null; } }
+    return null; },
+  bad: (S, p, a) => a.k === "guess" ? "그 타일은 고를 수 없어요" : "지금은 할 수 없어요"
+});
+
+/* ---------------- 🍓 과일 종치기 (할리갈리 같은 · 실시간) ---------------- */
+BG.def({
+  id: "hg", e: "🍓", n: "과일 종치기", like: "할리갈리 같은 게임", time: "3분", min: 2, max: 4, col: ["#ff6b6b", "#ffd43b", "#69db7c", "#b197fc"],
+  d: "같은 과일이 딱 5개가 되면 종을 땡! 빠른 눈과 손이 이겨요",
+  rules: ["차례가 되면 <b>내 카드 더미</b>를 눌러 한 장을 뒤집어요.", "보이는 맨 위 카드들에서 <b>같은 과일이 모두 합쳐 딱 5개</b>가 되면 누구든 가운데 <b>🔔 종</b>을 눌러요!", "가장 먼저 친 친구가 보이는 카드를 <b>모두</b> 가져가요.", "5개가 아닌데 치면 친구들에게 카드를 1장씩 줘요.", "3분이 지나거나 한 명만 남으면 끝! 카드를 가장 많이 가진 친구가 이겨요."],
+  F: ["🍓", "🍌", "🍇", "🍋"],
+  setup(n, R){ const D = []; for (let f = 0; f < 4; f++) [[1, 5], [2, 3], [3, 3], [4, 2], [5, 1]].forEach(([k, c]) => { for (let j = 0; j < c; j++) D.push({f, k}); }); BG.shuffle(D, R);
+    const dk = Array.from({length: n}, () => []); D.forEach((c, i) => dk[i % n].push(c));
+    return {n, dk, up: Array.from({length: n}, () => []), t: 0, left: 180, end: 0, cool: 0, win: -1, ring: -1, gt: 0}; },
+  turn: S => S.win >= 0 ? -1 : S.t,
+  free: (S, p, a) => a && a.k === "bell",
+  five(S){ const c = [0, 0, 0, 0]; S.up.forEach(u => { const t = u[u.length - 1]; if (t) c[t.f] += t.k; }); return c.some(x => x === 5); },
+  cnt: (S, i) => S.dk[i].length + S.up[i].length,
+  alive(S, i){ return S.dk[i].length > 0 || S.up[i].length > 0; },
+  nextP(S){ let q = S.t; for (let k = 0; k < S.n; k++){ q = (q + 1) % S.n; if (S.dk[q].length) break; } S.t = q; },
+  act(S, p, a, R){
+    const now = S.gt;
+    if (a.k === "flip"){ if (S.t !== p || !S.dk[p].length || now < S.cool) return false; S.up[p].push(S.dk[p].shift()); this.nextP(S); if (!S.dk[S.t].length) this.fin(S); bgFx(S, {k: "flip", p, snd: "pt"}); S.ft = now; return true; }
+    if (a.k === "bell"){ if (now < S.cool || !this.alive(S, p)) return false; S.cool = now + 60;
+      if (this.five(S)){ const won = []; S.up.forEach(u => { won.push(...u); u.length = 0; }); BG.shuffle(won, R); S.dk[p].push(...won); S.ring = p; bgFx(S, {k: "bell", p, ok: 1, say: `🔔 땡! 카드 ${won.length}장!`, snd: "gold"}); }
+      else { let g = 0; for (let q = 0; q < S.n; q++) if (q !== p && this.alive(S, q) && S.dk[p].length){ S.dk[q].push(S.dk[p].pop()); g++; } S.ring = p; bgFx(S, {k: "bell", p, ok: 0, say: `🙈 5개가 아니에요! 카드 ${g}장 주기`, snd: "bad", c: "#ffa8a8"}); }
+      if (!S.dk[S.t].length) this.nextP(S); this.fin(S); return true; }
+    return false; },
+  fin(S){ const al = Array.from({length: S.n}, (_, i) => i).filter(i => S.dk[i].length); if (al.length <= 1 || S.left <= 0){ const c = Array.from({length: S.n}, (_, i) => this.cnt(S, i)); const m = Math.max(...c); const tops = c.map((v, i) => v === m ? i : -1).filter(i => i >= 0); S.win = tops.length > 1 ? 99 : tops[0]; } },
+  tick(S, R, X){ S.gt++; let ch = false;
+    if (S.gt % 60 === 0 && S.win < 0){ S.left--; ch = true; if (S.left <= 0) this.fin(S); }
+    if (S.win >= 0) return ch;
+    if (this.five(S)){ if (!S.bot){ const sp = [70, 45, 30][X.lv] + Math.floor(R()*35); S.bot = {at: S.gt + sp, who: X.bots[Math.floor(R()*Math.max(1, X.bots.length))]}; } }
+    else if (S.bot){ if (R() < .004 && X.lv === 0 && X.bots.length) { /* 쉬움 컴퓨터는 가끔 실수 */ } S.bot = null; }
+    if (S.bot && S.gt >= S.bot.at && S.bot.who != null && this.alive(S, S.bot.who)){ const w = S.bot.who; S.bot = null; if (this.act(S, w, {k: "bell"}, R)) return true; }
+    return ch; },
+  aiDelay: 700,
+  ai(S, p){ return S.dk[p].length ? {k: "flip"} : null; },
+  over(S){ if (S.win < 0) return null; const c = Array.from({length: S.n}, (_, i) => this.cnt(S, i)), rank = c.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]).map(x => x[1]); return {w: S.win === 99 ? -1 : S.win, rank, txt: c.map(v => `${v}장`).join(" : ")}; },
+  pinfo(S, i){ return S ? `🃏 ${this.cnt(S, i)}장` : ""; },
+  view(S){ const V = Object.assign({}, S, {dk: S.dk.map(d => d.map(() => 0)), bot: null}); return V; },
+  card(g, c, x, y, w, h, rot){ g.save(); g.translate(x + w/2, y + h/2); g.rotate(rot || 0); BGD.tile(g, -w/2, -h/2, w, h, "#fff", "#adb5bd", 14);
+    const P = {1: [[0, 0]], 2: [[-.22, -.22], [.22, .22]], 3: [[-.25, -.27], [0, 0], [.25, .27]], 4: [[-.22, -.25], [.22, -.25], [-.22, .25], [.22, .25]], 5: [[-.22, -.27], [.22, -.27], [0, 0], [-.22, .27], [.22, .27]]}[c.k];
+    P.forEach(([u, v]) => outlined(g, this.F[c.f], u*w, v*h, w*.28, "#fff", "rgba(0,0,0,.15)")); g.restore(); },
+  back(g, x, y, w, h){ BGD.tile(g, x, y, w, h, BGD.lg(g, x, y, x + w, y + h, ["#e64980", "#a61e4d"]), "#fff", 14); outlined(g, "🍓", x + w/2, y + h/2, w*.4); },
+  geo(S, A){ const cx = A.x + A.w/2, cy = A.y + A.h/2, R0 = Math.min(A.w, A.h)*.34, cw = Math.min(120, R0*.6), ch = cw*1.4;
+    const ang = q => Math.PI/2 + q*2*Math.PI/S.n; return {cx, cy, R0, cw, ch, pos: q => ({x: cx + Math.cos(ang(q))*R0*(S.n === 2 ? 1 : 1.05), y: cy + Math.sin(ang(q))*R0*.9})}; },
+  draw(g, S, me, A, ui, X){
+    const G = this.geo(S, A); BGD.felt(g, A.x + 10, A.y + 10, A.w - 20, A.h - 20, 40, "#2f9e44");
+    const rot = q => ((q - me + S.n) % S.n);
+    for (let q = 0; q < S.n; q++){ const P = G.pos(rot(q)), dx = P.x - G.cx, dy = P.y - G.cy, d = Math.hypot(dx, dy) || 1, ux = dx/d, uy = dy/d;
+      const dkx = P.x + ux*G.cw*.2 - G.cw*1.1, dky = P.y - G.ch/2, upx = P.x - ux*G.cw*.5 + G.cw*.1, upy = P.y - uy*G.ch*.55 - G.ch/2;
+      if (S.dk[q].length){ for (let k = Math.min(3, S.dk[q].length) - 1; k >= 0; k--) this.back(g, dkx - k*3, dky - k*3, G.cw*.8, G.ch*.8); outlined(g, `${S.dk[q].length}`, dkx + G.cw*.4, dky + G.ch*.8 + 16, 20, "#fff"); }
+      if (q === me){ ui.deck = {x: dkx - 10, y: dky - 10, w: G.cw*.8 + 20, h: G.ch*.8 + 20}; if (S.t === me && S.win < 0){ g.lineWidth = 4; g.strokeStyle = "#ffe066"; rrect(g, dkx - 6, dky - 6, G.cw*.8 + 12, G.ch*.8 + 12, 14); g.stroke(); outlined(g, "👆 뒤집기", dkx + G.cw*.4, dky - 22, 20, "#ffe066"); } }
+      const top = S.up[q][S.up[q].length - 1]; if (top){ const ft = ui.fx && ui.fx.k === "flip" && ui.fx.p === q ? bgEase((ui.fxT || 0)/12) : 1; g.save(); g.globalAlpha = ft; this.card(g, top, upx, upy + (1 - ft)*30, G.cw, G.ch, (q*.13) % .2 - .1); g.restore(); }
+      outlined(g, q === me ? "나" : X.name(q).slice(0, 6), P.x - G.cw*.3, P.y + G.ch*.62 + 8, 18, this.col[q]); }
+    const bf = ui.fx && ui.fx.k === "bell" ? ui.fx : null, bt = bf ? (ui.fxT || 0) : 99, shake = bt < 20 ? Math.sin(bt*1.6)*8*(1 - bt/20) : 0, br = Math.min(90, G.R0*.38);
+    ui.bell = {x: G.cx - br, y: G.cy - br, w: br*2, h: br*2};
+    g.save(); g.translate(G.cx + shake, G.cy); BGD.disc(g, 0, br*.25, br*.95, "#868e96"); BGD.disc(g, 0, 0, br*.8, "#fcc419", "#fff3bf"); outlined(g, "🔔", 0, -4, br*.9); g.restore();
+    if (bf && bt < 40){ g.strokeStyle = bf.ok ? "#ffe066" : "#ff8787"; g.lineWidth = 6; g.beginPath(); g.arc(G.cx, G.cy, br + bt*3, 0, 7); g.stroke(); }
+    outlined(g, `⏰ ${Math.floor(S.left/60)}:${String(S.left % 60).padStart(2, "0")}`, A.x + 90, A.y + 40, 28, S.left < 30 ? "#ff8787" : "#fff");
+  },
+  tap(S, me, px, py, A, ui){ if (BGD.hit(ui.bell, px, py)) return {k: "bell"}; if (BGD.hit(ui.deck, px, py)) return {k: "flip"}; return null; },
+  key(S, me, code){ return code === "Space" ? {k: "bell"} : code === "Enter" ? {k: "flip"} : null; }
+});
+
+/* ---------------- 🃏 원카드 (2~4명) ---------------- */
+BG.def({
+  id: "oc", e: "🃏", n: "원카드", like: "우리가 아는 그 원카드", time: "10분", min: 2, max: 4, col: ["#ff6b6b", "#4dabf7", "#69db7c", "#ffd43b"], hidden: true,
+  d: "같은 무늬나 같은 숫자를 내요! 공격 카드로 친구에게 카드를 왕창",
+  rules: ["맨 위 카드와 <b>무늬</b>가 같거나 <b>숫자</b>가 같은 카드를 한 장 내요. 낼 카드가 없으면 <b>🂠 한 장 먹기</b>.", "⚔️ 공격: <b>2</b> → 2장, <b>A</b> → 3장, <b>♠A</b> → 5장, <b>조커</b> → 5장(컬러 조커 7장). 공격받으면 더 센 공격 카드로 막을 수 있어요(쌓여요)!", "<b>7</b> 무늬 바꾸기 · <b>J</b> 다음 사람 건너뛰기 · <b>Q</b> 방향 바꾸기 · <b>K</b> 한 번 더", "카드를 먼저 <b>모두 내면</b> 이겨요! 카드가 20장 넘으면 파산이에요."],
+  SU: ["♠", "♥", "♦", "♣"], RK: ["", "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"],
+  setup(n, R){ const D = BG.shuffle(Array.from({length: 54}, (_, i) => i), R), h = Array.from({length: n}, () => D.splice(0, 7)); let top = D.pop(); while (top >= 52 || [1, 2].includes(top % 13 + 1)){ D.unshift(top); top = D.pop(); }
+    return {n, h, d: D, pile: [top], su: Math.floor(top/13), atk: 0, dir: 1, t: 0, win: -1, out: [], bust: []}; },
+  turn: S => S.win >= 0 ? -1 : S.t,
+  rk: c => c >= 52 ? 0 : c % 13 + 1, su: c => c >= 52 ? -1 : Math.floor(c/13),
+  pow(c){ if (c === 53) return 7; if (c === 52) return 5; const r = this.rk(c); if (r === 1) return this.su(c) === 0 ? 5 : 3; if (r === 2) return 2; return 0; },
+  can(S, c){ const top = S.pile[S.pile.length - 1];
+    if (S.atk > 0){ const p = this.pow(c); if (!p) return false; if (c >= 52) return true; if (top >= 52) return p >= 3; return this.su(c) === S.su || this.rk(c) === this.rk(top) || p >= this.pow(top); }
+    if (c >= 52) return true; if (top >= 52) return this.su(c) === S.su; return this.su(c) === S.su || this.rk(c) === this.rk(top); },
+  step(S, k = 1){ let q = S.t; for (let i = 0; i < k; i++){ do { q = (q + S.dir + S.n) % S.n; } while (S.out.includes(q) && S.out.length < S.n); } return q; },
+  drawN(S, p, n){ for (let i = 0; i < n; i++){ if (!S.d.length){ const top = S.pile.pop(); S.d = BG.shuffle(S.pile, BG.rng(S.pile.length*7 + 3)); S.pile = [top]; } if (S.d.length) S.h[p].push(S.d.pop()); } },
+  act(S, p, a){
+    if (a.k === "draw"){ const n = S.atk || 1; this.drawN(S, p, n); const say = S.atk ? `😱 ${n}장 먹었어요!` : null; S.atk = 0;
+      if (S.h[p].length > 20){ S.out.push(p); S.bust.push(p); S.h[p] = []; bgFx(S, {k: "bust", say: "💸 파산! 카드가 20장 넘었어요", snd: "bad"}); this.chk(S); if (S.win < 0) S.t = this.step(S); return true; }
+      S.t = this.step(S); bgFx(S, {k: "draw", p, say, snd: "pt"}); return true; }
+    if (a.k === "play"){ const i = S.h[p].indexOf(a.c); if (i < 0 || !this.can(S, a.c)) return false; S.h[p].splice(i, 1); S.pile.push(a.c);
+      const r = this.rk(a.c); let skip = 1, say = null; S.su = a.c >= 52 ? (a.s != null ? a.s : S.su) : this.su(a.c);
+      const pw = this.pow(a.c); if (pw){ S.atk += pw; say = `⚔️ 공격 +${pw} (쌓인 ${S.atk}장)`; }
+      else if (r === 7){ if (a.s != null && a.s >= 0 && a.s < 4) S.su = a.s; say = `🎨 ${this.SU[S.su]} 무늬로!`; }
+      else if (r === 11){ skip = 2; say = "⏭️ 건너뛰기!"; } else if (r === 12){ S.dir = -S.dir; say = "🔄 방향 바꾸기!"; if (S.n - S.out.length === 2) skip = 2; } else if (r === 13){ skip = 0; say = "👑 한 번 더!"; }
+      if (!S.h[p].length){ S.out.push(p); say = "🎉 카드를 다 냈어요!"; this.chk(S); }
+      if (S.win < 0) S.t = skip ? this.step(S, skip) : p;
+      bgFx(S, {k: "play", p, c: a.c, say, snd: pw ? "hit" : "pt"}); return true; }
+    return false; },
+  chk(S){ const left = Array.from({length: S.n}, (_, i) => i).filter(i => !S.out.includes(i)); const winners = S.out.filter(i => !S.bust.includes(i)); if (winners.length) S.win = winners[0]; else if (left.length === 1) S.win = left[0]; },
+  over(S){ if (S.win < 0) return null; const rank = Array.from({length: S.n}, (_, i) => i).sort((a, b) => (a === S.win ? -1 : b === S.win ? 1 : S.h[a].length - S.h[b].length)); return {w: S.win, rank, txt: "원카드 승리!"}; },
+  view(S, p){ const V = JSON.parse(JSON.stringify(S)); V.h = S.h.map((h, q) => q === p ? h : h.map(() => -1)); V.d = S.d.map(() => -1); return V; },
+  pinfo(S, i){ return S ? (S.bust.includes(i) ? "💸 파산" : S.out.includes(i) ? "🎉 다 냈어요" : `🂠 ${S.h[i].length}장${S.h[i].length === 1 ? " · 원카드!" : ""}`) : ""; },
+  ai(S, p, R, X){ const H = S.h[p], ok = H.filter(c => this.can(S, c)); if (!ok.length) return {k: "draw"};
+    const nx = this.step(S), danger = S.h[nx].length <= 2; let c;
+    if (X.lv === 0) c = ok[Math.floor(R()*ok.length)];
+    else c = ok.sort((a, b) => { const sc = x => (this.pow(x) ? (danger || S.atk ? 30 : -10) : 0) + (x >= 52 ? -20 : 0) + (this.rk(x) === 7 ? -5 : 0) + (this.rk(x) === 13 ? 8 : 0) + H.filter(y => this.su(y) === this.su(x)).length; return sc(b) - sc(a); })[0];
+    const cnt = [0, 0, 0, 0]; H.forEach(x => { if (x < 52 && x !== c) cnt[this.su(x)]++; }); const best = cnt.indexOf(Math.max(...cnt));
+    return {k: "play", c, s: best}; },
+  cardDraw(g, c, x, y, w, h, hl, dim){ g.save(); if (hl){ BGD.shadow(g, true, 18, 0, "#ffe066"); } if (c < 0){ BGD.tile(g, x, y, w, h, BGD.lg(g, x, y, x + w, y + h, ["#5c7cfa", "#364fc7"]), "#fff", 10); outlined(g, "🎲", x + w/2, y + h/2, w*.4); g.restore(); return; }
+    BGD.tile(g, x, y, w, h, "#fff", hl ? "#ffe066" : "#adb5bd", 10); g.restore();
+    if (c >= 52){ outlined(g, "🃏", x + w/2, y + h/2, w*.55); outlined(g, c === 53 ? "컬러" : "흑백", x + w/2, y + h - 14, 13, c === 53 ? "#e03131" : "#343a40", "rgba(255,255,255,.8)"); }
+    else { const red = [1, 2].includes(this.su(c)), col = red ? "#e03131" : "#212529"; BGD.txt(g, this.RK[this.rk(c)], x + 8, y + 16, w*.3, col, "left"); BGD.txt(g, this.SU[this.su(c)], x + 8, y + 16 + w*.28, w*.24, col, "left"); BGD.txt(g, this.SU[this.su(c)], x + w/2, y + h*.6, w*.55, col);
+      if (this.pow(c)){ outlined(g, "⚔️", x + w - 14, y + 16, 15); } }
+    if (dim){ g.fillStyle = "rgba(0,0,0,.35)"; rrect(g, x, y, w, h, 10); g.fill(); } },
+  draw(g, S, me, A, ui, X){
+    BGD.felt(g, A.x + 6, A.y + 6, A.w - 12, A.h - 12, 30, "#1c7c54");
+    const others = []; for (let k = 1; k < S.n; k++) others.push(this.step(Object.assign({}, S, {t: me, dir: 1}), k));
+    others.forEach((q, k) => { const cx = A.x + (k + 1)*A.w/(others.length + 1), n = S.h[q].length, cw = 44, ch = 62, sp = Math.min(18, 160/Math.max(1, n));
+      for (let i = 0; i < Math.min(n, 12); i++) this.cardDraw(g, -1, cx - (Math.min(n, 12) - 1)*sp/2 + i*sp - cw/2, A.y + 30, cw, ch);
+      outlined(g, `${q === S.t ? "▶ " : ""}${X.name(q).slice(0, 6)} · ${n}장`, cx, A.y + 110, 18, q === S.t ? "#ffe066" : "#fff"); });
+    const cx = A.x + A.w/2, cy = A.y + A.h*.42, cw = Math.min(110, A.w*.12), ch = cw*1.42;
+    for (let k = 0; k < 3; k++) this.cardDraw(g, -1, cx - cw*1.4 - k*2, cy - ch/2 - k*2, cw, ch);
+    outlined(g, `${S.d.length}장`, cx - cw*.9, cy + ch/2 + 18, 18); ui.db = {x: cx - cw*1.4 - 6, y: cy - ch/2 - 6, w: cw + 12, h: ch + 12};
+    const top = S.pile[S.pile.length - 1], pf = ui.fx && ui.fx.k === "play" ? bgEase((ui.fxT || 0)/14) : 1;
+    if (S.pile.length > 1) this.cardDraw(g, S.pile[S.pile.length - 2], cx + cw*.2 - 6, cy - ch/2 + 4, cw, ch);
+    g.save(); g.translate(0, (1 - pf)*80); this.cardDraw(g, top, cx + cw*.2, cy - ch/2, cw, ch); g.restore();
+    BGD.box(g, cx + cw*1.4, cy - 40, 120, 80, 16, "rgba(0,0,0,.3)"); outlined(g, "지금 무늬", cx + cw*1.4 + 60, cy - 20, 16, "#d0bfff"); outlined(g, this.SU[S.su], cx + cw*1.4 + 60, cy + 14, 40, [1, 2].includes(S.su) ? "#ff6b6b" : "#fff");
+    if (S.atk) outlined(g, `⚔️ 공격 ${S.atk}장 받는 중!`, cx, cy - ch/2 - 24, 26, "#ff8787");
+    outlined(g, S.dir > 0 ? "🔃 시계 방향" : "🔄 반대 방향", A.x + 100, A.y + A.h*.42, 18, "#c5f6fa");
+    const H = S.h[me] || [], n = H.length, hw = Math.min(96, (A.w - 40)/Math.max(7, n)*1.6), hh = hw*1.42, sp = Math.min(hw + 6, (A.w - 60 - hw)/Math.max(1, n - 1)), x0 = A.x + A.w/2 - ((n - 1)*sp + hw)/2, y0 = A.y + A.h - hh - 16;
+    const my = S.t === me && S.win < 0; ui.hand = [];
+    H.forEach((c, i) => { const ok = my && this.can(S, c), sel = ui.sel === c, y = y0 - (sel ? 26 : ok ? 10 : 0); this.cardDraw(g, c, x0 + i*sp, y, hw, hh, sel, my && !ok); ui.hand.push({x: x0 + i*sp, y, w: i === n - 1 ? hw : sp, h: hh, c}); });
+    ui.su = null;
+    if (my && ui.sel != null && (this.rk(ui.sel) === 7 || ui.sel >= 52)){ ui.su = this.SU.map((s, k) => ({x: cx - 230 + k*120, y: y0 - 100, w: 110, h: 64, t: s, k, c: [1, 2].includes(k) ? "#e03131" : "#343a40", p: 1})); outlined(g, "바꿀 무늬를 골라요", cx, y0 - 118, 20, "#ffe066"); ui.su.forEach(b => BGD.btn(g, b)); }
+    if (my){ ui.dbt = {x: A.x + A.w - 210, y: cy + ch/2 + 40, w: 190, h: 62, t: S.atk ? `😱 ${S.atk}장 먹기` : "🂠 한 장 먹기", p: !H.some(c => this.can(S, c)), c: "#e8590c"}; BGD.btn(g, ui.dbt); } else ui.dbt = null;
+    if (my && ui.sel != null && !ui.su){ outlined(g, "한 번 더 누르면 내요", cx, y0 - 46, 18, "#ffe066"); }
+  },
+  tap(S, me, px, py, A, ui){
+    if (ui.su) for (const b of ui.su) if (BGD.hit(b, px, py)){ const c = ui.sel; ui.sel = null; return {k: "play", c, s: b.k}; }
+    if ((ui.dbt && BGD.hit(ui.dbt, px, py)) || BGD.hit(ui.db, px, py)){ ui.sel = null; return {k: "draw"}; }
+    for (let i = (ui.hand || []).length - 1; i >= 0; i--){ const b = ui.hand[i]; if (BGD.hit(b, px, py)){ if (!this.can(S, b.c)){ ui.sel = null; return null; }
+      if (ui.sel === b.c && !(this.rk(b.c) === 7 || b.c >= 52)){ ui.sel = null; return {k: "play", c: b.c}; } ui.sel = b.c; return null; } }
+    ui.sel = null; return null; },
+  bad: () => "그 카드는 낼 수 없어요"
+});
+
+/* =====================================================================
+   🎲 보드게임 모음 ③ — 🌏 세계 여행 · 🀫 숫자 타일
+   ===================================================================== */
+
+/* ---------------- 🌏 세계 여행 (부루마블 같은) ---------------- */
+const MB_SQ = [["🏁", "출발"], ["🇹🇭", "방콕", 100], ["🔑", "황금 열쇠"], ["🇻🇳", "하노이", 120], ["🇸🇬", "싱가포르", 140], ["🇪🇬", "카이로", 160], ["🏝️", "무인도"],
+  ["🇬🇷", "아테네", 180], ["🔑", "황금 열쇠"], ["🇪🇸", "마드리드", 200], ["🇮🇹", "로마", 220], ["🇩🇪", "베를린", 240], ["🎡", "쉼터"],
+  ["🇬🇧", "런던", 260], ["🔑", "황금 열쇠"], ["🇫🇷", "파리", 280], ["🇨🇦", "토론토", 300], ["🇺🇸", "뉴욕", 320], ["🚀", "우주여행"],
+  ["🇦🇺", "시드니", 340], ["🔑", "황금 열쇠"], ["🇯🇵", "도쿄", 360], ["🇨🇳", "베이징", 380], ["🇰🇷", "서울", 400]];
+const MB_KEY = [["💰 용돈을 받아요", 150], ["🎂 생일! 모두에게 30씩 받아요", "bd"], ["🚑 병원비를 내요", -100], ["🏁 출발점으로 가요", "go"], ["🔙 뒤로 3칸 가요", "bk"], ["📚 장학금을 받아요", 200], ["🧾 세금을 내요", -80], ["🎁 복권 당첨!", 300]];
+BG.def({
+  id: "mb", e: "🌏", n: "세계 여행", like: "부루마블 같은 게임", time: "20분", min: 2, max: 4, col: ["#ff6b6b", "#4dabf7", "#69db7c", "#cc5de8"],
+  d: "주사위를 굴려 세계 도시를 사고, 친구가 내 도시에 오면 통행료를 받아요!",
+  rules: ["<b>🎲 굴리기</b>로 주사위 2개를 굴려 그만큼 가요. 같은 숫자(더블)면 한 번 더!", "주인이 없는 도시에 서면 <b>살 수</b> 있어요. 내 도시에 다시 서면 <b>🏨 호텔</b>을 지어 통행료가 3배!", "친구 도시에 서면 <b>통행료</b>를 내요. 돈이 모자라면 파산!", "🔑 황금 열쇠는 좋은 일·나쁜 일이 생겨요. 🏝️ 무인도는 한 번 쉬고, 🚀 우주여행은 아무 도시로 날아가요(자동).", "출발점을 지나면 월급 200! 15바퀴째가 끝나거나 한 명만 남으면 끝 — 돈과 땅을 더해 가장 부자가 이겨요."],
+  setup(n){ return {n, pos: Array(n).fill(0), m: Array(n).fill(1500), own: Array(24).fill(-1), lv: Array(24).fill(0), t: 0, ph: "roll", d: [1, 1], db: 0, skip: Array(n).fill(0), out: [], round: 1, last: "", win: -1}; },
+  turn: S => S.win >= 0 ? -1 : S.t,
+  price: i => MB_SQ[i][2] || 0, toll(S, i){ return Math.round(this.price(i)*.4*(S.lv[i] ? 3 : 1)); },
+  worth(S, p){ return S.m[p] + S.own.reduce((a, o, i) => a + (o === p ? this.price(i)*(S.lv[i] ? 2 : 1) : 0), 0); },
+  next(S){ S.db = 0; S.ph = "roll"; let q = S.t; for (let k = 0; k < S.n; k++){ q = (q + 1) % S.n; if (!S.out.includes(q)) break; } if (q <= S.t) S.round++; S.t = q;
+    if (S.round > 15) this.finish(S); else if (S.skip[q]){ S.skip[q] = 0; S.last = "🏝️ 무인도에서 한 번 쉬어요"; this.next(S); } },
+  finish(S){ const al = Array.from({length: S.n}, (_, i) => i).filter(i => !S.out.includes(i)); al.sort((a, b) => this.worth(S, b) - this.worth(S, a)); S.win = al[0]; },
+  pay(S, p, q, v){ if (S.m[p] >= v){ S.m[p] -= v; if (q >= 0) S.m[q] += v; return true; } if (q >= 0) S.m[q] += S.m[p]; S.m[p] = 0; S.out.push(p); S.own = S.own.map(o => o === p ? -1 : o); S.lv = S.lv.map((l, i) => S.own[i] < 0 ? 0 : l); return false; },
+  land(S, p, R){ const i = S.pos[p], sq = MB_SQ[i];
+    if (sq[2]){ if (S.own[i] < 0){ S.ph = S.m[p] >= sq[2] ? "buy" : "done"; return `${sq[0]} ${sq[1]} 도착!`; }
+      if (S.own[i] === p){ S.ph = !S.lv[i] && S.m[p] >= sq[2] ? "build" : "done"; return `${sq[0]} 내 도시예요`; }
+      const v = this.toll(S, i), o = S.own[i], ok = this.pay(S, p, o, v); S.ph = "done"; return ok ? `💸 통행료 ${v} 내기` : "💥 파산했어요!"; }
+    if (sq[1] === "황금 열쇠"){ const k = MB_KEY[Math.floor(R()*MB_KEY.length)], v = k[1];
+      if (typeof v === "number"){ if (v > 0) S.m[p] += v; else this.pay(S, p, -1, -v); }
+      else if (v === "bd"){ for (let q = 0; q < S.n; q++) if (q !== p && !S.out.includes(q)){ const x = Math.min(30, S.m[q]); S.m[q] -= x; S.m[p] += x; } }
+      else if (v === "go"){ S.pos[p] = 0; S.m[p] += 200; }
+      else if (v === "bk"){ S.pos[p] = (S.pos[p] + 21) % 24; S.ph = "done"; return `🔑 ${k[0]} → ${this.land(S, p, R)}`; }
+      S.ph = "done"; return `🔑 ${k[0]}`; }
+    if (sq[1] === "무인도"){ S.skip[p] = 1; S.db = 0; S.ph = "done"; return "🏝️ 무인도! 다음에 한 번 쉬어요"; }
+    if (sq[1] === "쉼터"){ S.m[p] += 100; S.ph = "done"; return "🎡 쉼터에서 100 받아요"; }
+    if (sq[1] === "우주여행"){ const L = S.own.map((o, k) => MB_SQ[k][2] && (o < 0 || o === p) ? k : -1).filter(k => k >= 0); const to = L.length ? L[Math.floor(R()*L.length)] : 0; if (to < S.pos[p]) S.m[p] += 200; S.pos[p] = to; return `🚀 ${MB_SQ[to][1]}(으)로 슝! ${this.land(S, p, R)}`; }
+    S.ph = "done"; return ""; },
+  act(S, p, a, R){
+    if (a.k === "roll"){ if (S.ph !== "roll") return false; const d = [1 + Math.floor(R()*6), 1 + Math.floor(R()*6)]; S.d = d; const dbl = d[0] === d[1]; S.db = dbl ? S.db + 1 : 0;
+      const from = S.pos[p], to = (from + d[0] + d[1]) % 24; let say = ""; if (to < from){ S.m[p] += 200; say = "💰 월급 200! "; } S.pos[p] = to;
+      say += this.land(S, p, R); S.last = say; if (S.out.includes(p)) this.after(S, p); else if (S.ph === "done") this.after(S, p);
+      bgFx(S, {k: "roll", d, p, from, to, say: say || null, snd: "pt", k2: 60}); return true; }
+    if (a.k === "buy"){ if (S.ph !== "buy") return false; const i = S.pos[p]; S.m[p] -= this.price(i); S.own[i] = p; S.last = `🏳️ ${MB_SQ[i][1]}을(를) 샀어요!`; this.after(S, p); bgFx(S, {k: "buy", i, say: S.last, snd: "gold"}); return true; }
+    if (a.k === "build"){ if (S.ph !== "build") return false; const i = S.pos[p]; S.m[p] -= this.price(i); S.lv[i] = 1; S.last = `🏨 ${MB_SQ[i][1]}에 호텔!`; this.after(S, p); bgFx(S, {k: "buy", i, say: S.last, snd: "gold"}); return true; }
+    if (a.k === "pass"){ if (S.ph !== "buy" && S.ph !== "build") return false; this.after(S, p); bgFx(S, {k: "pass"}); return true; }
+    return false; },
+  after(S, p){ const al = Array.from({length: S.n}, (_, i) => i).filter(i => !S.out.includes(i)); if (al.length <= 1){ S.win = al[0]; return; }
+    if (!S.out.includes(p) && S.db > 0 && S.db < 3 && !S.skip[p]){ S.ph = "roll"; S.last += " · 🎲 더블! 한 번 더"; return; } this.next(S); },
+  over(S){ if (S.win < 0) return null; const rank = Array.from({length: S.n}, (_, i) => i).sort((a, b) => (S.out.includes(a) - S.out.includes(b)) || this.worth(S, b) - this.worth(S, a)); return {w: S.win, rank, txt: `가장 부자! 💰 ${this.worth(S, S.win)}`}; },
+  pinfo(S, i){ return S ? (S.out.includes(i) ? "💥 파산" : `💰${S.m[i]} · 🏳️${S.own.filter(o => o === i).length}`) : ""; },
+  ai(S, p, R, X){ if (S.ph === "roll") return {k: "roll"}; const i = S.pos[p], keep = [100, 250, 400][X.lv];
+    if (S.ph === "buy") return S.m[p] - this.price(i) >= keep*(R() < .2 ? 0 : 1) ? {k: "buy"} : {k: "pass"};
+    if (S.ph === "build") return S.m[p] - this.price(i) >= keep ? {k: "build"} : {k: "pass"}; return null; },
+  sqXY(b, i){ const n = 6, c = b.s/(n + 1), L = b.x, T = b.y; let x, y; if (i <= 6){ x = L + b.s - c - i*c; y = T + b.s - c; } else if (i <= 12){ x = L; y = T + b.s - c - (i - 6)*c; } else if (i <= 18){ x = L + (i - 12)*c; y = T; } else { x = L + b.s - c; y = T + (i - 18)*c; } return {x, y, c}; },
+  draw(g, S, me, A, ui, X){
+    const s = Math.min(A.w, A.h) - 10, b = {x: A.x + (A.w - s)/2, y: A.y + (A.h - s)/2, s};
+    g.save(); BGD.shadow(g, true, 24, 8); BGD.box(g, b.x - 6, b.y - 6, s + 12, s + 12, 18, "#c5f6fa"); g.restore();
+    for (let i = 0; i < 24; i++){ const {x, y, c} = this.sqXY(b, i), sq = MB_SQ[i], o = S.own[i];
+      BGD.box(g, x + 2, y + 2, c - 4, c - 4, 8, sq[2] ? "#fff" : i % 6 === 0 ? "#ffe066" : "#e7f5ff", o >= 0 ? this.col[o] : "rgba(0,0,0,.15)", o >= 0 ? 5 : 1.5);
+      if (o >= 0){ g.fillStyle = this.col[o]; g.fillRect(x + 4, y + 4, c - 8, c*.16); }
+      outlined(g, sq[0], x + c/2, y + c*.42, c*.32); BGD.txt(g, sq[1], x + c/2, y + c*.72, Math.min(16, c*.17), "#343a40");
+      if (sq[2]) BGD.txt(g, S.lv[i] ? `🏨${this.toll(S, i)}` : `${sq[2]}`, x + c/2, y + c*.88, Math.min(13, c*.14), S.lv[i] ? "#e8590c" : "#868e96");
+      if (ui.hl === i){ g.lineWidth = 5; g.strokeStyle = "#ffd43b"; rrect(g, x + 2, y + 2, c - 4, c - 4, 8); g.stroke(); } }
+    const fx = ui.fx && ui.fx.k === "roll" ? ui.fx : null, ft = fx ? Math.min(1, (ui.fxT || 0)/40) : 1;
+    for (let q = 0; q < S.n; q++){ if (S.out.includes(q)) continue; let i = S.pos[q];
+      if (fx && fx.p === q && ft < 1){ const steps = (fx.to - fx.from + 24) % 24; i = (fx.from + Math.floor(steps*ft)) % 24; }
+      const {x, y, c} = this.sqXY(b, i), ox = (q % 2 - .5)*c*.38, oy = (Math.floor(q/2) - .5)*c*.3; BGD.disc(g, x + c/2 + ox, y + c*.55 + oy, c*.16, this.col[q]); outlined(g, ["🐯", "🐰", "🐶", "🐱"][q], x + c/2 + ox, y + c*.55 + oy, c*.18); }
+    /* 가운데: 주사위 · 단추 · 소식 */
+    const ix = b.x + s/7 + 14, iw = s - 2*s/7 - 28, cy = b.y + s/2;
+    outlined(g, "🌏 세계 여행", ix + iw/2, b.y + s/7 + 34, 30, "#1971c2", "rgba(255,255,255,.9)"); BGD.txt(g, `${Math.min(15, S.round)} / 15 바퀴`, ix + iw/2, b.y + s/7 + 66, 18, "#495057");
+    const roll = fx && ft < .6; [0, 1].forEach(k => { const v = roll ? 1 + Math.floor(Math.random()*6) : S.d[k], dx = ix + iw/2 + (k - .5)*90 - 34, dy = cy - 110;
+      g.save(); g.translate(dx + 34, dy + 34); if (roll) g.rotate(Math.sin(ui.fxT*.7 + k)*.5); BGD.tile(g, -34, -34, 68, 68, "#fff", "#495057", 14);
+      const P = {1: [[0, 0]], 2: [[-1, -1], [1, 1]], 3: [[-1, -1], [0, 0], [1, 1]], 4: [[-1, -1], [1, -1], [-1, 1], [1, 1]], 5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]], 6: [[-1, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]]}[v];
+      P.forEach(([u, w]) => { g.fillStyle = v === 1 ? "#e03131" : "#212529"; g.beginPath(); g.arc(u*16, w*16, 7, 0, 7); g.fill(); }); g.restore(); });
+    const myT = S.t === me && S.win < 0, bw = Math.min(200, iw/2 - 8);
+    ui.bt = [];
+    if (myT && S.ph === "roll") ui.bt.push({k: "roll", x: ix + iw/2 - 120, y: cy - 10, w: 240, h: 70, t: "🎲 굴리기", p: 1});
+    if (myT && S.ph === "buy") ui.bt.push({k: "buy", x: ix + iw/2 - bw - 6, y: cy - 10, w: bw, h: 70, t: `🏳️ 사기 ${this.price(S.pos[me])}`, p: 1, c: "#20c997"}, {k: "pass", x: ix + iw/2 + 6, y: cy - 10, w: bw, h: 70, t: "그냥 가기"});
+    if (myT && S.ph === "build") ui.bt.push({k: "build", x: ix + iw/2 - bw - 6, y: cy - 10, w: bw, h: 70, t: `🏨 호텔 ${this.price(S.pos[me])}`, p: 1, c: "#f76707"}, {k: "pass", x: ix + iw/2 + 6, y: cy - 10, w: bw, h: 70, t: "그냥 가기"});
+    ui.bt.forEach(q => BGD.btn(g, q));
+    if (S.last){ const t = S.last.length > 26 ? S.last.slice(0, 26) + "…" : S.last; BGD.box(g, ix, cy + 80, iw, 48, 14, "rgba(0,0,0,.08)"); BGD.txt(g, t, ix + iw/2, cy + 104, Math.min(20, iw/18), "#343a40"); }
+    for (let q = 0; q < S.n; q++){ const yy = cy + 140 + q*28; if (yy > b.y + s - s/7 - 10) break; BGD.txt(g, `${["🐯", "🐰", "🐶", "🐱"][q]} ${X.name(q).slice(0, 7)}  💰${S.m[q]}  🏳️${S.own.filter(o => o === q).length}${S.out.includes(q) ? " 💥" : ""}`, ix + iw/2, yy, 17, q === S.t ? this.col[q] : "#495057"); }
+  },
+  tap(S, me, px, py, A, ui){ for (const q of ui.bt || []) if (BGD.hit(q, px, py)) return {k: q.k}; return null; }
+});
+
+/* ---------------- 🀫 숫자 타일 (루미큐브 같은) ---------------- */
+const RK_C = ["#e03131", "#1971c2", "#f08c00", "#212529"];
+BG.def({
+  id: "rk", e: "🧮", n: "숫자 타일", like: "루미큐브 같은 게임", time: "20분", min: 2, max: 4, col: ["#ff6b6b", "#4dabf7", "#ffa94d", "#adb5bd"], hidden: true,
+  d: "같은 숫자 모으기·같은 색 연속 숫자로 타일을 내려놓아요! 먼저 다 내면 승리",
+  rules: ["묶음은 두 가지: <b>같은 숫자·다른 색 3~4개</b> (예: 🔴7 🔵7 🟠7) 또는 <b>같은 색·이어지는 숫자 3개 이상</b> (예: 🔵4 🔵5 🔵6).", "타일을 눌러 고르고 <b>📦 묶음 만들기</b> → 다 만들었으면 <b>⬇️ 내려놓기</b>. 처음 내려놓을 때는 숫자 합이 <b>30 이상</b>이어야 해요.", "한 번 내려놓은 뒤에는 판 위 묶음에 내 타일을 <b>붙일 수</b> 있어요(타일 고르고 묶음 누르기).", "아무것도 못 내면 <b>🂠 한 장 가져오기</b>. 냈으면 <b>✅ 차례 끝</b>.", "타일을 먼저 <b>모두 내려놓으면</b> 이겨요!"],
+  num: id => id % 13 + 1, colr: id => Math.floor(id % 52/13),
+  setup(n, R){ const D = BG.shuffle(Array.from({length: 104}, (_, i) => i), R); const h = Array.from({length: n}, () => D.splice(0, 14)); return {n, h, d: D, tb: [], t: 0, melt: Array(n).fill(0), put: 0, pass: 0, win: -1}; },
+  turn: S => S.win >= 0 ? -1 : S.t,
+  valid(ids){ if (ids.length < 3) return false; const N = ids.map(this.num), C = ids.map(this.colr);
+    if (N.every(x => x === N[0]) && ids.length <= 4 && new Set(C).size === C.length) return true;
+    if (C.every(x => x === C[0])){ const s = N.slice().sort((a, b) => a - b); return s.every((v, i) => !i || v === s[i - 1] + 1); } return false; },
+  sortSet(ids){ return ids.slice().sort((a, b) => this.num(a) - this.num(b) || this.colr(a) - this.colr(b)); },
+  sum(ids){ return ids.reduce((a, x) => a + this.num(x), 0); },
+  next(S){ S.t = (S.t + 1) % S.n; S.put = 0; },
+  act(S, p, a){
+    const H = S.h[p], has = ids => ids.every(x => H.includes(x)) && new Set(ids).size === ids.length;
+    if (a.k === "meld"){ if (!Array.isArray(a.sets) || !a.sets.length) return false; const all = a.sets.flat(); if (!has(all) || !a.sets.every(s => this.valid(s))) return false;
+      if (!S.melt[p] && this.sum(all) < 30) return false; S.h[p] = H.filter(x => !all.includes(x)); a.sets.forEach(s => S.tb.push(this.sortSet(s))); S.melt[p] = 1; S.put = 1; S.pass = 0;
+      if (!S.h[p].length) S.win = p; bgFx(S, {k: "meld", say: `⬇️ ${all.length}개 내려놓기!`, snd: "gold"}); return true; }
+    if (a.k === "add"){ if (!S.melt[p] || !has(a.ids || []) || !S.tb[a.s]) return false; const ns = S.tb[a.s].concat(a.ids); if (!this.valid(ns)) return false;
+      S.tb[a.s] = this.sortSet(ns); S.h[p] = H.filter(x => !a.ids.includes(x)); S.put = 1; S.pass = 0; if (!S.h[p].length) S.win = p; bgFx(S, {k: "add", s: a.s, snd: "pt"}); return true; }
+    if (a.k === "draw"){ if (S.put) return false; if (S.d.length) H.push(S.d.pop()); else S.pass++; if (S.pass >= S.n){ const sc = S.h.map(h => this.sum(h)); S.win = sc.indexOf(Math.min(...sc)); } this.next(S); bgFx(S, {k: "draw", snd: "pt"}); return true; }
+    if (a.k === "end"){ if (!S.put) return false; this.next(S); bgFx(S, {k: "end"}); return true; }
+    return false; },
+  over(S){ if (S.win < 0) return null; const rank = Array.from({length: S.n}, (_, i) => i).sort((a, b) => this.sum(S.h[a]) - this.sum(S.h[b])); return {w: S.win, rank, txt: "타일을 모두 내려놓았어요!"}; },
+  view(S, p){ const V = JSON.parse(JSON.stringify(S)); V.h = S.h.map((h, q) => q === p ? h : h.map(() => -1)); V.d = S.d.map(() => -1); return V; },
+  pinfo(S, i){ return S ? `🧮 ${S.h[i].length}개${S.melt[i] ? "" : " · 첫 30점 전"}` : ""; },
+  findSets(H){ const sets = [], used = new Set();
+    for (let c = 0; c < 4; c++){ const byN = {}; H.filter(x => this.colr(x) === c).forEach(x => { if (!byN[this.num(x)]) byN[this.num(x)] = x; });
+      let run = []; for (let v = 1; v <= 14; v++){ if (byN[v] != null && !used.has(byN[v])) run.push(byN[v]); else { if (run.length >= 3){ sets.push(run.slice()); run.forEach(x => used.add(x)); } run = []; } } }
+    for (let v = 13; v >= 1; v--){ const byC = {}; H.filter(x => this.num(x) === v && !used.has(x)).forEach(x => { if (byC[this.colr(x)] == null) byC[this.colr(x)] = x; }); const L = Object.values(byC); if (L.length >= 3){ sets.push(L); L.forEach(x => used.add(x)); } }
+    return sets; },
+  ai(S, p, R, X){ const H = S.h[p];
+    if (!S.put || S.melt[p]){ const sets = this.findSets(H); if (sets.length && !S.put || (sets.length && S.melt[p])){ const sum = this.sum(sets.flat()); if (S.melt[p] || sum >= 30) return {k: "meld", sets}; } }
+    if (S.melt[p] && X.lv > 0) for (const x of H) for (let s = 0; s < S.tb.length; s++) if (this.valid(S.tb[s].concat([x]))) return {k: "add", s, ids: [x]};
+    return S.put ? {k: "end"} : {k: "draw"}; },
+  tileDraw(g, id, x, y, w, h, sel){ g.save(); if (sel) BGD.shadow(g, true, 16, 0, "#ffe066"); if (id < 0){ BGD.tile(g, x, y, w, h, "#fff3bf", "#e9ecef", 8); g.restore(); return; }
+    BGD.tile(g, x, y, w, h, BGD.lg(g, x, y, x, y + h, ["#fffdf5", "#f1e9d2"]), sel ? "#ffd43b" : "#ced4da", 8); g.restore();
+    BGD.txt(g, String(this.num(id)), x + w/2, y + h*.44, h*.45, RK_C[this.colr(id)], "center", "bold "); g.fillStyle = RK_C[this.colr(id)]; g.beginPath(); g.arc(x + w/2, y + h*.8, h*.07, 0, 7); g.fill(); },
+  draw(g, S, me, A, ui, X){
+    BGD.felt(g, A.x + 4, A.y + 4, A.w - 8, A.h*.62, 24, "#2b6e4f");
+    ui.sets = ui.sets || []; ui.selH = (ui.selH || []).filter(x => (S.h[me] || []).includes(x));
+    const staged = new Set(ui.sets.flat());
+    const tw = Math.min(42, A.w/26), th = tw*1.35; let x = A.x + 20, y = A.y + 20; ui.tbHit = [];
+    S.tb.forEach((s, si) => { const w = s.length*(tw + 2) + 10; if (x + w > A.x + A.w - 16){ x = A.x + 20; y += th + 14; }
+      BGD.box(g, x - 5, y - 5, w, th + 10, 10, "rgba(0,0,0,.18)"); s.forEach((id, k) => this.tileDraw(g, id, x + k*(tw + 2), y, tw, th)); ui.tbHit.push({x: x - 5, y: y - 5, w, h: th + 10, s: si}); x += w + 12; });
+    ui.sets.forEach((s, si) => { const w = s.length*(tw + 2) + 10; if (x + w > A.x + A.w - 16){ x = A.x + 20; y += th + 14; } BGD.box(g, x - 5, y - 5, w, th + 10, 10, "rgba(255,212,59,.25)", "#ffd43b", 2); s.forEach((id, k) => this.tileDraw(g, id, x + k*(tw + 2), y, tw, th)); x += w + 12; });
+    if (!S.tb.length && !ui.sets.length) outlined(g, "판이 비어 있어요 · 묶음을 만들어 내려놓아요", A.x + A.w/2, A.y + A.h*.3, 22, "#c3fae8");
+    outlined(g, `🂠 남은 타일 ${S.d.length}`, A.x + A.w - 110, A.y + A.h*.62 - 22, 17, "#c3fae8");
+    const H = (S.h[me] || []).filter(x => !staged.has(x)).sort((a, b) => this.colr(a) - this.colr(b) || this.num(a) - this.num(b)), hw = Math.min(54, (A.w - 30)/Math.max(14, Math.ceil(H.length/2)) - 4), hh = hw*1.35, per = Math.floor((A.w - 30)/(hw + 4));
+    const ry = A.y + A.h*.62 + 14; BGD.wood(g, A.x + 4, ry - 6, A.w - 8, Math.ceil(H.length/per)*(hh + 8) + 12, 14); ui.hand = [];
+    H.forEach((id, i) => { const xx = A.x + 14 + (i % per)*(hw + 4), yy = ry + Math.floor(i/per)*(hh + 8), sl = ui.selH.includes(id); this.tileDraw(g, id, xx, yy - (sl ? 8 : 0), hw, hh, sl); ui.hand.push({x: xx, y: yy, w: hw, h: hh, id}); });
+    const my = S.t === me && S.win < 0, by = A.y + A.h - 64, bw = (A.w - 50)/4; ui.bt = [];
+    if (my){ const selOk = ui.selH.length >= 3 && this.valid(ui.selH), stSum = this.sum(ui.sets.flat());
+      ui.bt.push({k: "mk", x: A.x + 10, y: by, w: bw, h: 58, t: "📦 묶음 만들기", p: selOk, off: !selOk},
+        {k: "meld", x: A.x + 20 + bw, y: by, w: bw, h: 58, t: S.melt[me] ? "⬇️ 내려놓기" : `⬇️ 내려놓기 ${stSum}/30`, p: ui.sets.length && (S.melt[me] || stSum >= 30), off: !ui.sets.length, c: "#20c997"},
+        {k: ui.sets.length ? "back" : S.put ? "end" : "draw", x: A.x + 30 + bw*2, y: by, w: bw, h: 58, t: ui.sets.length ? "↩️ 되돌리기" : S.put ? "✅ 차례 끝" : "🂠 한 장 가져오기", p: !ui.sets.length && !!S.put, c: "#7950f2"},
+        {k: "clr", x: A.x + 40 + bw*3, y: by, w: bw, h: 58, t: "✋ 고르기 취소", off: !ui.selH.length});
+      ui.bt.forEach(b => BGD.btn(g, b));
+      if (ui.selH.length && S.melt[me]) outlined(g, "판 위 묶음을 누르면 붙여요", A.x + A.w/2, by - 14, 17, "#ffe066"); }
+  },
+  tap(S, me, px, py, A, ui){
+    for (const b of ui.bt || []) if (BGD.hit(b, px, py)){ if (b.off) return null;
+      if (b.k === "mk"){ ui.sets.push(ui.selH.slice()); ui.selH = []; return null; }
+      if (b.k === "meld"){ const sets = ui.sets; ui.sets = []; return {k: "meld", sets}; }
+      if (b.k === "back"){ ui.sets = []; return null; } if (b.k === "clr"){ ui.selH = []; return null; }
+      return {k: b.k}; }
+    for (const h of ui.hand || []) if (BGD.hit(h, px, py)){ ui.selH = ui.selH.includes(h.id) ? ui.selH.filter(x => x !== h.id) : ui.selH.concat([h.id]); return null; }
+    if (ui.selH.length) for (const t of ui.tbHit || []) if (BGD.hit(t, px, py)){ const ids = ui.selH; ui.selH = []; return {k: "add", s: t.s, ids}; }
+    return null; },
+  bad: (S, p, a) => a.k === "meld" && !S.melt[p] ? "처음엔 숫자 합이 30 이상이어야 해요" : a.k === "add" ? (S.melt[p] ? "그 묶음에는 붙일 수 없어요" : "먼저 30점 이상 내려놓아야 붙일 수 있어요") : "지금은 할 수 없어요"
+});
+
+/* =====================================================================
    🎙️ 음성 채팅 (2026.11.19)
    - 💬 채팅 칸 위 음성 막대에서 [🎙️ 참여하기] → 마이크 허용 → 같은 방 친구들과 바로 말해요
      (반 전체 = 🌈 우리반 전체 음성방, 대화방에 있으면 그 방 친구들끼리)
@@ -23622,6 +24423,12 @@ Object.assign(VOICE, {
    - k: "new"(새로 생겼어요) · "up"(더 좋아졌어요) · "fix"(고쳤어요)
    ===================================================================== */
 const NEWS = [
+  {id: "2026-11-25a", d: "11월 25일", e: "🌐", t: "보드게임 7가지 더! 각자 기기로 온라인 대결", items: [
+    ["new", "🃏", "카드·추리 게임", "🃏 원카드 · 🔢 숫자 암호 · 🧮 숫자 타일 · 🍓 과일 종치기를 친구와 해 봐요. 내 카드는 나만 보여요!"],
+    ["new", "🌏", "판 게임", "🌏 세계 여행 · 🚢 바다 대작전 · 🔲 점 잇기 상자가 생겼어요."],
+    ["new", "👥", "넷이서도 함께", "🌐 온라인 방을 만들면 친구들이 자기 태블릿·크롬북에서 들어와요. 빈자리는 컴퓨터가 채워요."],
+    ["up", "⏳", "차례를 꼭 지켜요", "친구 차례에 너무 오래 기다리면 컴퓨터가 대신 한 수 둬요."]
+  ], tip: "💡 게임마다 📖 규칙 보기가 있어요. 처음엔 🤖 컴퓨터와 연습해 봐요!"},
   {id: "2026-11-23k", d: "11월 23일", e: "🎲", t: "진짜 보드게임 8개가 새로 왔어요!", items: [
     ["new", "🎋", "윷놀이", "도·개·걸·윷·모! 말을 업고, 잡고, 지름길로 가서 4개를 먼저 한 바퀴 돌려요."],
     ["new", "🎲", "보드게임 7개 더", "⚪ 오델로 · 🔴 사목 · ☯️ 따먹기 바둑 · 🟥 체커 · 🚧 쿼리도 · 🟪 블로커스 · 🫘 만칼라를 친구와, 컴퓨터와 해 봐요."],

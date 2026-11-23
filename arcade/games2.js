@@ -817,7 +817,7 @@ const PARTY = {
     if (str.startsWith('{"t":"s"')){ R.s = str; R.n++; return; }
     if (str.startsWith('{"t":"ev"')){ try { const ev = JSON.parse(str).ev.filter(e => !["x", "s", "r"].includes(e[0])); if (!ev.length) return; str = JSON.stringify({t: "ev", ev}); } catch(e){ return; } }   // 다리로는 반짝이·소리는 빼고 꼭 필요한 알림만
     const t = (str.match(/^\{"t":"(\w+)"/) || [])[1];
-    if (t === "grid" || t === "lobby") R.log = R.log.filter(e => !(e.t === t && e.to.length === 1 && e.to[0] === no));   // 판·대기실은 최신 것만
+    if (t === "grid" || t === "lobby" || t === "bs") R.log = R.log.filter(e => !(e.t === t && e.to.length === 1 && e.to[0] === no));   // 판·대기실은 최신 것만
     const last = R.log[R.log.length - 1];
     if (last && last.m === str && !last.sent) last.to.push(no); else R.log.push({k: ++R.k, to: [no], m: str, t});
     const now = Date.now(); R.log = R.log.filter(e => !e.sent || now - e.sent < 8000).slice(-80); },

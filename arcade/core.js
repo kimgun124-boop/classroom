@@ -219,10 +219,18 @@ const Store = {
     this.mode = "cloud"; this.cls = first.data();
     localStorage.setItem(KEY + ".join", JSON.stringify({c: cfg, i: cid}));
     fs.onSnapshot(this.refCls, s => { if (s.exists()){ this.cls = s.data(); this.ok = true; this.emit(); } }, e => { this.ok = false; this.err = e.message; this.emit(); });
-    fs.onSnapshot(fs.collection(db, "arcade", cid, "kids"), qs => { const k = {}; qs.forEach(d => k[d.id] = d.data()); this._raw = JSON.parse(JSON.stringify(k)); this.kids = this.withPending(k); this.ok = true; this.emit(); if (!this._rp){ this._rp = 1; setTimeout(() => this.replayBackup(), 4000); } }, e => { this.ok = false; this.err = e.message; this.emit(); });
-    fs.onSnapshot(fs.collection(db, "arcade", cid, "recs"), qs => { const r = {}; qs.forEach(d => r[d.id] = d.data()); this.recs = r; this.ok = true; this.emit(); }, e => { this.ok = false; this.err = e.message; this.emit(); });
+    /* ⚡ (2026.11.23 · 100명) 반 친구 지갑(kids)·기록(recs) 실시간 듣기는 '홈 화면을 보고 있을 때'만 켜요
+       - 게임하는 동안·다른 탭/화면에 가 있는 동안은 꺼요 → 친구가 코인을 벌 때마다 내 기기가 읽는 일이 없어져요 (Firebase 읽기의 대부분)
+       - 다시 켜면 기기 저장소 덕분에 그사이 '바뀐 문서'만 받아요 (30분 안이면) */
+    this._lsn = () => [
+  fs.onSnapshot(fs.collection(db, "arcade", cid, "kids"), qs => { const k = {}; qs.forEach(d => k[d.id] = d.data()); this._raw = JSON.parse(JSON.stringify(k)); this.kids = this.withPending(k); this.ok = true; this.emit(); if (!this._rp){ this._rp = 1; setTimeout(() => this.replayBackup(), 4000); } }, e => { this.ok = false; this.err = e.message; this.emit(); }),
+  fs.onSnapshot(fs.collection(db, "arcade", cid, "recs"), qs => { const r = {}; qs.forEach(d => r[d.id] = d.data()); this.recs = r; this.ok = true; this.emit(); }, e => { this.ok = false; this.err = e.message; this.emit(); })];
+    this.listen(true);
+    setInterval(() => this.listen(!(typeof ARC !== "undefined" && ARC.busy) && !document.hidden), 2500);
+    document.addEventListener("visibilitychange", () => this.listen(!document.hidden && !(typeof ARC !== "undefined" && ARC.busy)));
     return true;
   },
+  listen(on){ if (this.mode !== "cloud" || !this._lsn || on === !!this._un) return; if (on) this._un = this._lsn(); else { this._un.forEach(f => { try { f(); } catch(e){} }); this._un = null; } },
   /* 반 정보 통째로 (선생님) */
   async putClass(cls){
     this.cls = cls; this.emit();
