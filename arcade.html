@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="a985a4b40c">
+<meta name="arc-build" content="bfdc8245a5">
 <script>
 /* 🔄 늘 최신 오락실: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "a985a4b40c", K = "arcade.reloaded";
+  var B = "bfdc8245a5", K = "arcade.reloaded";
   function saving(){ try { return typeof Store !== "undefined" && Store.saving && Store.saving(); } catch(e){ return false; } }
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !saving() && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
@@ -14889,7 +14889,7 @@ const CONT = {
 /* =====================================================================
    🐾 동물 랜덤 디펜스 — 2초마다 오는 동물로 덱을 짜고(📥 대기 줄), 💞 특별 조합이 되게 이웃에 두어 함께 싸워요!
    - 빙글빙글 도는 길을 따라 오는 몬스터를 동물들이 막아요. 몬스터가 너무 많이 쌓이면 끝!
-   - 🔁 (2026.11.20 다시 짜기) 50단계 정복 (5단계마다 맵이 바뀌고 · 10단계마다 👑 보스 · 50단계 마왕 보스를 잡으면 승리)
+   - 🔁 (2026.11.23) 다시 1000단계 (50단계마다 👹 마왕 · ⚡ 빨리 깰수록 점수 보너스) · (2026.11.20) 50단계 정복 (5단계마다 맵이 바뀌고 · 10단계마다 👑 보스 · 50단계 마왕 보스를 잡으면 승리)
    - 대기 줄 등급은 5개: ⚪ 일반 → 🔵 희귀 → 🟣 영웅 → 🟡 전설 → 🌈 신화 (뽑기 경쟁 대신 머리 쓰기)
    - 🃏 (2026.11.23) 덱: 같은 덱 동물을 여러 종류 모으면 ⭐·⭐⭐·⭐⭐⭐ 효과 + 💠 초월 · 🔥 불멸 · 🌟 태초를 만들 수 있어요
    - 💞 특별 조합 19가지: 정해진 동물끼리 옆에 붙어 있으면 힘이 세지고, 함께 싸우면 💞 합동 필살기가 터져요
@@ -15100,9 +15100,11 @@ const RD_BG = {url: null};
 const RD_PC = ["#ff922b", "#4dabf7", "#51cf66", "#f783ac", "#fcc419", "#9775fa"];
 /* 큰 수는 만·억·조·경·해로 줄여서 보여 줘요 (1000단계까지 가면 숫자가 아주 커져요) */
 const rdN = v => { v = Math.floor(v || 0); if (v < 1e5) return String(v); for (const [d, u] of [[1e20, "해"], [1e16, "경"], [1e12, "조"], [1e8, "억"], [1e4, "만"]]) if (v >= d){ const q = v/d; return (q >= 100 ? Math.floor(q) : (Math.floor(q*10)/10)) + u; } return String(v); };
-const RD_END = 50;   // 🏆 (2026.11.20) 50단계 마왕 보스를 잡으면 정복! (예전 1000단계)
+const RD_END = 1000;   // 🏆 (2026.11.23) 다시 1000단계까지! 1000단계 마왕 보스를 잡으면 정복 · 50단계마다 👹 마왕 보스 · ⚡ 빨리 깰수록 점수가 높아요
 const RD_TTW = [0, 7, 12, 18, 24, 30, 36];   // 몬스터 특성이 처음 나오는 단계 (🛡️ 단단 · 🦇 날개 · 👻 유령 · 🔰 방패 · 💚 재생 · 💨 질주)
-const RD_WI = w => Math.min(9, Math.floor((Math.max(1, w) - 1)/5));   // 🗺️ 5단계마다 새 맵 (맵 10곳 = 50단계)
+const RD_WI = w => Math.floor((Math.max(1, w) - 1)/5) % 10;   // 🗺️ 5단계마다 새 맵 (맵 10곳 = 50단계 한 바퀴 → 1000단계까지 20바퀴)
+const RD_LAP = w => Math.floor((Math.max(1, w) - 1)/50) + 1;   // 🔁 몇 바퀴째
+const rdSpdB = (sec, w) => Math.round(sec*(20 + w));   // ⚡ 빠르기 보너스: 남은 시간(초) × (20 + 단계)
 /* 📥 대기 줄 등급 무게 (단계 w · 행운 up): [일반, 희귀, 영웅, 전설, 신화] */
 function rdTrayW(w, up = 1){ w = Math.max(1, w);   /* 🔁 (2026.11.20) 50단계에 맞춰: 10단계쯤 🟣 영웅 · 20단계쯤 🟡 전설 · 30단계쯤 🌈 신화가 자주 */
   return [Math.max(10, 100 - w*2.3), (12 + Math.min(w, 40)*1.6)*up, Math.min(55, Math.max(0, w - 3)*1.4)*up, Math.min(40, Math.max(0, w - 12)*.9)*up, Math.min(16, Math.max(0, w - 24)*.4)*up]; }
@@ -15367,9 +15369,10 @@ NG.defs.rd = () => {
   /* 🏔️ 1000단계까지: 처음엔 가파르게, 갈수록 완만하게 — 대신 💰 금도 단계마다 늘고 ⬆️ 강화는 끝없이 올라가요 */
   /* 💪 (2026.11.18 난이도 ↑↑) 체력 ×18 · 보통 몬스터 ×3.5 더 · 1~40단계 단계마다 +3.5% · 같이 하면 사람마다 +80% — 시험 봇: 아무렇게나 두면 23~29단계에서 몬스터가 넘쳐 지고, 땅·무리·조합을 잘 짜면 30~50단계 */
   /* 😊 (2026.11.19 난이도 ↓) 아이들이 너무 어렵다고 해서: 체력 18→10 · 보통 몬스터 ×3.5→×2.4 · 같이 하면 사람마다 +80%→+50% · 몬스터 한도 +30 */
-  let HPK = 95, NRM = 2.4, RMP = 1.035;   /* ⚖️ (2026.11.20 다시 짜기) 등급이 5개뿐 · 50단계 · 💞 조합 → 시험 봇: 아무렇게나 두면 30~40단계(보스 벽), 💞 조합을 잘 짜면 40~50단계 정복 */   /* 😤 (2026.11.18 난이도 ↑) 보통 몬스터는 보스보다 더 많이 세졌어요(×3.5) — 보스만 벽이고 보통 단계는 너무 쉬웠어요 · 1~40단계는 단계마다 3.5%씩 더 (40단계 ×3.8) */
-  const hpAt = w => HPK*15*Math.pow(RMP, Math.min(w, 40) - 1)*Math.pow(1.17, Math.min(w, 30) - 1)*Math.pow(1.15, Math.min(30, Math.max(0, w - 30)))*Math.pow(1.09, Math.min(90, Math.max(0, w - 60)))
-    *Math.pow(1.05, Math.min(150, Math.max(0, w - 150)))*Math.pow(1.036, Math.min(200, Math.max(0, w - 300)))*Math.pow(1.042, Math.max(0, w - 500))*(1 + .5*(N - 1));   // 🤝 (2026.11.18) 같이 하면 모두가 모든 몬스터를 때리니까 사람마다 +80% (동물이 사람마다 1초에 한 마리씩 오니까)
+  let HPK = 95, NRM = 2.4, RMP = 1.035; const HPG = [1.055, 1.03, 1.025];   /* ⚖️ (2026.11.20 다시 짜기) 등급이 5개뿐 · 50단계 · 💞 조합 → 시험 봇: 아무렇게나 두면 30~40단계(보스 벽), 💞 조합을 잘 짜면 40~50단계 정복 */   /* 😤 (2026.11.18 난이도 ↑) 보통 몬스터는 보스보다 더 많이 세졌어요(×3.5) — 보스만 벽이고 보통 단계는 너무 쉬웠어요 · 1~40단계는 단계마다 3.5%씩 더 (40단계 ×3.8) */
+  /* 🏔️ (2026.11.23 다시 1000단계) 50단계까지는 그대로 · 50~80 ×1.055 · 80~200 ×1.03 · 200~ ×1.025 (💰 금 ×1.025 + ⬆️ 강화와 비슷하게 → 덱·조합·유물을 잘 짜면 계속 올라가요) */
+  const hpAt = w => HPK*15*Math.pow(RMP, Math.min(w, 40) - 1)*Math.pow(1.17, Math.min(w, 30) - 1)*Math.pow(1.15, Math.min(20, Math.max(0, w - 30)))
+    *Math.pow(HPG[0], Math.min(30, Math.max(0, w - 50)))*Math.pow(HPG[1], Math.min(120, Math.max(0, w - 80)))*Math.pow(HPG[2], Math.max(0, w - 200))*(1 + .5*(N - 1));   // 🤝 (2026.11.18) 같이 하면 모두가 모든 몬스터를 때리니까 사람마다 +80% (동물이 사람마다 1초에 한 마리씩 오니까)
   /* 💪 (2026.11.18) 150단계부터 몬스터가 훨씬 빨리 세져요 — 예전엔 300단계 뒤 ×1.02씩이라 금(×1.025)·강화가 더 빨라서 400단계부터 너무 쉬웠어요.
      이제 150~300 ×1.05 · 300~500 ×1.036 · 500~ ×1.042 → 태초만으로는 버티기 어렵고 🌌 창세 · ♾️ 영원 조합과 강화·유물을 잘 써야 해요 */
   const gmul = () => Math.pow(1.025, Math.max(0, wave - 60));
@@ -15397,7 +15400,7 @@ NG.defs.rd = () => {
   const isMine = z => !SPEC && local.includes(z);
   function calcLimit(){ let gu = 0, gl = 0, sh = 0; Z.forEach((p, z) => { gu += RL(z, "guard"); gl += RL(z, "glass"); sh += RL(z, "shell"); }); const bs = E && E.some(e => e.kind === 2);
     LIMIT = Math.max(40, LIMIT0 + 25*gu - 15*gl + 10*sh + (bs ? 30*sh : 0) + (wallT > 0 ? 40 : 0) + CBL); }   // 🐢 거북 등껍질 · 🧱 돌담
-  let CBL = 0, won = false, wallT = 0, honT = 0, metT = 0, prepT = 0, bossPend = false, miniPend = false;
+  let spdB = 0, CBL = 0, won = false, wallT = 0, honT = 0, metT = 0, prepT = 0, bossPend = false, miniPend = false;
   const sp = (k, w, h, fn) => G2.spr("rd" + k, w, h, fn);
 
   /* ---------- 소리 ---------- */
@@ -15639,8 +15642,8 @@ NG.defs.rd = () => {
     prepT = boss ? 6*60 : (wave - 1) % 5 === 0 ? 6*60 : 4*60; waveT += prepT; bossPend = boss; miniPend = mini;
     spawnLeft = boss ? 0 : Math.round((30 + Math.min(14, wave*.3))*(1 + .6*(N - 1))); spawnT = 0; spawnI = N === 1 ? 28 : Math.max(6, Math.floor(waveT*.8/Math.max(1, spawnLeft)));
     if (wave > 1) Z.forEach((p, z) => { p.gold += (8 + Math.floor(wave*1.2))*gmul(); const b = RL(z, "bank"); if (b) p.gold += 30*b + Math.min(60*b, Math.floor(p.gold*.05*b)); });
-    if (boss){ waveT += 15*60*Z.reduce((a, p, z) => a + RL(z, "sand"), 0); bossTimer = waveT; calcLimit(); banner = wave === RD_END ? {t: "👹 50단계 마왕 보스!", s: "모두 힘을 모아요! 잡으면 동물 마을 정복!", k: 220, c: "#fde047"} : {t: `👑 ${wave}단계 보스가 와요!`, s: "⏳ 작전 시간! 💞 조합을 짜고 보스를 맞이해요", k: 170, c: "#ff6b6b"}; sfx("boss"); }
-    else { banner = {t: `🏁 ${wave}단계`, s: (wave - 1) % 5 === 0 ? `${th().n}에 왔어요! ${REG() === "*" ? "모든 동물 +15%" : `${RD_HBI[REG()].e} ${RD_HBI[REG()].n} 동물 +30%`}` : mini ? "😈 중간 보스가 섞여 있어요" : "⏳ 작전 시간 — 동물을 옮기고 💞 조합을 짜요", k: 110}; sfx("wave"); }
+    if (boss){ waveT += 15*60*Z.reduce((a, p, z) => a + RL(z, "sand"), 0); bossTimer = waveT; calcLimit(); banner = wave === RD_END ? {t: "👹 1000단계 마지막 마왕!", s: "모두 힘을 모아요! 잡으면 동물 마을 정복!", k: 220, c: "#fde047"} : wave % 50 === 0 ? {t: `👹 ${wave}단계 마왕 보스!`, s: "아주 튼튼해요! 잡으면 다음 바퀴로 🔁", k: 200, c: "#fde047"} : {t: `👑 ${wave}단계 보스가 와요!`, s: "⏳ 작전 시간! 💞 조합을 짜고 보스를 맞이해요", k: 170, c: "#ff6b6b"}; sfx("boss"); }
+    else { banner = {t: `🏁 ${wave}단계${wave > 50 && (wave - 1) % 50 === 0 ? ` · 🔁 ${RD_LAP(wave)}바퀴째!` : ""}`, s: (wave - 1) % 5 === 0 ? `${th().n}에 왔어요! ${REG() === "*" ? "모든 동물 +15%" : `${RD_HBI[REG()].e} ${RD_HBI[REG()].n} 동물 +30%`}` : mini ? "😈 중간 보스가 섞여 있어요" : "⏳ 작전 시간 — 동물을 옮기고 💞 조합을 짜요", k: 110}; sfx("wave"); }
     remap(); if ((wave - 1) % 5 === 0){ layerKey = ""; setSky(); }
     newMission(); if (MS && !banner.s) banner.s = `${RD_MS[MS.k].e} 미션: ${RD_MS[MS.k].t(MS.n, MS.x)}`;
     if (msOk) banner.s = "🎯 지난 미션 성공! 🎒 아이템을 받았어요";
@@ -15654,7 +15657,7 @@ NG.defs.rd = () => {
     /* 🌀 문이 사람 수만큼: 몬스터는 친구마다 자기 마당 앞 문에서 번갈아 나와요 → 모두가 함께 때려요 · 보스는 한 마리(대신 다 같이 튼튼), 나오는 문은 돌아가며 */
     if (kind === 1 || kind === 2){ one = N; l = bossRR++ % N; } else if (l == null) l = laneRR++ % N;
     if (kind === 2 && wave >= 20 && !TTS.has(99)){ TTS.add(99); banner = {t: "🛡️ 단단한 보스 등장!", s: "받는 피해 -50% → 🛡️ 서포터가 먼저 때리면 💥 약점이 드러나 모두 +40%!", k: 220, c: "#63e6be"}; if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); }
-    const h = one*hpAt(wave)*(kind === 2 ? 14*(1 + .5*(N - 1))/N*(wave === RD_END ? 2 : 1) : kind === 1 ? 8*(1 + .3*(N - 1))/N : kind === 3 ? 5 : kind === 4 ? 16 : NRM)/(kind ? 1 + .25*(N - 1) : 1);
+    const h = one*hpAt(wave)*(kind === 2 ? 14*(1 + .5*(N - 1))/N*(wave % 50 === 0 ? (wave === 50 || wave === RD_END ? 2 : 1.5) : 1) : kind === 1 ? 8*(1 + .3*(N - 1))/N : kind === 3 ? 5 : kind === 4 ? 16 : NRM)/(kind ? 1 + .25*(N - 1) : 1);
     /* 몬스터 특성 (단계가 오를수록): 🛡️ 단단함(원거리 반감) · 🦇 날개(근거리 못 닿음) · 👻 유령(지원이 잘 잡음) · 🔰 방패(처음 몇 번 막음) → 역할을 섞어 배치해야 해요 */
     let tt = 0; if (kind === 0 && wave >= RD_TTW[1]){ const r = R.f(); tt = r < .16 ? 1 : wave >= RD_TTW[2] && r < .3 ? 2 : wave >= RD_TTW[3] && r < .4 ? 3 : wave >= RD_TTW[4] && r < .47 ? 4 : wave >= RD_TTW[5] && r < .55 ? 5 : wave >= RD_TTW[6] && r < .62 ? 6 : 0;
       if (tt && !TTS.has(tt)){ TTS.add(tt); banner = {t: RD_TT[tt].t, s: RD_TT[tt].s, k: 200, c: "#ffd43b"}; if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); } }
@@ -15808,6 +15811,7 @@ NG.defs.rd = () => {
   const upTier = g => g < 2 ? 0 : g < 3 ? 1 : g < 4 ? 2 : 3;   // 🔁 (2026.11.20) 일반·희귀 / 영웅 / 전설 / 신화   // ⬆️ 강화 4갈래: 일반·희귀 / 영웅·전설 / 신화 / 초월 이상(초월·불멸·태초·창세·영원)
   const upMul = (z, g) => { const L = Z[z].up[upTier(g)] || 0; return (1 + .3*Math.min(25, L)*(g >= 5 ? 1.3 : 1))*Math.pow(1.075, Math.max(0, L - 25)); };
   function toastZ(z, s){ if (isMine(z)){ for (let i = FX.length - 1; i >= 0; i--) if (FX[i].ui && FX[i].z === z) FX.splice(i, 1); } if (isMine(z)) FX.push({tx: s, x: W/2, y: H - BOTH - 26, t: 90, c: "#fff", ui: 1, z}); else if (party === "host" && remote(z)) NQ.push(["t", z, s]); }
+  const toastAll = s => Z.forEach((p, z) => toastZ(z, s));
   function popAt(z, i, s, c, nb){ if (i < 0) return; const [x, y] = slotXY(z, i); FX.push({tx: s, x, y: y - .4, t: nb ? 50 : 70, c, cell: 1, nb}); if (party === "host") NQ.push(["p", z, i, s, c, nb ? 1 : 0]); }
   function fxRing(z, i, c){ if (i < 0) return; const [x, y] = slotXY(z, i); FX.push({ring: 1, x, y, t: 26, c}); if (party === "host") NQ.push(["r", +x.toFixed(2), +y.toFixed(2), c]); }
 
@@ -16037,16 +16041,19 @@ NG.defs.rd = () => {
       if (e.kind){ const gm = e.kind === 2 ? 1 : 0, more = E.some(o => o.kind === e.kind); if (!more) Z.forEach(p => p.gems += gm); bossK += e.kind === 2 && !more ? 1 : 0; sfx("kboss"); banner = {t: e.kind === 2 ? "🎉 보스 처치!" : "😈 중간 보스 처치!", s: `${gm ? `💎 보석 +${gm} · ` : ""}💰 +${gd}`, k: 120, c: "#ffe066"};
         if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); boom(e.x, e.y, 1);
         const lastBoss = e.kind === 2 && !E.some(o => o.kind === 2);
-        if (lastBoss && waveT > 180) waveT = 180;
-        if (lastBoss && wave >= RD_END){ banner = {t: "🏆 50단계 정복!!", s: "마왕을 물리쳤어요! 동물 마을 최고의 수호대!", k: 999, c: "#fde047"}; if (party === "host") NQ.push(["b", banner.t, banner.s, 999, banner.c]); sfx("big");
+        if (lastBoss && waveT > 180){ const b = rdSpdB(Math.floor((waveT - 180)/60), wave)*2; spdB += b; if (b) setTimeout(() => toastAll(`⚡ 보스를 빨리 잡았어요! +${rdN(b)}점`), 0); waveT = 180; }   // ⚡ 빨리 잡을수록 점수 UP
+        if (lastBoss && wave >= RD_END){ banner = {t: "🏆 1000단계 정복!!", s: "마왕을 물리쳤어요! 동물 마을 최고의 수호대!", k: 999, c: "#fde047"}; if (party === "host") NQ.push(["b", banner.t, banner.s, 999, banner.c]); sfx("big");
           score += 100000 + Math.max(0, Math.round(waveT/60))*500; won = true; state = "over"; overT = 300; return; }
         Z.forEach((p, z) => { if (e.kind === 1 && N > 1 && E.some(o => o.kind === 1)) return; p.gems += RL(z, "gem")*(e.kind === 2 ? 2 : 1); if (e.kind === 2){ if (lastBoss) offerRel(z); } else giveItem(z, rndItem()); });
         if (more) banner = {t: e.kind === 2 ? "👑 보스 하나 처치!" : "😈 중간 보스 하나 처치!", s: "다른 길의 보스도 잡아요!", k: 80, c: "#ffe066"};
         if (e.kind === 2 && !more){ banner.s = "🎁 유물 상자! 하나를 골라요"; if (party === "host") NQ.push(["b", banner.t, banner.s, banner.k, banner.c]); } }
       else if (FX.length < 200) boom(e.x, e.y, 0); }
+    /* ⚡ (2026.11.23) 빨리 깨기: 길에 몬스터가 없으면 다음 몬스터가 바로 와요 · 이 단계 몬스터를 다 잡으면 남은 시간만큼 점수 보너스 + 바로 다음 단계! */
+    if (prepT === 0 && spawnLeft > 0 && !E.some(e => e.kind === 0)) spawnT = Math.min(spawnT, 8);
+    if (wave >= 1 && prepT === 0 && spawnLeft === 0 && !bossPend && !miniPend && !E.length && waveT > 90){ const b = rdSpdB(Math.floor((waveT - 90)/60), wave); spdB += b; waveT = 90; if (b) toastAll(`⚡ 빨리 깼어요! +${rdN(b)}점`); }
     const n = E.length; if (n >= LIMIT){ if (!revive(false)){ lose("👾 몬스터가 동물 마을을 덮쳤어요!"); return; } }
     if (n >= LIMIT*.8 && frame % 30 === 0) sfx("warn");
-    score = Math.max(score, (wave - 1)*1000 + kills*5 + bossK*800);
+    score = Math.max(score, (wave - 1)*1000 + kills*5 + bossK*800 + spdB);
   }
   function boom(x, y, big){ FX.push({ring: 1, x, y, t: big ? 30 : 14, c: big ? "#ffe066" : "#fff", r: big ? 1.6 : .45}); if (party === "host" && big) NQ.push(["r", +x.toFixed(2), +y.toFixed(2), "#ffe066"]); }
   /* 🪶 불사조 깃털: 질 뻔하면 다시 일어나요 (몬스터 절반이 사라지고, 보스 시간이 다 되었으면 30초 더) */
@@ -16060,7 +16067,7 @@ NG.defs.rd = () => {
     local.forEach(i => { if (i > 0 && SIDS[i]){ const me0 = ARC.me; ARC.me = noOf_(SIDS[i]); try { saveRec("rd", SIDS[i], score); } finally { ARC.me = me0; } } });
     if (party === "host") PARTY.sendAll({t: "end", w: 0, wins: [], score, wave, kills});
     const team = SIDS.map(s => esc(nameOf(noOf_(s))));
-    NG.over(score, `${won ? `<div class="new">🏆 50단계 정복! 동물 마을 최고의 수호대!</div>` : ""}<div>🐾 <b>${wave}단계</b>까지 · 👾 몬스터 ${kills}마리 · 👑 보스 ${bossK}마리${CBN ? ` · 💞 합동 필살기 ${CBN}번` : ""}</div>${N > 1 ? `<div>👥 함께 지킨 친구: ${team.join(", ")} <small>(모두 같은 점수로 기록돼요)</small></div>` : ""}`);
+    NG.over(score, `${won ? `<div class="new">🏆 1000단계 정복! 동물 마을 최고의 수호대!</div>` : ""}<div>🐾 <b>${wave}단계</b>까지${spdB ? ` · ⚡ 빠르기 보너스 <b>${spdB.toLocaleString()}</b>점` : ""} · 👾 몬스터 ${kills}마리 · 👑 보스 ${bossK}마리${CBN ? ` · 💞 합동 필살기 ${CBN}번` : ""}</div>${N > 1 ? `<div>👥 함께 지킨 친구: ${team.join(", ")} <small>(모두 같은 점수로 기록돼요)</small></div>` : ""}`);
   }
 
   /* ---------- 🌐 친구 기기 ---------- */
@@ -16374,7 +16381,8 @@ NG.defs.rd = () => {
       const DL = DKL && DKL[local[0]], DE = DKE && DKE[local[0]], dk0 = DL ? RD_DKK.filter(d => DL.n[d] >= 1 || (DE && DE[d])).sort((a, b) => DL.n[b] - DL.n[a]).slice(0, N > 1 ? 4 : 3).flatMap(d => [RD_DK[d].e, DE && DE.fr[d] ? `🤝${rdStar(DE[d])}` : `${DL.n[d]}종${DL[d] ? rdStar(DL[d]) : ""}`]) : [];   // 🃏 내 덱 (🤝 = 친구 덱 나눠 받기)
       if (dk0.length) parts.push({l: lbl(["🃏", ...dk0], 14, "#ffe3fa"), c: "rgba(70,20,80,.7)"});
       if (DKU >= 2) parts.push({l: lbl(["🌈", DKU >= 3 ? `연합 ${DKU}색 +${Math.round((RD_UNI[DKU] - 1)*100)}%` : `연합 ${DKU}색 · 1색 더!`], 14, DKU >= 3 ? "#ffe066" : "#ced4da"), c: "rgba(70,40,10,.7)"}); }
-    parts.push({l: lbl(["🏁", `${wave}/${RD_END}단계`], 14, "#e5dbff"), c: "rgba(60,20,90,.7)"});
+    parts.push({l: lbl(["🏁", `${wave}/${RD_END}단계${wave > 50 ? ` · 🔁${RD_LAP(wave)}바퀴` : ""}`], 14, "#e5dbff"), c: "rgba(60,20,90,.7)"});
+    if (spdB) parts.push({l: lbl(["⚡", `빠르기 +${rdN(spdB)}`], 14, "#ffe066"), c: "rgba(80,60,10,.7)"});
     if (N >= 3) parts.push({l: lbl(["🎌", TEAM > 1 ? `역할 분담 +${Math.round((TEAM - 1)*100)}%` : "역할 분담: 친구마다 ⚔️🏹✨ 주력을 나눠요"], 14, TEAM > 1 ? "#8ce99a" : "#ced4da"), c: "rgba(15,10,40,.6)"});
     const rel = Object.entries(Z[local[0]].rel || {}); if (rel.length) parts.push({l: lbl(rel.flatMap(([k, v]) => [RD_REL[k].e, v > 1 ? `${v}` : ""]).filter(Boolean), 14, "#ffe066"), c: "rgba(15,10,40,.6)"});
     /* 🤝 같이 할 때: 이번 단계에 다 같이 잡은 수 + 친구마다 함께 때린 몫 (색 막대) */
@@ -16832,7 +16840,7 @@ NG.defs.rd = () => {
   /* 지금 판 통째로 (💾 저장 · 👑 방장 넘기기에 같이 써요) */
   function pack(){
     if (!Z || ended || state !== "play" || wave < 1) return null;
-    return {v: 3, at: Date.now(), sids: SIDS, local, seed, rs: R.get(), wave, waveT, spawnLeft, spawnT, score, kills, bossK, eid, speed, bossTimer, laneRR, MS, TB,
+    return {v: 3, at: Date.now(), sids: SIDS, local, seed, rs: R.get(), spdB, wave, waveT, spawnLeft, spawnT, score, kills, bossK, eid, speed, bossTimer, laneRR, MS, TB,
       Z: Z.map(p => Object.assign({}, p, {s: p.s.map(q => ({k: q.k, n: q.n, cd: [0, 0, 0], hit: 0}))})),
       E: E.map(e => ({id: e.id, kind: e.kind, l: e.l, d: e.d, tr: e.tr, hp: e.hp, mhp: e.mhp, spd: e.spd, slT: e.slT, slF: e.slF, stT: e.stT, f: e.f, tt: e.tt || 0, sh: e.sh || 0, bnT: e.bnT || 0, bnD: e.bnD || 0}))};
   }
@@ -16842,7 +16850,7 @@ NG.defs.rd = () => {
   }
   function loadGame(D){
     try {
-      seed = D.seed; R.seed(D.rs); wave = D.wave; waveT = D.waveT; spawnLeft = D.spawnLeft; spawnT = D.spawnT; score = D.score; kills = D.kills; bossK = D.bossK; eid = D.eid; speed = D.speed || 1; bossTimer = D.bossTimer; laneRR = D.laneRR || 0; MS = D.MS || null; TB = D.TB || [];
+      seed = D.seed; R.seed(D.rs); spdB = D.spdB || 0; wave = D.wave; waveT = D.waveT; spawnLeft = D.spawnLeft; spawnT = D.spawnT; score = D.score; kills = D.kills; bossK = D.bossK; eid = D.eid; speed = D.speed || 1; bossTimer = D.bossTimer; laneRR = D.laneRR || 0; MS = D.MS || null; TB = D.TB || [];
       D.Z.forEach((p, z) => { if (Z[z]){ Object.assign(Z[z], p); while (Z[z].up.length < 4) Z[z].up.push(0); } });
       remap(); layerKey = ""; setSky();
       E = D.E.map(e => { const p0 = posAt(e.d, e.l || 0); return Object.assign({}, e, {x: p0[0], y: p0[1]}); });
@@ -16859,7 +16867,7 @@ NG.defs.rd = () => {
     init(){
       document.body.classList.remove("rd-cr-on");
       seed = O.seed || (Math.floor(Math.random()*1e9) + 1); R.seed(seed);
-      Z = SIDS.map(() => mkZone()); E = []; PR = []; FX = []; TB = []; MS = null; wave = 0; waveT = 0; spawnLeft = 0; spawnT = 0; state = "play"; overT = 0; score = 0; kills = 0; bossK = 0; eid = 0; gv = 1; speed = 1; banner = null; sel = null; drag = null; ptr = new Map(); panel = null; EM = []; emPick = null; NQ = []; outbox = []; aseq = 0; lastAct = SIDS.map(() => 0); ended = false; frame = 0;
+      Z = SIDS.map(() => mkZone()); E = []; PR = []; FX = []; TB = []; MS = null; wave = 0; waveT = 0; spawnLeft = 0; spawnT = 0; state = "play"; overT = 0; score = 0; spdB = 0; kills = 0; bossK = 0; eid = 0; gv = 1; speed = 1; banner = null; sel = null; drag = null; ptr = new Map(); panel = null; EM = []; emPick = null; NQ = []; outbox = []; aseq = 0; lastAct = SIDS.map(() => 0); ended = false; frame = 0;
       setSky();
       const RES = (party === "host" && O.mig) || (!party && O.resume ? RDS.get(SIDS) : null);
       if (RES && loadGame(RES)){ /* 이어하기 · 👑 새 방장이 이어받기 */
@@ -16873,7 +16881,7 @@ NG.defs.rd = () => {
       (window.requestIdleCallback || setTimeout)(run, {timeout: 300});
     },
     slotPt(z, i){ const [x, y] = slotXY(z, i); return [cx(x), cy(y)]; },   // (시험·도우미) 칸 가운데 판 좌표
-    dockClick, ownHTML, rdInfo(){ const z = local[0]; return {dk: dkLv(z), du: DKU, de: DKE && DKE[z],  cb: (CBA && CBA[z] || []).map(o => o.cb.id), rc: rrCost(z), tw: trayW(z), wave, gold: Z[z].gold, gems: Z[z].gems, H: haveOf(z), pin, yh: yardH(z), N}; },
+    dockClick, ownHTML, rdInfo(){ const z = local[0]; return {spdB, score, dk: dkLv(z), du: DKU, de: DKE && DKE[z],  cb: (CBA && CBA[z] || []).map(o => o.cb.id), rc: rrCost(z), tw: trayW(z), wave, gold: Z[z].gold, gems: Z[z].gems, H: haveOf(z), pin, yh: yardH(z), N}; },
     /* 🧪 (시험·도우미) 빠른 계산 · 행동 · 땅 */
     T: {sim: () => sim(), act: (z, a) => doAct(z, a), terr: (z, i) => TERR(z, i), front: (z, i) => isFront(z, i), hbc: () => HBC, trayW, buf: () => BUF, crList, upCost, rrCost, bestTk, set hpk(v){ HPK = v; }, set nrm(v){ NRM = v; }, set rmp(v){ RMP = v; }, E: () => E, LIMIT: () => LIMIT, get state(){ return state; }, get wave(){ return wave; }},
     apply, dropIdx(i){ /* 나간 친구 자리의 동물은 그대로 싸워요 */ },
@@ -16964,7 +16972,7 @@ const RDM = {
         <div><h4>📥 2초마다 오는 동물로 덱 짜기</h4>뽑기는 없어요! <b>대기 줄</b>에 2초마다 동물이 와요 — 어떤 동물을 데려와야 조합이 될지 골라요. 대기 줄에는 ⚪ 일반 → 🔵 희귀 → 🟣 영웅 → 🟡 전설 → 🌈 신화가 와요.</div>
         <div class="rd-cb-hero"><h4>🃏 덱을 모아 신화 위로! <small>NEW</small></h4>동물마다 덱(🦁 맹수 · 🪶 날개 · 🌊 물결 · 🛡️ 수호 · ✨ 마법)이 있어요. 같은 덱 동물을 <b>여러 종류</b> 모으면 덱 효과 ⭐ → ⭐⭐ → ⭐⭐⭐! 덱을 완성하면 <b style="color:#22d3ee">💠 초월</b> → <b style="color:#ff5f3d">🔥 불멸</b> → <b style="color:#ffe066">🌟 태초</b>를 만들 수 있어요. 📖 도감 <b>🃏 덱</b> 탭에 따라 하기 설명이 있어요!</div>
         <div><h4>⏳ 작전 시간</h4>단계가 시작되면 몇 초 동안 몬스터가 안 나와요. 위쪽에 <b>다음에 올 몬스터</b>가 보여요 → 동물을 옮기고 조합을 짜서 맞서요!</div>
-        <div><h4>🏆 50단계 정복</h4>5단계마다 새 맵 · 10단계마다 👑 보스 · <b>50단계 마왕 보스</b>를 잡으면 승리! 👾 몬스터가 꽉 차면 끝</div>
+        <div><h4>🏆 1000단계까지! ⚡ 빨리 깰수록 높은 점수</h4>5단계마다 새 맵 · 10단계마다 👑 보스 · 50단계마다 👹 마왕 보스(다음 바퀴로 🔁) · <b>1000단계 마왕</b>을 잡으면 정복! 몬스터를 빨리 다 잡으면 <b>바로 다음 단계</b>로 가고, 남은 시간만큼 <b>⚡ 빠르기 보너스</b> 점수!</div>
         <div><h4>🌍 땅 · 🗡️ 역할</h4>🌳 육지 · 🌊 바다 · ☁️ 하늘 동물은 자기 땅 칸에서 +35%. ⚔️ 근거리는 길 옆, 🏹 원거리는 뒷줄!</div>
         <div><h4>👥 최대 6명 · 🎁 주고받기</h4>친구마다 마당 땅이 달라요. 친구 조합에 필요한 동물이 오면 <b>🎁 선물</b>해요 — 이야기할수록 강해져요</div>      </div>
       <button class="arc-btn rd-book-btn" id="rdBook">📖 동물 도감 보기 · 동물마다 힘·스킬·배치 요령</button>
@@ -22253,6 +22261,11 @@ Object.assign(VOICE, {
    - k: "new"(새로 생겼어요) · "up"(더 좋아졌어요) · "fix"(고쳤어요)
    ===================================================================== */
 const NEWS = [
+  {id: "2026-11-23c", d: "11월 23일", e: "🏔️", t: "다시 1000단계까지!", items: [
+    ["new", "🏔️", "1000단계 도전", "랜덤 디펜스가 다시 1000단계까지 가요! 50단계마다 👹 마왕 보스가 나오고, 잡으면 맵이 한 바퀴 돌아 더 센 몬스터가 와요."],
+    ["new", "⚡", "빨리 깰수록 높은 점수", "한 단계의 몬스터를 빨리 다 잡으면 바로 다음 단계로 가고, 남은 시간만큼 빠르기 보너스 점수를 받아요. 보스를 빨리 잡으면 보너스가 두 배!"],
+    ["up", "💨", "기다리지 않아요", "길에 몬스터가 하나도 없으면 다음 몬스터가 바로 나와요. 센 덱을 짤수록 더 빨리 올라가요."]
+  ], tip: "💡 위쪽 띠의 ⚡ 숫자가 빠르기 보너스예요. 덱을 섞어 와장창 깨면 훨씬 빨라져요!"},
   {id: "2026-11-23b", d: "11월 23일", e: "🌈", t: "덱을 섞으면 와장창!", items: [
     ["new", "💥", "와장창 깨기", "덱이 켜진 동물이 때리면 몬스터 머리 위에 덱 색 점이 붙어요. 서로 다른 색 3개가 모이면 몬스터가 깨져서 훨씬 더 아파요!"],
     ["new", "🌈", "오색 와장창", "맹수·날개·물결·수호·마법 다섯 색을 한 몬스터에 다 모으면 큰 폭발이 터져요!"],
