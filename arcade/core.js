@@ -192,18 +192,23 @@ const Store = {
     return this.fb = {app, auth, fs};
   },
   async connect(cfg, cid, create){
-    const {app, auth, fs} = await this.lib();
+    const slow = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error("연결이 너무 오래 걸려요"), {code: "arc-slow"})), ms))]);
+    const {app, auth, fs} = await slow(this.lib(), 20000);
     const name = "arc-" + cid, a = app.getApps().find(x => x.name === name) || app.initializeApp(cfg, name);
-    await auth.signInAnonymously(auth.getAuth(a));
+    /* ⏳ (2026.11.23) 화면 멈춤 막기: 다른 탭(백그라운드에서 잠든 보드게임 탭)이 기기 저장소를 붙잡고 있으면
+       Firebase가 대답 없이 기다려서 빈 화면으로 멈출 수 있어요 → 10초 안에 반 정보가 안 오면 '기기 저장소 없이' 다시 열어요 */
+    await slow(auth.signInAnonymously(auth.getAuth(a)), 12000);
     /* ⚡ 기기 안 저장소(IndexedDB)에 반 정보를 기억해 둬요 → 새로고침해도 바로 뜨고,
        30명이 동시에 들어와도 바뀐 것만 받아서 Firebase 사용량·버퍼링이 확 줄어요 */
     let db;
-    try { db = fs.initializeFirestore(a, fs.persistentLocalCache ? {localCache: fs.persistentLocalCache({tabManager: fs.persistentMultipleTabManager()})} : {}); }
+    const noCache = +localStorage.getItem(KEY + ".nocache") > Date.now();
+    if (noCache) db = fs.getFirestore(a);
+    else try { db = fs.initializeFirestore(a, fs.persistentLocalCache ? {localCache: fs.persistentLocalCache({tabManager: fs.persistentMultipleTabManager()})} : {}); }
     catch(e){ db = fs.getFirestore(a); }
     this.db = db; this.fs = fs; this.cid = cid;
     this.refCls = fs.doc(db, "arcade", cid);
     if (create){ await fs.setDoc(this.refCls, create); }
-    const first = await fs.getDoc(this.refCls);
+    const first = await slow(fs.getDoc(this.refCls), 10000);
     if (!first.exists()) throw new Error("반 정보를 찾지 못했어요. 반 입장 주소를 다시 확인해 주세요.");
     this.mode = "cloud"; this.cls = first.data();
     localStorage.setItem(KEY + ".join", JSON.stringify({c: cfg, i: cid}));
@@ -544,8 +549,14 @@ const ARC = {
     $$(".arc-modal").forEach(m => m.addEventListener("pointerdown", e => { if (e.target === m && m.id !== "mdPw" && m.id !== "mdNet") m.hidden = true; }));
     Store.subs.push(() => this.refresh());
     let ok = false;
-    try { ok = await Store.init(); }
-    catch(e){ console.error(e); this.syncMsg(`⚠️ 반 전체 기록에 연결하지 못했어요: ${e.message || e}`); $("#lgSync").innerHTML = `⚠️ 반 기록에 연결하지 못했어요. 인터넷을 확인하고 <button class="arc-btn" onclick="location.reload()">다시 연결</button>`; this.show("scrLogin"); return; }
+    const ld = document.createElement("div"); ld.id = "arcLoading"; ld.className = "arc-loading"; ld.innerHTML = `<div><b>🎲</b><p>우리 반 보드게임을 여는 중…</p></div>`;
+    if (Store.join()) document.body.appendChild(ld);
+    const ldT = setTimeout(() => { const p = ld.querySelector("p"); if (p) p.innerHTML = `연결이 조금 느려요…<br><small>잠시만 기다려 주세요</small>`; }, 5000);
+    try { ok = await Store.init(); clearTimeout(ldT); ld.remove(); }
+    catch(e){ clearTimeout(ldT); ld.remove(); console.error(e);
+      if (e && e.code === "arc-slow" && !(+localStorage.getItem(KEY + ".nocache") > Date.now())){
+        localStorage.setItem(KEY + ".nocache", Date.now() + 6*3600000); location.reload(); return; }   /* 기기 저장소 없이 한 번 더 (6시간) */
+      this.syncMsg(`⚠️ 반 전체 기록에 연결하지 못했어요: ${e.message || e}`); $("#lgSync").innerHTML = `⚠️ 반 기록에 연결하지 못했어요. 인터넷을 확인하고 <button class="arc-btn" onclick="location.reload()">다시 연결</button>`; this.show("scrLogin"); return; }
     if (!ok) return this.setup();
     const meRaw = localStorage.getItem(KEY + ".me"), me = meRaw === null || meRaw === "" ? null : +meRaw;
     if (this.inRoster(me)){ this.me = me; this.home(); } else this.login();

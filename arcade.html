@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="9d9b79c457">
+<meta name="arc-build" content="70dce6717b">
 <script>
 /* 🔄 늘 최신 보드게임: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "9d9b79c457", K = "arcade.reloaded";
+  var B = "70dce6717b", K = "arcade.reloaded";
   function saving(){ try { return typeof Store !== "undefined" && Store.saving && Store.saving(); } catch(e){ return false; } }
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !saving() && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
@@ -1600,6 +1600,11 @@ body.arc-lite .arc-logo .g{animation:none !important}
 @keyframes cgFx{0%{opacity:0;transform:translateY(6px)}20%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-14px)}}
 @media (max-width:700px){.arc-coins .r{flex-wrap:wrap}.arc-coins .nm{width:auto;flex:1}.arc-coins .bb{width:100%;justify-content:flex-end}.cg-amt input{width:96px}}
 
+.arc-loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50;text-align:center;color:#d9d2ff;font:20px "Jua",sans-serif}
+.arc-loading b{display:block;font-size:64px;animation:arcSpin 1.4s ease-in-out infinite}
+.arc-loading small{font-size:14px;color:#9f97c9}
+@keyframes arcSpin{0%{transform:rotate(0)}50%{transform:rotate(180deg) scale(1.1)}100%{transform:rotate(360deg)}}
+
 /* ===================== 🏠 보드게임 로비 (2026.11.13) : 첫 화면 랭킹 · 대결방 · 채팅 · 관리자 ===================== */
 /* ⚡ 렉 줄이기: 고정 배경(background-attachment:fixed)·글자 번짐 필터·모달 흐림은 화면 전체를 계속 다시 그려서 뺐어요 */
 body.arc-body{background:#140f2e !important;background-attachment:scroll !important}
@@ -2950,18 +2955,23 @@ const Store = {
     return this.fb = {app, auth, fs};
   },
   async connect(cfg, cid, create){
-    const {app, auth, fs} = await this.lib();
+    const slow = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error("연결이 너무 오래 걸려요"), {code: "arc-slow"})), ms))]);
+    const {app, auth, fs} = await slow(this.lib(), 20000);
     const name = "arc-" + cid, a = app.getApps().find(x => x.name === name) || app.initializeApp(cfg, name);
-    await auth.signInAnonymously(auth.getAuth(a));
+    /* ⏳ (2026.11.23) 화면 멈춤 막기: 다른 탭(백그라운드에서 잠든 보드게임 탭)이 기기 저장소를 붙잡고 있으면
+       Firebase가 대답 없이 기다려서 빈 화면으로 멈출 수 있어요 → 10초 안에 반 정보가 안 오면 '기기 저장소 없이' 다시 열어요 */
+    await slow(auth.signInAnonymously(auth.getAuth(a)), 12000);
     /* ⚡ 기기 안 저장소(IndexedDB)에 반 정보를 기억해 둬요 → 새로고침해도 바로 뜨고,
        30명이 동시에 들어와도 바뀐 것만 받아서 Firebase 사용량·버퍼링이 확 줄어요 */
     let db;
-    try { db = fs.initializeFirestore(a, fs.persistentLocalCache ? {localCache: fs.persistentLocalCache({tabManager: fs.persistentMultipleTabManager()})} : {}); }
+    const noCache = +localStorage.getItem(KEY + ".nocache") > Date.now();
+    if (noCache) db = fs.getFirestore(a);
+    else try { db = fs.initializeFirestore(a, fs.persistentLocalCache ? {localCache: fs.persistentLocalCache({tabManager: fs.persistentMultipleTabManager()})} : {}); }
     catch(e){ db = fs.getFirestore(a); }
     this.db = db; this.fs = fs; this.cid = cid;
     this.refCls = fs.doc(db, "arcade", cid);
     if (create){ await fs.setDoc(this.refCls, create); }
-    const first = await fs.getDoc(this.refCls);
+    const first = await slow(fs.getDoc(this.refCls), 10000);
     if (!first.exists()) throw new Error("반 정보를 찾지 못했어요. 반 입장 주소를 다시 확인해 주세요.");
     this.mode = "cloud"; this.cls = first.data();
     localStorage.setItem(KEY + ".join", JSON.stringify({c: cfg, i: cid}));
@@ -3302,8 +3312,14 @@ const ARC = {
     $$(".arc-modal").forEach(m => m.addEventListener("pointerdown", e => { if (e.target === m && m.id !== "mdPw" && m.id !== "mdNet") m.hidden = true; }));
     Store.subs.push(() => this.refresh());
     let ok = false;
-    try { ok = await Store.init(); }
-    catch(e){ console.error(e); this.syncMsg(`⚠️ 반 전체 기록에 연결하지 못했어요: ${e.message || e}`); $("#lgSync").innerHTML = `⚠️ 반 기록에 연결하지 못했어요. 인터넷을 확인하고 <button class="arc-btn" onclick="location.reload()">다시 연결</button>`; this.show("scrLogin"); return; }
+    const ld = document.createElement("div"); ld.id = "arcLoading"; ld.className = "arc-loading"; ld.innerHTML = `<div><b>🎲</b><p>우리 반 보드게임을 여는 중…</p></div>`;
+    if (Store.join()) document.body.appendChild(ld);
+    const ldT = setTimeout(() => { const p = ld.querySelector("p"); if (p) p.innerHTML = `연결이 조금 느려요…<br><small>잠시만 기다려 주세요</small>`; }, 5000);
+    try { ok = await Store.init(); clearTimeout(ldT); ld.remove(); }
+    catch(e){ clearTimeout(ldT); ld.remove(); console.error(e);
+      if (e && e.code === "arc-slow" && !(+localStorage.getItem(KEY + ".nocache") > Date.now())){
+        localStorage.setItem(KEY + ".nocache", Date.now() + 6*3600000); location.reload(); return; }   /* 기기 저장소 없이 한 번 더 (6시간) */
+      this.syncMsg(`⚠️ 반 전체 기록에 연결하지 못했어요: ${e.message || e}`); $("#lgSync").innerHTML = `⚠️ 반 기록에 연결하지 못했어요. 인터넷을 확인하고 <button class="arc-btn" onclick="location.reload()">다시 연결</button>`; this.show("scrLogin"); return; }
     if (!ok) return this.setup();
     const meRaw = localStorage.getItem(KEY + ".me"), me = meRaw === null || meRaw === "" ? null : +meRaw;
     if (this.inRoster(me)){ this.me = me; this.home(); } else this.login();
@@ -22775,6 +22791,9 @@ Object.assign(VOICE, {
    - k: "new"(새로 생겼어요) · "up"(더 좋아졌어요) · "fix"(고쳤어요)
    ===================================================================== */
 const NEWS = [
+  {id: "2026-11-23i", d: "11월 23일", e: "🛠️", t: "빈 화면에서 멈추지 않아요", items: [
+    ["fix", "🎲", "보드게임이 안 열리던 문제", "가끔 보라색 빈 화면에서 멈추던 문제를 고쳤어요. 연결이 느리면 주사위가 돌며 기다렸다가 스스로 다시 열어요."]
+  ]},
   {id: "2026-11-23h", d: "11월 23일", e: "🏫", t: "다른 반 친구들도 함께해요!", items: [
     ["new", "🏫", "반마다 따로 보드게임", "이제 다른 반도 자기 반 보드게임을 따로 가져요. 랭킹, 코인, 채팅, 대결방은 우리 반끼리만 보여요."],
     ["new", "🎲", "반 바꾸기 버튼", "로그인 화면 아래 🏫 반 바꾸기를 누르면 반 목록이 나와요. 꼭 우리 반을 골라서 들어와요!"],
