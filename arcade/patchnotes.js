@@ -159,7 +159,7 @@ const NEWSUI = {
       <div class="nw-top"><div class="nw-big">${auto ? "🎉" : "📢"}</div><h2>${auto ? "새 소식이 있어요!" : "보드게임 새 소식"}</h2><p>${auto ? "보드게임이 이렇게 바뀌었어요 👀" : "그동안 바뀐 것들을 모아 봤어요"}</p><button class="nw-x" data-nw="x" title="닫기">✕</button></div>
       <div class="nw-body">${list.map((n, i) => this.card(n, i === 0)).join("")}
         ${old.length ? `<details class="nw-old"><summary>📜 지난 소식 보기 (${old.length})</summary>${old.map(n => this.card(n)).join("")}</details>` : ""}</div>
-      <div class="nw-foot"><button class="arc-btn p nw-ok" data-nw="ok">알겠어요! 👍</button><small>📢 위쪽 <b>새 소식</b> 단추로 언제든 다시 볼 수 있어요 · 만든 사람 효석쌤</small></div></div>`;
+      <div class="nw-foot"><button class="arc-btn p nw-ok" data-nw="ok">알겠어요! 👍</button><small>📢 위쪽 <b>새 소식</b> 단추로 언제든 다시 볼 수 있어요</small></div></div>`;
     m.onclick = e => { if (e.target.closest("[data-nw]")) this.close(); };
     m.hidden = false; this.mark();
     try { tone(660, 990, .1, "triangle", .08); tone(990, 1320, .12, "triangle", .08, .1); } catch(e) {}

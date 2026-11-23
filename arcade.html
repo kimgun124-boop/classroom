@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="5102274924">
+<meta name="arc-build" content="fef137c7ec">
 <script>
 /* 🔄 늘 최신 보드게임: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "5102274924", K = "arcade.reloaded";
+  var B = "fef137c7ec", K = "arcade.reloaded";
   function saving(){ try { return typeof Store !== "undefined" && Store.saving && Store.saving(); } catch(e){ return false; } }
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !saving() && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
@@ -37,7 +37,7 @@
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#140f2e">
-<title>🎲 우리반 보드게임 · made by 효석쌤</title>
+<title>🎲 우리반 보드게임</title>
 <meta name="author" content="효석쌤">
 <link rel="manifest" href="arcade.webmanifest">
 <link rel="apple-touch-icon" href="icons/arcade-180.png">
@@ -2342,7 +2342,6 @@ body.arc-lite .rh-song{transition:none}
     <label class="arc-f" id="suCfgBox" hidden>Firebase 설정 붙여넣기 <small>Firebase 콘솔의 웹 앱 설정(<code>const firebaseConfig = {...}</code>)을 통째로 붙여 넣어요</small>
       <textarea id="suCfg" rows="6" placeholder='const firebaseConfig = { apiKey: "...", authDomain: "...", projectId: "...", ... };'></textarea></label>
     <div class="arc-row"><button class="arc-btn p" id="suGo">🎮 보드게임 만들기</button></div>
-    <p class="arc-credit in">✋ made by 효석쌤</p>
     <p class="arc-small">이미 다른 기기에서 만들었다면, 선생님 화면의 <b>🔗 반 입장 주소</b>로 열어 주세요.</p>
   </div>
 </section>
@@ -2362,7 +2361,7 @@ body.arc-lite .rh-song{transition:none}
   <button class="arc-teach arc-refresh lg-refresh" onclick="arcRefresh(this)" title="최신 버전으로 새로고침">🔄 새로고침</button>
   <button class="arc-btn app-inst lg-inst" hidden>📲 앱으로 설치</button>
   <div class="arc-sync" id="lgSync"></div>
-  <div class="arc-credit">🎲 우리반 보드게임 · made by <b>효석쌤</b></div>
+  <div class="arc-credit">🎲 우리반 보드게임</div>
 </section>
 
 <!-- ===== 홈 (로비) ===== -->
@@ -2411,7 +2410,7 @@ body.arc-lite .rh-song{transition:none}
   <div class="arc-closed" id="hmClosed" hidden></div>
   <button hidden id="hmRank"></button>
   <div class="arc-sync" id="hmSync"></div>
-  <div class="arc-credit">🎲 우리반 보드게임 · made by <b>효석쌤</b></div>
+  <div class="arc-credit">🎲 우리반 보드게임</div>
 </section>
 
 <!-- ===== 비밀번호 입력 / 상대 로그인 ===== -->
@@ -2524,7 +2523,7 @@ body.arc-lite .rh-song{transition:none}
     <div class="ad-side">
       <h2>🛠️ 관리자</h2><div class="ad-cls" id="tcCls"></div>
       <div class="arc-tabs" id="tcTabs"><button data-t="live">📊 지금 현황<i id="tbLive"></i></button><button data-t="chat">💬 채팅 관리</button><button data-t="room">⚔️ 대결방</button><button data-t="game">🎮 게임 · 문 닫기</button><button data-t="kids">👧 학생 · 비밀번호</button><button data-t="gift">🎁 칭찬 상 주기</button><button data-t="coin">🪙 코인</button><button data-t="rank">🏆 랭킹 관리</button><button data-t="link">🔗 반 입장 주소</button><button data-t="school">🏫 학교 채널</button><button data-t="store">☁️ 저장</button></div>
-      <div class="ad-who">🎲 우리반 보드게임<br>made by 효석쌤</div>
+      <div class="ad-who">🎲 우리반 보드게임</div>
     </div>
     <div class="ad-body"><div id="tcBody"></div></div>
     <button class="arc-x" data-close>×</button>
@@ -22879,7 +22878,7 @@ const NEWSUI = {
       <div class="nw-top"><div class="nw-big">${auto ? "🎉" : "📢"}</div><h2>${auto ? "새 소식이 있어요!" : "보드게임 새 소식"}</h2><p>${auto ? "보드게임이 이렇게 바뀌었어요 👀" : "그동안 바뀐 것들을 모아 봤어요"}</p><button class="nw-x" data-nw="x" title="닫기">✕</button></div>
       <div class="nw-body">${list.map((n, i) => this.card(n, i === 0)).join("")}
         ${old.length ? `<details class="nw-old"><summary>📜 지난 소식 보기 (${old.length})</summary>${old.map(n => this.card(n)).join("")}</details>` : ""}</div>
-      <div class="nw-foot"><button class="arc-btn p nw-ok" data-nw="ok">알겠어요! 👍</button><small>📢 위쪽 <b>새 소식</b> 단추로 언제든 다시 볼 수 있어요 · 만든 사람 효석쌤</small></div></div>`;
+      <div class="nw-foot"><button class="arc-btn p nw-ok" data-nw="ok">알겠어요! 👍</button><small>📢 위쪽 <b>새 소식</b> 단추로 언제든 다시 볼 수 있어요</small></div></div>`;
     m.onclick = e => { if (e.target.closest("[data-nw]")) this.close(); };
     m.hidden = false; this.mark();
     try { tone(660, 990, .1, "triangle", .08); tone(990, 1320, .12, "triangle", .08, .1); } catch(e) {}
