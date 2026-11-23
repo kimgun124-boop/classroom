@@ -261,6 +261,7 @@ const RD_EMO = ["👍", "😂", "😍", "😱", "🔥", "👏", "❤️", "😭"
 .rd-sel kbd{position:absolute;top:-7px;right:-3px;font:11px "Jua",sans-serif;background:#ffd43b;color:#3b2a00;border-radius:6px;padding:0 5px;box-shadow:0 1px 0 rgba(0,0,0,.3)}
 .rd-sel .rs-cb{display:flex;flex-direction:column;gap:4px;margin-top:7px}
 .rd-sel .rs-cb span{display:flex;flex-wrap:wrap;align-items:center;gap:4px;border-radius:12px;padding:4px 9px;background:rgba(255,255,255,.07);border-left:4px solid var(--c);font-size:13px;line-height:1.3}
+.rd-sel:not(.side) .rs-cb{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
 .rd-sel .rs-cb span.on{background:color-mix(in srgb,var(--c) 28%,transparent);box-shadow:0 0 0 1px var(--c) inset}
 .rd-sel .rs-cb b{font-weight:400;color:#fff}.rd-sel .rs-cb i{font-style:normal;opacity:.35;filter:grayscale(1)}.rd-sel .rs-cb i.y{opacity:1;filter:none}
 .rd-sel .rs-cb small{font-size:11.5px;color:#ffe066;width:100%}
@@ -268,7 +269,12 @@ const RD_EMO = ["👍", "😂", "😍", "😱", "🔥", "👏", "❤️", "😭"
 .rd-sel .rs-gv button{border:2px solid var(--c);border-radius:999px;background:rgba(255,255,255,.1);color:#fff;font:13px "Jua",sans-serif;padding:4px 10px;cursor:pointer}
 .rd-sel .rs-gv button.fit{background:var(--c);color:#1b1233}.rd-sel .rs-gv button small{opacity:.8;font-size:11px}
 .rd-sel.side{overflow:auto;scrollbar-width:none}.rd-sel.side .rs-bt{flex-direction:column;gap:6px}.rd-sel.side .rs-bt button{flex:none;min-height:42px;flex-direction:row;gap:6px;padding:7px 8px}
-.rd-sel.side .rs-hd{flex-wrap:wrap}
+.rd-sel.side .rs-hd{display:grid;grid-template-columns:auto 1fr auto;align-items:center;column-gap:8px;row-gap:4px}
+.rd-sel.side .rs-hd img{grid-row:1;width:40px;height:40px}.rd-sel.side .rs-x{grid-row:1;grid-column:3}
+.rd-sel.side .rs-tx{display:contents}.rd-sel.side .rs-tx>b{grid-row:1;grid-column:2;line-height:1.15;word-break:keep-all}
+.rd-sel.side .rs-tx>small,.rd-sel.side .rs-tx>.rs-tip{grid-column:1/-1;white-space:normal;word-break:keep-all;overflow-wrap:anywhere;line-height:1.35}
+.rd-sel.side .rs-tx>small{display:flex;flex-wrap:wrap;gap:2px 6px;align-items:center}
+.rd-sel.side .rs-cb span{word-break:keep-all}
 @media (max-height:520px){.rd-sel.side{padding:6px}.rd-sel.side .rs-tx small{display:none}.rd-sel.side .rs-hd{margin-bottom:4px;gap:5px}.rd-sel.side .rs-hd img{width:28px;height:28px}.rd-sel.side .rs-tx b{font-size:14px}.rd-sel.side .rs-tip{font-size:10.5px}.rd-sel.side .rs-x{width:28px;height:28px;font-size:13px}
   .rd-sel.side .rs-bt{gap:4px}.rd-sel.side .rs-bt button{min-height:32px;padding:4px 6px;font-size:13px;box-shadow:0 3px 0 #9775fa}.rd-sel.side .rs-bt button small{font-size:10px}}.rd-sel.side .rs-tx small{white-space:normal}.rd-sel.side .rs-tip{font-size:11.5px}
 @media (max-width:640px),(max-height:520px){.rd-sel{padding:6px 7px 8px;border-radius:16px}.rd-sel .rs-hd{margin-bottom:5px}.rd-sel .rs-hd img{width:36px;height:36px}.rd-sel .rs-tx b{font-size:15px}.rd-sel .rs-bt{gap:5px}.rd-sel .rs-bt button{font-size:13.5px;min-height:46px;padding:6px 2px}.rd-sel .rs-bt button small{font-size:10.5px}.rd-sel .rs-x{width:34px;height:34px}}
@@ -1367,8 +1373,9 @@ NG.defs.rd = () => {
           const [x1, y1] = slotXY(z, S0[a]), [x2, y2] = slotXY(z, S0[b]), dx = x2 - x1, dy = y2 - y1, dl = Math.hypot(dx, dy) || 1, ux = dx/dl, uy = dy/dl;
           segs.push([cx(x1 + ux*.34), cy(y1 + uy*.34), cx(x2 - ux*.34), cy(y2 - uy*.34)]); }
         const pul = .65 + Math.sin(fr*.12 + z*1.7)*.25, ins = (cbIx[z + ":" + cb.id] || 0)*C*.05;
-        g.globalAlpha = .55 + pul*.35; g.strokeStyle = cb.c; g.lineWidth = Math.max(3, C*.06); g.shadowColor = cb.c; g.shadowBlur = C*.18;
-        S0.forEach(i => { const [x, y] = slotXY(z, i); rrect(g, cx(x - .47) + ins, cy(y - .47) + ins, C*.94 - ins*2, C*.94 - ins*2, C*.18); g.stroke(); }); g.shadowBlur = 0;
+        /* ⚡ (2026.11.23) 그림자 흐림(shadowBlur) 대신 두 겹 선 — 태블릿에서 훨씬 가벼워요 */
+        g.strokeStyle = cb.c; g.beginPath(); S0.forEach(i => { const [x, y] = slotXY(z, i), X0 = cx(x - .47) + ins, Y0 = cy(y - .47) + ins, w = C*.94 - ins*2, r0 = C*.18; g.moveTo(X0 + r0, Y0); g.arcTo(X0 + w, Y0, X0 + w, Y0 + w, r0); g.arcTo(X0 + w, Y0 + w, X0, Y0 + w, r0); g.arcTo(X0, Y0 + w, X0, Y0, r0); g.arcTo(X0, Y0, X0 + w, Y0, r0); g.closePath(); });
+        g.globalAlpha = .22*pul; g.lineWidth = Math.max(6, C*.16); g.stroke(); g.globalAlpha = .6 + pul*.3; g.lineWidth = Math.max(3, C*.055); g.stroke();
         [[C*.2, .28*pul], [C*.08, .95]].forEach(([w, a]) => { g.globalAlpha = a; g.strokeStyle = w > C*.1 ? cb.c : "#fff"; g.lineWidth = Math.max(2, w); g.beginPath(); segs.forEach(([a1, b1, a2, b2]) => { g.moveTo(a1, b1); g.lineTo(a2, b2); }); g.stroke(); });
         g.globalAlpha = pul; g.strokeStyle = cb.c; g.lineWidth = Math.max(2, C*.05); g.beginPath(); segs.forEach(([a1, b1, a2, b2]) => { g.moveTo(a1, b1); g.lineTo(a2, b2); }); g.stroke(); g.globalAlpha = 1;
         const bx = cx(o.c[0]), by = cy(o.c[1]), br = Math.max(11, C*.19), q = Math.min(1, ((Z[z].cbq || {})[cb.id] || 0)/rdCbU(cb));
@@ -1772,10 +1779,10 @@ NG.defs.rd = () => {
     holdGuard(el); if (el._hold && Date.now() - el._hold < 1500 && !el.hidden){ selSig = ""; return; }   // 👆 누르는 중엔 그대로
     const kb = k => kHint ? `<kbd>${k}</kbd>` : "";
     /* 가로 화면: 판 옆 빈자리에 세로로 (판을 가리지 않게) · 빈자리가 좁으면 아래쪽 단추 줄 바로 위 */
-    const k0 = r.width/W, bR = r.left + (BX + COLS*C)*k0, bL = r.left + BX*k0, spR = r.right - bR, spL = bL - r.left, side = Math.max(spR, spL) >= 150;
+    const k0 = r.width/W, bR = r.left + (BX + COLS*C)*k0, bL = r.left + BX*k0, spR = r.right - bR, spL = bL - r.left, side = Math.max(spR, spL) >= 214;   /* 📐 (2026.11.23) 옆자리가 좁으면(태블릿 1024 등) 글자가 한 줄에 한 글자씩 세로로 쪼개졌어요 → 넉넉할 때만 옆에, 아니면 아래쪽에 */
     el.classList.toggle("side", side);
-    if (side){ const right = spR >= 150 || spR >= spL, w = Math.min(250, (right ? spR : spL) - 14); el.style.width = Math.round(w) + "px"; el.style.left = Math.round(right ? bR + 7 + w/2 : bL - 7 - w/2) + "px";
-      el.style.bottom = Math.round(innerHeight - r.bottom + BOTH*s0 + 6) + "px"; el.style.maxHeight = Math.round((H - BOTH - TOPH - 10)*s0) + "px"; }
+    if (side){ const right = spR >= 214 || spR >= spL, w = Math.min(270, (right ? spR : spL) - 14); el.style.width = Math.round(w) + "px"; el.style.left = Math.round(right ? bR + 7 + w/2 : bL - 7 - w/2) + "px";
+      el.style.bottom = Math.round(innerHeight - r.bottom + BOTH*s0 + 6) + "px"; el.style.maxHeight = Math.round((H - BOTH - TOPH - 52)*s0) + "px"; }   // 위쪽 미션 줄을 가리지 않게
     else { el.style.width = document.body.classList.contains("rdb-split") ? Math.round(Math.min(620, r.width - 8)) + "px" : ""; el.style.maxHeight = ""; el.style.left = Math.round(r.left + r.width/2) + "px"; el.style.bottom = Math.round(innerHeight - r.bottom + BOTH*s0 + 6) + "px"; }
     el.style.setProperty("--g", G.c);
     el.innerHTML = `<div class="rs-hd"><img data-im="${q.k}" ${RDB.img(q.k)} alt=""><div class="rs-tx"><b>${A.e} ${A.n}${q.n > 1 ? ` <em>×${q.n}</em>` : ""}</b><small><i style="--c:${G.c}">${G.n}</i> ${RO.e} ${RO.n} · 💪 ${atk} · 🌟 ${A.sk.e} ${A.sk.n}</small><span class="rs-tip ${A.ro === "m" && !fr0 ? "bad" : ""}">${grab ? "✋ 옮길 칸을 눌러요 (같은 동물 칸이면 자리 바꾸기)" : tip}</span><span class="rs-tip ${okH ? "" : "bad"}">${hTip}</span></div>

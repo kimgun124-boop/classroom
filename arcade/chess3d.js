@@ -112,6 +112,11 @@ const CH3D = {
   /* ---------- 그리기: S = {b, sel, tgts, last, chk, ep, anim} ---------- */
   draw(g, B, flip, S, k){
     const T = this.T, R = this.R, w = Math.max(64, Math.round(B.w*k)), h = Math.max(64, Math.round(B.h*k));
+    /* ⚡ (2026.11.23) 바뀐 게 없으면 3D를 다시 그리지 않고 지난 그림을 붙여요 — 태블릿 렉의 가장 큰 원인이었어요 (그림자·계단 없애기가 매 장면 돌았음) */
+    const now0 = performance.now(), A0 = S.anim, mov = A0 && (performance.now() - A0.t0) < A0.dur, sig = [S.b.join(""), S.sel, S.tgts.join(","), S.last ? S.last.f + "-" + S.last.t : "", S.chk, S.epT, flip, w, h, mov ? "m" + now0 : ""].join("|");
+    const pulse = S.chk >= 0 && (this.pT = (this.pT || 0) + 1) % 4 === 0;   // 장군 깜빡임은 4장면에 한 번만
+    if (!mov && !pulse && sig === this.sig && this.cache){ g.drawImage(this.cache, B.x, B.y, B.w, B.h); return false; }
+    this.sig = sig;
     if (R.domElement.width !== w || R.domElement.height !== h){ R.setSize(w, h, false); this.cam.aspect = w/h; this.cam.updateProjectionMatrix(); }
     if (this.flip !== flip){ this.flip = flip; const z = flip ? -1 : 1; this.cam.position.set(0, 13.4, 10.6*z); this.cam.lookAt(0, -.7, .7*z); }
     Object.values(this.pool).forEach(P => P.forEach(o => o.visible = false)); this.used = {}; this.hl.forEach(o => o.visible = false);
@@ -129,7 +134,9 @@ const CH3D = {
     if (S.chk >= 0){ const m = this.hlAdd("chk", S.chk, .012); m.material.opacity = .75 + Math.sin(now/180)*.25; }
     S.tgts.forEach(i => this.hlAdd(S.b[i] || i === S.epT ? "ring" : "dot", i, .01));
     R.render(this.scene, this.cam);
-    g.drawImage(R.domElement, B.x, B.y, B.w, B.h);
+    const cc = this.cache || (this.cache = document.createElement("canvas")); if (cc.width !== w || cc.height !== h){ cc.width = w; cc.height = h; }
+    const cx2 = cc.getContext("2d"); cx2.clearRect(0, 0, w, h); cx2.drawImage(R.domElement, 0, 0);
+    g.drawImage(cc, B.x, B.y, B.w, B.h);
     return u < 1;
   },
   /* 눌린 곳 → 칸 번호 (말을 눌러도, 칸을 눌러도 돼요) */

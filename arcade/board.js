@@ -346,7 +346,7 @@ NG.defs.ch = () => {
       const L = legal(turn); if (!L.length){ done(null); return; }
       const d = [1, 2, 3][lv] || 2; let best = null, bv = -1e9;
       L.sort(() => Math.random() - .5);
-      for (const m of L){ const U = make(m); const v = -search(d - 1, -1e9, 1e9, turn) + (lv === 0 ? Math.random()*160 : Math.random()*8); unmake(U); if (v > bv){ bv = v; best = m; } }
+      for (const m of L){ const U = make(m); const v = -search(d - 1, -1e9, lv === 0 ? 1e9 : -(bv - 10), turn) + (lv === 0 ? Math.random()*160 : Math.random()*8); unmake(U); if (v > bv){ bv = v; best = m; } }   // ⚡ (2026.11.23) 첫 수부터 가지치기 → 생각하는 동안 화면이 덜 멈춰요
       done([best.f, best.t]);
     }
   };
@@ -448,7 +448,7 @@ NG.defs.jg = () => {
     ai(lv, done){
       const L = legal(turn); if (!L.length){ done(null); return; }
       const d = [1, 2, 3][lv] || 2; let best = null, bv = -1e9; L.sort(() => Math.random() - .5);
-      for (const m of L){ const c = make(m); const v = -search(d - 1, -1e9, 1e9, turn) + (lv === 0 ? Math.random()*300 : Math.random()*10); unmake(m, c); if (v > bv){ bv = v; best = m; } }
+      for (const m of L){ const c = make(m); const v = -search(d - 1, -1e9, lv === 0 ? 1e9 : -(bv - 12), turn) + (lv === 0 ? Math.random()*300 : Math.random()*10); unmake(m, c); if (v > bv){ bv = v; best = m; } }   // ⚡ 첫 수부터 가지치기
       done([best[0], best[1]]);
     }
   };
