@@ -14,8 +14,8 @@ const SCHOOL = {
   pairs: l => (Array.isArray(l) ? l : []).map(x => Array.isArray(x) ? x : [x.n, x.c]),
   list(){ const s = Store.cls && Store.cls.school; return s ? this.pairs(s.l) : []; },
   cfg(){ const j = Store.join(); return j ? j.c : null; },
-  joinOf(cid){ const c = this.cfg(); return c ? `${location.origin}${location.pathname}#join=${b64e({c, i: cid})}` : ""; },
-  hubUrl(){ const c = this.cfg(), s = Store.cls && Store.cls.school; return c && s ? `${location.origin}${location.pathname}#school=${b64e({c, n: s.n, l: this.pairs(s.l)})}` : ""; },
+  joinOf(cid){ const c = this.cfg(); return c ? `${location.origin}${location.pathname}?s=2#join=${b64e({c, i: cid})}` : ""; },
+  hubUrl(){ const c = this.cfg(), s = Store.cls && Store.cls.school; return c && s ? `${location.origin}${location.pathname}?s=2#school=${b64e({c, n: s.n, l: this.pairs(s.l)})}` : ""; },
   pin6: () => String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000)),
 
   /* ---------- 🛠️ 관리자 → 🏫 학교 채널 ---------- */

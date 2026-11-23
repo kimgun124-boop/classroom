@@ -481,7 +481,7 @@ const who = no => +no === TEACHER ? "🧑‍🏫 선생님" : `${no}번 ${nameOf
 /* =====================================================================
    📲 앱으로 설치 — 홈 화면 아이콘을 누르면 바로 우리 반 보드게임으로 들어와요
    ===================================================================== */
-const joinUrl = () => { const j = Store.join(); return j ? `${location.origin}${location.pathname}#join=${b64e({c: j.c, i: j.i})}` : ""; };
+const joinUrl = () => { const j = Store.join(); return j ? `${location.origin}${location.pathname}?s=2#join=${b64e({c: j.c, i: j.i})}` : ""; };
 const APP = {
   ev: null,
   standalone(){ return matchMedia("(display-mode: standalone)").matches || matchMedia("(display-mode: fullscreen)").matches || navigator.standalone === true; },

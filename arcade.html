@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="fef137c7ec">
+<meta name="arc-build" content="05de612539">
 <script>
 /* 🔄 늘 최신 보드게임: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "fef137c7ec", K = "arcade.reloaded";
+  var B = "05de612539", K = "arcade.reloaded";
   function saving(){ try { return typeof Store !== "undefined" && Store.saving && Store.saving(); } catch(e){ return false; } }
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !saving() && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
@@ -38,7 +38,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#140f2e">
 <title>🎲 우리반 보드게임</title>
-<meta name="author" content="효석쌤">
+<meta name="description" content="우리 반 친구들과 함께하는 보드게임">
+<meta property="og:title" content="🎲 우리반 보드게임">
+<meta property="og:description" content="우리 반 친구들과 함께하는 보드게임">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://kimgun124-boop.github.io/classroom/icons/arcade-512.png">
 <link rel="manifest" href="arcade.webmanifest">
 <link rel="apple-touch-icon" href="icons/arcade-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -3235,7 +3239,7 @@ const who = no => +no === TEACHER ? "🧑‍🏫 선생님" : `${no}번 ${nameOf
 /* =====================================================================
    📲 앱으로 설치 — 홈 화면 아이콘을 누르면 바로 우리 반 보드게임으로 들어와요
    ===================================================================== */
-const joinUrl = () => { const j = Store.join(); return j ? `${location.origin}${location.pathname}#join=${b64e({c: j.c, i: j.i})}` : ""; };
+const joinUrl = () => { const j = Store.join(); return j ? `${location.origin}${location.pathname}?s=2#join=${b64e({c: j.c, i: j.i})}` : ""; };
 const APP = {
   ev: null,
   standalone(){ return matchMedia("(display-mode: standalone)").matches || matchMedia("(display-mode: fullscreen)").matches || navigator.standalone === true; },
@@ -14900,8 +14904,8 @@ const SCHOOL = {
   pairs: l => (Array.isArray(l) ? l : []).map(x => Array.isArray(x) ? x : [x.n, x.c]),
   list(){ const s = Store.cls && Store.cls.school; return s ? this.pairs(s.l) : []; },
   cfg(){ const j = Store.join(); return j ? j.c : null; },
-  joinOf(cid){ const c = this.cfg(); return c ? `${location.origin}${location.pathname}#join=${b64e({c, i: cid})}` : ""; },
-  hubUrl(){ const c = this.cfg(), s = Store.cls && Store.cls.school; return c && s ? `${location.origin}${location.pathname}#school=${b64e({c, n: s.n, l: this.pairs(s.l)})}` : ""; },
+  joinOf(cid){ const c = this.cfg(); return c ? `${location.origin}${location.pathname}?s=2#join=${b64e({c, i: cid})}` : ""; },
+  hubUrl(){ const c = this.cfg(), s = Store.cls && Store.cls.school; return c && s ? `${location.origin}${location.pathname}?s=2#school=${b64e({c, n: s.n, l: this.pairs(s.l)})}` : ""; },
   pin6: () => String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000)),
 
   /* ---------- 🛠️ 관리자 → 🏫 학교 채널 ---------- */
