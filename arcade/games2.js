@@ -1586,11 +1586,13 @@ const BSP = (() => {
       else { R(t, 16, 17, 9, 4, c); R(t, 16, 17, 9, 1, l); if (G >= 5){ R(t, 24, 16, 3, 6, mixCol(c, "#16121c", .3)); R(t, 24, 16, 3, 1, l); }
         if (G >= 9){ R(t, 27, 17, 1, 4, "#ffffff"); } } }
   }
-  function hero(ci, sid, f, up, dir, sad, g){ const im = avImg(sid), fk = im ? "i" + im.id : "e" + faceOf(sid), gk = g && (g.gun || g.arm || g.helm) ? BSG.sig(g) : "";
+  function hero(ci, sid, f, up, dir, sad, g){ const im = avImg(sid), fk = im ? "i" + im.id : "e" + faceOf(sid), gk = g && (g.gun || g.arm || g.helm || g.shoe) ? BSG.sig(g) : "";
     return memo(`hr${ci}${f}${up}${dir}${sad ? 1 : 0}${fk}${gk}`, () => { const c = cv(28, 34), t = c.getContext("2d");
       t.drawImage(heroBody(ci, f, up), 0, 0); t.drawImage(pface(sid, sad), 5, 0);
       if (!g || !g.helm){ R(t, 6, 3, 13, 1, "#e03131"); R(t, 7, 4, 11, 1, "#a61e1e"); }
       if (gk) gearOv(t, g, f, up);
+      if (g && g.shoe){ const sc = BSG.TIER[g.shoe].c; t.save(); t.globalCompositeOperation = "source-atop"; R(t, 0, 30, 28, 4, sc); R(t, 0, 30, 28, 1, mixCol(sc, "#ffffff", .5));
+        if (g.shoe >= 6){ R(t, 0, 33, 28, 1, "#ffffff"); } t.restore(); }
       const o = outl(c); return dir < 0 ? flip(o) : o; }); }
 
   /* ---------- 로봇 6종 ---------- */
@@ -1684,7 +1686,7 @@ NG.defs.bs = () => {
   const remote = i => party === "host" && O.remote && O.remote[i] != null;
   const GT = 110;
   let W = 1280, H = 720, VH = 720, land = true, CT = [], GY = VH - GT;
-  let P, cam, camT, camMax, stage, stEnd, stLen, score, shots, ebul, ens, plats, items, crates, fx, trapped, genX, boss, clearT, flash, shake, msg, startT, overT, kills, eid, NQ, sendF, bcLocal, ended, lastS, keyS, ptr, snd;
+  let P, cam, camT, camMax, stage, stEnd, stLen, score, shots, ebul, ens, plats, items, crates, fx, trapped, genX, boss, clearT, flash, shake, msg, startT, overT, kills, eid, NQ, sendF, bcLocal, skLocal = 0, frzT = 0, ended, lastS, keyS, ptr, snd;
   const th = () => BS_TH[(stage - 1) % BS_TH.length], D = () => stage - 1, loopN = () => Math.floor((stage - 1)/BS_TH.length);
   const coop = () => 1 + .4*(N - 1);
   const sp = (k, w, h, fn) => G2.spr("bs" + k, w, h, fn);
@@ -1748,6 +1750,14 @@ NG.defs.bs = () => {
                   {t: "stick", pl: b, x: W - 110, y: B + 200, r: 88, free: 1}, {t: "shoot", pl: b, x: W - 280, y: B + 275, r: 60}, {t: "jump", pl: b, x: W - 280, y: B + 130, r: 56}, {t: "bomb", pl: b, x: W - 110, y: B + 58, r: 38}]
                 : [{t: "stick", pl: a, x: 180, y: B + 200, r: 120, free: 1}, {t: "shoot", pl: a, x: W - 270, y: B + 250, r: 88}, {t: "jump", pl: a, x: W - 110, y: B + 155, r: 80}, {t: "bomb", pl: a, x: W - 105, y: B + 310, r: 52}];
     }
+    /* ✨ 스킬 단추: 스킬을 장착한 친구만, 폭탄 단추 옆에 */
+    CT.filter(c => c.t === "bomb").forEach(c => { let eq = ""; try { eq = BSG.of(SIDS[c.pl]).eq; } catch(e){} if (!eq) return;
+      const r = Math.round(c.r*(land ? 1.05 : .95)), x0 = PAN ? -PX + r + 6 : r + 6, x1 = PAN ? W + PX - r - 6 : W - r - 6, y0 = land ? r + 50 : VH + r + 6, y1 = H - r - 6;
+      const ok = (x, y) => x >= x0 && x <= x1 && y >= y0 && y <= y1 && CT.every(o => Math.hypot(o.x - x, o.y - y) > o.r*(o.t === "stick" ? 1.25 : 1) + r + 10);
+      // 폭탄 단추 둘레에서 다른 단추와 겹치지 않는 자리를 찾아요 (위 → 옆 → 아래 순서)
+      let pos = null; find: for (const k of [1, 1.5, 2.1]) for (const deg of [-90, -60, -120, 180, 0, -150, -30, 150, 30, 90]){ const an = deg*Math.PI/180, d = (c.r + r + 12)*k, x = c.x + Math.cos(an)*d*(c.x < W/2 ? -1 : 1), y = c.y + Math.sin(an)*d; if (ok(x, y)){ pos = [x, y]; break find; } }
+      if (!pos){ let bd = 1e9; for (let x = x0; x <= x1; x += 16) for (let y = y0; y <= y1; y += 16){ if (!ok(x, y)) continue; const dd = Math.hypot(x - c.x, y - c.y); if (dd < bd){ bd = dd; pos = [x, y]; } } }   // 둘레에 없으면 빈자리 중 가장 가까운 곳
+      if (!pos) return; CT.push({t: "skill", pl: c.pl, x: pos[0], y: pos[1], r}); });
     if (window.VK_ON){ CT = []; PX = 0; PAN = false; if (!land){ VH = 760; H = 760; } }   // ⌨️ 화면 키보드를 쓸 땐 화면 단추를 숨겨요
     const old = GY; GY = VH - GT;
     if (P && old !== GY){ const d = GY - old, mv = o => o.y += d; P.forEach(mv); [ens, items, crates, plats, trapped, shots, ebul, fx].forEach(L => L.forEach(mv)); if (boss){ boss.y += d; boss.ty += d; } }
@@ -1801,11 +1811,12 @@ NG.defs.bs = () => {
   const ctrlSpr = (k, r, on, col) => sp(`ct${k}${r}${on ? 1 : 0}${col}`, r*2 + 12, r*2 + 12, t => { const m = r + 6;
     if (k === "stick"){ t.fillStyle = "rgba(20,15,46,.4)"; t.beginPath(); t.arc(m, m, r, 0, 7); t.fill(); t.strokeStyle = col; t.lineWidth = 4; t.stroke();
       t.fillStyle = "rgba(255,255,255,.8)"; [[-1, 0], [1, 0], [0, -1]].forEach(([dx, dy]) => { t.save(); t.translate(m + dx*r*.7, m + dy*r*.7); t.rotate(Math.atan2(dy, dx)); t.beginPath(); t.moveTo(r*.14, 0); t.lineTo(-r*.08, -r*.13); t.lineTo(-r*.08, r*.13); t.closePath(); t.fill(); t.restore(); }); return; }
-    const c = {shoot: ["#74c0fc", "#1864ab"], jump: ["#8ce99a", "#2b8a3e"], bomb: ["#d0bfff", "#5f3dc4"]}[k];
+    const sk = k.startsWith("sk_") ? BSG.skill(k.slice(3)) : null;
+    const c = sk ? ["#ffd8a8", "#e8590c"] : {shoot: ["#74c0fc", "#1864ab"], jump: ["#8ce99a", "#2b8a3e"], bomb: ["#d0bfff", "#5f3dc4"]}[k];
     t.fillStyle = "rgba(0,0,0,.35)"; t.beginPath(); t.arc(m, m + 5, r, 0, 7); t.fill();
     t.globalAlpha = on ? 1 : .85; t.fillStyle = BSA.lg(t, 0, m - r, 0, m + r, [[0, c[0]], [1, c[1]]]); t.beginPath(); t.arc(m, m + (on ? 4 : 0), r, 0, 7); t.fill();
     t.globalAlpha = 1; t.strokeStyle = col; t.lineWidth = 4; t.stroke();
-    G2.emo(t, {shoot: "🫧", jump: "⤴️", bomb: "💣"}[k], m, m - r*.12 + (on ? 4 : 0), r*.72); outlinedRaw(t, {shoot: "쏘기", jump: "점프", bomb: "폭탄"}[k], m, m + r*.55 + (on ? 4 : 0), Math.round(r*.3), "#fff"); });
+    G2.emo(t, sk ? sk.e : {shoot: "🫧", jump: "⤴️", bomb: "💣"}[k], m, m - r*.12 + (on ? 4 : 0), r*.72); outlinedRaw(t, sk ? "스킬" : {shoot: "쏘기", jump: "점프", bomb: "폭탄"}[k], m, m + r*.55 + (on ? 4 : 0), Math.round(r*.3), "#fff"); });
   const knobSpr = col => sp("knob" + col, 80, 80, t => { t.fillStyle = "rgba(255,255,255,.9)"; t.beginPath(); t.arc(40, 40, 34, 0, 7); t.fill(); t.fillStyle = col; t.beginPath(); t.arc(40, 40, 22, 0, 7); t.fill(); });
   const warnSpr = () => sp("warn" + W, W, 44, t => { t.fillStyle = "rgba(200,20,20,.85)"; t.fillRect(0, 0, W, 44); t.fillStyle = "#ffd43b"; for (let x = -44; x < W; x += 44){ t.beginPath(); t.moveTo(x, 0); t.lineTo(x + 22, 0); t.lineTo(x + 44, 44); t.lineTo(x + 22, 44); t.fill(); }
     t.fillStyle = "rgba(20,0,0,.75)"; t.fillRect(0, 8, W, 28); });
@@ -1819,7 +1830,7 @@ NG.defs.bs = () => {
   const gearOf = sid => { try { return BSG.of(sid); } catch(e){ return {gun: 0, arm: 0, helm: 0}; } };
   function mkP(i){ const g = gearOf(SIDS[i]), gs = BSG.stats(g);
     return {i, sid: SIDS[i], g, gs, x: 180 + i*70, y: GY - 80, w: 44, h: 80, vx: 0, vy: 0, dir: 1, ground: true, coy: 0, jumps: 0, run: 0, aimUp: false, jb: 0, hearts: 3 + gs.hb, inv: 90, dead: false, gone: false, deadT: 0, gx: 0, gy: 0,
-    wpn: "", wpnT: 0, shield: gs.sh ? 1 : 0, bombs: 2 + gs.bm, cd: 0, bcSeen: 0, in: {l: 0, r: 0, u: 0, s: 0, jh: 0}, tx: null, ty: null}; }
+    wpn: "", wpnT: 0, shield: gs.sh ? 1 : 0, bombs: 2 + gs.bm, cd: 0, bcSeen: 0, sk: g.eq || "", skCd: 0, skSeen: 0, sup: 0, in: {l: 0, r: 0, u: 0, s: 0, jh: 0}, tx: null, ty: null}; }
   function newStage(){
     stLen = 5000 + 350*Math.min(D(), 8); stEnd = (stEnd || 0) + stLen; camMax = -1; boss = null;
     backdrop(); msg = {t: `STAGE ${stage}`, s: th().n + (loopN() ? ` · ${loopN() + 1}회차!` : ""), k: 160};
@@ -1849,11 +1860,11 @@ NG.defs.bs = () => {
   /* ---------- 주인공 움직이기 (방장·친구 기기 모두 같은 규칙) ---------- */
   function phys(p, inp){
     const L = inp.l, R = inp.r; p.aimUp = !!inp.u;
-    const acc = p.ground ? 1 : .62, mx = 5.6;
+    const acc = p.ground ? 1 : .62, mx = 5.6*(p.gs ? p.gs.sp : 1), jv = p.gs ? p.gs.jv : 1;
     if (L && !R){ p.vx = Math.max(-mx, p.vx - acc); p.dir = -1; } else if (R && !L){ p.vx = Math.min(mx, p.vx + acc); p.dir = 1; } else { p.vx *= p.ground ? .68 : .93; if (Math.abs(p.vx) < .05) p.vx = 0; }
     if (p.jb > 0) p.jb--;
-    if (p.jb && (p.ground || p.coy > 0)){ p.vy = -14.6; p.ground = false; p.coy = 0; p.jb = 0; p.jumps = 1; if (isLocal(p.i)) playS("jump"); }
-    else if (p.jb && p.jumps === 1){ p.vy = -12.4; p.jumps = 2; p.jb = 0; puff(p.x + p.w/2, p.y + p.h, 8, "#ffffff", true); if (isLocal(p.i)) playS("jump"); }
+    if (p.jb && (p.ground || p.coy > 0)){ p.vy = -14.6*jv; p.ground = false; p.coy = 0; p.jb = 0; p.jumps = 1; if (isLocal(p.i)) playS("jump"); }
+    else if (p.jb && (p.jumps === 1 || (p.jumps === 2 && p.gs && p.gs.j3))){ p.vy = -12.4*jv; p.jumps++; p.jb = 0; puff(p.x + p.w/2, p.y + p.h, 8, p.jumps === 3 ? "#ffe066" : "#ffffff", true); if (isLocal(p.i)) playS("jump"); }
     if (!inp.jh && p.vy < -5) p.vy += 1.15;
     p.vy = Math.min(17, p.vy + .66);
     const oy = p.y; p.x += p.vx; p.y += p.vy;
@@ -1874,8 +1885,8 @@ NG.defs.bs = () => {
   function fire(p){
     const up = p.aimUp, w = p.wpn, ox = up ? p.x + p.w/2 + p.dir*12 : p.x + p.w/2 + p.dir*44, oy = up ? p.y - 30 : p.y + 34;
     const base = up ? -Math.PI/2 : p.dir > 0 ? 0 : Math.PI, angs = w === "s" ? [-.22, 0, .22] : [0], spd = w === "p" ? 10.5 : 13.5;
-    angs.forEach(a => { const an = base + a; shots.push({x: ox, y: oy, vx: Math.cos(an)*spd + (up ? 0 : p.vx*.3), vy: Math.sin(an)*spd, t: w === "p" ? 90 : 72, r: w === "p" ? 22 : w === "r" ? 11 : 13, dm: (w === "p" ? 3 : 1)*p.gs.dm, pc: (w === "p" ? 4 : 1) + p.gs.pc, o: p.i, gt: p.g.gun || 0}); });
-    p.cd = Math.max(4, Math.round((w === "r" ? 6 : w === "p" ? 17 : w === "s" ? 12 : 11)*p.gs.cdm));
+    angs.forEach(a => { const an = base + a; shots.push({x: ox, y: oy, vx: Math.cos(an)*spd + (up ? 0 : p.vx*.3), vy: Math.sin(an)*spd, t: w === "p" ? 90 : 72, r: w === "p" ? 22 : w === "r" ? 11 : 13, dm: (w === "p" ? 3 : 1)*p.gs.dm*(p.sup ? 2 : 1), pc: (w === "p" ? 4 : 1) + p.gs.pc, o: p.i, gt: p.sup ? 11 + (NG.frame >> 2) % 2 : p.g.gun || 0}); });
+    p.cd = Math.max(3, Math.round((w === "r" ? 6 : w === "p" ? 17 : w === "s" ? 12 : 11)*p.gs.cdm*(p.sup ? .5 : 1)));
     if (isLocal(p.i)) playS("shot");
   }
   function popBomb(p){
@@ -1884,6 +1895,21 @@ NG.defs.bs = () => {
     ens.forEach(e => { if (e.on && e.x < cam + W + 40) trapE(e); }); ens = ens.filter(e => !e.trapped);
     ebul = []; if (boss && !boss.dying && boss.enter <= 0) dmgBoss(14 + stage*2);
   }
+  /* ✨ 스킬 (방장 기기에서 실행 → 모두에게 같은 결과) */
+  function useSkill(p){
+    const S = BSG.skill(p.sk); if (!S || p.dead || p.skCd > 0) return;
+    p.skCd = S.cd*60; const cx = p.x + p.w/2, cy = p.y + p.h/2; sfx("bomb"); ring(cx, cy, 1);
+    txt(`${S.e} ${S.n}!`, cx, p.y - 24, "#ffe066");
+    if (S.k === "storm"){ for (let i = 0; i < 16; i++){ const an = i/16*Math.PI*2; shots.push({x: cx, y: cy, vx: Math.cos(an)*12, vy: Math.sin(an)*12, t: 60, r: 13, dm: 2*p.gs.dm, pc: 2, o: p.i, gt: p.g.gun || 7}); } }
+    else if (S.k === "guard"){ p.inv = Math.max(p.inv, 360); p.shield = 1; }
+    else if (S.k === "heal"){ P.forEach(q => { if (q.gone || q.dead) return; q.hearts = Math.min(q.gs.hm, q.hearts + 1); puff(q.x + q.w/2, q.y + 20, 10, "#ff8fab"); txt("💖 +1", q.x + q.w/2, q.y - 6, "#ff8fab"); }); }
+    else if (S.k === "freeze"){ frzT = 240; flash = 12; }
+    else if (S.k === "meteor"){ flash = 22; shake = 12; const dm = 8*p.gs.dm;
+      ens.forEach(e => { if (!e.on || e.trapped || e.x > cam + W + 20 || e.x + e.w < cam) return; e.hp -= dm; e.hit = 8; ring(e.x + e.w/2, e.y + e.h/2, 0); if (e.hp <= 0) trapE(e); });
+      ens = ens.filter(e => !e.trapped); if (boss && !boss.dying && boss.enter <= 0) dmgBoss(Math.round(10*p.gs.dm)); }
+    else if (S.k === "rainbow"){ p.sup = 480; }
+  }
+  function skillPress(pi){ const p = P[pi]; if (!p || !p.sk) return; if (party === "guest"){ if (p.skCd <= 0 && !p.dead) skLocal++; } else useSkill(p); }
   function trapE(e){
     e.trapped = true; const sc = BS_EN[e.k].sc*(e.el ? 3 : 1); trapped.push({k: e.k, x: e.x, y: e.y, w: e.w, h: e.h, t: 0, el: e.el}); score += sc; kills++; sfx("trap");
     txt(`+${sc}`, e.x + e.w/2, e.y, e.el ? "#ffd43b" : "#fff");
@@ -1952,6 +1978,7 @@ NG.defs.bs = () => {
   function sim(){
     startT++;
     // 사람들
+    P.forEach(p => { if (p.skCd > 0) p.skCd--; if (p.sup > 0) p.sup--; });   // ✨ 스킬 다시 쓰기 · 🌈 무지개
     P.forEach(p => {
       if (p.gone) return;
       if (remote(p.i)){
@@ -1959,6 +1986,7 @@ NG.defs.bs = () => {
         const m = r.m; if (m.sd !== O.seed) return;
         if (!p.dead && m.x != null){ p.x = m.x; p.y = m.y; p.vx = m.vx; p.vy = m.vy; p.dir = m.dr; p.aimUp = !!m.u; p.ground = !!m.g; p.run = m.rn; }
         p.in = {s: m.s}; if ((m.bc || 0) > p.bcSeen){ p.bcSeen = m.bc; popBomb(p); }
+        if ((m.sk || 0) > p.skSeen){ p.skSeen = m.sk; useSkill(p); }
       } else if (!p.dead) phys(p, p.in);
       if (p.dead){
         if (p.deadT > 0){ p.deadT--; p.gy -= 2; } else { const tx = cam + 90 + p.i*80, ty = 150 + Math.sin(startT*.05 + p.i)*14; p.gx += (tx - p.gx)*.06; p.gy += (ty - p.gy)*.06; }
@@ -1988,7 +2016,7 @@ NG.defs.bs = () => {
     ens = ens.filter(e => !e.trapped); crates = crates.filter(c => !c.dead && c.x > cam - 100);
     // 로봇
     const d = D(), spd = 1 + .12*d, fm = Math.max(.42, 1 - .09*d), bv = 4.4 + .35*d;
-    ens.forEach(e => {
+    if (!frzT) ens.forEach(e => {   // ❄️ 얼음 시간에는 로봇이 멈춰요
       if (!e.on){ if (e.x < cam + W + 30){ e.on = true; e.y0 = e.y; } else return; }
       e.t++; if (e.hit) e.hit--; if (e.cd > 0) e.cd--;
       const tg = nearest(e.x), ex = e.x + e.w/2, px = tg ? tg.x + tg.w/2 : ex - 200, py = tg ? tg.y + tg.h/2 : GY - 40, dx = px - ex, onS = e.x < cam + W - 20 && e.x > cam - 20;
@@ -2004,11 +2032,11 @@ NG.defs.bs = () => {
       P.forEach(p => { if (!p.dead && !p.inv && hitR(pBox(p), {x: e.x + 6, y: e.y + 6, w: e.w - 12, h: e.h - 10})) hurt(p); });
     });
     ens = ens.filter(e => e.x > cam - 260);
-    if (boss) bossStep();
+    if (boss && !frzT) bossStep();
     if (clearT > 0 && --clearT === 0){ stage++; newStage(); }
     // 로봇 총알
-    ebul.forEach(b => { b.x += b.vx; b.y += b.vy; if (b.ty === 2) b.vy += .25; if (b.ty === 1) b.rot = (b.rot || 0) + b.vx*.05; b.t--; });
-    ebul = ebul.filter(b => { if (b.t <= 0 || b.x < cam - 60 || b.x > cam + W + 80) return false;
+    if (!frzT) ebul.forEach(b => { b.x += b.vx; b.y += b.vy; if (b.ty === 2) b.vy += .25; if (b.ty === 1) b.rot = (b.rot || 0) + b.vx*.05; b.t--; });
+    if (frzT > 0) frzT--; else ebul = ebul.filter(b => { if (b.t <= 0 || b.x < cam - 60 || b.x > cam + W + 80) return false;
       if (b.y > GY - (b.ty === 1 ? 20 : 4)){ if (b.ty === 2){ boomAt(b.x, GY - 10); return false; } if (b.ty !== 1) return false; }
       const rr = b.ty === 1 ? 22 : 12; for (const p of P){ if (p.dead || p.inv) continue; const q = pBox(p), cx = Math.max(q.x, Math.min(b.x, q.x + q.w)), cy = Math.max(q.y, Math.min(b.y, q.y + q.h)); if ((cx - b.x)**2 + (cy - b.y)**2 < rr*rr){ hurt(p); if (b.ty !== 1) return false; } }
       return true; });
@@ -2044,8 +2072,8 @@ NG.defs.bs = () => {
   const R0 = v => Math.round(v);
   function snap(){
     const lo = cam - 160, hi = cam + W + 160, inV = o => o.x + (o.w || 0) > lo && o.x < hi;
-    return {c: +cam.toFixed(1), cm: camMax, st: stage, sc: score, cl: clearT, ov: overT, kl: kills,
-      P: P.map(p => [R0(p.x), R0(p.y), p.dir, p.aimUp ? 1 : 0, +p.run.toFixed(2), p.hearts, p.inv, p.dead ? 1 : 0, p.wpn, Math.ceil(p.wpnT/60), p.shield, p.bombs, p.ground ? 1 : 0, R0(p.gx), R0(p.gy), p.gone ? 1 : 0, p.deadT]),
+    return {fz: frzT, c: +cam.toFixed(1), cm: camMax, st: stage, sc: score, cl: clearT, ov: overT, kl: kills,
+      P: P.map(p => [R0(p.x), R0(p.y), p.dir, p.aimUp ? 1 : 0, +p.run.toFixed(2), p.hearts, p.inv, p.dead ? 1 : 0, p.wpn, Math.ceil(p.wpnT/60), p.shield, p.bombs, p.ground ? 1 : 0, R0(p.gx), R0(p.gy), p.gone ? 1 : 0, p.deadT, Math.ceil(p.skCd/60), p.sup ? 1 : 0]),
       E: ens.filter(e => e.on && inV(e)).map(e => [e.id, e.k, R0(e.x), R0(e.y), e.t, e.hit, e.dir, e.el ? 1 : 0, R0(e.w), R0(e.h)]),
       S: shots.filter(inV).map(s => [R0(s.x), R0(s.y), +s.vx.toFixed(1), +s.vy.toFixed(1), s.r, s.gt || 0]),
       B: ebul.filter(inV).map(b => [R0(b.x), R0(b.y), +b.vx.toFixed(2), +b.vy.toFixed(2), b.ty]),
@@ -2060,9 +2088,9 @@ NG.defs.bs = () => {
       else if (k === "kb" && e[1] === myIdx){ const me = P[myIdx]; me.vy = -7; me.vx = -e[2]*5; flash = 10; shake = 6; } }); return; }
     const s = d.s; if (!s) return;
     if (s.st !== stage){ stage = s.st; backdrop(); msg = {t: `STAGE ${stage}`, s: th().n + (loopN() ? ` · ${loopN() + 1}회차!` : ""), k: 160}; }
-    camT = s.c; camMax = s.cm; score = s.sc; clearT = s.cl; overT = s.ov; kills = s.kl;
+    frzT = s.fz || 0; camT = s.c; camMax = s.cm; score = s.sc; clearT = s.cl; overT = s.ov; kills = s.kl;
     s.P.forEach((a, i) => { const p = P[i]; if (!p) return; const wasDead = p.dead;
-      p.hearts = a[5]; p.inv = a[6]; p.dead = !!a[7]; p.wpn = a[8]; p.wpnT = a[9]*60; p.shield = a[10]; p.bombs = a[11]; p.gx = a[13]; p.gy = a[14]; p.gone = !!a[15]; p.deadT = a[16];
+      p.hearts = a[5]; p.inv = a[6]; p.dead = !!a[7]; p.wpn = a[8]; p.wpnT = a[9]*60; p.shield = a[10]; p.bombs = a[11]; p.gx = a[13]; p.gy = a[14]; p.gone = !!a[15]; p.deadT = a[16]; p.skCd = (a[17] || 0)*60; p.sup = a[18] ? 1 : 0;
       if (i === myIdx){ if (wasDead && !p.dead){ p.x = a[0]; p.y = a[1]; p.vx = 0; p.vy = 0; } return; }
       if (p.tx == null || p.dead){ p.x = a[0]; p.y = a[1]; } p.tx = a[0]; p.ty = a[1]; p.dir = a[2]; p.aimUp = !!a[3]; p.run = a[4]; p.ground = !!a[12]; });
     const old = new Map(ens.map(e => [e.id, e]));
@@ -2077,8 +2105,8 @@ NG.defs.bs = () => {
     const me = P[myIdx];
     cam += ((camT ?? cam) - cam)*.5;
     if (!me.dead){ if (me.inv) me.inv--; phys(me, me.in); if (me.in.s && (me.cd = (me.cd || 0) - 1) <= 0){ me.cd = Math.max(4, Math.round((me.wpn === "r" ? 6 : me.wpn === "p" ? 17 : 11)*me.gs.cdm)); playS("shot"); } }
-    if (NG.frame % 2 === 0 || bcLocal !== lastS){ const rel = bcLocal !== lastS; lastS = bcLocal;
-      PARTY.sendIn({sd: O.seed, x: R0(me.x), y: R0(me.y), vx: +me.vx.toFixed(2), vy: +me.vy.toFixed(2), dr: me.dir, u: me.aimUp ? 1 : 0, g: me.ground ? 1 : 0, rn: +me.run.toFixed(2), s: me.in.s ? 1 : 0, bc: bcLocal}, rel); }
+    if (NG.frame % 2 === 0 || bcLocal + skLocal*1000 !== lastS){ const rel = bcLocal + skLocal*1000 !== lastS; lastS = bcLocal + skLocal*1000;
+      PARTY.sendIn({sd: O.seed, x: R0(me.x), y: R0(me.y), vx: +me.vx.toFixed(2), vy: +me.vy.toFixed(2), dr: me.dir, u: me.aimUp ? 1 : 0, g: me.ground ? 1 : 0, rn: +me.run.toFixed(2), s: me.in.s ? 1 : 0, bc: bcLocal, sk: skLocal}, rel); }
     P.forEach(p => { if (p.i === myIdx || p.tx == null) return; const dx = p.tx - p.x, dy = p.ty - p.y; if (Math.abs(dx) + Math.abs(dy) > 200){ p.x = p.tx; p.y = p.ty; } else { p.x += dx*.4; p.y += dy*.4; } });
     ens.forEach(e => { e.x += (e.tx - e.x)*.4; e.y += (e.ty - e.y)*.4; e.t++; });
     if (boss){ boss.x += (boss.tx - boss.x)*.4; boss.y += (boss.ty2 - boss.y)*.4; boss.t++; }
@@ -2092,7 +2120,7 @@ NG.defs.bs = () => {
     get dbg(){ return {P, cam, stage, score, ens, boss, camMax, stEnd, items, shots, ebul, trapped, CT, PX}; },
     cheat(o){ if (o.p) Object.assign(P[o.i || 0], o.p); if (o.cam != null) cam = o.cam; if (o.stage){ stage = o.stage; stEnd = cam - 600; newStage(); } },
     init(){
-      stage = 1; stEnd = 0; score = 0; kills = 0; flash = 0; shake = 0; startT = 0; clearT = 0; overT = 0; eid = 0; ended = false; NQ = []; bcLocal = 0; lastS = 0;
+      stage = 1; stEnd = 0; score = 0; kills = 0; flash = 0; shake = 0; startT = 0; clearT = 0; overT = 0; eid = 0; ended = false; NQ = []; bcLocal = 0; skLocal = 0; frzT = 0; lastS = 0;
       cam = 0; camT = 0; camMax = -1; genX = 0; shots = []; ebul = []; ens = []; plats = []; items = []; crates = []; fx = []; trapped = []; boss = null;
       keyS = [{}, {}]; ptr = new Map(); P = SIDS.map((_, i) => mkP(i));
       newStage();
@@ -2128,17 +2156,18 @@ NG.defs.bs = () => {
       // 📱 막대는 엄지가 닿은 자리가 가운데가 돼요 (막대 영역 안에서)
       if (c.t === "stick" && c.free){ const lim = c.r*1.25; v.cx = Math.max(c.x - lim, Math.min(c.x + lim, x)); v.cy = Math.max(c.y - lim, Math.min(Math.min(c.y + lim, H - c.r*.5), y));
         if (PAN){ v.cx = Math.max(c.x < 0 ? -PX + c.r + 6 : W + c.r + 6, Math.min(c.x < 0 ? -c.r - 6 : W + PX - c.r - 6, v.cx)); } }
-      if (c.t === "stick") stickAt(v, x, y); else if (c.t === "jump") P[c.pl].jb = 8; else if (c.t === "bomb") bombPress(c.pl); },
+      if (c.t === "stick") stickAt(v, x, y); else if (c.t === "jump") P[c.pl].jb = 8; else if (c.t === "bomb") bombPress(c.pl); else if (c.t === "skill") skillPress(c.pl); },
     move(x, y, id){ const v = ptr.get(id); if (v && v.t === "stick") stickAt(v, x - PX, y); },
     up(x, y, id){ ptr.delete(id); },
     key(code, d){
       const two = local.length >= 2;
-      const M1 = two ? {KeyA: "l", KeyD: "r", KeyW: "u", KeyF: "s", KeyG: "j", KeyH: "b", Space: "j"} : {ArrowLeft: "l", KeyA: "l", ArrowRight: "r", KeyD: "r", ArrowUp: "u", KeyW: "u", KeyZ: "s", KeyJ: "s", KeyX: "j", KeyK: "j", Space: "j", KeyC: "b", KeyL: "b"};
-      const M2 = two ? {ArrowLeft: "l", ArrowRight: "r", ArrowUp: "u", KeyK: "s", KeyL: "j", KeyO: "b", Enter: "j"} : {};
+      const M1 = two ? {KeyA: "l", KeyD: "r", KeyW: "u", KeyF: "s", KeyG: "j", KeyH: "b", KeyR: "k", Space: "j"} : {ArrowLeft: "l", KeyA: "l", ArrowRight: "r", KeyD: "r", ArrowUp: "u", KeyW: "u", KeyZ: "s", KeyJ: "s", KeyX: "j", KeyK: "j", Space: "j", KeyC: "b", KeyV: "k", KeyL: "b"};
+      const M2 = two ? {ArrowLeft: "l", ArrowRight: "r", ArrowUp: "u", KeyK: "s", KeyL: "j", KeyO: "b", KeyP: "k", Enter: "j"} : {};
       let slot = 0, m = M1[code]; if (!m && M2[code]){ slot = 1; m = M2[code]; } if (!m) return false;
       const ks = keyS[slot], pi = local[slot];
       if (m === "j" && d && !ks.j && P[pi]) P[pi].jb = 8;
       if (m === "b" && d && !ks.b) bombPress(pi);
+      if (m === "k" && d && !ks.k) skillPress(pi);
       ks[m] = d; return true;
     },
     draw,
@@ -2201,6 +2230,7 @@ NG.defs.bs = () => {
       const run = p.ground && (Math.abs(p.vx) > .6 || (p.tx != null && Math.abs(p.tx - p.x) > 1)), f = p.ground ? (run ? Math.floor(p.run) % 4 : 0) : 4;
       const hs = Q.hero(p.i % 4, p.sid, f, p.aimUp ? 1 : 0, p.dir, false, p.g), feet = Y(p.y + p.h), hx = X(p.x + p.w/2), bob = run && f % 2 ? -1 : 0;
       if (p.shield) L.drawImage(Q.bub(20, "#74c0fc"), hx - 20, feet - 37);
+      if (p.sup){ const hu = (NG.frame*6) % 360; L.fillStyle = `hsla(${hu},90%,65%,.35)`; L.beginPath(); L.arc(hx, feet - 17, 21, 0, 7); L.fill(); }   // 🌈 무지개 거품총
       L.drawImage(hs, hx - 15, feet - 34 + bob);
       if (p.cd > (p.wpn === "r" ? 3 : 8)){ const up = p.aimUp, mx = up ? hx + p.dir*8 : hx + p.dir*14, my = up ? feet - 35 : feet - 15;
         Q.R(L, mx - 1, my - 1, 3, 3, "#ffffff"); Q.R(L, mx - 3, my, 1, 1, "#a5d8ff"); Q.R(L, mx + 3, my, 1, 1, "#a5d8ff"); Q.R(L, mx, my - 3, 1, 1, "#a5d8ff"); Q.R(L, mx, my + 3, 1, 1, "#a5d8ff"); } });
@@ -2215,6 +2245,7 @@ NG.defs.bs = () => {
       if (f.ring){ const age = (f.big ? 40 : 22) - f.t, r = (f.r0 + age*(f.big ? 14 : 4))/DP; L.globalAlpha = Math.min(1, f.t/12); ringPx(L, X(f.x), Y(f.y), r, f.big ? "#ffffff" : "#ffd43b"); if (f.big) ringPx(L, X(f.x), Y(f.y), r - 1, "#a5d8ff"); L.globalAlpha = 1; return; }
       L.globalAlpha = Math.min(1, f.t/18); const s = f.r > 5 ? 2 : 1; Q.R(L, X(f.x), Y(f.y), s, s, f.c); });
     L.globalAlpha = 1;
+    if (frzT > 0){ L.fillStyle = `rgba(116,192,252,${frzT < 40 ? frzT/40*.22 : .22})`; L.fillRect(0, 0, LW, LH); }   // ❄️ 얼음 시간
     if (flash){ L.fillStyle = `rgba(255,255,255,${Math.min(.6, flash/40)})`; L.fillRect(0, 0, LW, LH); }
     // 글자판 (도트 2배 크기)
     const Hc = HU.getContext("2d"); Hc.clearRect(0, 0, HW, HH); drawHud(Hc, HW, HH, fr, X, Y);
@@ -2264,7 +2295,7 @@ NG.defs.bs = () => {
       const c = Q.ptxt(msg.t, land ? 30 : 24, warn ? "#ffd43b" : "#ffffff", 2); h.drawImage(c, Math.round(HW/2 - c.width/2), y - (c.height >> 1));
       if (msg.s){ const s2 = Q.ptxt(msg.s, 14, "#ffe066"); h.drawImage(s2, Math.round(HW/2 - s2.width/2), y + (c.height >> 1) + (warn ? 12 : 1)); } h.globalAlpha = 1; }
     if (startT < 260 && !overT){ h.globalAlpha = Math.min(1, (260 - startT)/40);
-      const h1 = local.length >= 2 ? "1P: A·D 움직이기 W 위로 F 쏘기 G 점프 H 폭탄  /  2P: ←→ ↑ K 쏘기 L 점프 O 폭탄" : land ? "← → 움직이기 · ↑ 위로 쏘기 · Z 쏘기 · X 점프(두 번!) · C 폭탄" : "왼쪽 막대로 움직이고 · 오른쪽 버튼으로 쏘고 뛰어요!";
+      const h1 = local.length >= 2 ? "1P: A·D 움직이기 W 위로 F 쏘기 G 점프 H 폭탄 R 스킬  /  2P: ←→ ↑ K 쏘기 L 점프 O 폭탄 P 스킬" : land ? "← → 움직이기 · ↑ 위로 쏘기 · Z 쏘기 · X 점프(두 번!) · C 폭탄 · V 스킬" : "왼쪽 막대로 움직이고 · 오른쪽 버튼으로 쏘고 뛰어요!";
       const c = Q.ptxt(h1, local.length >= 2 ? 10 : 11, "#ffffff"); h.drawImage(c, Math.round(HW/2 - c.width/2), Math.round(HH*.58)); h.globalAlpha = 1; }
   }
   function drawCtrls(g){
@@ -2273,9 +2304,10 @@ NG.defs.bs = () => {
     const over = land && !PAN;   // 놀이 화면 위에 겹칠 때는 손대지 않으면 흐리게
     CT.forEach(c => { if (party === "guest" && c.pl !== myIdx) return; const p = P[c.pl]; if (!p) return; const col = BS_PC[c.pl][0];
       let on = false, st = null; ptr.forEach(v => { if (v.pl === c.pl && v.t === c.t){ on = true; if (c.t === "stick") st = v; } });
-      g.globalAlpha = (c.t === "bomb" && p.bombs <= 0) ? .3 : over && !on ? .55 : 1;
+      g.globalAlpha = (c.t === "bomb" && p.bombs <= 0) || (c.t === "skill" && p.skCd > 0) ? .35 : over && !on ? .55 : 1;
       const cx = st && st.cx != null ? st.cx : c.x, cy = st && st.cy != null ? st.cy : c.y;
-      G2.put(g, ctrlSpr(c.t, c.r, on && c.t !== "stick", col), cx - c.r - 6, cy - c.r - 6);
+      G2.put(g, ctrlSpr(c.t === "skill" ? "sk_" + p.sk : c.t, c.r, on && c.t !== "stick", col), cx - c.r - 6, cy - c.r - 6);
+      if (c.t === "skill" && p.skCd > 0){ g.globalAlpha = 1; outlined(g, String(Math.ceil(p.skCd/60)), c.x, c.y + 8, Math.round(c.r*.62), "#ffe066"); }
       if (c.t === "stick"){ const kx = st ? st.sx : 0, ky = st ? st.sy : 0, kr = c.r*.42; g.drawImage(knobSpr(col), cx + kx*c.r*.6 - kr, cy + ky*c.r*.6 - kr, kr*2, kr*2); }
       if (c.t === "bomb") G2.put(g, icoTxt([["", "×" + p.bombs]], 18), c.x + c.r*.45, c.y - c.r*1.15);
       if (c.t === "stick" && local.length >= 2) outlined(g, `${c.pl + 1}P`, c.x, c.y - c.r - 18, 20, col);
@@ -2291,7 +2323,7 @@ const BSBG = {cache: new Map(), want: "", busy: {}};
 const BS = {
   menu(){
     const me = ARC.me, box = partyModal("bs"), body = $("#wbBody");
-    body.innerHTML = `<button class="arc-btn p bs-shopb" id="bsShop">🛒 장비 상점 <small>🔫 거품총 · 🦺 방탄 갑옷 · ⛑️ 헬멧 · 12단계</small></button><p class="arc-small">달리고 뛰며 거품총으로 로봇을 <b>거품에 가둬</b> 날려 보내요! 맵 5곳 끝마다 <b>왕로봇</b>이 기다리고, 갈수록 로봇이 많고 빠르고 단단해져요. 쓰러진 친구는 다른 친구가 거품을 터뜨려 구해 줄 수 있어요.</p>
+    body.innerHTML = `<button class="arc-btn p bs-shopb" id="bsShop">🛒 장비 · 스킬 상점 <small>🔫 거품총 · 🦺 갑옷 · ⛑️ 헬멧 · 👟 신발 · ✨ 스킬</small></button><p class="arc-small">달리고 뛰며 거품총으로 로봇을 <b>거품에 가둬</b> 날려 보내요! 맵 5곳 끝마다 <b>왕로봇</b>이 기다리고, 갈수록 로봇이 많고 빠르고 단단해져요. 쓰러진 친구는 다른 친구가 거품을 터뜨려 구해 줄 수 있어요.</p>
       <div class="wb-sec"><h3>🧒 혼자 출동 <small>최고 점수로 랭킹!</small></h3><button class="arc-btn p" id="bsSolo">▶ 출동!</button></div>
       <div class="wb-sec"><h3>👫 이 기기에서 둘이 협동 <small>한 화면에서 같이 · 둘 다 같은 점수로 기록돼요</small></h3><button class="arc-btn p" id="bsDuo">👫 친구 들어오기</button></div>
       <div class="wb-sec"><h3>🌐 온라인 협동 <small>각자 기기로 최대 4명 · ☁️ Firebase 반에서만</small></h3><div id="wbRooms"></div></div>`;
