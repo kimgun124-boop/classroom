@@ -106,7 +106,7 @@ function bgGame(G){
   }
   function changed(){
     dirty = true; ui.an = Math.max(ui.an || 0, 24);
-    if (S.fxN && S.fxN !== fxN){ fxN = S.fxN; ui.fx = S.fx; ui.fxT = 0; if (S.fx && S.fx.say) say(S.fx.say, S.fx.c || "#ffe066", S.fx.k || 70); if (S.fx && S.fx.snd) try { SFX[S.fx.snd] && SFX[S.fx.snd](); } catch(e) {} else try { SFX.pt(); } catch(e) {} }
+    if (S.fxN && S.fxN !== fxN){ fxN = S.fxN; ui.fx = S.fx; ui.fxT = 0; if (S.fx && S.fx.say) say(S.fx.say, S.fx.c || "#ffe066", S.fx.dur || 70); if (S.fx && S.fx.snd) try { SFX[S.fx.snd] && SFX[S.fx.snd](); } catch(e) {} else try { SFX.pt(); } catch(e) {} }
     if (host()) cast();
     checkEnd();
   }
@@ -185,7 +185,7 @@ function bgGame(G){
       if (!guest()) S = G.setup(N(), R, ctx());
       else S = null;
       if (host()){ PARTY.attach({dropIdx: i => { dropped[i] = 1; dirty = true; }, end(){}, apply(){}}, () => { needCast = true; return {t: "hi"}; }); setTimeout(() => cast(), 300); }
-      if (guest()) PARTY.attach({apply: d => { if (d && d.s && d.s.v){ const first = !S; S = d.s.v; if (S.fxN && S.fxN !== fxN){ fxN = S.fxN; ui.fx = S.fx; ui.fxT = 0; if (S.fx && S.fx.say && !first) say(S.fx.say, S.fx.c || "#ffe066", S.fx.k || 70); if (!first) try { SFX[(S.fx && S.fx.snd) || "pt"](); } catch(e) {} } ui.an = Math.max(ui.an || 0, 24); dirty = true; } },
+      if (guest()) PARTY.attach({apply: d => { if (d && d.s && d.s.v){ const first = !S; S = d.s.v; if (S.fxN && S.fxN !== fxN){ fxN = S.fxN; ui.fx = S.fx; ui.fxT = 0; if (S.fx && S.fx.say && !first) say(S.fx.say, S.fx.c || "#ffe066", S.fx.dur || 70); if (!first) try { SFX[(S.fx && S.fx.snd) || "pt"](); } catch(e) {} } ui.an = Math.max(ui.an || 0, 24); dirty = true; } },
         end: (w, wins, m) => { if (endShown) return; endShown = true; say(w < 0 ? "🤝 비겼어요!" : `🏆 ${short(w)} 승리!`, "#ffe066", 999); setTimeout(() => { if (NG.cur === def) result({w, txt: m.txt, rank: m.rk}); }, 1200); },
         dropIdx(){} }, null);
       say(`${G.e} ${G.n}`, "#fff", 70);

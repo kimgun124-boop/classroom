@@ -2,11 +2,11 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="37c6e10e78">
+<meta name="arc-build" content="92b9a5c3b9">
 <script>
 /* 🔄 늘 최신 보드게임: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "37c6e10e78", K = "arcade.reloaded";
+  var B = "92b9a5c3b9", K = "arcade.reloaded";
   function saving(){ try { return typeof Store !== "undefined" && Store.saving && Store.saving(); } catch(e){ return false; } }
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !saving() && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
@@ -478,6 +478,7 @@ body.big .card .why{font-size:15px}
 @keyframes shine{0%,55%{left:-60%}100%{left:130%}}
 .deco .rise{bottom:-30px;font-size:20px;animation:rise 3.4s linear infinite;opacity:0}
 @keyframes rise{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:.95}100%{transform:translateY(-230px) scale(1.1) rotate(25deg);opacity:0}}
+.deco .badge{right:10px;top:44%;font-size:40px;filter:drop-shadow(0 3px 3px rgba(0,0,0,.2));animation:bob 2.4s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 .deco .rays{left:50%;top:50%;width:420px;height:420px;margin:-210px 0 0 -210px;opacity:.28;
     background:repeating-conic-gradient(from 0deg,#fff 0 9deg,transparent 9deg 24deg);animation:spin 14s linear infinite;-webkit-mask:radial-gradient(circle,#000 10%,transparent 62%);mask:radial-gradient(circle,#000 10%,transparent 62%)}
@@ -23219,7 +23220,7 @@ function bgGame(G){
   }
   function changed(){
     dirty = true; ui.an = Math.max(ui.an || 0, 24);
-    if (S.fxN && S.fxN !== fxN){ fxN = S.fxN; ui.fx = S.fx; ui.fxT = 0; if (S.fx && S.fx.say) say(S.fx.say, S.fx.c || "#ffe066", S.fx.k || 70); if (S.fx && S.fx.snd) try { SFX[S.fx.snd] && SFX[S.fx.snd](); } catch(e) {} else try { SFX.pt(); } catch(e) {} }
+    if (S.fxN && S.fxN !== fxN){ fxN = S.fxN; ui.fx = S.fx; ui.fxT = 0; if (S.fx && S.fx.say) say(S.fx.say, S.fx.c || "#ffe066", S.fx.dur || 70); if (S.fx && S.fx.snd) try { SFX[S.fx.snd] && SFX[S.fx.snd](); } catch(e) {} else try { SFX.pt(); } catch(e) {} }
     if (host()) cast();
     checkEnd();
   }
@@ -23298,7 +23299,7 @@ function bgGame(G){
       if (!guest()) S = G.setup(N(), R, ctx());
       else S = null;
       if (host()){ PARTY.attach({dropIdx: i => { dropped[i] = 1; dirty = true; }, end(){}, apply(){}}, () => { needCast = true; return {t: "hi"}; }); setTimeout(() => cast(), 300); }
-      if (guest()) PARTY.attach({apply: d => { if (d && d.s && d.s.v){ const first = !S; S = d.s.v; if (S.fxN && S.fxN !== fxN){ fxN = S.fxN; ui.fx = S.fx; ui.fxT = 0; if (S.fx && S.fx.say && !first) say(S.fx.say, S.fx.c || "#ffe066", S.fx.k || 70); if (!first) try { SFX[(S.fx && S.fx.snd) || "pt"](); } catch(e) {} } ui.an = Math.max(ui.an || 0, 24); dirty = true; } },
+      if (guest()) PARTY.attach({apply: d => { if (d && d.s && d.s.v){ const first = !S; S = d.s.v; if (S.fxN && S.fxN !== fxN){ fxN = S.fxN; ui.fx = S.fx; ui.fxT = 0; if (S.fx && S.fx.say && !first) say(S.fx.say, S.fx.c || "#ffe066", S.fx.dur || 70); if (!first) try { SFX[(S.fx && S.fx.snd) || "pt"](); } catch(e) {} } ui.an = Math.max(ui.an || 0, 24); dirty = true; } },
         end: (w, wins, m) => { if (endShown) return; endShown = true; say(w < 0 ? "🤝 비겼어요!" : `🏆 ${short(w)} 승리!`, "#ffe066", 999); setTimeout(() => { if (NG.cur === def) result({w, txt: m.txt, rank: m.rk}); }, 1200); },
         dropIdx(){} }, null);
       say(`${G.e} ${G.n}`, "#fff", 70);
@@ -23900,6 +23901,634 @@ BG.def({
 });
 
 /* =====================================================================
+   🐾 우리반 동물 보드게임 ① (2026.11.25) — 선생님이 보여 준 인기 보드게임을 '우리 동물'로 새로 만들었어요
+   🔍 동물 짝꿍 찾기(도블 같은) · 🧩 동물 퍼즐 대작전(우봉고 같은) · 🌳 동물 나무 막대 빼기(텀블링 몽키 같은) · 🐧 펭귄 얼음 깨기
+   - 그림은 모두 🐾 동물 랜덤 디펜스의 동물(RDA.animal)을 그대로 써요 (저작권 있는 그림·이름은 쓰지 않아요)
+   - 모두 BG 엔진: 🌐 각자 기기로 온라인 · 🤖 컴퓨터 · 🧒 한 기기
+   ===================================================================== */
+const BA = {
+  NM: {lion: "사자", tiger: "호랑이", rabbit: "토끼", cat: "고양이", dog: "강아지", panda: "판다", penguin: "펭귄", fox: "여우", owl: "부엉이", frog: "개구리", chick: "병아리", mouse: "생쥐",
+    hedgehog: "고슴도치", whale: "고래", croc: "악어", eagle: "독수리", dragon: "용", unicorn: "유니콘", parrot: "앵무새", shark: "상어", squid: "오징어", mammoth: "매머드", rhino: "코뿔소",
+    trex: "티라노", phoenix: "불새", golem: "돌거인", thunder: "번개새", kirin: "기린", griffin: "그리핀", genbu: "거북", bdragon: "흑룡"},
+  /* 동물 한 마리 (크기마다 한 번만 그려 두고 붙여요) */
+  put(g, k, x, y, s, rot = 0, gr = 0){ const q = Math.max(12, Math.round(s/6)*6), c = G2.spr(`ba_${k}_${q}_${gr}`, q, q, t => RDA.animal(t, k, q, gr));
+    if (rot){ g.save(); g.translate(x, y); g.rotate(rot); G2.put(g, c, -s/2, -s/2, s, s); g.restore(); } else G2.put(g, c, x - s/2, y - s/2, s, s); },
+  fast: () => window.__bgFast ? .08 : 1,
+  dist: (x, y, b) => Math.hypot(x - b.x, y - b.y)
+};
+
+/* ---------------- 🔍 동물 짝꿍 찾기 (2~4명 · 모두 동시에) ---------------- */
+BG.def({
+  id: "dp", e: "🔍", n: "동물 짝꿍 찾기", like: "도블 같은 게임", time: "3분", min: 2, max: 4, col: ["#ff6b6b", "#4dabf7", "#69db7c", "#ffd43b"], bg: ["#3b2a7a", "#1a1240"],
+  d: "어느 두 카드든 똑같은 동물은 딱 한 마리! 먼저 찾아 누르면 가운데 카드를 가져와요",
+  tag: "🆕 🐾 우리 동물 · 🌐 모두 동시에 2~4명",
+  rules: ["카드마다 동물이 6마리 있어요. <b>어느 두 카드를 골라도 똑같은 동물은 꼭 한 마리</b>예요.", "<b>내 카드</b>와 <b>가운데 카드</b>에 똑같이 있는 동물을 찾아 <b>눌러요</b>. 모두 동시에 해요!", "가장 먼저 맞힌 친구가 가운데 카드를 가져와요. 그 카드가 새 <b>내 카드</b>가 돼요.", "틀리면 <b>❄️ 잠깐 얼음</b>! 조금 쉬었다가 다시 눌러요.", "카드 더미가 다 떨어지면 끝! 카드를 가장 많이 모은 친구가 이겨요.", "💡 동물이 돌아가 있고 크기도 달라요. 색깔과 귀 모양을 잘 봐요!"],
+  AN: ["lion", "tiger", "rabbit", "cat", "dog", "panda", "penguin", "fox", "owl", "frog", "chick", "mouse", "hedgehog", "whale", "croc", "eagle", "dragon", "unicorn", "parrot", "shark", "squid", "mammoth", "rhino", "trex", "phoenix", "golem", "thunder", "kirin", "griffin", "genbu", "bdragon"],
+  cards(){ if (this._C) return this._C; const p = 5, C = [];   // 🔢 유한 사영평면(5차): 카드 31장 · 동물 31종 · 카드마다 6마리 · 두 카드는 꼭 한 마리만 같아요
+    for (let m = 0; m < p; m++) for (let b = 0; b < p; b++){ const L = []; for (let x = 0; x < p; x++) L.push(x*p + (m*x + b) % p); L.push(p*p + m); C.push(L); }
+    for (let c = 0; c < p; c++){ const L = []; for (let y = 0; y < p; y++) L.push(c*p + y); L.push(p*p + p); C.push(L); }
+    const L = []; for (let m = 0; m <= p; m++) L.push(p*p + m); C.push(L);
+    return this._C = C; },
+  same(a, b){ const B = this.cards()[b]; return this.cards()[a].find(s => B.includes(s)); },
+  /* 카드 위 동물 자리 (카드 번호 + 판마다 다른 소금으로 정해져서 모든 기기에서 똑같아요) */
+  spots(c, salt){ const R = BG.rng(c*7919 + salt*13 + 1), S = BG.shuffle(this.cards()[c].slice(), R), a0 = R()*7, out = [];
+    S.forEach((s, i) => { if (i === 0) out.push({s, u: 0, v: 0, z: .5 + R()*.08, r: (R() - .5)*1.2}); else { const a = a0 + (i - 1)*2*Math.PI/5 + (R() - .5)*.35, d = .58 + R()*.06; out.push({s, u: Math.cos(a)*d, v: Math.sin(a)*d, z: .34 + R()*.14, r: (R() - .5)*1.6}); } });
+    return out; },
+  setup(n, R){ const dk = BG.shuffle(Array.from({length: 31}, (_, i) => i), R), my = Array.from({length: n}, () => dk.pop());
+    return {n, my, ctr: dk.pop(), dk, cnt: Array(n).fill(0), frz: Array(n).fill(0), gt: 0, salt: Math.floor(R()*9999), done: 0, last: null}; },
+  turn: () => -1,
+  free: (S, p, a) => !!a && a.k === "tap" && !S.done,
+  act(S, p, a, R, X){
+    if (a.k !== "tap" || S.done || a.c !== S.ctr || S.gt < S.frz[p]) return false;
+    const s = this.same(S.my[p], S.ctr);
+    if (a.s !== s){ S.frz[p] = S.gt + Math.round(75*BA.fast()); bgFx(S, {k: "miss", p, say: `❄️ ${X.name(p)} 얼음!`, c: "#a5d8ff", dur: 35, snd: "bad"}); return true; }
+    S.my[p] = S.ctr; S.cnt[p]++; S.last = {p, s, c: S.ctr};
+    if (S.dk.length) S.ctr = S.dk.pop(); else { S.ctr = -1; S.done = 1; }
+    bgFx(S, {k: "take", p, s, say: `⚡ ${X.name(p)} 찾았다! ${BA.NM[this.AN[s]] || ""}`, snd: "gold"}); return true; },
+  bad: (S, p, a) => a.c !== S.ctr ? "앗, 한 발 늦었어요!" : "❄️ 얼음! 조금만 기다려요",
+  tick(S, R, X){ S.gt++; if (S.done) return false; let ch = false;
+    S.frz.forEach(f => { if (f === S.gt) ch = true; });   // 얼음이 풀리면 친구 기기에도 알려요
+    S.bt = S.bt || {};
+    for (const b of X.bots){ const B = S.bt[b];
+      if (!B || B.c !== S.ctr){ const D = [[260, 420], [160, 270], [95, 165]][X.lv] || [160, 270]; S.bt[b] = {c: S.ctr, at: S.gt + Math.round((D[0] + R()*(D[1] - D[0]))*BA.fast())}; continue; }
+      if (S.gt >= B.at && S.gt >= S.frz[b]){ const ok = this.same(S.my[b], S.ctr), s = X.lv === 0 && R() < .15 ? this.cards()[S.ctr][Math.floor(R()*6)] : ok; B.at = S.gt + 120;
+        if (this.act(S, b, {k: "tap", s, c: S.ctr}, R, X)) return true; } }
+    return ch; },
+  over(S){ if (!S.done) return null; const rank = S.cnt.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]).map(x => x[1]), m = S.cnt[rank[0]];
+    return {w: S.cnt.filter(v => v === m).length > 1 ? -1 : rank[0], rank, txt: S.cnt.map(v => `${v}장`).join(" : ")}; },
+  pinfo: (S, i) => S ? `🃏 ${S.cnt[i]}장${S.frz[i] > S.gt ? " ❄️" : ""}` : "",
+  view: S => Object.assign({}, S, {dk: S.dk.map(() => 0), bt: null}),
+  card(g, S, c, x, y, r, col, hl, ui, mine){
+    g.save(); BGD.shadow(g, true, r*.18, r*.05); g.beginPath(); g.arc(x, y, r, 0, 7); g.fillStyle = BGD.lg(g, x, y - r, x, y + r, ["#ffffff", "#e9ecef"]); g.fill(); g.restore();
+    g.lineWidth = Math.max(3, r*.06); g.strokeStyle = col; g.beginPath(); g.arc(x, y, r - g.lineWidth/2, 0, 7); g.stroke();
+    if (c < 0) return;
+    this.spots(c, S.salt).forEach(o => { const sx = x + o.u*r, sy = y + o.v*r, sz = o.z*r*1.18;
+      if (hl === o.s){ g.save(); g.shadowColor = "#ffe066"; g.shadowBlur = r*.25; g.fillStyle = "rgba(255,224,102,.55)"; g.beginPath(); g.arc(sx, sy, sz*.55, 0, 7); g.fill(); g.restore(); }
+      BA.put(g, this.AN[o.s], sx, sy, sz, o.r);
+      if (ui && mine) ui.sym.push({x: sx, y: sy, r: sz*.5, s: o.s}); });
+  },
+  draw(g, S, me, A, ui, X){
+    BGD.felt(g, A.x + 6, A.y + 6, A.w - 12, A.h - 12, 30, "#5f3dc4");
+    ui.sym = []; const land = A.w > A.h, others = Array.from({length: S.n}, (_, i) => i).filter(i => i !== me);
+    let C, M, R1, ro = 48;
+    if (land){ R1 = Math.min(A.h*.37, A.w*.215); C = {x: A.x + A.w*.29, y: A.y + A.h*.56}; M = {x: A.x + A.w*.71, y: A.y + A.h*.56}; }
+    else { R1 = Math.min(A.w*.32, A.h*.2); C = {x: A.x + A.w/2, y: A.y + A.h*.34}; M = {x: A.x + A.w/2, y: A.y + A.h*.77}; ro = 42; }
+    const tk = ui.fx && ui.fx.k === "take" && (ui.fxT || 0) < 70 ? ui.fx : null;
+    others.forEach((q, k) => { const ox = land ? A.x + A.w/2 + (k - (others.length - 1)/2)*(ro*2 + 30) : A.x + 70 + k*(ro*2 + 26), oy = land ? A.y + ro + 16 : A.y + ro + 14;
+      this.card(g, S, S.my[q], ox, oy, ro, this.col[q], tk && tk.p === q ? tk.s : -1);
+      outlined(g, `${X.name(q).slice(0, 6)} ${S.frz[q] > S.gt ? "❄️" : ""}`, ox, oy + ro + 14, 16, this.col[q]); });
+    if (S.ctr >= 0){ this.card(g, S, S.ctr, C.x, C.y, R1, "#ffd43b", -1, ui, true); outlined(g, `가운데 카드 · 남은 ${S.dk.length}장`, C.x, C.y - R1 - 18, 20, "#ffe066"); }
+    else outlined(g, "🏁 카드가 다 떨어졌어요!", C.x, C.y, 30, "#ffe066");
+    this.card(g, S, S.my[me], M.x, M.y, R1, this.col[me], tk && tk.p === me ? tk.s : -1, ui, true);
+    outlined(g, `내 카드 · 모은 카드 ${S.cnt[me]}장`, M.x, M.y - R1 - 18, 20, this.col[me]);
+    if (S.frz[me] > S.gt){ g.fillStyle = "rgba(165,216,255,.55)"; g.beginPath(); g.arc(M.x, M.y, R1, 0, 7); g.fill(); g.fillStyle = "rgba(165,216,255,.55)"; g.beginPath(); g.arc(C.x, C.y, R1, 0, 7); g.fill(); outlined(g, "❄️ 얼음!", M.x, M.y, R1*.3, "#fff"); }
+    if (!S.done && S.gt < 240) outlined(g, "👀 두 카드에 똑같이 있는 동물을 눌러요!", A.x + A.w/2, A.y + A.h - 22, 22, "#fff");
+  },
+  live: (S, ui) => !!(ui.fx && (ui.fxT || 0) < 72),
+  tap(S, me, px, py, A, ui){ let best = null, bd = 1e9; (ui.sym || []).forEach(o => { const d = BA.dist(px, py, o); if (d < o.r*1.15 && d < bd){ bd = d; best = o; } });
+    return best ? {k: "tap", s: best.s, c: S.ctr} : null; }
+});
+
+/* ---------------- 🧩 동물 퍼즐 대작전 (2~4명 · 모두 동시에) ---------------- */
+const BA_PZ = {I3: [[0, 0], [1, 0], [2, 0]], L3: [[0, 0], [0, 1], [1, 1]], I4: [[0, 0], [1, 0], [2, 0], [3, 0]], O4: [[0, 0], [1, 0], [0, 1], [1, 1]], T4: [[0, 0], [1, 0], [2, 0], [1, 1]],
+  L4: [[0, 0], [0, 1], [0, 2], [1, 2]], S4: [[1, 0], [2, 0], [0, 1], [1, 1]], P5: [[0, 0], [1, 0], [0, 1], [1, 1], [0, 2]], V5: [[0, 0], [0, 1], [0, 2], [1, 2], [2, 2]]};
+const BA_PC = {I3: ["#ff8787", "chick"], L3: ["#ffd43b", "mouse"], I4: ["#74c0fc", "penguin"], O4: ["#b197fc", "panda"], T4: ["#63e6be", "frog"], L4: ["#ffa94d", "fox"], S4: ["#f783ac", "rabbit"], P5: ["#a9e34b", "owl"], V5: ["#66d9e8", "whale"]};
+BG.def({
+  id: "ub", e: "🧩", n: "동물 퍼즐 대작전", like: "우봉고 같은 게임", time: "6분", min: 2, max: 4, col: ["#ff6b6b", "#4dabf7", "#69db7c", "#ffd43b"], bg: ["#0b4f5c", "#062a33"],
+  d: "동물 조각으로 빈 집 모양을 꽉 채워요! 모두 같은 퍼즐을 동시에 풀고 빨리 끝낼수록 보석이 많아요",
+  tag: "🆕 🐾 우리 동물 · 🌐 모두 동시에 2~4명",
+  rules: ["모두 <b>같은 퍼즐</b>을 동시에 풀어요. 아래(옆) 조각을 모두 써서 <b>빈 집 모양을 빈틈없이</b> 채워요.", "조각을 <b>눌러 고르고</b> 집 위를 누르거나, 조각을 <b>끌어다 놓아요</b>.", "<b>🔄 돌리기</b>·<b>↔️ 뒤집기</b>로 조각 모양을 바꿔요. 놓은 조각을 다시 누르면 빼요.", "먼저 완성할수록 💎 보석을 많이 받아요 (1등 3개 · 2등 2개 · 그다음 1개).", "모두 5판! 보석이 가장 많은 친구가 이겨요."],
+  T(cells, t){ let C = cells.map(([x, y]) => [t & 4 ? -x : x, y]); for (let r = 0; r < (t & 3); r++) C = C.map(([x, y]) => [-y, x]);
+    const mx = Math.min(...C.map(c => c[0])), my = Math.min(...C.map(c => c[1])); return C.map(([x, y]) => [x - mx, y - my]); },
+  K: [3, 3, 4, 4, 4],
+  gen(R, k){
+    const TY = Object.keys(BA_PZ), GW = k > 3 ? 6 : 5, GH = k > 3 ? 5 : 4;
+    for (let tr = 0; tr < 400; tr++){
+      const pcs = BG.shuffle(TY.slice(), R).slice(0, k), occ = new Map(), sol = []; let ok = true;
+      for (let i = 0; i < k && ok; i++){ const C = []; const t0 = Math.floor(R()*8);
+        for (let t = 0; t < 8; t++){ const P = this.T(BA_PZ[pcs[i]], (t0 + t) % 8), w = Math.max(...P.map(c => c[0])) + 1, h = Math.max(...P.map(c => c[1])) + 1;
+          for (let y = 0; y + h <= GH; y++) for (let x = 0; x + w <= GW; x++){ const cs = P.map(([u, v]) => [x + u, y + v]); if (cs.some(([u, v]) => occ.has(u + "," + v))) continue;
+            let tch = 0; cs.forEach(([u, v]) => [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => { if (occ.has((u + dx) + "," + (v + dy))) tch++; }));
+            if (i && !tch) continue; C.push({t: (t0 + t) % 8, x, y, cs, s: tch + R()*2.5}); } }
+        if (!C.length){ ok = false; break; } C.sort((a, b) => b.s - a.s); const c = C[Math.floor(R()*Math.min(3, C.length))];
+        c.cs.forEach(([u, v]) => occ.set(u + "," + v, i)); sol.push({t: c.t, x: c.x, y: c.y}); }
+      if (!ok) continue;
+      const cells = [...occ.keys()].map(s => s.split(",").map(Number)), mx = Math.min(...cells.map(c => c[0])), my = Math.min(...cells.map(c => c[1]));
+      /* 너무 길쭉한 모양은 다시 */
+      const w = Math.max(...cells.map(c => c[0])) - mx + 1, h = Math.max(...cells.map(c => c[1])) - my + 1; if (w > GW || h > GH) continue;
+      return {cells: cells.map(([x, y]) => [x - mx, y - my]), w, h, pcs, o0: pcs.map(() => Math.floor(R()*8)), sol: sol.map(s => ({t: s.t, x: s.x - mx, y: s.y - my}))};
+    }
+    return {cells: [[0, 0], [1, 0], [2, 0]], w: 3, h: 1, pcs: ["I3"], o0: [0], sol: [{t: 0, x: 0, y: 0}]};
+  },
+  newRound(S, R, X){ const k = this.K[S.rd] || 4, P = this.gen(R, k); S.sol = P.sol; delete P.sol; S.pz = P; S.ph = "play"; S.ord = []; S.t = (k > 3 ? 75 : 55)*60;
+    S.pl = Array.from({length: S.n}, () => ({pc: P.pcs.map(() => null), done: 0}));
+    S.bt = {}; (X.bots || []).forEach(b => { const D = [[38, 55], [24, 38], [14, 24]][X.lv] || [24, 38]; S.bt[b] = S.gt + Math.round((D[0] + R()*(D[1] - D[0]))*(k/4)*60*BA.fast()); }); },
+  setup(n, R, X){ const S = {n, rd: 0, gem: Array(n).fill(0), gt: 0, ph: "play", win: -1}; this.newRound(S, R, X); return S; },
+  turn: () => -1,
+  free: (S, p, a) => S.ph === "play" && !S.pl[p].done,
+  cov(S, p, skip){ const m = new Map(); S.pl[p].pc.forEach((q, i) => { if (q && i !== skip) this.T(BA_PZ[S.pz.pcs[i]], q.t).forEach(([u, v]) => m.set((q.x + u) + "," + (q.y + v), i)); }); return m; },
+  act(S, p, a, R, X){
+    if (S.ph !== "play" || S.pl[p].done) return false;
+    if (a.k === "take"){ if (!S.pl[p].pc[a.i]) return false; S.pl[p].pc[a.i] = null; return true; }
+    if (a.k !== "put" || !(a.i >= 0 && a.i < S.pz.pcs.length)) return false;
+    const shape = new Set(S.pz.cells.map(c => c.join(","))), m = this.cov(S, p, a.i), cs = this.T(BA_PZ[S.pz.pcs[a.i]], a.t & 7).map(([u, v]) => (a.x + u) + "," + (a.y + v));
+    if (cs.some(c => !shape.has(c) || m.has(c))) return false;
+    S.pl[p].pc[a.i] = {t: a.t & 7, x: a.x, y: a.y};
+    if (m.size + cs.length === S.pz.cells.length) this.finish(S, p, X); else bgFx(S, {k: "put", p, snd: "pt"});
+    return true; },
+  bad: () => "그 자리에는 들어가지 않아요",
+  finish(S, p, X){ S.pl[p].done = 1; S.ord.push(p); const g = [3, 2, 1, 1][S.ord.length - 1]; S.gem[p] += g; bgFx(S, {k: "done", p, say: `💎 ${X.name(p)} 완성! 보석 ${g}개`, snd: "gold"}); },
+  tick(S, R, X){ S.gt++;
+    if (S.ph === "play"){ S.t--;
+      for (const b of X.bots || []) if (!S.pl[b].done && S.bt[b] && S.gt >= S.bt[b]){ S.pl[b].pc = S.sol.map(s => ({t: s.t, x: s.x, y: s.y})); this.finish(S, b, X); return true; }
+      if (S.t <= 0 || S.pl.every(q => q.done)){ S.ph = "res"; S.rt = Math.round(200*BA.fast()); S.show = S.sol; bgFx(S, {k: "res", say: S.ord.length ? `🏁 ${S.rd + 1}판 끝!` : "⏰ 시간 끝! 정답을 봐요", snd: "pt"}); return true; }
+      return S.t % 60 === 0; }
+    if (S.ph === "res" && --S.rt <= 0){ S.show = null; S.rd++; if (S.rd >= this.K.length){ S.ph = "end"; const m = Math.max(...S.gem), tops = S.gem.map((v, i) => v === m ? i : -1).filter(i => i >= 0); S.win = tops.length > 1 ? 99 : tops[0]; } else this.newRound(S, R, X); return true; }
+    return false; },
+  over(S){ if (S.ph !== "end") return null; const rank = S.gem.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]).map(x => x[1]); return {w: S.win === 99 ? -1 : S.win, rank, txt: S.gem.map(v => `💎${v}`).join(" : ")}; },
+  pinfo(S, i){ if (!S || !S.pl) return ""; const q = S.pl[i]; return `💎 ${S.gem[i]} · ${q.done ? "✅ 완성" : `🧩 ${q.pc.filter(Boolean).length}/${S.pz.pcs.length}`}`; },
+  view: S => Object.assign({}, S, {sol: null, bt: null}),
+  geo(S, A){ const land = A.w > A.h, bw = land ? A.w*.6 : A.w, bh = land ? A.h - 70 : A.h*.52, cs = Math.min(84, (bw - 40)/(S.pz.w + .5), (bh - 40)/(S.pz.h + .5));
+    const B = {x: A.x + (bw - cs*S.pz.w)/2, y: A.y + 60 + (bh - cs*S.pz.h)/2, cs};
+    const T = land ? {x: A.x + bw + 6, y: A.y + 50, w: A.w - bw - 12, h: A.h - 140} : {x: A.x + 6, y: A.y + bh + 70, w: A.w - 12, h: A.h - bh - 160};
+    const BT = land ? [{id: "rot", t: "🔄 돌리기", x: T.x, y: A.y + A.h - 80, w: T.w/2 - 5, h: 66}, {id: "flip", t: "↔️ 뒤집기", x: T.x + T.w/2 + 5, y: A.y + A.h - 80, w: T.w/2 - 5, h: 66}]
+      : [{id: "rot", t: "🔄 돌리기", x: A.x + 10, y: A.y + A.h - 82, w: A.w/2 - 15, h: 70}, {id: "flip", t: "↔️ 뒤집기", x: A.x + A.w/2 + 5, y: A.y + A.h - 82, w: A.w/2 - 15, h: 70}];
+    return {B, T, BT, land}; },
+  piece(g, type, t, x, y, cs, alpha = 1, glow){ const [col, an] = BA_PC[type], P = this.T(BA_PZ[type], t);
+    g.save(); g.globalAlpha = alpha; if (glow){ g.shadowColor = "#ffe066"; g.shadowBlur = 16; }
+    P.forEach(([u, v]) => { BGD.tile(g, x + u*cs + 1, y + v*cs + 1, cs - 2, cs - 2, BGD.lg(g, 0, y + v*cs, 0, y + (v + 1)*cs, [col, BGD.dark(col)]), "rgba(0,0,0,.3)", Math.max(4, cs*.18)); });
+    g.restore(); const [u, v] = P[Math.floor(P.length/2)]; g.save(); g.globalAlpha = alpha; BA.put(g, an, x + (u + .5)*cs, y + (v + .5)*cs, cs*.92); g.restore(); },
+  draw(g, S, me, A, ui, X){
+    BGD.felt(g, A.x + 6, A.y + 6, A.w - 12, A.h - 12, 30, "#0c8599");
+    const Gm = this.geo(S, A), B = Gm.B, cs = B.cs, my = S.pl[me]; ui.G = Gm; ui.o = ui.o && ui.o.rd === S.rd && ui.o.gt0 === S.pz.o0.join() ? ui.o : {rd: S.rd, gt0: S.pz.o0.join(), t: S.pz.o0.slice()};
+    outlined(g, `🧩 ${S.rd + 1} / ${this.K.length}판 · ⏰ ${Math.max(0, Math.ceil(S.t/60))}`, A.x + 20, A.y + 30, 24, S.t < 600 ? "#ff8787" : "#fff", undefined, "left");
+    /* 🏠 빈 집 모양 */
+    BA.put(g, "lion", B.x - cs*.55, B.y - cs*.35, cs*.9);
+    S.pz.cells.forEach(([u, v]) => { BGD.box(g, B.x + u*cs + 2, B.y + v*cs + 2, cs - 4, cs - 4, 8, "rgba(255,248,220,.92)", "#a87332", 3); });
+    const show = S.ph === "res" && S.show ? S.show.map(s => s) : null;
+    if (show) show.forEach((s, i) => this.piece(g, S.pz.pcs[i], s.t, B.x + s.x*cs, B.y + s.y*cs, cs, .9));
+    else my.pc.forEach((q, i) => { if (q) this.piece(g, S.pz.pcs[i], q.t, B.x + q.x*cs, B.y + q.y*cs, cs, 1); });
+    if (my.done && S.ph === "play"){ outlined(g, `✅ 완성! ${S.ord.indexOf(me) + 1}등`, B.x + cs*S.pz.w/2, B.y - 26, 30, "#ffe066"); }
+    /* 🧺 내 조각 */
+    const T = Gm.T, n = S.pz.pcs.length, cols = Gm.land ? 2 : n, cw = T.w/cols, chh = Gm.land ? T.h/Math.ceil(n/cols) : T.h;
+    ui.tray = [];
+    if (!show) S.pz.pcs.forEach((ty, i) => { const cx = T.x + (i % cols)*cw, cy = T.y + Math.floor(i/cols)*chh; ui.tray.push({x: cx, y: cy, w: cw, h: chh, i});
+      const used = !!my.pc[i], sel = ui.sel === i && !used; BGD.box(g, cx + 4, cy + 4, cw - 8, chh - 8, 14, sel ? "rgba(255,224,102,.25)" : "rgba(0,0,0,.18)", sel ? "#ffe066" : "rgba(255,255,255,.15)", sel ? 3 : 2);
+      if (used){ outlined(g, "✔ 놓았어요", cx + cw/2, cy + chh/2, 17, "#c5f6fa"); return; }
+      const P = this.T(BA_PZ[ty], ui.o.t[i]), w = Math.max(...P.map(c => c[0])) + 1, h = Math.max(...P.map(c => c[1])) + 1, q = Math.min((cw - 24)/Math.max(w, 2.5), (chh - 24)/Math.max(h, 2.5), cs*.85);
+      if (!(ui.drag && ui.sel === i)) this.piece(g, ty, ui.o.t[i], cx + (cw - w*q)/2, cy + (chh - h*q)/2, q, 1, sel); });
+    if (!show && !my.done) Gm.BT.forEach(b => BGD.btn(g, Object.assign({}, b, {off: ui.sel == null})));
+    if (ui.drag && ui.sel != null && !my.pc[ui.sel] && ui.gx != null){ const P = this.T(BA_PZ[S.pz.pcs[ui.sel]], ui.o.t[ui.sel]), w = Math.max(...P.map(c => c[0])) + 1, h = Math.max(...P.map(c => c[1])) + 1;
+      this.piece(g, S.pz.pcs[ui.sel], ui.o.t[ui.sel], ui.gx - w*cs/2, ui.gy - h*cs/2, cs, .8, true); }
+    if (show) outlined(g, "💡 이렇게 채울 수 있어요", B.x + cs*S.pz.w/2, B.y + cs*S.pz.h + 30, 22, "#ffe066");
+    else if (!my.done && S.t > (this.K[S.rd] > 3 ? 70 : 50)*60) outlined(g, "조각을 골라 집 위에 놓아요", A.x + A.w/2, A.y + A.h - 22, 20, "#c5f6fa");
+  },
+  live: (S, ui) => !!(ui.drag || (ui.fx && (ui.fxT || 0) < 40)),
+  at(S, ui, px, py){ const B = ui.G.B, P = this.T(BA_PZ[S.pz.pcs[ui.sel]], ui.o.t[ui.sel]), w = Math.max(...P.map(c => c[0])) + 1, h = Math.max(...P.map(c => c[1])) + 1;
+    return {x: Math.round((px - B.x)/B.cs - w/2), y: Math.round((py - B.y)/B.cs - h/2)}; },
+  onBoard(S, ui, px, py){ const B = ui.G.B; return px >= B.x - B.cs && px <= B.x + B.cs*(S.pz.w + 1) && py >= B.y - B.cs && py <= B.y + B.cs*(S.pz.h + 1); },
+  tap(S, me, px, py, A, ui, can){
+    if (!ui.G || S.ph !== "play") return null; const my = S.pl[me]; if (my.done) return null;
+    for (const b of ui.G.BT) if (BGD.hit(b, px, py)){ if (ui.sel == null) return null; const t = ui.o.t[ui.sel]; ui.o.t[ui.sel] = b.id === "rot" ? (t & 4) | ((t + 1) & 3) : t ^ 4; return null; }
+    for (const b of ui.tray || []) if (BGD.hit(b, px, py)){ if (my.pc[b.i]) return null; ui.sel = b.i; ui.drag = true; ui.gx = null; return null; }
+    /* 놓은 조각 누르면 빼요 */
+    const B = ui.G.B, cx = Math.floor((px - B.x)/B.cs), cy = Math.floor((py - B.y)/B.cs), m = this.cov(S, me, -1), hit = m.get(cx + "," + cy);
+    if (hit != null){ ui.sel = hit; ui.o.t[hit] = my.pc[hit].t; return {k: "take", i: hit}; }
+    if (ui.sel != null && !my.pc[ui.sel] && this.onBoard(S, ui, px, py)){ const q = this.at(S, ui, px, py); return {k: "put", i: ui.sel, t: ui.o.t[ui.sel], x: q.x, y: q.y}; }
+    return null; },
+  drag(S, me, x, y, A, ui){ if (ui.drag){ ui.gx = x; ui.gy = y; } },
+  drop(S, me, px, py, A, ui){ const was = ui.drag && ui.gx != null; ui.drag = false; const gx = ui.gx; ui.gx = null;
+    if (!was || ui.sel == null || !ui.G || S.pl[me].pc[ui.sel] || gx == null) return null;
+    if (this.onBoard(S, ui, px, py)){ const q = this.at(S, ui, px, py); return {k: "put", i: ui.sel, t: ui.o.t[ui.sel], x: q.x, y: q.y}; }
+    return null; },
+  key(S, me, code, ui){ if (ui.sel == null || !ui.o) return null; const t = ui.o.t[ui.sel]; if (code === "KeyR") ui.o.t[ui.sel] = (t & 4) | ((t + 1) & 3); if (code === "KeyF") ui.o.t[ui.sel] = t ^ 4; return null; }
+});
+
+/* ---------------- 🌳 동물 나무 막대 빼기 (2~4명) ---------------- */
+BG.def({
+  id: "tm", e: "🌳", n: "동물 나무 막대 빼기", like: "텀블링 몽키 같은 게임", time: "8분", min: 2, max: 4, col: ["#ff6b6b", "#4dabf7", "#69db7c", "#ffd43b"], bg: ["#74c0fc", "#d0ebff"],
+  d: "주사위 색깔 막대를 하나씩 쏙! 동물 친구가 떨어지면 내가 받아요. 적게 받은 친구가 승리",
+  tag: "🆕 🐾 우리 동물 · 🌐 온라인 2~4명",
+  rules: ["나무에 색깔 막대가 꽂혀 있고, 그 위에 동물 친구들이 앉아 있어요.", "차례가 되면 <b>🎲 주사위</b>를 굴려요. 나온 <b>색깔 막대 하나</b>를 골라 빼요. ⭐가 나오면 아무 색이나 골라요.", "막대를 빼서 <b>떨어진 동물</b>은 내가 받아요. (밑에 다른 막대가 있으면 거기에 걸려요!)", "막대가 다 빠지거나 동물이 모두 떨어지면 끝! <b>동물을 가장 적게 받은</b> 친구가 이겨요.", "💡 동물이 많이 앉은 막대는 조심! 아래에 받쳐 줄 막대가 있는지 잘 봐요."],
+  C: ["#fa5252", "#fcc419", "#339af0"], CN: ["빨강", "노랑", "파랑"],
+  AN: ["chick", "mouse", "rabbit", "cat", "dog", "panda", "fox", "frog", "owl", "hedgehog", "penguin", "tiger", "lion", "parrot"],
+  setup(n, R){
+    /* 막대는 모두 나무줄기(가운데)를 지나요 · 왼쪽·오른쪽 길이가 제각각이라 가장자리 동물은 떨어지기 쉬워요 */
+    const st = []; for (let i = 0; i < 15; i++){ const y = 2.3 + i*(6.4/14) + (R() - .5)*.1, L = R() < .5; st.push({id: i, y, a: L ? .5 + R()*1.6 : 2 + R()*2.4, b: L ? 5.6 + R()*2.4 : 8 + R()*1.5, c: i % 3, on: 1}); }
+    const cols = BG.shuffle(st.map(s => s.c), R); st.forEach((s, i) => s.c = cols[i]);
+    const S = {n, st, cr: [], t: 0, ph: "roll", die: -1, got: Array(n).fill(0), win: -1};
+    for (let k = 0; k < 14; k++){ for (let tr = 0; tr < 40; tr++){ const c = {a: this.AN[k], x: .9 + R()*8.2, y: 1.9 + (k % 7)*.85 + R()*.3, on: -1, by: -1}; this.land(S, c); if (c.on >= 0 && !S.cr.some(o => o.on === c.on && Math.abs(o.x - c.x) < .75)){ S.cr.push(c); break; } } }
+    return S; },
+  land(S, c){ let best = null; S.st.forEach(s => { if (s.on && s.y > c.y + .01 && c.x >= s.a - .2 && c.x <= s.b + .2 && (!best || s.y < best.y)) best = s; });
+    if (best){ c.y = best.y; c.on = best.id; } else { c.on = -1; c.y = 10.4; } },
+  sim(S, i){ return S.cr.filter(c => c.on === i).reduce((n, c) => { const cc = {x: c.x, y: c.y}; const T = {st: S.st.map(s => s.id === i ? Object.assign({}, s, {on: 0}) : s)}; this.land(T, cc); return n + (cc.on < 0 ? 1 : 0); }, 0); },
+  turn: S => S.win >= 0 ? -1 : S.t,
+  ok(S, i){ const s = S.st[i]; if (!s || !s.on || S.ph !== "pull") return false; if (S.die === 3) return true; if (!S.st.some(o => o.on && o.c === S.die)) return true; return s.c === S.die; },
+  act(S, p, a, R, X){
+    if (a.k === "roll"){ if (S.ph !== "roll") return false; S.die = Math.floor(R()*4); if (S.die < 3 && !S.st.some(o => o.on && o.c === S.die)) S.die = 3; S.ph = "pull";
+      bgFx(S, {k: "roll", say: S.die === 3 ? "⭐ 아무 색이나 골라요!" : `🎲 ${this.CN[S.die]} 막대!`, c: S.die === 3 ? "#ffe066" : this.C[S.die], snd: "pt"}); return true; }
+    if (a.k === "pull"){ if (!this.ok(S, a.i)) return false; S.st[a.i].on = 0; let f = 0;
+      S.cr.forEach(c => { if (c.on === a.i){ this.land(S, c); if (c.on < 0){ c.by = p; f++; } } }); S.got[p] += f;
+      bgFx(S, {k: "pull", i: a.i, say: f ? `😱 ${X.name(p)} 동물 ${f}마리 받았어요!` : "😮‍💨 휴~ 아무도 안 떨어졌어요", c: f ? "#ff8787" : "#69db7c", snd: f ? "bad" : "pt"});
+      if (!S.st.some(s => s.on) || !S.cr.some(c => c.on >= 0)){ const m = Math.min(...S.got), tops = S.got.map((v, i) => v === m ? i : -1).filter(i => i >= 0); S.win = tops.length > 1 ? 99 : tops[0]; }
+      else { S.t = (S.t + 1) % S.n; S.ph = "roll"; S.die = -1; }
+      return true; }
+    return false; },
+  bad: S => S.ph === "roll" ? "먼저 🎲 주사위를 굴려요" : "주사위 색깔 막대를 골라요",
+  aiDelay: 800,
+  ai(S, p, R, X){ if (S.ph === "roll") return {k: "roll"};
+    const C = S.st.filter(s => this.ok(S, s.id)).map(s => ({i: s.id, f: this.sim(S, s.id), r: R()})); if (!C.length) return null;
+    if (X.lv === 0 || (X.lv === 1 && R() < .3)) return {k: "pull", i: C[Math.floor(R()*C.length)].i};
+    C.sort((a, b) => a.f - b.f || a.r - b.r); return {k: "pull", i: C[0].i}; },
+  over(S){ if (S.win < 0) return null; const rank = S.got.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]).map(x => x[1]); return {w: S.win === 99 ? -1 : S.win, rank, txt: S.got.map(v => `🙈${v}`).join(" : ")}; },
+  pinfo: (S, i) => S ? `🙈 받은 동물 ${S.got[i]}` : "",
+  geo(A){ const land = A.w > A.h, u = land ? Math.min((A.w - 280)/10.4, (A.h - 20)/11) : Math.min((A.w - 20)/10.4, (A.h - 200)/11); return {u, ox: A.x + (land ? (A.w - 260 - 10*u)/2 : (A.w - 10*u)/2), oy: A.y + 10, land}; },
+  draw(g, S, me, A, ui, X){
+    const Q = this.geo(A), u = Q.u, X0 = Q.ox, Y0 = Q.oy, px = x => X0 + x*u, py = y => Y0 + y*u;
+    BGD.box(g, A.x + 6, A.y + 6, A.w - 12, A.h - 12, 30, BGD.lg(g, 0, A.y, 0, A.y + A.h, ["#a5d8ff", "#e7f5ff"]));
+    g.fillStyle = "#8ce99a"; g.fillRect(A.x + 6, py(10.2), A.w - 12, A.y + A.h - 6 - py(10.2)); g.fillStyle = "#69db7c"; g.fillRect(A.x + 6, py(10.2), A.w - 12, 8);
+    /* 🌳 나무 */
+    [[5, .9, 1.6], [3.7, 1.4, 1.2], [6.3, 1.4, 1.2], [5, 1.8, 1.4]].forEach(([x, y, r]) => { BGD.disc(g, px(x), py(y), r*u, "#40c057", "#b2f2bb"); });
+    g.save(); BGD.shadow(g, true, 14, 4); BGD.box(g, px(4.45), py(1.6), u*1.1, py(10.3) - py(1.6), u*.4, BGD.lg(g, px(4.45), 0, px(5.55), 0, ["#a0522d", "#8b4513", "#6b3410"])); g.restore();
+    g.strokeStyle = "rgba(0,0,0,.18)"; g.lineWidth = 2; for (let k = 0; k < 9; k++){ g.beginPath(); g.moveTo(px(4.6 + (k % 3)*.3), py(2 + k*.9)); g.lineTo(px(4.6 + (k % 3)*.3), py(2.5 + k*.9)); g.stroke(); }
+    /* 🪵 막대 */
+    const can = S.t === me && S.ph === "pull" && S.win < 0; ui.st = [];
+    const pf = ui.fx && ui.fx.k === "pull" && (ui.fxT || 0) < 30 ? ui.fx : null;
+    S.st.forEach(s => { if (!s.on && !(pf && pf.i === s.id)) return; const ok = can && this.ok(S, s.id), x0 = px(s.a), x1 = px(s.b), y = py(s.y) + u*.13, hh = u*.26;
+      g.save(); if (pf && pf.i === s.id){ const k = (ui.fxT || 0)/30; g.globalAlpha = 1 - k; g.translate((k*4*u)*(s.a + s.b > 10 ? 1 : -1), 0); }
+      if (ok){ g.shadowColor = "#fff"; g.shadowBlur = 16; }
+      BGD.box(g, x0, y - hh/2, x1 - x0, hh, hh/2, BGD.lg(g, 0, y - hh/2, 0, y + hh/2, ["#fff", this.C[s.c], BGD.dark(this.C[s.c])]), "rgba(0,0,0,.35)", 2); g.restore();
+      if (s.on) ui.st.push({i: s.id, x0, x1, y, ok}); });
+    /* 🐾 동물 (떨어지는 모습은 부드럽게) */
+    ui.cy = ui.cy || {};
+    S.cr.forEach((c, k) => { const ty = c.on >= 0 ? c.y : 10.3, cur = ui.cy[k] == null ? ty : ui.cy[k], ny = cur + Math.min(.35, Math.max(-.35, ty - cur)); ui.cy[k] = Math.abs(ty - ny) < .02 ? ty : ny;
+      const dx = c.on >= 0 ? c.x : c.x*.8 + 1, sz = u*1.05; g.save(); if (c.on < 0 && ui.cy[k] >= 10.3){ g.globalAlpha = .9; }
+      BA.put(g, c.a, px(dx), py(ui.cy[k]) - sz*.42, sz, c.on < 0 ? (k % 2 ? .5 : -.5) : 0); g.restore();
+      if (c.on < 0 && c.by >= 0 && ui.cy[k] >= 10.3){ g.fillStyle = this.col[c.by]; g.beginPath(); g.arc(px(dx) + sz*.3, py(ui.cy[k]) - sz*.75, 7, 0, 7); g.fill(); } });
+    /* 🎲 주사위 · 안내 */
+    const dx = Q.land ? A.x + A.w - 130 : A.x + A.w/2, dy = Q.land ? A.y + A.h*.42 : A.y + A.h - 92, ds = 96;
+    g.save(); BGD.shadow(g, true, 14, 5); BGD.box(g, dx - ds/2, dy - ds/2, ds, ds, 20, "#fff", "#495057", 3); g.restore();
+    if (S.die >= 0 && S.die < 3){ BGD.disc(g, dx, dy, ds*.32, this.C[S.die]); } else if (S.die === 3) outlined(g, "⭐", dx, dy, ds*.55); else outlined(g, "🎲", dx, dy, ds*.5);
+    ui.roll = null;
+    if (S.t === me && S.win < 0){ if (S.ph === "roll"){ ui.roll = {x: dx - 110, y: dy + ds/2 + 14, w: 220, h: 64, t: "🎲 굴리기", p: 1}; if (!Q.land) ui.roll = {x: dx + ds/2 + 20, y: dy - 32, w: 200, h: 64, t: "🎲 굴리기", p: 1}; BGD.btn(g, ui.roll); }
+      else outlined(g, S.die === 3 ? "아무 막대나 골라요" : `${this.CN[S.die]} 막대를 골라요`, Q.land ? dx : dx + ds/2 + 120, Q.land ? dy + ds/2 + 40 : dy, 20, "#1c3d5a", "rgba(255,255,255,.85)"); }
+  },
+  live(S, ui){ if (ui.fx && (ui.fxT || 0) < 32) return true; const C = ui.cy || {}; return S.cr.some((c, k) => C[k] != null && Math.abs(C[k] - (c.on >= 0 ? c.y : 10.3)) > .01); },
+  tap(S, me, px, py, A, ui){ if (ui.roll && BGD.hit(ui.roll, px, py)) return {k: "roll"};
+    if (S.ph === "roll" && Math.hypot(px - (this.geo(A).land ? A.x + A.w - 130 : A.x + A.w/2), py - (this.geo(A).land ? A.y + A.h*.42 : A.y + A.h - 92)) < 60) return {k: "roll"};
+    let best = null, bd = 1e9; (ui.st || []).forEach(s => { const cx = Math.max(s.x0, Math.min(s.x1, px)), d = Math.hypot(px - cx, py - s.y); if (d < 26 && d < bd){ bd = d; best = s; } });
+    return best ? {k: "pull", i: best.i} : null; }
+});
+
+/* ---------------- 🐧 펭귄 얼음 깨기 (2~4명) ---------------- */
+BG.def({
+  id: "pg", e: "🐧", n: "펭귄 얼음 깨기", like: "펭귄 얼음깨기 같은 게임", time: "6분", min: 2, max: 4, col: ["#ff6b6b", "#4dabf7", "#69db7c", "#ffd43b"], bg: ["#1864ab", "#0b2d55"],
+  d: "얼음을 하나씩 톡! 펭귄을 떨어뜨리는 친구가 져요. 3판 동안 가장 적게 떨어뜨린 친구가 승리",
+  tag: "🆕 🐾 우리 동물 · 🌐 온라인 2~4명",
+  rules: ["차례마다 <b>얼음 한 칸</b>을 눌러 깨요. 가운데 펭귄이 앉은 얼음은 깰 수 없어요.", "얼음은 <b>옆 얼음 두 개</b>가 잡아 줘야 버텨요. 벽에 닿은 면은 벽이 한 개로 잡아 줘요.", "잡아 주는 게 하나뿐이면 와르르 떨어져요! 그 바람에 <b>펭귄이 떨어지면</b> 그 친구가 한 번 진 거예요.", "모두 3판! <b>펭귄을 가장 적게 떨어뜨린</b> 친구가 이겨요.", "💡 펭귄 주변 얼음은 끝까지 아껴 둬요!"],
+  N: 7, P: 24,
+  fresh(){ return Array(49).fill(1); },
+  sup(b, i){ const N = this.N, x = i % N, y = (i/N) | 0; let s = 0; [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => { const X = x + dx, Y = y + dy; if (X < 0 || Y < 0 || X >= N || Y >= N) s++; else if (b[Y*N + X]) s++; }); return s; },
+  crash(b){ const f = []; let ch = true; while (ch){ ch = false; for (let i = 0; i < 49; i++) if (b[i] && this.sup(b, i) < 2){ b[i] = 0; f.push(i); ch = true; } } return f; },
+  hitSim(b, i){ const c = b.slice(); c[i] = 0; const f = this.crash(c); return {c, f, drop: !c[this.P]}; },
+  setup(n, R){ return {n, b: this.fresh(), t: Math.floor(R()*n), rd: 0, drop: Array(n).fill(0), ph: "play", ft: 0, win: -1, lost: -1}; },
+  turn: S => S.ph === "play" ? S.t : -1,
+  act(S, p, a, R, X){
+    if (a.k !== "hit" || S.ph !== "play" || a.i === this.P || !S.b[a.i]) return false;
+    const r = this.hitSim(S.b, a.i); S.b = r.c; S.fall = [a.i].concat(r.f);
+    if (r.drop){ S.drop[p]++; S.lost = p; S.ph = "fall"; S.ft = Math.round(150*BA.fast()); bgFx(S, {k: "drop", say: `💦 펭귄이 풍덩! ${X.name(p)}`, c: "#a5d8ff", snd: "bad"}); }
+    else { S.t = (S.t + 1) % S.n; bgFx(S, {k: "hit", say: r.f.length ? `🧊 와르르 ${r.f.length + 1}칸!` : null, snd: "pt"}); }
+    return true; },
+  tick(S){ if (S.ph !== "fall") return false; if (--S.ft > 0) return false;
+    S.rd++; if (S.rd >= 3){ S.ph = "end"; const m = Math.min(...S.drop), tops = S.drop.map((v, i) => v === m ? i : -1).filter(i => i >= 0); S.win = tops.length > 1 ? 99 : tops[0]; return true; }
+    S.b = this.fresh(); S.fall = null; S.ph = "play"; S.t = S.lost; bgFx(S, {k: "new", say: `🧊 ${S.rd + 1}판! 새 얼음판`, snd: "pt"}); return true; },
+  bad: () => "깰 수 있는 얼음을 눌러요",
+  aiDelay: 750,
+  ai(S, p, R, X){ const L = []; for (let i = 0; i < 49; i++) if (S.b[i] && i !== this.P) L.push(i);
+    const safe = L.filter(i => !this.hitSim(S.b, i).drop); if (!safe.length) return {k: "hit", i: L[Math.floor(R()*L.length)]};
+    if (X.lv === 0){ const pool = R() < .12 ? L : safe; return {k: "hit", i: pool[Math.floor(R()*pool.length)]}; }
+    if (X.lv === 1) return {k: "hit", i: safe[Math.floor(R()*safe.length)]};
+    /* 어려움: 상대에게 안전한 수가 가장 적게 남도록 (짝수 남기기) */
+    let best = null, bs = 1e9; safe.forEach(i => { const c = this.hitSim(S.b, i).c, rest = []; for (let j = 0; j < 49; j++) if (c[j] && j !== this.P) rest.push(j); const s2 = rest.filter(j => !this.hitSim(c, j).drop).length, sc = (s2 === 0 ? -100 : s2 % 2 === 0 ? -10 : 0) + s2*.1 + R()*.05; if (sc < bs){ bs = sc; best = i; } });
+    return {k: "hit", i: best}; },
+  over(S){ if (S.ph !== "end") return null; const rank = S.drop.map((v, i) => [v, i]).sort((a, b) => a[0] - b[0]).map(x => x[1]); return {w: S.win === 99 ? -1 : S.win, rank, txt: S.drop.map(v => `💦${v}`).join(" : ")}; },
+  pinfo: (S, i) => S ? `💦 떨어뜨림 ${S.drop[i]}` : "",
+  draw(g, S, me, A, ui, X){
+    BGD.box(g, A.x + 6, A.y + 6, A.w - 12, A.h - 12, 30, BGD.lg(g, 0, A.y, 0, A.y + A.h, ["#1971c2", "#0b3d74"]));
+    const N = this.N, cs = Math.min((A.w - 120)/N, (A.h - 150)/N, 92), bx = A.x + (A.w - cs*N)/2, by = A.y + 70 + (A.h - 110 - cs*N)/2, dep = cs*.22;
+    ui.cell = {bx, by, cs};
+    outlined(g, `🧊 ${Math.min(3, S.rd + 1)} / 3판`, A.x + 24, A.y + 34, 24, "#fff", undefined, "left");
+    /* 🧱 얼음 틀 */
+    g.save(); BGD.shadow(g, true, 20, 8); BGD.box(g, bx - 22, by - 22, cs*N + 44, cs*N + 44 + dep, 22, BGD.lg(g, bx, by, bx + cs*N, by + cs*N, ["#4dabf7", "#1c7ed6"]), "#e7f5ff", 4); g.restore();
+    BGD.box(g, bx - 4, by - 4, cs*N + 8, cs*N + 8 + dep, 10, "rgba(5,30,60,.85)");
+    const my = S.t === me && S.ph === "play", fx = ui.fx, ft = (ui.fxT || 0), fall = S.fall && fx && (fx.k === "hit" || fx.k === "drop") && ft < 40 ? S.fall : [];
+    ui.safe = ui.safe && ui.safe.k === S.b.join("") ? ui.safe : {k: S.b.join(""), s: null};
+    for (let i = 0; i < 49; i++){ const x = bx + (i % N)*cs, y = by + ((i/N) | 0)*cs;
+      if (!S.b[i]){ if (fall.includes(i)){ const k = ft/40; g.save(); g.globalAlpha = 1 - k; this.ice(g, x + cs*k*.2, y + k*cs*1.4, cs*(1 - k*.4), dep, i === this.P); g.restore(); } continue; }
+      this.ice(g, x, y, cs, dep, i === this.P, my && ui.hov === i); }
+    /* 🐧 펭귄 */
+    const P = this.P, pxx = bx + (P % N + .5)*cs, pyy = by + ((P/N | 0) + .5)*cs;
+    if (S.b[P]) BA.put(g, "penguin", pxx, pyy - cs*.35, cs*1.25);
+    else { const k = Math.min(1, ft/50); g.save(); g.globalAlpha = 1 - k*.6; BA.put(g, "penguin", pxx, pyy - cs*.35 + k*cs*2.5, cs*1.25*(1 - k*.3), k*2); g.restore(); outlined(g, "💦 풍덩!", pxx, pyy + cs*2.2, 40, "#e7f5ff"); }
+    if (S.ph === "play" && S.t === me) outlined(g, "깰 얼음을 눌러요 · 펭귄을 지켜요!", A.x + A.w/2, A.y + A.h - 26, 22, "#ffe066");
+  },
+  ice(g, x, y, cs, dep, pen, hov){ const p = 2;
+    BGD.box(g, x + p, y + p + dep*.6, cs - p*2, cs - p*2, 8, "#5c9fd6");
+    BGD.box(g, x + p, y + p, cs - p*2, cs - p*2, 8, BGD.lg(g, x, y, x + cs, y + cs, pen ? ["#fff9db", "#ffe066"] : hov ? ["#ffffff", "#d0ebff"] : ["#f1f8ff", "#a5d8ff"]), "rgba(255,255,255,.8)", 2);
+    g.fillStyle = "rgba(255,255,255,.6)"; g.beginPath(); g.moveTo(x + cs*.2, y + cs*.25); g.lineTo(x + cs*.45, y + cs*.18); g.lineTo(x + cs*.25, y + cs*.4); g.closePath(); g.fill(); },
+  live: (S, ui) => !!(ui.fx && (ui.fxT || 0) < 52),
+  tap(S, me, px, py, A, ui){ const C = ui.cell; if (!C) return null; const cx = Math.floor((px - C.bx)/C.cs), cy = Math.floor((py - C.by)/C.cs); if (cx < 0 || cy < 0 || cx >= this.N || cy >= this.N) return null;
+    const i = cy*this.N + cx; if (!S.b[i] || i === this.P) return null; return {k: "hit", i}; }
+});
+
+/* =====================================================================
+   🐾 우리반 동물 보드게임 ② (2026.11.25) — 카드 게임
+   👑 동물 왕국 서열(달무티 같은) · 🌈 동물 색깔 카드(우노 같은) · 🥣 분수 먹이 나누기(분수 카드 게임)
+   - 내 카드는 나만 보여요(view) · 🌐 각자 기기로 온라인
+   ===================================================================== */
+
+/* ---------------- 👑 동물 왕국 서열 (3~5명) ---------------- */
+BG.def({
+  id: "dm", e: "👑", n: "동물 왕국 서열", like: "달무티 같은 게임", time: "15분", min: 3, max: 5, col: ["#ff6b6b", "#4dabf7", "#69db7c", "#ffd43b", "#cc5de8"], hidden: true, bg: ["#5f3dc4", "#25125c"],
+  d: "같은 동물을 모아 내고, 더 센 동물로 이겨요! 카드를 먼저 다 낸 친구가 다음 판의 🦁 왕",
+  tag: "🆕 🐾 우리 동물 · 🌐 온라인 3~5명",
+  rules: ["동물 카드에는 <b>서열 숫자</b>가 있어요. <b>숫자가 작을수록 세요</b> (1 🦁 사자 왕이 가장 세고, 10 🐭 생쥐가 가장 약해요). 센 동물일수록 카드가 적어요.", "먼저 내는 친구는 <b>같은 동물 카드</b>를 원하는 만큼 내요.", "다음 친구들은 <b>같은 장수</b>로 <b>더 센(숫자가 작은)</b> 동물을 내거나 <b>🙅 패스</b>해요.", "모두 패스하면 마지막에 낸 친구가 새로 시작해요. <b>🦄 유니콘</b>은 아무 동물이나 될 수 있어요.", "카드를 먼저 다 낸 순서대로 점수를 받아요. 다음 판엔 꼴찌가 1등에게 <b>가장 센 카드</b>를 바치고, 1등은 약한 카드를 돌려줘요. 모두 3판!"],
+  RK: ["", "lion", "tiger", "eagle", "mammoth", "rhino", "croc", "fox", "dog", "rabbit", "mouse", "unicorn"],
+  RN: ["", "사자 왕", "호랑이", "독수리", "매머드", "코뿔소", "악어", "여우", "강아지", "토끼", "생쥐", "유니콘"],
+  RC: ["", "#ffd43b", "#ff922b", "#a5d8ff", "#c69c6d", "#adb5bd", "#8ce99a", "#ffa94d", "#f4c48a", "#fcc2d7", "#ced4da", "#e5dbff"],
+  ROUNDS: 3,
+  deal(S, R){ const D = []; for (let r = 1; r <= 10; r++) for (let k = 0; k < r; k++) D.push(r); D.push(11, 11); BG.shuffle(D, R);
+    S.h = Array.from({length: S.n}, () => Array(12).fill(0)); D.forEach((c, i) => S.h[i % S.n][c]++);
+    S.tr = null; S.pc = 0; S.out = []; S.log = [];
+    if (S.prev){ const P = S.prev, top = P[0], last = P[S.n - 1], tx = [[top, last, 2]]; if (S.n >= 4) tx.push([P[1], P[S.n - 2], 1]); const msg = [];
+      tx.forEach(([hi, lo, k]) => { for (let j = 0; j < k; j++){ const r = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].find(r => S.h[lo][r] > 0); if (r){ S.h[lo][r]--; S.h[hi][r]++; } }
+        for (let j = 0; j < k; j++){ const r = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1].find(r => S.h[hi][r] > 0); if (r){ S.h[hi][r]--; S.h[lo][r]++; } } msg.push(k); });
+      S.t = top; S.tax = 1; } else { S.t = Math.floor(R()*S.n); S.tax = 0; } },
+  setup(n, R){ const S = {n, rd: 0, pts: Array(n).fill(0), win: -1, prev: null}; this.deal(S, R); return S; },
+  turn: S => S.win >= 0 ? -1 : S.t,
+  cnt: (h) => h.reduce((a, b) => a + b, 0),
+  act1: (S) => Array.from({length: S.n}, (_, i) => i).filter(i => !S.out.includes(i)),
+  nxt(S, p){ let q = p; for (let k = 0; k < S.n; k++){ q = (q + 1) % S.n; if (!S.out.includes(q)) return q; } return p; },
+  legal(S, p, a){ const h = S.h[p], n = a.n | 0, j = a.j | 0, r = a.r | 0; if (n < 0 || j < 0 || n + j < 1) return false; if (j > h[11]) return false;
+    if (n > 0 && (r < 1 || r > 10 || h[r] < n)) return false; const eff = n > 0 ? r : 11;
+    if (S.tr) return n + j === S.tr.n && eff < S.tr.r; return true; },
+  act(S, p, a, R, X){
+    if (a.k === "pass"){ if (!S.tr) return false; S.pc++; const others = this.act1(S).filter(i => i !== S.tr.by).length;
+      if (S.pc >= others){ const by = S.tr.by; S.tr = null; S.pc = 0; S.t = S.out.includes(by) ? this.nxt(S, by) : by; bgFx(S, {k: "clear", say: `🧹 모두 패스! ${X.name(S.t)} 새로 시작`, snd: "pt"}); }
+      else { S.t = this.nxt(S, p); bgFx(S, {k: "pass", p, snd: "pt"}); }
+      return true; }
+    if (a.k !== "play" || !this.legal(S, p, a)) return false;
+    const n = a.n | 0, j = a.j | 0, eff = n > 0 ? a.r : 11; if (n) S.h[p][a.r] -= n; S.h[p][11] -= j;
+    S.tr = {r: eff, n: n + j, by: p, j}; S.pc = 0; S.tax = 0;
+    let say = `${X.name(p)}: ${this.RN[eff]} ${n + j}장`;
+    if (!this.cnt(S.h[p])){ S.out.push(p); say = `🎉 ${X.name(p)} ${S.out.length}등으로 다 냈어요!`; }
+    const L = this.act1(S);
+    if (L.length <= 1){ if (L.length) S.out.push(L[0]); return this.endRound(S, R, X); }
+    S.t = this.nxt(S, p);
+    bgFx(S, {k: "play", p, say, c: "#ffe066", dur: 60, snd: "pt"}); return true; },
+  endRound(S, R, X){ S.out.forEach((p, k) => S.pts[p] += S.n - 1 - k); S.rd++;
+    if (S.rd >= this.ROUNDS){ const rank = S.pts.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0] || S.out.indexOf(a[1]) - S.out.indexOf(b[1])).map(x => x[1]); S.rank = rank; S.win = rank[0]; bgFx(S, {k: "end", snd: "gold"}); return true; }
+    S.prev = S.out.slice(); this.deal(S, R); bgFx(S, {k: "round", say: `👑 ${X.name(S.prev[0])} 왕! ${S.rd + 1}판 시작 · 세금 바치기`, dur: 120, snd: "gold"}); return true; },
+  bad: (S) => S.tr ? `같은 ${S.tr.n}장으로, 더 센(숫자가 작은) 동물만 낼 수 있어요` : "같은 동물 카드를 골라요",
+  aiDelay: 850,
+  ai(S, p, R, X){ const h = S.h[p];
+    if (!S.tr){ const r = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1].find(r => h[r] > 0); if (r) return {k: "play", r, n: h[r], j: 0}; return {k: "play", r: 0, n: 0, j: h[11]}; }
+    if (X.lv === 0 && R() < .25) return {k: "pass"};
+    const need = S.tr.n; for (let r = S.tr.r - 1; r >= 1; r--) if (h[r] >= need) return {k: "play", r, n: need, j: 0};
+    if (X.lv >= 1 && h[11] && (this.cnt(h) <= 6 || X.lv === 2)){ for (let r = S.tr.r - 1; r >= 1; r--) if (h[r] > 0 && h[r] + h[11] >= need) return {k: "play", r, n: Math.min(h[r], need), j: need - Math.min(h[r], need)}; if (h[11] >= need && S.tr.r > 11) return {k: "play", r: 0, n: 0, j: need}; }
+    return {k: "pass"}; },
+  over(S){ if (S.win < 0) return null; return {w: S.win, rank: S.rank, txt: S.pts.map(v => `${v}점`).join(" : ")}; },
+  pinfo(S, i){ if (!S) return ""; const pl = S.out.indexOf(i); return `⭐ ${S.pts[i]}점 · ${pl >= 0 ? `🎉 ${pl + 1}등` : `🂠 ${this.cnt(S.h[i])}장`}`; },
+  view(S, p){ const V = JSON.parse(JSON.stringify(S)); V.h = S.h.map((h, q) => q === p ? h : (() => { const z = Array(12).fill(0); z[0] = this.cnt(h); return z; })()); return V; },
+  card(g, r, x, y, w, h, hl, dim, badge){
+    g.save(); if (hl){ g.shadowColor = "#ffe066"; g.shadowBlur = 18; } BGD.tile(g, x, y, w, h, BGD.lg(g, x, y, x, y + h, ["#fff", this.RC[r]]), hl ? "#ffe066" : "#868e96", 12); g.restore();
+    BA.put(g, this.RK[r], x + w/2, y + h*.5, Math.min(w*.95, h*.62));
+    outlined(g, r === 11 ? "🦄" : String(r), x + 14, y + 18, Math.max(16, w*.24), "#fff");
+    if (h > 90) outlined(g, this.RN[r], x + w/2, y + h - 14, Math.max(12, w*.16), "#343a40", "rgba(255,255,255,.85)");
+    if (badge) { BGD.disc(g, x + w - 12, y + 12, 15, "#e03131"); outlined(g, badge, x + w - 12, y + 12, 16, "#fff"); }
+    if (dim){ g.fillStyle = "rgba(0,0,0,.4)"; rrect(g, x, y, w, h, 12); g.fill(); } },
+  draw(g, S, me, A, ui, X){
+    BGD.felt(g, A.x + 6, A.y + 6, A.w - 12, A.h - 12, 30, "#6741d9");
+    const land = A.w > A.h, ly = A.y + (land ? 34 : 74);
+    outlined(g, `👑 ${Math.min(S.rd + 1, this.ROUNDS)} / ${this.ROUNDS}판`, A.x + 20, A.y + 30, 22, "#fff", undefined, "left");
+    /* 서열 줄 */
+    const lw = Math.min(46, (A.w - 40)/11); for (let r = 1; r <= 11; r++){ const x = A.x + A.w/2 + (r - 6)*lw; BA.put(g, this.RK[r], x, ly, lw*.9); outlined(g, r === 11 ? "?" : String(r), x, ly + 26, 13, "#e5dbff"); }
+    outlined(g, "◀ 숫자가 작을수록 세요 · 🦄 유니콘은 아무 동물", A.x + A.w/2, ly + 48, 15, "#e5dbff");
+    /* 가운데: 지금 나온 카드 */
+    const cx = A.x + A.w/2, cy = A.y + A.h*(land ? .4 : .38), cw = Math.min(96, A.w*.11), chh = cw*1.4;
+    if (S.tr){ const n = S.tr.n, sp = Math.min(cw*.55, 300/Math.max(1, n)); for (let k = 0; k < n; k++) this.card(g, k >= n - (S.tr.j || 0) ? 11 : S.tr.r, cx - ((n - 1)*sp + cw)/2 + k*sp, cy - chh/2, cw, chh);
+      outlined(g, `${X.name(S.tr.by).slice(0, 7)}: ${this.RN[S.tr.r]} ${n}장`, cx, cy + chh/2 + 22, 20, "#ffe066"); }
+    else outlined(g, S.t === me ? "👑 내가 먼저! 같은 동물을 골라 내요" : `${X.name(S.t)} 먼저 내요`, cx, cy, 26, "#ffe066");
+    /* 내 손패 (동물별로 묶어서) */
+    const H = S.h[me] || [], G = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].filter(r => H[r] > 0), my = S.t === me && S.win < 0 && !S.out.includes(me);
+    const hw = Math.min(104, (A.w - 40)/Math.max(6, G.length) - 8), hh = hw*1.42, y0 = A.y + A.h - hh - 96; ui.hand = [];
+    if (ui.sr != null && !(H[ui.sr] > 0)) ui.sr = null; if ((ui.sj || 0) > (H[11] || 0)) ui.sj = H[11] || 0;
+    G.forEach((r, i) => { const x = A.x + A.w/2 - (G.length*(hw + 8) - 8)/2 + i*(hw + 8), sel = r === 11 ? (ui.sj || 0) > 0 : ui.sr === r, y = y0 - (sel ? 22 : 0);
+      for (let k = Math.min(3, H[r]) - 1; k > 0; k--) this.card(g, r, x + k*4, y - k*4, hw, hh);
+      this.card(g, r, x, y, hw, hh, sel, false, String(H[r]));
+      if (sel) outlined(g, `${r === 11 ? ui.sj : ui.sn}장 고름`, x + hw/2, y - 16, 17, "#ffe066");
+      ui.hand.push({x, y: y - 12, w: hw, h: hh + 12, r}); });
+    if (S.out.includes(me)) outlined(g, `🎉 ${S.out.indexOf(me) + 1}등! 친구들을 기다려요`, cx, y0 + hh/2, 26, "#ffe066");
+    ui.bt = [];
+    if (my){ const n = (ui.sr ? ui.sn : 0) + (ui.sj || 0), a = {k: "play", r: ui.sr || 0, n: ui.sr ? ui.sn : 0, j: ui.sj || 0}, ok = n > 0 && this.legal(S, me, a);
+      ui.bt.push({id: "play", x: cx - 250, y: A.y + A.h - 82, w: 240, h: 66, t: n ? `✅ ${n}장 내기` : "카드를 골라요", p: ok, off: !ok, c: "#2f9e44"});
+      if (S.tr) ui.bt.push({id: "pass", x: cx + 10, y: A.y + A.h - 82, w: 240, h: 66, t: "🙅 패스", c: "#868e96", p: 1});
+      ui.bt.forEach(b => BGD.btn(g, b));
+      if (S.tax && S.rd > 0) outlined(g, "👑 세금을 주고받았어요 (센 카드 ↔ 약한 카드)", cx, cy - chh/2 - 40, 18, "#ffd8a8"); }
+  },
+  tap(S, me, px, py, A, ui){ const H = S.h[me];
+    for (const b of ui.bt || []) if (BGD.hit(b, px, py)){ if (b.id === "pass"){ ui.sr = null; ui.sj = 0; return {k: "pass"}; } if (b.off) return null; const a = {k: "play", r: ui.sr || 0, n: ui.sr ? ui.sn : 0, j: ui.sj || 0}; ui.sr = null; ui.sj = 0; return a; }
+    for (const b of ui.hand || []) if (BGD.hit(b, px, py)){
+      if (b.r === 11){ ui.sj = ((ui.sj || 0) + 1) % (H[11] + 1); return null; }
+      if (ui.sr === b.r){ ui.sn = ui.sn > 1 ? ui.sn - 1 : H[b.r]; return null; }
+      ui.sr = b.r; ui.sn = S.tr ? Math.min(H[b.r], S.tr.n) : H[b.r]; if (S.tr) ui.sj = Math.min(H[11], S.tr.n - ui.sn); return null; }
+    return null; }
+});
+
+/* ---------------- 🌈 동물 색깔 카드 (2~4명) ---------------- */
+BG.def({
+  id: "un", e: "🌈", n: "동물 색깔 카드", like: "우노 같은 게임", time: "10분", min: 2, max: 4, col: ["#ff6b6b", "#4dabf7", "#69db7c", "#ffd43b"], hidden: true, bg: ["#1c7c54", "#0b3b28"],
+  d: "같은 색이나 같은 동물을 내요! 한 장 남으면 🙌 하나! 를 외치기",
+  tag: "🆕 🐾 우리 동물 · 🌐 온라인 2~4명",
+  rules: ["맨 위 카드와 <b>색깔</b>이 같거나 <b>동물(숫자)</b>이 같은 카드를 한 장 내요. 낼 카드가 없으면 <b>🂠 한 장 먹기</b>(먹은 카드가 맞으면 바로 낼 수 있어요).", "<b>⏭️ 쉬어</b>: 다음 친구 건너뛰기 · <b>🔄 거꾸로</b>: 방향 바꾸기 · <b>+2</b>: 다음 친구가 2장 먹고 쉬어요.", "<b>🌈 무지개</b>는 아무 때나 내고 색깔을 골라요. <b>🌈+4</b>는 다음 친구가 4장 먹고 쉬어요.", "카드가 <b>2장일 때 🙌 하나!</b> 를 누르고 내요. 안 누르고 1장이 되면 친구가 <b>🫵 잡았다!</b> 를 눌러 2장을 먹일 수 있어요.", "카드를 가장 먼저 <b>모두 낸</b> 친구가 이겨요!"],
+  CO: ["#f03e3e", "#fab005", "#37b24d", "#1c7ed6"], CN: ["🌋 화산", "🏜️ 사막", "🌳 숲", "🌊 바다"],
+  NA: ["mouse", "chick", "rabbit", "cat", "dog", "fox", "panda", "penguin", "tiger", "lion"],
+  /* 카드 = 색*16 + 값 (0~9 숫자 · 10 쉬어 · 11 거꾸로 · 12 +2 · 13 무지개 · 14 무지개+4), 무지개는 색 4 */
+  setup(n, R){ const D = []; for (let c = 0; c < 4; c++){ D.push(c*16); for (let v = 1; v <= 12; v++){ D.push(c*16 + v, c*16 + v); } } for (let k = 0; k < 4; k++) D.push(4*16 + 13, 4*16 + 14);
+    BG.shuffle(D, R); const h = Array.from({length: n}, () => D.splice(0, 7)); let top = D.pop(); while ((top & 15) >= 10){ D.unshift(top); top = D.pop(); }
+    return {n, h, d: D, pile: [top], col: top >> 4, t: 0, dir: 1, drew: -1, one: Array(n).fill(0), vul: -1, vulN: 0, gt: 0, win: -1}; },
+  turn: S => S.win >= 0 ? -1 : S.t,
+  free: (S, p, a) => !!a && (a.k === "one" || a.k === "catch"),
+  can(S, c){ const top = S.pile[S.pile.length - 1]; if ((c >> 4) === 4) return true; return (c >> 4) === S.col || (c & 15) === (top & 15); },
+  nx(S, k = 1){ return ((S.t + S.dir*k) % S.n + S.n*4) % S.n; },
+  give(S, p, k){ for (let i = 0; i < k; i++){ if (!S.d.length){ const top = S.pile.pop(); S.d = BG.shuffle(S.pile.map(c => c), BG.rng(S.pile.length*31 + 7)); S.pile = [top]; } if (S.d.length) S.h[p].push(S.d.pop()); } if (S.h[p].length > 1) S.one[p] = 0; },
+  tickVul(S, p){ if (S.vul >= 0 && p !== S.vul && --S.vulN <= 0) S.vul = -1; },
+  act(S, p, a, R, X){
+    if (a.k === "one"){ if (S.h[p].length > 2 || S.one[p]) return false; S.one[p] = 1; if (S.vul === p) S.vul = -1; bgFx(S, {k: "one", p, say: `🙌 ${X.name(p)}: 하나!`, snd: "gold"}); return true; }
+    if (a.k === "catch"){ if (S.vul < 0 || S.vul === p) return false; const q = S.vul; S.vul = -1; this.give(S, q, 2); bgFx(S, {k: "catch", p, say: `🫵 ${X.name(p)}: 잡았다! ${X.name(q)} 2장`, c: "#ff8787", snd: "hit"}); return true; }
+    if (S.t !== p) return false;
+    if (a.k === "draw"){ this.tickVul(S, p);
+      if (S.drew === p){ S.drew = -1; S.t = this.nx(S); bgFx(S, {k: "pass", p, snd: "pt"}); return true; }
+      this.give(S, p, 1); const c = S.h[p][S.h[p].length - 1];
+      if (this.can(S, c)){ S.drew = p; S.dc = c; bgFx(S, {k: "draw", p, snd: "pt"}); }
+      else { S.drew = -1; S.t = this.nx(S); bgFx(S, {k: "draw", p, snd: "pt"}); }
+      return true; }
+    if (a.k !== "play") return false;
+    const i = S.h[p].indexOf(a.c); if (i < 0 || !this.can(S, a.c) || (S.drew === p && a.c !== S.dc)) return false;
+    this.tickVul(S, p); S.drew = -1;
+    if (a.one && S.h[p].length === 2) S.one[p] = 1;
+    S.h[p].splice(i, 1); S.pile.push(a.c); const v = a.c & 15; S.col = (a.c >> 4) === 4 ? ((a.s | 0) & 3) : a.c >> 4;
+    let say = null, step = 1;
+    if (v === 10){ step = 2; say = "⏭️ 쉬어!"; }
+    else if (v === 11){ S.dir = -S.dir; say = "🔄 거꾸로!"; if (S.n === 2) step = 2; }
+    else if (v === 12){ const q = this.nx(S); this.give(S, q, 2); step = 2; say = `+2! ${X.name(q)} 2장 먹고 쉬어요`; }
+    else if (v === 13) say = `🌈 ${this.CN[S.col]}!`;
+    else if (v === 14){ const q = this.nx(S); this.give(S, q, 4); step = 2; say = `🌈+4! ${X.name(q)} 4장 · ${this.CN[S.col]}`; }
+    if (!S.h[p].length){ S.win = p; bgFx(S, {k: "win", p, say: "🎉 카드를 다 냈어요!", snd: "gold"}); return true; }
+    if (S.h[p].length === 1 && !S.one[p]){ S.vul = p; S.vulN = 2; S.vulAt = S.gt; }
+    S.t = this.nx(S, step); bgFx(S, {k: "play", p, c: a.c, say, snd: v >= 10 ? "hit" : "pt"}); return true; },
+  tick(S, R, X){ S.gt++;
+    if (S.vul >= 0 && S.win < 0){ const D = [170, 100, 55][X.lv] || 100, cat = X.bots.find(b => b !== S.vul);
+      if (cat != null && S.gt - (S.vulAt || 0) >= Math.round(D*BA.fast()) && (X.lv > 0 || R() < .01)) return this.act(S, cat, {k: "catch"}, R, X);
+      if (X.bots.includes(S.vul) && S.gt - (S.vulAt || 0) >= Math.round([120, 50, 15][X.lv]*BA.fast()) && R() < [.01, .03, .5][X.lv]) return this.act(S, S.vul, {k: "one"}, R, X); }
+    return false; },
+  aiDelay: 750,
+  ai(S, p, R, X){ const H = S.h[p];
+    if (S.drew === p){ return this.can(S, S.dc) && (X.lv > 0 || R() < .7) ? {k: "play", c: S.dc, s: this.best(H, S.dc), one: R() < [.5, .85, 1][X.lv]} : {k: "draw"}; }
+    const ok = H.filter(c => this.can(S, c)); if (!ok.length) return {k: "draw"};
+    const nx = this.nx(S), danger = S.h[nx].length <= 2;
+    let c = X.lv === 0 ? ok[Math.floor(R()*ok.length)] : ok.sort((a, b) => { const sc = x => { const v = x & 15; return (v >= 10 && v <= 12 ? (danger ? 30 : 4) : 0) + (v === 14 ? (danger ? 40 : -30) : 0) + (v === 13 ? -20 : 0) + H.filter(y => (y >> 4) === (x >> 4)).length*2 + v*.1; }; return sc(b) - sc(a); })[0];
+    return {k: "play", c, s: this.best(H, c), one: R() < [.5, .85, 1][X.lv]}; },
+  best(H, c){ const n = [0, 0, 0, 0]; H.forEach(x => { if (x !== c && (x >> 4) < 4) n[x >> 4]++; }); return n.indexOf(Math.max(...n)); },
+  over(S){ if (S.win < 0) return null; const rank = Array.from({length: S.n}, (_, i) => i).sort((a, b) => S.h[a].length - S.h[b].length); return {w: S.win, rank, txt: "모두 냈어요!"}; },
+  pinfo: (S, i) => S ? `🂠 ${S.h[i].length}장${S.one[i] && S.h[i].length <= 2 ? " · 🙌" : S.vul === i ? " · ⚠️" : ""}` : "",
+  view(S, p){ const V = JSON.parse(JSON.stringify(S)); V.h = S.h.map((h, q) => q === p ? h : h.map(() => -1)); V.d = S.d.map(() => -1); if (S.drew !== p) V.dc = null; return V; },
+  card(g, c, x, y, w, h, hl, dim){
+    g.save(); if (hl){ g.shadowColor = "#ffe066"; g.shadowBlur = 18; }
+    if (c < 0){ BGD.tile(g, x, y, w, h, BGD.lg(g, x, y, x + w, y + h, ["#343a40", "#212529"]), "#fff", 12); g.restore(); BA.put(g, "unicorn", x + w/2, y + h/2, w*.7); outlined(g, "🌈", x + w/2, y + h - 16, w*.2); return; }
+    const co = c >> 4, v = c & 15, fill = co === 4 ? BGD.lg(g, x, y, x + w, y + h, this.CO.concat(["#7048e8"])) : BGD.lg(g, x, y, x, y + h, [this.CO[co], BGD.dark(this.CO[co])]);
+    BGD.tile(g, x, y, w, h, fill, hl ? "#ffe066" : "#fff", 12); g.restore();
+    g.save(); g.fillStyle = "rgba(255,255,255,.92)"; g.beginPath(); g.ellipse(x + w/2, y + h/2, w*.38, h*.33, -.35, 0, 7); g.fill(); g.restore();
+    const big = Math.max(14, w*.26);
+    if (v <= 9){ BA.put(g, this.NA[v], x + w/2, y + h/2, w*.62); outlined(g, String(v), x + 12, y + 16, big, "#fff"); outlined(g, String(v), x + w - 12, y + h - 16, big, "#fff"); }
+    else { const L = {10: ["⏭️", "owl"], 11: ["🔄", "frog"], 12: ["+2", "croc"], 13: ["🌈", "unicorn"], 14: ["+4", "dragon"]}[v];
+      BA.put(g, L[1], x + w/2, y + h/2 + h*.04, w*.55); outlined(g, L[0], x + w/2, y + h*.2, big*1.05, "#fff"); outlined(g, L[0], x + 14, y + h - 16, big*.7, "#fff"); }
+    if (dim){ g.fillStyle = "rgba(0,0,0,.4)"; rrect(g, x, y, w, h, 12); g.fill(); } },
+  draw(g, S, me, A, ui, X){
+    BGD.felt(g, A.x + 6, A.y + 6, A.w - 12, A.h - 12, 30, "#2b8a3e");
+    const others = []; for (let k = 1; k < S.n; k++) others.push((me + k) % S.n);
+    others.forEach((q, k) => { const cx = A.x + (k + 1)*A.w/(others.length + 1), n = S.h[q].length, sp = Math.min(16, 150/Math.max(1, n));
+      for (let i = 0; i < Math.min(n, 12); i++) this.card(g, -1, cx - (Math.min(n, 12) - 1)*sp/2 + i*sp - 21, A.y + 24, 42, 60);
+      outlined(g, `${q === S.t ? "▶ " : ""}${X.name(q).slice(0, 6)} · ${n}장${S.vul === q ? " ⚠️" : ""}`, A.x + (k + 1)*A.w/(others.length + 1), A.y + 104, 18, q === S.t ? "#ffe066" : "#fff"); });
+    const cx = A.x + A.w/2, cy = A.y + A.h*.41, cw = Math.min(112, A.w*.12), ch = cw*1.42;
+    for (let k = 0; k < 3; k++) this.card(g, -1, cx - cw*1.45 - k*2, cy - ch/2 - k*2, cw, ch);
+    ui.db = {x: cx - cw*1.45 - 6, y: cy - ch/2 - 6, w: cw + 12, h: ch + 12};
+    const top = S.pile[S.pile.length - 1], pf = ui.fx && ui.fx.k === "play" ? bgEase((ui.fxT || 0)/14) : 1;
+    if (S.pile.length > 1) this.card(g, S.pile[S.pile.length - 2], cx + cw*.15 - 6, cy - ch/2 + 4, cw, ch);
+    g.save(); g.translate(0, (1 - pf)*80); this.card(g, top, cx + cw*.15, cy - ch/2, cw, ch); g.restore();
+    BGD.box(g, cx + cw*1.35, cy - 44, 150, 88, 16, "rgba(0,0,0,.3)"); outlined(g, "지금 색깔", cx + cw*1.35 + 75, cy - 22, 16, "#d3f9d8"); BGD.disc(g, cx + cw*1.35 + 40, cy + 16, 18, this.CO[S.col]); outlined(g, this.CN[S.col].split(" ")[1], cx + cw*1.35 + 100, cy + 16, 20, "#fff");
+    outlined(g, S.dir > 0 ? "🔃 시계 방향" : "🔄 거꾸로", A.x + 90, cy, 18, "#d3f9d8");
+    const H = S.h[me] || [], n = H.length, hw = Math.min(92, (A.w - 40)/Math.max(7, n)*1.6), hh = hw*1.42, sp = Math.min(hw + 6, (A.w - 60 - hw)/Math.max(1, n - 1)), x0 = A.x + A.w/2 - ((n - 1)*sp + hw)/2, y0 = A.y + A.h - hh - 16;
+    const my = S.t === me && S.win < 0; ui.hand = [];
+    H.forEach((c, i) => { const ok = my && this.can(S, c) && (S.drew !== me || c === S.dc), sel = ui.sel === i, y = y0 - (sel ? 26 : ok ? 10 : 0); this.card(g, c, x0 + i*sp, y, hw, hh, sel, my && !ok); ui.hand.push({x: x0 + i*sp, y, w: i === n - 1 ? hw : sp, h: hh, c, i}); });
+    ui.co = null; const sc = ui.sel != null ? H[ui.sel] : null;
+    if (my && sc != null && (sc >> 4) === 4){ ui.co = this.CO.map((c, k) => ({x: cx - 250 + k*125, y: y0 - 100, w: 115, h: 64, t: this.CN[k], k, c, p: 1})); outlined(g, "바꿀 색깔을 골라요", cx, y0 - 118, 20, "#ffe066"); ui.co.forEach(b => BGD.btn(g, b)); }
+    ui.bt = [];
+    if (my) ui.bt.push({id: "draw", x: A.x + A.w - 220, y: cy + ch/2 + 30, w: 200, h: 60, t: S.drew === me ? "⏩ 넘기기" : "🂠 한 장 먹기", p: !H.some(c => this.can(S, c)) || S.drew === me, c: "#e8590c"});
+    if (n <= 2 && !S.one[me] && S.win < 0) ui.bt.push({id: "one", x: A.x + 20, y: cy + ch/2 + 30, w: 190, h: 60, t: "🙌 하나!", p: 1, c: "#f59f00"});
+    if (S.vul >= 0 && S.vul !== me && S.win < 0) ui.bt.push({id: "catch", x: A.x + 20, y: cy - ch/2 - 10, w: 210, h: 64, t: `🫵 잡았다!`, p: 1, c: "#e03131"});
+    ui.bt.forEach(b => BGD.btn(g, b));
+    if (my && ui.sel != null && !ui.co) outlined(g, "한 번 더 누르면 내요", cx, y0 - 46, 18, "#ffe066");
+  },
+  tap(S, me, px, py, A, ui){ const H = S.h[me];
+    for (const b of ui.bt || []) if (BGD.hit(b, px, py)){ if (b.id === "one") return {k: "one"}; if (b.id === "catch") return {k: "catch"}; ui.sel = null; return {k: "draw"}; }
+    if (ui.co) for (const b of ui.co) if (BGD.hit(b, px, py)){ const c = H[ui.sel]; ui.sel = null; return {k: "play", c, s: b.k}; }
+    if (BGD.hit(ui.db, px, py)){ ui.sel = null; return {k: "draw"}; }
+    for (let i = (ui.hand || []).length - 1; i >= 0; i--){ const b = ui.hand[i]; if (BGD.hit(b, px, py)){ if (!this.can(S, b.c) || (S.drew === me && b.c !== S.dc)){ ui.sel = null; return null; }
+      if (ui.sel === b.i && (b.c >> 4) !== 4){ ui.sel = null; return {k: "play", c: b.c}; } ui.sel = b.i; return null; } }
+    ui.sel = null; return null; },
+  bad: () => "그 카드는 지금 낼 수 없어요"
+});
+
+/* ---------------- 🥣 분수 먹이 나누기 (2~4명) ---------------- */
+BG.def({
+  id: "fr", e: "🥣", n: "분수 먹이 나누기", like: "분수 카드 게임", time: "8분", min: 2, max: 4, col: ["#ff6b6b", "#4dabf7", "#69db7c", "#ffd43b"], hidden: true, bg: ["#e8590c", "#7c2d12"],
+  d: "분수 먹이 카드로 동물 밥그릇을 딱 1만큼 채워요! 꽉 채운 친구가 그 밥그릇을 가져가요",
+  tag: "🆕 🐾 수학 놀이 · 🌐 온라인 2~4명",
+  rules: ["가운데에 배고픈 동물의 <b>밥그릇 2개</b>가 있어요. 밥그릇은 <b>1</b>만큼 먹을 수 있어요.", "차례마다 <b>분수 카드 한 장</b>을 밥그릇 하나에 넣어요. 넣은 뒤에 <b>1을 넘으면 안 돼요</b>.", "넣어서 <b>딱 1</b>이 되면 \"냠냠!\" 그 밥그릇을 가져가요(1점). 새 동물이 와요.", "넣을 카드가 없으면 카드를 한 장 가져오고 차례를 넘겨요.", "카드가 다 떨어지고 아무도 못 넣으면 끝! <b>밥그릇을 가장 많이 모은</b> 친구가 이겨요.", "💡 1/2 = 2/4 = 3/6 = 6/12 처럼 같은 크기의 분수를 떠올려 봐요!"],
+  /* 카드 값은 12분의 몇 (1/2 = 6) */
+  DK: {6: 7, 4: 7, 8: 3, 3: 7, 9: 3, 2: 7, 10: 2, 1: 5, 5: 3, 7: 2},
+  BW: ["panda", "rabbit", "penguin", "cat", "dog", "fox", "chick", "tiger", "lion", "frog", "owl", "hedgehog", "mouse", "whale"],
+  gcd: (a, b) => b ? BG.D.fr.gcd(b, a % b) : a,
+  fr(v){ if (v === 0) return "0"; if (v === 12) return "1"; const g = this.gcd(v, 12); return `${v/g}/${12/g}`; },
+  setup(n, R){ const D = []; Object.entries(this.DK).forEach(([v, k]) => { for (let i = 0; i < k; i++) D.push(+v); }); BG.shuffle(D, R);
+    const h = Array.from({length: n}, () => D.splice(0, 5)); return {n, h, d: D, bw: [{f: 0, a: 0, c: []}, {f: 0, a: 1, c: []}], na: 2, sc: Array(n).fill(0), t: 0, ps: 0, win: -1}; },
+  turn: S => S.win >= 0 ? -1 : S.t,
+  canAny: (S, p) => S.h[p].some(v => S.bw.some(b => b.f + v <= 12)),
+  act(S, p, a, R, X){
+    if (a.k === "play"){ const i = S.h[p].indexOf(a.v), b = S.bw[a.b]; if (i < 0 || !b || b.f + a.v > 12) return false;
+      S.h[p].splice(i, 1); b.f += a.v; b.c.push(a.v); S.ps = 0; let say = null;
+      if (b.f === 12){ S.sc[p]++; say = `😋 냠냠! ${X.name(p)} ${BA.NM[this.BW[b.a]] || ""} 밥그릇 완성!`; S.bw[a.b] = {f: 0, a: S.na++ % this.BW.length, c: []}; }
+      if (S.d.length) S.h[p].push(S.d.pop());
+      bgFx(S, {k: "play", p, b: a.b, say, snd: say ? "gold" : "pt"}); this.next(S); return true; }
+    if (a.k === "draw"){ if (this.canAny(S, p)) return false; if (S.d.length){ S.h[p].push(S.d.pop()); S.ps = 0; } else S.ps++; bgFx(S, {k: "draw", p, say: S.d.length || S.ps === 0 ? null : "🙅 넣을 카드가 없어요", snd: "pt"}); this.next(S); return true; }
+    return false; },
+  next(S){ const all = S.h.every(h => !h.length); if (all || S.ps >= S.n){ const m = Math.max(...S.sc), tops = S.sc.map((v, i) => v === m ? i : -1).filter(i => i >= 0); S.win = tops.length > 1 ? 99 : tops[0]; return; } S.t = (S.t + 1) % S.n; },
+  bad: (S, p, a) => a.k === "draw" ? "넣을 수 있는 카드가 있어요!" : "1을 넘어가면 안 돼요!",
+  aiDelay: 900,
+  ai(S, p, R, X){ const M = []; S.h[p].forEach(v => S.bw.forEach((b, k) => { if (b.f + v <= 12) M.push({v, b: k, done: b.f + v === 12}); }));
+    if (!M.length) return {k: "draw"};
+    if (X.lv === 0) return Object.assign({k: "play"}, M[Math.floor(R()*M.length)]);
+    const win = M.find(m => m.done); if (win) return {k: "play", v: win.v, b: win.b};
+    const fq = v => this.DK[v] || 0;
+    M.forEach(m => { const rem = S.bw.map((b, k) => 12 - (k === m.b ? b.f + m.v : b.f)); m.s = -(fq(rem[0]) + fq(rem[1]))*(X.lv === 2 ? 1 : .3) + m.v*.05 + R()*.5; });
+    M.sort((a, b) => b.s - a.s); return {k: "play", v: M[0].v, b: M[0].b}; },
+  over(S){ if (S.win < 0) return null; const rank = S.sc.map((v, i) => [v, i]).sort((a, b) => b[0] - a[0]).map(x => x[1]); return {w: S.win === 99 ? -1 : S.win, rank, txt: S.sc.map(v => `🥣${v}`).join(" : ")}; },
+  pinfo: (S, i) => S ? `🥣 ${S.sc[i]}개 · 🂠 ${S.h[i].length}장` : "",
+  view(S, p){ const V = JSON.parse(JSON.stringify(S)); V.h = S.h.map((h, q) => q === p ? h : h.map(() => -1)); V.d = S.d.map(() => -1); return V; },
+  pie(g, x, y, r, v, col, ticks){ g.save(); g.beginPath(); g.arc(x, y, r, 0, 7); g.fillStyle = "rgba(255,255,255,.85)"; g.fill();
+    if (v > 0){ g.beginPath(); g.moveTo(x, y); g.arc(x, y, r, -Math.PI/2, -Math.PI/2 + v/12*Math.PI*2); g.closePath(); g.fillStyle = col; g.fill(); }
+    if (ticks){ g.strokeStyle = "rgba(0,0,0,.18)"; g.lineWidth = 1; for (let k = 0; k < 12; k++){ const a = -Math.PI/2 + k*Math.PI/6; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a)*r, y + Math.sin(a)*r); g.stroke(); } }
+    g.lineWidth = 2; g.strokeStyle = "rgba(0,0,0,.35)"; g.beginPath(); g.arc(x, y, r, 0, 7); g.stroke(); g.restore(); },
+  card(g, v, x, y, w, h, hl, dim){
+    g.save(); if (hl){ g.shadowColor = "#ffe066"; g.shadowBlur = 18; }
+    if (v < 0){ BGD.tile(g, x, y, w, h, BGD.lg(g, x, y, x + w, y + h, ["#ff922b", "#d9480f"]), "#fff", 12); g.restore(); outlined(g, "🥣", x + w/2, y + h/2, w*.45); return; }
+    BGD.tile(g, x, y, w, h, "#fff9db", hl ? "#ffe066" : "#e8590c", 12); g.restore();
+    this.pie(g, x + w/2, y + h*.38, w*.3, v, "#ff922b", true);
+    const [a, b] = this.fr(v).split("/"); outlined(g, a, x + w/2, y + h*.73, w*.22, "#d9480f", "#fff"); g.fillStyle = "#d9480f"; g.fillRect(x + w*.32, y + h*.8, w*.36, 3); outlined(g, b, x + w/2, y + h*.89, w*.22, "#d9480f", "#fff");
+    if (dim){ g.fillStyle = "rgba(0,0,0,.4)"; rrect(g, x, y, w, h, 12); g.fill(); } },
+  draw(g, S, me, A, ui, X){
+    BGD.box(g, A.x + 6, A.y + 6, A.w - 12, A.h - 12, 30, BGD.lg(g, 0, A.y, 0, A.y + A.h, ["#fff4e6", "#ffd8a8"]));
+    const others = []; for (let k = 1; k < S.n; k++) others.push((me + k) % S.n);
+    others.forEach((q, k) => { const cx = A.x + (k + 1)*A.w/(others.length + 1), n = S.h[q].length;
+      for (let i = 0; i < n; i++) this.card(g, -1, cx - (n - 1)*7 + i*14 - 20, A.y + 20, 40, 56);
+      outlined(g, `${q === S.t ? "▶ " : ""}${X.name(q).slice(0, 6)}`, cx, A.y + 96, 18, q === S.t ? "#d9480f" : "#495057", "rgba(255,255,255,.9)"); });
+    const my = S.t === me && S.win < 0, H = S.h[me] || [], sel = ui.sel != null ? H[ui.sel] : null, br = Math.min(110, A.w*.13, A.h*.15);
+    ui.bw = [];
+    S.bw.forEach((b, k) => { const x = A.x + A.w*(k ? .7 : .3), y = A.y + A.h*.42, fits = sel != null && b.f + sel <= 12;
+      const done = ui.fx && ui.fx.k === "play" && ui.fx.b === k && ui.fx.say && (ui.fxT || 0) < 50;
+      BA.put(g, this.BW[b.a], x, y - br*1.25, br*1.2);
+      g.save(); BGD.shadow(g, true, 16, 6); g.beginPath(); g.ellipse(x, y + br*.15, br*1.18, br*1.05, 0, 0, Math.PI); g.fillStyle = fits ? "#74c0fc" : "#4dabf7"; g.fill(); g.restore();
+      this.pie(g, x, y, br, done ? 12 : b.f, "#ffa94d", true);
+      if (fits){ g.lineWidth = 6; g.strokeStyle = "#ffe066"; g.beginPath(); g.arc(x, y, br + 8, 0, 7); g.stroke(); g.save(); g.globalAlpha = .45; g.beginPath(); g.moveTo(x, y); g.arc(x, y, br, -Math.PI/2 + b.f/12*Math.PI*2, -Math.PI/2 + (b.f + sel)/12*Math.PI*2); g.closePath(); g.fillStyle = "#ff922b"; g.fill(); g.restore(); }
+      if (done) outlined(g, "😋 냠냠!", x, y, 34, "#fff");
+      outlined(g, `지금 ${this.fr(b.f)}`, x, y + br + 30, 24, "#7c2d12", "#fff");
+      ui.bw.push({x, y, r: br + 14, k}); });
+    outlined(g, `남은 카드 ${S.d.length}장`, A.x + A.w/2, A.y + A.h*.42 + br + 70, 18, "#7c2d12", "#fff");
+    const n = H.length, hw = Math.min(100, (A.w - 40)/Math.max(5, n) - 10), hh = hw*1.38, x0 = A.x + A.w/2 - (n*(hw + 10) - 10)/2, y0 = A.y + A.h - hh - 20; ui.hand = [];
+    H.forEach((v, i) => { const ok = my && S.bw.some(b => b.f + v <= 12), sl = ui.sel === i, y = y0 - (sl ? 24 : ok ? 8 : 0); this.card(g, v, x0 + i*(hw + 10), y, hw, hh, sl, my && !ok); ui.hand.push({x: x0 + i*(hw + 10), y, w: hw, h: hh, i}); });
+    ui.dbt = null;
+    if (my && !this.canAny(S, me)){ ui.dbt = {x: A.x + A.w/2 - 130, y: y0 - 90, w: 260, h: 62, t: S.d.length ? "🂠 한 장 가져오기" : "🙅 넘기기", p: 1, c: "#e8590c"}; BGD.btn(g, ui.dbt); }
+    else if (my) outlined(g, ui.sel == null ? "카드를 고르고 밥그릇을 눌러요" : "넣을 밥그릇을 눌러요", A.x + A.w/2, y0 - 36, 20, "#7c2d12", "#fff");
+  },
+  tap(S, me, px, py, A, ui){
+    if (ui.dbt && BGD.hit(ui.dbt, px, py)) return {k: "draw"};
+    for (const b of ui.hand || []) if (BGD.hit(b, px, py)){ ui.sel = ui.sel === b.i ? null : b.i; return null; }
+    if (ui.sel != null) for (const b of ui.bw || []) if (BA.dist(px, py, b) < b.r){ const v = S.h[me][ui.sel]; ui.sel = null; return {k: "play", v, b: b.k}; }
+    return null; }
+});
+
+/* =====================================================================
    🎙️ 음성 채팅 (2026.11.19)
    - 💬 채팅 칸 위 음성 막대에서 [🎙️ 참여하기] → 마이크 허용 → 같은 방 친구들과 바로 말해요
      (반 전체 = 🌈 우리반 전체 음성방, 대화방에 있으면 그 방 친구들끼리)
@@ -24423,6 +25052,13 @@ Object.assign(VOICE, {
    - k: "new"(새로 생겼어요) · "up"(더 좋아졌어요) · "fix"(고쳤어요)
    ===================================================================== */
 const NEWS = [
+  {id: "2026-11-25b", d: "11월 25일", e: "🐾", t: "우리 동물로 만든 보드게임 7가지!", items: [
+    ["new", "🔍", "동물 짝꿍 찾기", "두 카드에 똑같이 있는 동물을 먼저 찾아 눌러요! 친구들과 동시에 하는 눈치 대결이에요."],
+    ["new", "🧩", "동물 퍼즐 대작전", "동물 조각으로 빈 집을 꽉 채워요. 모두 같은 퍼즐을 풀고, 빨리 끝낼수록 보석을 많이 받아요."],
+    ["new", "🐧", "펭귄 얼음 깨기 · 🌳 나무 막대 빼기", "얼음을 깨고, 막대를 빼요. 펭귄과 동물 친구들을 떨어뜨리지 않게 조심조심!"],
+    ["new", "🃏", "카드 게임 3가지", "👑 동물 왕국 서열 · 🌈 동물 색깔 카드 · 🥣 분수 먹이 나누기가 생겼어요. 분수 게임은 수학 공부도 돼요!"],
+    ["up", "🌐", "모두 각자 기기로", "새 게임도 🌐 온라인 방을 만들면 친구가 자기 기기에서 들어와요. 빈자리는 컴퓨터가 채워요."]
+  ], tip: "💡 🎲 보드게임 칸에서 찾아요. 처음엔 📖 규칙을 읽고 🤖 컴퓨터와 연습해 봐요!"},
   {id: "2026-11-25a", d: "11월 25일", e: "🌐", t: "보드게임 7가지 더! 각자 기기로 온라인 대결", items: [
     ["new", "🃏", "카드·추리 게임", "🃏 원카드 · 🔢 숫자 암호 · 🧮 숫자 타일 · 🍓 과일 종치기를 친구와 해 봐요. 내 카드는 나만 보여요!"],
     ["new", "🌏", "판 게임", "🌏 세계 여행 · 🚢 바다 대작전 · 🔲 점 잇기 상자가 생겼어요."],
