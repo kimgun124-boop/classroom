@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="34f84e2dc6">
+<meta name="arc-build" content="b3d1a2e447">
 <script>/*! 🎲 우리반 보드게임 · made by 효석쌤 · © 2026 효석쌤 (GitHub: kimgun124-boop). All rights reserved.
    이 프로그램(코드·그림·게임 규칙·화면 구성)의 저작권은 효석쌤에게 있습니다. 허락 없이 복제·수정·배포하거나 다른 주소에 올려 쓸 수 없습니다. */
 (function(){
@@ -25,7 +25,7 @@
 <script>
 /* 🔄 늘 최신 보드게임: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "34f84e2dc6", K = "arcade.reloaded";
+  var B = "b3d1a2e447", K = "arcade.reloaded";
   function saving(){ try { return typeof Store !== "undefined" && Store.saving && Store.saving(); } catch(e){ return false; } }
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !saving() && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
@@ -11608,7 +11608,7 @@ NG.defs.fm = () => {
   const newFruit = () => Math.floor(rnd(1) < .4 ? rnd(2) : rnd(5));
   function drop(){
     if (cool > 0 || over) return;
-    const f = FR[cur]; fr.push({x: clampN(aimX, L + f.r, R - f.r), y: TOP - 20, vx: 0, vy: 0, lv: cur, a: 0, born: NG.frame, id: ++seq});
+    const f = FR[cur]; fr.push({x: clampN(aimX + rnd(-1.5, 1.5), L + f.r, R - f.r), y: TOP - 20, vx: 0, vy: 0, lv: cur, a: 0, born: NG.frame, id: ++seq});
     cur = nxt; nxt = newFruit(); cool = 28; tone(500, 380, .07, "sine", .1);
   }
   function physics(){
@@ -11617,12 +11617,13 @@ NG.defs.fm = () => {
       for (const p of fr){ p.vy += G; p.x += p.vx/SUB; p.y += p.vy/SUB; const r = FR[p.lv].r;
         if (p.x < L + r){ p.x = L + r; p.vx = Math.abs(p.vx)*.3; } if (p.x > R - r){ p.x = R - r; p.vx = -Math.abs(p.vx)*.3; }
         if (p.y > B - r){ p.y = B - r; p.vy = -Math.abs(p.vy)*.15; p.vx *= .92; } }
-      for (let it = 0; it < 3; it++){
+      for (let it = 0; it < 6; it++){
         for (let i = 0; i < fr.length; i++){ const a = fr[i]; if (a.dead) continue;
           for (let j = i + 1; j < fr.length; j++){ const b = fr[j]; if (b.dead) continue;
             const dx = b.x - a.x, dy = b.y - a.y, rr = FR[a.lv].r + FR[b.lv].r, d2 = dx*dx + dy*dy;
             if (d2 >= rr*rr || d2 === 0) continue;
             if (a.lv === b.lv){ merge(a, b); continue; }
+            if (Math.abs(dx) < .8 && Math.abs(dy) > 1){ const k = (a.id + b.id) % 2 ? .35 : -.35; b.x += k; b.vx += k*.5; a.vx -= k*.25; }   // 🍒 탑처럼 딱 위에 서 있지 않고 굴러떨어지게
             const d = Math.sqrt(d2), nx = dx/d, ny = dy/d, ov = rr - d, ma = FR[a.lv].r**2, mb = FR[b.lv].r**2, ta = mb/(ma + mb), tb = ma/(ma + mb);
             a.x -= nx*ov*ta; a.y -= ny*ov*ta; b.x += nx*ov*tb; b.y += ny*ov*tb;
             const rv = (b.vx - a.vx)*nx + (b.vy - a.vy)*ny;
@@ -11656,9 +11657,11 @@ NG.defs.fm = () => {
       if (cool > 0) cool--;
       aimX = clampN(aimX, L + FR[cur].r, R - FR[cur].r);
       physics();
-      const high = fr.some(p => NG.frame - p.born > 70 && p.y - FR[p.lv].r < DANGER && Math.abs(p.vy) < 2);
-      dangerT = high ? dangerT + 1 : Math.max(0, dangerT - 2);
-      if (dangerT > 150){ over = 60; SFX.bad(); PZ.praise(fx, W/2, 200, "과일이 넘쳤어요!", "#fff", 1); }
+      /* 🚨 선을 넘으면 끝: 떨어뜨린 지 조금 지난 과일이 선 위에 있으면 곧바로 (아주 높이 넘치면 바로) */
+      const high = fr.some(p => NG.frame - p.born > 45 && p.y - FR[p.lv].r < DANGER);
+      const way = fr.some(p => NG.frame - p.born > 45 && p.y - FR[p.lv].r < TOP - 40);
+      dangerT = high ? dangerT + 1 : 0;
+      if (dangerT > 40 || way){ over = 60; SFX.bad(); PZ.praise(fx, W/2, 200, "과일이 넘쳤어요!", "#fff", 1); }
       PZ.stepParts(parts); PZ.stepFx(fx);
     },
     draw(g){
@@ -25946,6 +25949,10 @@ Object.assign(VOICE, {
    - k: "new"(새로 생겼어요) · "up"(더 좋아졌어요) · "fix"(고쳤어요)
    ===================================================================== */
 const NEWS = [
+  {id: "2026-11-26b", d: "11월 26일", e: "🍑", t: "과일 합치기를 고쳤어요", items: [
+    ["fix", "🍒", "과일이 한 줄로 쌓이지 않아요", "같은 자리에 계속 떨어뜨려도 과일이 탑처럼 서 있지 않고 옆으로 굴러떨어져요."],
+    ["fix", "🚨", "선을 넘으면 게임 끝", "과일이 점선 위로 넘치면 바로 게임이 끝나요. 넘치기 전에 잘 합쳐 봐요!"]
+  ]},
   {id: "2026-11-26a", d: "11월 26일", e: "⚾", t: "동물 프로야구가 개장했어요!", items: [
     ["new", "⚾", "3D 동물 프로야구", "투수가 되어 공을 던지고, 타자가 되어 딱 맞는 때에 톡! 홈런을 날려 봐요. 🕹️ 아케이드에 있어요."],
     ["new", "🃏", "동물 선수 카드 95장", "코인으로 카드를 뽑아요. 같은 카드가 또 나오면 강화돼서 더 세져요."],

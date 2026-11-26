@@ -178,7 +178,7 @@ NG.defs.fm = () => {
   const newFruit = () => Math.floor(rnd(1) < .4 ? rnd(2) : rnd(5));
   function drop(){
     if (cool > 0 || over) return;
-    const f = FR[cur]; fr.push({x: clampN(aimX, L + f.r, R - f.r), y: TOP - 20, vx: 0, vy: 0, lv: cur, a: 0, born: NG.frame, id: ++seq});
+    const f = FR[cur]; fr.push({x: clampN(aimX + rnd(-1.5, 1.5), L + f.r, R - f.r), y: TOP - 20, vx: 0, vy: 0, lv: cur, a: 0, born: NG.frame, id: ++seq});
     cur = nxt; nxt = newFruit(); cool = 28; tone(500, 380, .07, "sine", .1);
   }
   function physics(){
@@ -187,12 +187,13 @@ NG.defs.fm = () => {
       for (const p of fr){ p.vy += G; p.x += p.vx/SUB; p.y += p.vy/SUB; const r = FR[p.lv].r;
         if (p.x < L + r){ p.x = L + r; p.vx = Math.abs(p.vx)*.3; } if (p.x > R - r){ p.x = R - r; p.vx = -Math.abs(p.vx)*.3; }
         if (p.y > B - r){ p.y = B - r; p.vy = -Math.abs(p.vy)*.15; p.vx *= .92; } }
-      for (let it = 0; it < 3; it++){
+      for (let it = 0; it < 6; it++){
         for (let i = 0; i < fr.length; i++){ const a = fr[i]; if (a.dead) continue;
           for (let j = i + 1; j < fr.length; j++){ const b = fr[j]; if (b.dead) continue;
             const dx = b.x - a.x, dy = b.y - a.y, rr = FR[a.lv].r + FR[b.lv].r, d2 = dx*dx + dy*dy;
             if (d2 >= rr*rr || d2 === 0) continue;
             if (a.lv === b.lv){ merge(a, b); continue; }
+            if (Math.abs(dx) < .8 && Math.abs(dy) > 1){ const k = (a.id + b.id) % 2 ? .35 : -.35; b.x += k; b.vx += k*.5; a.vx -= k*.25; }   // 🍒 탑처럼 딱 위에 서 있지 않고 굴러떨어지게
             const d = Math.sqrt(d2), nx = dx/d, ny = dy/d, ov = rr - d, ma = FR[a.lv].r**2, mb = FR[b.lv].r**2, ta = mb/(ma + mb), tb = ma/(ma + mb);
             a.x -= nx*ov*ta; a.y -= ny*ov*ta; b.x += nx*ov*tb; b.y += ny*ov*tb;
             const rv = (b.vx - a.vx)*nx + (b.vy - a.vy)*ny;
@@ -226,9 +227,11 @@ NG.defs.fm = () => {
       if (cool > 0) cool--;
       aimX = clampN(aimX, L + FR[cur].r, R - FR[cur].r);
       physics();
-      const high = fr.some(p => NG.frame - p.born > 70 && p.y - FR[p.lv].r < DANGER && Math.abs(p.vy) < 2);
-      dangerT = high ? dangerT + 1 : Math.max(0, dangerT - 2);
-      if (dangerT > 150){ over = 60; SFX.bad(); PZ.praise(fx, W/2, 200, "과일이 넘쳤어요!", "#fff", 1); }
+      /* 🚨 선을 넘으면 끝: 떨어뜨린 지 조금 지난 과일이 선 위에 있으면 곧바로 (아주 높이 넘치면 바로) */
+      const high = fr.some(p => NG.frame - p.born > 45 && p.y - FR[p.lv].r < DANGER);
+      const way = fr.some(p => NG.frame - p.born > 45 && p.y - FR[p.lv].r < TOP - 40);
+      dangerT = high ? dangerT + 1 : 0;
+      if (dangerT > 40 || way){ over = 60; SFX.bad(); PZ.praise(fx, W/2, 200, "과일이 넘쳤어요!", "#fff", 1); }
       PZ.stepParts(parts); PZ.stepFx(fx);
     },
     draw(g){
