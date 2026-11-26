@@ -588,7 +588,11 @@ const ARC = {
         localStorage.setItem(KEY + ".nocache", Date.now() + 6*3600000); location.reload(); return; }   /* 기기 저장소 없이 한 번 더 (6시간) */
       this.syncMsg(`⚠️ 반 전체 기록에 연결하지 못했어요: ${e.message || e}`); $("#lgSync").innerHTML = `⚠️ 반 기록에 연결하지 못했어요. 인터넷을 확인하고 <button class="arc-btn" onclick="location.reload()">다시 연결</button>`; this.show("scrLogin"); return; }
     if (!ok) return this.setup();
-    const meRaw = localStorage.getItem(KEY + ".me"), me = meRaw === null || meRaw === "" ? null : +meRaw;
+    let meRaw = localStorage.getItem(KEY + ".me");
+    /* 🎓 지난 기수 친구 기기면 로그아웃 (번호가 같아도 새 기수 친구로 들어가지 않게) */
+    if (meRaw !== null && meRaw !== "" && +meRaw !== TEACHER && GENS.dev() !== GENS.cur()){ localStorage.removeItem(KEY + ".me"); meRaw = null; GENS.mark(); }
+    Store.subs.push(() => GENS.check());
+    const me = meRaw === null || meRaw === "" ? null : +meRaw;
     if (this.inRoster(me)){ this.me = me; this.home();
       /* 👑 여러 반 관리자: 🏫 반을 옮겨 오면 관리자 화면을 바로 열어요 */
       if (localStorage.getItem(KEY + ".goAdmin")){ localStorage.removeItem(KEY + ".goAdmin"); if (isT(me) && SCHOOL.isMaster()) setTimeout(() => { this.teacher("live"); toast(`👑 ${Store.cls.name || "이 반"} 관리자로 들어왔어요`); }, 400); }
@@ -649,7 +653,7 @@ const ARC = {
   login(){ this.me = null; this.show("scrLogin"); LIVE.start(); LOBBY.sig = {}; this.renderLogin(); },
   renderLogin(){
     LOBBY.renderLogin(); SCHOOL.loginBtn();
-    $("#lgNums").onclick = e => { const b = e.target.closest("[data-no]"); if (b) this.askPw(+b.dataset.no, no => { this.me = no; localStorage.setItem(KEY + ".me", no); localStorage.setItem(KEY + ".in", Date.now()); this.home(); if (!(Store.kids[sidOf(no)] || {}).av) setTimeout(() => SHOP.open(sidOf(no), true), 300); }); };
+    $("#lgNums").onclick = e => { const b = e.target.closest("[data-no]"); if (b) this.askPw(+b.dataset.no, no => { this.me = no; localStorage.setItem(KEY + ".me", no); GENS.mark(); localStorage.setItem(KEY + ".in", Date.now()); this.home(); if (!(Store.kids[sidOf(no)] || {}).av) setTimeout(() => SHOP.open(sidOf(no), true), 300); }); };
     $("#lgTeach").onclick = () => this.teacherGate();
   },
   /* 숫자 패드로 비밀번호 (4자리면 바로 확인) */
@@ -835,6 +839,7 @@ const ARC = {
     $("#tcCls").textContent = (cls.name || "") + (SCHOOL.isMaster() ? " · 👑 여러 반 관리자" : ""); body.onclick = null; if (!same) body.parentNode.scrollTop = 0;   // 같은 탭을 다시 그릴 때는 보던 자리 그대로
     if (ADMIN.has(this.tcTab)) return ADMIN.render(this.tcTab, body);
     if (this.tcTab === "school") return SCHOOL.render(body);
+    if (this.tcTab === "gen"){ GENS.css(); return GENS.render(body); }
     const H = {kids: "👧 학생 · 비밀번호", coin: "🪙 코인", rank: "🏆 랭킹 관리", link: "🔗 반 입장 주소", store: "☁️ 저장"};
     if (this.tcTab === "kids"){
       body.innerHTML = `<p class="arc-small">비밀번호는 숫자 4자리예요. 이 기기에서 정한 비밀번호만 여기에 보이고, 다른 기기에서는 <b>🎲 새로</b>로 다시 정할 수 있어요.</p>

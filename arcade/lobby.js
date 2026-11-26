@@ -314,7 +314,7 @@ const LOBBY = {
   /* ---------- 🔑 첫 화면(로그인) ---------- */
   renderLogin(){
     const c = Store.cls; if (!c) return;
-    $("#lgClass").textContent = c.name || "우리반";
+    $("#lgClass").textContent = (c.name || "우리반") + " " + GENS.name();
     this.put("lgOnline", this.onlineHTML());
     this.put("lgNums", roster().map(s => { const on = LIVE.online(sidOf(s.no));
       return `<button class="arc-num${s.t ? " tch" : ""}${on ? " on" : ""}" data-no="${s.no}">${on ? `<i class="dot${on.st === "play" ? " play" : ""}"></i>` : ""}${avI(sidOf(s.no))}<b>${s.t ? "선생님" : s.no}</b><small>${s.t ? "같이 해요!" : esc(s.name)}</small></button>`; }).join(""));
@@ -436,7 +436,7 @@ const LOBBY = {
   renderHome(){
     if (!Store.cls || ARC.me === null) return;
     const me = ARC.me, sid = sidOf(me), w = walletOf(sid), c = Store.cls;
-    $("#hmClass").textContent = c.name || "우리반";
+    $("#hmClass").textContent = (c.name || "우리반") + " " + GENS.name();
     $("#hmAdmin").hidden = !isT(me);
     if (this.put("hmMe", `<span class="avb">${avHTMLof(sid)}</span><div><b>${esc(who(me))}</b>${titleHTML(sid)}<button class="arc-coin" id="hmCoin" title="상점 열기">🪙 <b>${(w.coins || 0).toLocaleString()}</b><small>${heatTxt(sid)}</small></button></div>`))
       $("#hmCoin").onclick = () => SHOP.open(sid);
