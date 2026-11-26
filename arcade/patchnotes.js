@@ -10,6 +10,13 @@
    - k: "new"(새로 생겼어요) · "up"(더 좋아졌어요) · "fix"(고쳤어요)
    ===================================================================== */
 const NEWS = [
+  {id: "2026-11-26a", d: "11월 26일", e: "⚾", t: "동물 프로야구가 개장했어요!", items: [
+    ["new", "⚾", "3D 동물 프로야구", "투수가 되어 공을 던지고, 타자가 되어 딱 맞는 때에 톡! 홈런을 날려 봐요. 🕹️ 아케이드에 있어요."],
+    ["new", "🃏", "동물 선수 카드 95장", "코인으로 카드를 뽑아요. 같은 카드가 또 나오면 강화돼서 더 세져요."],
+    ["new", "📋", "내 팀 만들기", "투수·포수·내야·외야 자리마다 선수를 넣어 나만의 팀을 짜요. ⚡ 자동 편성도 있어요."],
+    ["new", "🌐", "친구와 야구 대결", "다른 기기 친구와 각자 화면으로 대결해요. 내가 만든 팀이 그대로 나가요."],
+    ["up", "✋", "made by 효석쌤", "보드게임을 만든 사람 표시가 다시 생겼어요."]
+  ], tip: "💡 대결 창의 🃏 선수 카드 뽑기 단추로 카드를 뽑고 팀을 짜요. 처음엔 🌱 새싹 선수들이 함께 뛰어요!"},
   {id: "2026-11-25c", d: "11월 25일", e: "👟", t: "버블 특공대 신발과 스킬!", items: [
     ["new", "✨", "스킬을 사서 장착해요", "상점에서 코인으로 스킬을 사고 하나를 장착해요. 게임 중 ✨ 스킬 단추를 누르면 펑! 한 번 쓰면 잠깐 기다렸다 다시 쓸 수 있어요."],
     ["new", "🌪️", "스킬 6가지", "거품 폭풍, 무적 방패, 응원 하트, 얼음 시간, 별똥별 비, 무지개 거품총! 응원 하트는 같이 출동한 친구 하트도 채워 줘요."],
@@ -191,7 +198,7 @@ const NEWSUI = {
       <div class="nw-top"><div class="nw-big">${auto ? "🎉" : "📢"}</div><h2>${auto ? "새 소식이 있어요!" : "보드게임 새 소식"}</h2><p>${auto ? "보드게임이 이렇게 바뀌었어요 👀" : "그동안 바뀐 것들을 모아 봤어요"}</p><button class="nw-x" data-nw="x" title="닫기">✕</button></div>
       <div class="nw-body">${list.map((n, i) => this.card(n, i === 0)).join("")}
         ${old.length ? `<details class="nw-old"><summary>📜 지난 소식 보기 (${old.length})</summary>${old.map(n => this.card(n)).join("")}</details>` : ""}</div>
-      <div class="nw-foot"><button class="arc-btn p nw-ok" data-nw="ok">알겠어요! 👍</button><small>📢 위쪽 <b>새 소식</b> 단추로 언제든 다시 볼 수 있어요</small></div></div>`;
+      <div class="nw-foot"><button class="arc-btn p nw-ok" data-nw="ok">알겠어요! 👍</button><small>📢 위쪽 <b>새 소식</b> 단추로 언제든 다시 볼 수 있어요 · 만든 사람 효석쌤</small></div></div>`;
     m.onclick = e => { if (e.target.closest("[data-nw]")) this.close(); };
     m.hidden = false; this.mark();
     try { tone(660, 990, .1, "triangle", .08); tone(990, 1320, .12, "triangle", .08, .1); } catch(e) {}

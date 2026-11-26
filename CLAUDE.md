@@ -13,6 +13,10 @@
    - 선생님만 쓰는 기능(관리자, TURN 서버 등)이나 아이들이 느끼지 못하는 내부 정리는 빼요.
 3. `python3 arcade/build.py`로 다시 만들고, 빌드 끝에 찍히는 "📢 새 소식 맨 위"가 이번 수정인지 확인해요.
 
+## © 저작권 · 주소 잠금 (지우지 않기)
+- 효석쌤 요청(2026-11-26): 화면의 "made by 효석쌤 · © 2026" 표시, `LICENSE`(All rights reserved), README 저작권 줄을 그대로 둬요.
+- `arcade/shell.html` 맨 위 🔒 주소 잠금 스크립트와 `core.js`의 `boot()` 첫 줄 잠금은 지우거나 풀지 않아요. (허용 주소: kimgun124-boop.github.io · localhost · 127.0.0.1 · 파일로 열기) 주소를 바꿔야 하면 두 곳을 함께 고쳐요.
+
 ## 기타
 - `arcade.html`, `arcade-version.json`은 `arcade/build.py`가 만드는 파일이에요. 직접 고치지 말고 `arcade/*.js`·`*.css`·`shell.html`을 고친 뒤 빌드해요.
 - 다른 세션이 동시에 올릴 수 있어요: 올리기 전에 `git pull --rebase`, 충돌 나면 만든 파일은 다시 빌드해서 해결해요.

@@ -470,6 +470,7 @@ const GAMES = [
   {id: "rh", e: "🎵", n: "리듬 스타",   kind: "score", d: "오리지널 62곡에 맞춰 톡톡! 5줄 리듬게임 · Lv.1~15 · 내 노래도"},
   {id: "vb", e: "🏐", n: "얼굴 배구",   kind: "duel",  d: "둘이서 배구 대결"},
   {id: "ah", e: "🏒", n: "얼굴 에어하키", kind: "duel", d: "둘이서 하키 대결"},
+  {id: "ab", e: "⚾", n: "동물 프로야구", kind: "duel", c: "arcade", tag: "🆕 3D 야구 · 🃏 카드 뽑기 · 🤖 컴퓨터와도", d: "동물 선수 95명! 카드를 뽑아 내 팀을 만들고 친구와 야구 대결"},
   {id: "kf", e: "🔥", n: "우리반 격투왕", kind: "duel", tag: "🆕 격투 대결 · 🤖 컴퓨터와도", d: "캐릭터 6명! 펀치·킥·기술·필살기로 3판 2선승 · 연타 콤보"},
   {id: "jj", e: "🥋", n: "주짓수 한판", kind: "duel", tag: "🆕 둘이서 · 🤖 컴퓨터와도", d: "넘기고·누르고·조르기! 기술이 걸리면 연타 대결 · 탭 받으면 승리"},
   {id: "pp", e: "🏓", n: "얼굴 탁구",   kind: "duel",  d: "둘이서 탁구 대결"},
@@ -562,6 +563,11 @@ const ARC = {
   show(id){ $$(".arc-scr").forEach(s => s.hidden = s.id !== id); },
   modal(id, on){ const m = $(id); m.hidden = !on; },
   async boot(){
+    /* 🔒 © 2026 효석쌤 — 원래 주소가 아니면 시작하지 않아요 (위쪽 잠금과 따로 한 번 더) */
+    { const h = location.hostname; let x = 2166136261; for (const c of h){ x ^= c.charCodeAt(0); x = Math.imul(x, 16777619); }
+      let fr = false; try { fr = window.top !== window.self && window.top.location.hostname !== h; } catch(e){ fr = true; }
+      if (window.__ARCL || fr || !((x >>> 0).toString(36) === "7o6zgv" || /^(localhost|127\.0\.0\.1|)$/.test(h))){ window.__ARCL = 1; setTimeout(() => { if (!document.getElementById("arcLockNote")){ document.body.innerHTML = '<div id="arcLockNote" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#140f2e;color:#fff;font-family:sans-serif;text-align:center;padding:24px"><div><div style="font-size:60px">🔒</div><h1 style="font-size:24px">이 앱은 여기서 열 수 없어요</h1><p style="color:#d0c8ff">🎲 우리반 보드게임은 효석쌤이 만든 앱이에요.<br>허락 없이 복제해서 쓸 수 없어요.</p><p style="font-size:13px;color:#8f86b8">© 2026 효석쌤. All rights reserved.</p></div></div>'; } }, 300); return; } }
+    try { console.log("%c🎲 우리반 보드게임 · made by 효석쌤%c\n© 2026 효석쌤. All rights reserved. 허락 없이 복제·수정·배포할 수 없어요.", "font:bold 16px sans-serif;color:#7048e8", "color:#888"); } catch(e){}
     // 반 입장 주소로 들어왔어요
     const h = location.hash.match(/join=([\w-]+)/);
     if (h){ try { const j = b64d(h[1]); localStorage.setItem(KEY + ".join", JSON.stringify({c: j.c, i: j.i})); } catch(e) { alert("반 입장 주소가 잘못됐어요."); } history.replaceState(null, "", location.pathname); }
@@ -716,7 +722,10 @@ const ARC = {
     const BDH = {jg: "말을 톡 눌러 고르고, 초록 점을 눌러 옮겨요. 장군을 받으면 꼭 막아요!", ch: "말을 톡 눌러 고르고, 초록 점을 눌러 옮겨요. 폰이 끝까지 가면 퀸이 돼요!", om: "놓고 싶은 곳을 두 번 톡톡! 가로·세로·대각선 다섯 개를 먼저 만들면 승리", bl: "판을 끌어 방향을 정하고, 힘 막대를 당겼다 놓아 쳐요. 공을 넣으면 한 번 더!",
       jj: "⚡ 기술 · 🛡️ 탈출 · 🔒 조르기 단추를 눌러요. 기술이 걸리면 둘 다 빠르게 연타! (키보드: 1P F·G·H / 2P J·K·L)",
       kf: "👊 펀치 · 🦵 킥 · ✨ 기술 · 💥 필살! 뒤로 누르면 막기 (키보드: 1P W·A·S·D + F·G·H·T / 2P 방향키 + J·K·L·I)"};
-    Object.assign(BDH, window.BD2_HELP || {});
+    Object.assign(BDH, window.BD2_HELP || {}, {ab: "🎯 투수: 공 종류 → 던질 곳 톡 → 링이 작을 때 ⚾ 던지기 · 🏏 타자: 공이 홈에 닿을 때 칠 곳을 톡! (키보드: 방향키·1~4·스페이스)"});
+    { let sb = $("#duAb"); if (!sb){ sb = document.createElement("button"); sb.id = "duAb"; sb.className = "arc-btn p"; sb.style.cssText = "width:100%;margin:6px 0 10px;font-size:19px"; $("#duHelp").before(sb); }
+      sb.hidden = gid !== "ab"; sb.innerHTML = `🃏 선수 카드 뽑기 · 📋 내 팀 만들기 <small style="display:block;font-size:13px;opacity:.85">코인으로 동물 선수를 뽑아 포지션마다 넣어요</small>`;
+      sb.onclick = () => { this.modal("#mdDuel", false); ABC.UI.onClose = () => this.duelMenu(gid); ABC.UI.open(sidOf(me), "gacha"); }; }
     $("#duHelp").textContent = BDH[gid] ? BDH[gid] : gid === "vb" ? "태블릿에서는 화면 양쪽 아래 버튼으로 움직여요 (키보드: 1P W·A·D·F / 2P 방향키·Enter)" : gid === "ah" ? "자기 쪽 화면을 손가락으로 끌어서 말렛을 움직여요" : "자기 쪽 화면을 손가락으로 위아래로 끌어요 (키보드: 1P W·S / 2P ↑·↓)";
     $$("#duLv button").forEach(b => b.classList.toggle("on", +b.dataset.v === lv));
     $("#duLv").onclick = e => { const b = e.target.closest("button"); if (b){ lv = +b.dataset.v; $$("#duLv button").forEach(x => x.classList.toggle("on", x === b)); } };
