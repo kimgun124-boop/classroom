@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="94779adc52">
+<meta name="arc-build" content="dec699c566">
 <script>/*! 🎲 우리반 보드게임 · made by 효석쌤 · © 2026 효석쌤 (GitHub: kimgun124-boop). All rights reserved.
    이 프로그램(코드·그림·게임 규칙·화면 구성)의 저작권은 효석쌤에게 있습니다. 허락 없이 복제·수정·배포하거나 다른 주소에 올려 쓸 수 없습니다. */
 (function(){
@@ -25,7 +25,7 @@
 <script>
 /* 🔄 늘 최신 보드게임: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "94779adc52", K = "arcade.reloaded";
+  var B = "dec699c566", K = "arcade.reloaded";
   function saving(){ try { return typeof Store !== "undefined" && Store.saving && Store.saving(); } catch(e){ return false; } }
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !saving() && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
@@ -23642,7 +23642,7 @@ window.BD2_HELP = {
 };
 
 /* =====================================================================
-   🎋 다같이 윷놀이 (2026.11.27) — 2~4명 개인전 (빈자리는 🤖 컴퓨터)
+   🎋 다같이 윷놀이 (2026.11.27) — 2~6명 개인전 (빈자리는 🤖 컴퓨터)
    - 🧒 한 기기에서 돌려 가며 · 🌐 각자 기기로 (온라인 방, 방장 기기가 심판 — 윷은 방장 기기가 던져요)
    - 규칙은 1:1 윷놀이와 같아요: 도·개·걸·윷·모 · 빽도 · 윷·모·잡기는 한 번 더 · 내 말은 업고 · 모서리 지름길
    - 4명이면 남의 말을 모두 잡을 수 있어요 (누구 말이든 같은 자리에 서면 잡혀요)
@@ -23650,9 +23650,9 @@ window.BD2_HELP = {
    - 친구 기기는 '하고 싶은 일'(던지기 · 말 옮기기)만 방장 기기에 보내요 (작아서 렉 없음)
    ===================================================================== */
 GAME.yt4 = Object.assign({}, GAME.yt, {id: "yt4", n: "다같이 윷놀이"});
-GAME.yt.tag = "🆕 우리 전통 놀이 · 👨‍👩‍👧‍👦 최대 4명 · 🤖 컴퓨터와도";
-B2.ST.g = B2.ST.g || ["#8ce99a", "#2b8a3e"];
-const YT4C = [{k: "o", e: "🟠", n: "주황", c: "#ff922b"}, {k: "bl", e: "🔵", n: "파랑", c: "#4dabf7"}, {k: "g", e: "🟢", n: "초록", c: "#51cf66"}, {k: "v", e: "🟣", n: "보라", c: "#9775fa"}];
+GAME.yt.tag = "🆕 우리 전통 놀이 · 👨‍👩‍👧‍👦 최대 6명 · 🤖 컴퓨터와도";
+B2.ST.g = B2.ST.g || ["#8ce99a", "#2b8a3e"]; B2.ST.yy = ["#fff9c4", "#f0c400"];
+const YT4C = [{k: "o", e: "🟠", n: "주황", c: "#ff922b"}, {k: "bl", e: "🔵", n: "파랑", c: "#4dabf7"}, {k: "g", e: "🟢", n: "초록", c: "#51cf66"}, {k: "v", e: "🟣", n: "보라", c: "#9775fa"}, {k: "yy", e: "🟡", n: "노랑", c: "#fcc419"}, {k: "r", e: "🔴", n: "빨강", c: "#ff6b6b"}];
 
 NG.defs.yt4 = () => {
   const O = NG.opt, party = O.party || null, myIdx = party === "guest" ? O.idx : 0, SIDS = NG.sids.slice(), N = SIDS.length, BOTS = O.bots || [], M = Math.max(2, Math.min(4, O.mode || 4));
@@ -23724,16 +23724,17 @@ NG.defs.yt4 = () => {
   /* ---------- 화면 배치 ---------- */
   let W = 1280, H = 760, land = true, BX, CARD = [], TB, CH = [];
   function layout(w, h){ land = w >= h*1.02;
-    if (land){ W = 1280; H = 760; BX = {x: 20, y: 20, s: 720}; const px = 768, pw = W - px - 20; CARD = [...Array(N).keys()].map(i => ({x: px, y: 20 + i*108, w: pw, h: 98}));
-      const uy = 20 + 4*108 + 6; TB = {x: px, y: uy, w: pw, h: 92}; CH = {x: px, y: uy + 104, w: pw, h: 64}; }
-    else { W = 760; H = 1260; const cw = (W - 36)/2; CARD = [...Array(N).keys()].map(i => ({x: 12 + (i % 2)*(cw + 12), y: 12 + Math.floor(i/2)*104, w: cw, h: 96}));
-      BX = {x: 20, y: 236, s: 720}; TB = {x: 20, y: 976, w: W - 40, h: 96}; CH = {x: 20, y: 1086, w: W - 40, h: 70}; }
+    const rows = Math.ceil(N/2);
+    if (land){ W = 1280; H = 760; BX = {x: 20, y: 20, s: 720}; const px = 768, pw = W - px - 20, st = N > 4 ? 76 : 108; CARD = [...Array(N).keys()].map(i => ({x: px, y: 20 + i*st, w: pw, h: st - 8}));
+      const uy = 20 + Math.max(4*108, N*st) + 6 - (N > 4 ? 0 : 0); TB = {x: px, y: Math.min(uy, H - 200), w: pw, h: 88}; CH = {x: px, y: TB.y + 98, w: pw, h: 62}; }
+    else { W = 760; const cw = (W - 36)/2; CARD = [...Array(N).keys()].map(i => ({x: 12 + (i % 2)*(cw + 12), y: 12 + Math.floor(i/2)*104, w: cw, h: 96}));
+      const by = 20 + rows*104; H = by + 720 + 280; BX = {x: 20, y: by, s: 720}; TB = {x: 20, y: by + 740, w: W - 40, h: 96}; CH = {x: 20, y: by + 850, w: W - 40, h: 70}; }
     self.W = W; self.H = H; }
   const geo = () => { const pad = BX.s*.09, bx = BX.x + pad, by = BX.y + pad, bs = BX.s - 2*pad; return {xy: p => [bx + PXY[p][0]*bs, by + PXY[p][1]*bs], r: BX.s*.038}; };
   const chips = () => { const n = Math.max(1, S.rs.length), cw = Math.min(110, CH.w/n - 8); return S.rs.map((r, i) => ({x: CH.x + i*(cw + 8), y: CH.y, w: cw, h: CH.h, t: NM[r], i})); };
   const inR = (x, y, b) => b && x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h;
   /* 같은 자리에 여러 사람 말이 있으면 살짝 비켜 그려요 */
-  const OFF = [[-.55, -.4], [.55, -.4], [-.55, .45], [.55, .45]];
+  const OFF = [[-.6, -.45], [.6, -.45], [-.6, .5], [.6, .5], [0, -.75], [0, .8]];
 
   function drawBoard(g, can){ const Q = geo(), S0 = BX.s;
     B2.wood(g, BX.x, BX.y, S0, S0, 26, "#f8e7bd", "#e2bd76");
@@ -23762,7 +23763,7 @@ NG.defs.yt4 = () => {
   function drawCard(g, i, can){ const C = CARD[i], on = S.turn === i && !S.win, wait = S.pc[i].filter(p => p === -1).length, done = S.pc[i].filter(p => p === END).length, col = YT4C[i].c;
     g.save(); rrect(g, C.x, C.y, C.w, C.h, 18); g.fillStyle = on ? "rgba(255,212,59,.2)" : "rgba(255,255,255,.07)"; g.fill(); g.lineWidth = on ? 5 : 2; g.strokeStyle = on ? "#ffd43b" : col + "88"; g.stroke();
     g.fillStyle = col; rrect(g, C.x, C.y + 14, 8, C.h - 28, 4); g.fill(); g.restore();
-    const fr = Math.min(34, C.h*.34), fx = C.x + 22 + fr, fy = C.y + C.h*.42;
+    const fr = Math.min(34, C.h*.36), fx = C.x + 22 + fr, fy = C.y + C.h*.45;
     if (isBot(i)) outlined(g, "🤖", fx, fy, fr*1.4); else try { faceAt(g, SIDS[i], fx, fy, fr, on ? "#ffd43b" : null); } catch(e) {}
     piece(g, fx + fr*.8, fy + fr*.75, fr*.42, i);
     const tx = fx + fr + 14, me = party ? i === myIdx : false;
@@ -23806,12 +23807,12 @@ NG.defs.yt4 = () => {
     if (party === "host" && (dirtyN || ++sendT >= (busy() ? 4 : 20))){ sendT = 0; dirtyN = false; PARTY.sendSnap({S}, [], 0); }
     if (S.win && !busy() && !endDone && ++winT > 100){ endDone = true; finish(); } }
   function finish(){ const ord = S.ord || rank(), coins = {};
-    if (party !== "guest") ord.forEach((i, pl) => { if (!isBot(i)) try { coins[i] = Store.earn(SIDS[i], [20, 10, 6, 4][pl] + (N >= 3 && pl === 0 ? 10 : 0)); } catch(e) {} });
+    if (party !== "guest") ord.forEach((i, pl) => { if (!isBot(i)) try { coins[i] = Store.earn(SIDS[i], [20, 10, 6, 4, 3, 2][pl] + (N >= 3 && pl === 0 ? 10 : 0) + (N >= 5 && pl === 0 ? 10 : 0)); } catch(e) {} });
     if (party === "host"){ PARTY.sendSnap({S}, [], 0); PARTY.sendAll({t: "end", w: S.win.w, wins: ord, coins}); }
     showEnd(ord, coins); }
   function showEnd(ord, coins = {}){ if (NG.ended) return;
     const guest = party === "guest", rows = ord.map((i, pl) => { const done = S.pc[i].filter(p => p === END).length;
-      return `<div class="sk-row${(party ? i === myIdx : !isBot(i) && i === 0) ? " me" : ""}"><span class="rk">${["🥇", "🥈", "🥉", "4"][pl]}</span>${isBot(i) ? `<span class="f">🤖</span>` : `<span class="avf">${avHTMLof(SIDS[i], {still: true, face: true})}</span>`}
+      return `<div class="sk-row${(party ? i === myIdx : !isBot(i) && i === 0) ? " me" : ""}"><span class="rk">${["🥇", "🥈", "🥉", "4", "5", "6"][pl]}</span>${isBot(i) ? `<span class="f">🤖</span>` : `<span class="avf">${avHTMLof(SIDS[i], {still: true, face: true})}</span>`}
         <b>${YT4C[i].e} ${esc(nm(i))}</b><span class="v">🏁 ${done}/${M}</span>${coins[i] ? `<small>🪙 +${coins[i]}</small>` : ""}</div>`; }).join("");
     $("#ngOver").innerHTML = `${NG.conf ? NG.conf(60) : ""}<div class="ng-box sk-res"><h3>🏆 ${YT4C[ord[0]].e} ${esc(nm(ord[0]))} 우승!</h3><div class="sk-rows">${rows}</div>
       <div class="info">말을 모두 먼저 들여보낸 친구가 1등 · 나머지는 들어온 말과 남은 거리로 순위를 정해요</div>
@@ -23859,14 +23860,14 @@ const YT4 = {
   menu(){
     const me = ARC.me, box = partyModal("yt4"), body = $("#wbBody");
     const seg = (id, L, v) => `<div class="arc-seg" id="${id}">${L.map(([val, t]) => `<button data-v="${val}" class="${val === v ? "on" : ""}">${t}</button>`).join("")}</div>`;
-    body.innerHTML = `<p class="arc-small">도·개·걸·윷·모! <b>2~4명</b>이 각자 말로 겨뤄요. 누구 말이든 같은 자리에 서면 <b>잡혀요</b>. 내 말을 모두 먼저 들여보내면 우승!</p>
+    body.innerHTML = `<p class="arc-small">도·개·걸·윷·모! <b>2~6명</b>이 각자 말로 겨뤄요. 누구 말이든 같은 자리에 서면 <b>잡혀요</b>. 내 말을 모두 먼저 들여보내면 우승!</p>
       <div class="wb-row"><span>🐎 말 개수 <small style="opacity:.7">(적을수록 빨리 끝나요)</small></span>${seg("ytM", [[2, "2개"], [3, "3개"], [4, "4개"]], this.m)}</div>
       <div class="wb-sec"><h3>🧒 이 기기에서 함께 <small>차례가 오면 기기를 돌려 가며 해요</small></h3>
-        <div class="wb-row"><span>👥 같이 할 친구</span>${seg("ytF", [[0, "없음"], [1, "1명"], [2, "2명"], [3, "3명"]], this.nf)}</div>
-        <div class="wb-row"><span>🤖 컴퓨터</span>${seg("ytB", [[0, "0명"], [1, "1명"], [2, "2명"], [3, "3명"]], this.nb)}</div>
+        <div class="wb-row"><span>👥 같이 할 친구</span>${seg("ytF", [[0, "없음"], [1, "1명"], [2, "2명"], [3, "3명"], [4, "4명"], [5, "5명"]], this.nf)}</div>
+        <div class="wb-row"><span>🤖 컴퓨터</span>${seg("ytB", [[0, "0명"], [1, "1명"], [2, "2명"], [3, "3명"], [4, "4명"], [5, "5명"]], this.nb)}</div>
         <p class="arc-small" id="ytCnt"></p><button class="arc-btn p" id="ytGo">▶ 시작!</button></div>
-      <div class="wb-sec"><h3>🌐 온라인 방 <small>각자 기기로 최대 4명 · 빈자리는 🤖 · ☁️ Firebase 반에서만</small></h3><div id="wbRooms"></div></div>`;
-    const fix = () => { if (1 + this.nf + this.nb > 4) this.nb = 4 - 1 - this.nf; if (1 + this.nf + this.nb < 2) this.nb = 1;
+      <div class="wb-sec"><h3>🌐 온라인 방 <small>각자 기기로 최대 6명 · 빈자리는 🤖 · ☁️ Firebase 반에서만</small></h3><div id="wbRooms"></div></div>`;
+    const fix = () => { if (1 + this.nf + this.nb > 6) this.nb = 6 - 1 - this.nf; if (1 + this.nf + this.nb < 2) this.nb = 1;
       ["ytF", "ytB"].forEach(id => $$(`#${id} button`).forEach(b => b.classList.toggle("on", +b.dataset.v === (id === "ytF" ? this.nf : this.nb))));
       $("#ytCnt").textContent = `👉 모두 ${1 + this.nf + this.nb}명 (나 + 친구 ${this.nf}명 + 🤖 ${this.nb}명)`; };
     const on = (id, f) => { $("#" + id).onclick = e => { const b = e.target.closest("button"); if (!b) return; f(+b.dataset.v); $$(`#${id} button`).forEach(x => x.classList.toggle("on", x === b)); fix(); }; };
@@ -23875,13 +23876,13 @@ const YT4 = {
         ARC.pickRival("yt", no => { if (L.includes(no)){ toast("이미 들어온 친구예요"); pick(); return; } L.push(no); pick(); }); }; pick(); };
     PARTY.renderRooms(); box.hidden = false;
   },
-  start(humans, nb){ nb = Math.max(0, Math.min(4 - humans.length, nb)); if (humans.length + nb < 2) nb = 1;
+  start(humans, nb){ nb = Math.max(0, Math.min(6 - humans.length, nb)); if (humans.length + nb < 2) nb = 1;
     const bots = WB.pickBots(humans, nb), sids = humans.concat(bots).map(sidOf);
     ARC.game = "yt"; ARC.enter && ARC.enter(); ARC.prep(); getAC();
     NG.play("yt4", sids, {bots: bots.map((_, i) => humans.length + i), mode: this.m}); }
 };
 (function(){
-  PARTY.CFG.yt4 = {max: 4, bots: 1, min: 2};
+  PARTY.CFG.yt4 = {max: 6, bots: 1, min: 2};
   const start = PARTY.start;
   PARTY.start = function(again){
     if (this.gid !== "yt4") return start.call(this, again);
@@ -23902,7 +23903,7 @@ const YT4 = {
   const dm = ARC.duelMenu;
   ARC.duelMenu = function(gid){ dm.call(this, gid);
     let b = $("#duYt4"); if (!b){ b = document.createElement("button"); b.id = "duYt4"; b.className = "arc-btn p"; b.style.cssText = "width:100%;margin:6px 0 10px;font-size:19px;background:linear-gradient(135deg,#ff922b,#9775fa)"; $("#duHelp").before(b); }
-    b.hidden = gid !== "yt"; b.innerHTML = `👨‍👩‍👧‍👦 다같이 윷놀이 (3~4명) <small style="display:block;font-size:13px;opacity:.9">이 기기에서 돌려 가며 · 각자 기기 온라인 방 · 빈자리는 🤖</small>`;
+    b.hidden = gid !== "yt"; b.innerHTML = `👨‍👩‍👧‍👦 다같이 윷놀이 (3~6명) <small style="display:block;font-size:13px;opacity:.9">이 기기에서 돌려 가며 · 각자 기기 온라인 방 · 빈자리는 🤖</small>`;
     b.onclick = () => { this.modal("#mdDuel", false); YT4.menu(); }; };
 })();
 
@@ -26888,6 +26889,10 @@ Object.assign(VOICE, {
    - k: "new"(새로 생겼어요) · "up"(더 좋아졌어요) · "fix"(고쳤어요)
    ===================================================================== */
 const NEWS = [
+  {id: "2026-11-27e", d: "11월 27일", e: "🎋", t: "다같이 윷놀이 — 이제 6명까지!", items: [
+    ["up", "👨‍👩‍👧‍👦", "6명이 함께 윷놀이", "노랑🟡·빨강🔴 말이 새로 생겨서 이제 6명까지 함께 해요. 모둠 친구들이 다 같이 한 판!"],
+    ["up", "🌐", "온라인 방도 6명", "온라인 방에도 6명까지 들어올 수 있어요. 빈자리는 🤖 컴퓨터가 채워요."]
+  ], tip: "💡 사람이 많을수록 판이 길어져요. 쉬는 시간에는 말 2개로 해 봐요!"},
   {id: "2026-11-27d", d: "11월 27일", e: "🧤", t: "프로야구에 호수비가 생겼어요!", items: [
     ["new", "🧤", "몸을 던져 잡는 호수비", "안타가 될 공을 수비수가 아슬아슬하게 쫓아가면, 갑자기 막대가 떠요! 하얀 표시가 노란 칸에 들어올 때 스페이스(또는 화면 톡)를 누르면 몸을 던져 잡아요."],
     ["up", "⚡", "갑자기 나타나요", "언제 뜰지 몰라서 눈을 떼면 안 돼요. 수비를 잘하는 선수일수록 노란 칸이 조금 더 넓어요."],
