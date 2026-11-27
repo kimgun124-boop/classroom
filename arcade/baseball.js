@@ -5,6 +5,8 @@
    - 🏏 타자 (2026.11.27 타이밍 싸움): 공이 홈에 닿는 순간 스페이스(또는 화면 톡)! 어디를 칠지는 타자가 알아서 —
             🎯 정확(con)이 높을수록 '딱!' 칸이 넓고, 💪 파워가 높을수록 멀리 날아가요 · 빨리 치면 당겨 치고, 늦으면 밀어 쳐요
             변화구·볼은 속기 쉬워요 (딱 맞추면 덜 속아요) · 날아오는 동안은 공 이름이 안 보여요 → 빠르기를 보고 읽어요
+   - 🧤 호수비 찬스 (2026.11.27): 안타(2루타)가 될 공을 수비수가 조금 모자라게 쫓아가면, 갑자기 막대가 떠요 —
+            왔다갔다 하는 막대가 노란 칸에 들어올 때 스페이스(또는 화면 톡)! 맞추면 몸을 던져 잡아요 (노란 칸 넓이 = 수비 능력)
    - 수비수·주자는 카드 능력(파워·정확·주루·수비·어깨 / 구속·제구·변화·체력)대로 움직여요
    - 3D는 가벼운 원근 그리기(캔버스)로: 타석 화면은 한 번 그려 기억해 붙이고, 공이 날아갈 때만 경기장을 다시 그려요
    - 🌐 다른 기기와: 신청한 친구(홈 팀) 기기가 심판 — 스윙은 '내 기기에서 본 때'를 보내서 늦게 도착해도 공정해요
@@ -35,8 +37,8 @@ NG.defs.ab = () => {
 
   /* ---------- 상태 (심판 기기) ---------- */
   let S, TM = [null, null], remD = null, inp = {pc: 0, sw: 0}, swing = null, cpuSw = null, ball = null, Fd = [], Rn = [], thr = null, play = null, fT = 0, pid = 0, line = {};
-  let sel = {pt: "fb", x: 0, y: .78, set: false}, ringT = 0;
-  function freshS(){ return {ph: "intro", pt: 0, inn: 1, top: true, o: 0, b: 0, s: 0, sc: [0, 0], h: [0, 0], bo: [0, 0], bs: [0, 0, 0], msg: 0, pz: 0, kmh: 0, tm: [null, null], pc: [0, 0], ln: {}}; }
+  let sel = {pt: "fb", x: 0, y: .78, set: false}, ringT = 0, dv = null, dvN = 0;
+  function freshS(){ return {ph: "intro", pt: 0, inn: 1, top: true, o: 0, b: 0, s: 0, sc: [0, 0], h: [0, 0], bo: [0, 0], bs: [0, 0, 0], msg: 0, pz: 0, kmh: 0, tm: [null, null], pc: [0, 0], ln: {}, dv: 0}; }
   const off = () => S.top ? 1 : 0, dfn = () => S.top ? 0 : 1;
   const batter = () => TM[off()].ord[S.bo[off()] % TM[off()].ord.length], pitcher = () => TM[dfn()].P;
   function say(t, sub = "", c = "#fff", f = 90, big = 0){ S.msg = [t, sub, c, f, big]; }
@@ -149,10 +151,47 @@ NG.defs.ab = () => {
     const o = off(); Rn = [{c: B, tm: o, p: 0, b0: 0, tgt: 1, go: -.5, out: 0}];
     S.bs.forEach((r, i) => { if (r){ const [id] = r.split("/"); const c = TM[o].ord.find(x => x.id === id) || ABC.stat(ABC.BY[id] || ABC.ST.P); Rn.push({c, tm: o, p: i + 1, b0: i + 1, tgt: i + 1, go: 0, out: 0}); } });
     Rn.forEach(r => r.spd = 6.6 + defStat(r.c, "spd")*.032);
-    thr = null; play = null; fT = 0; S.ph = "field"; S.pt = 0; chase(); S.sw = 0;
+    thr = null; play = null; fT = 0; S.ph = "field"; S.pt = 0; chase(); S.sw = 0; planDive();
     if (window.__abLog) window.__abLog.push([Math.round(res.ev), Math.round(res.la), Math.round(res.sp), +res.q.toFixed(2), B.pow]);
     tone(1400, 600, .07, "square", .12); tone(180, 90, .12, "sawtooth", .1);
     const loud = res.q > .8 && res.ev > 34; if (loud) setTimeout(() => SFX.gold(), 60);
+  }
+  /* 🧤 호수비 찬스: 그냥은 못 잡지만 몸을 던지면 닿을 뜬공(안타·2루타 될 공) → 갑자기 막대가 떠요 */
+  const dvPos = (el, spd) => { const u = (Math.max(0, el)*spd) % 2; return u < 1 ? u : 2 - u; };
+  function planDive(){
+    dv = null; S.dv = 0;
+    if (Fd.some(f => f.chase && f.air)) return;   // 그냥 잡을 수 있는 공이면 찬스 없어요
+    const Pd = predict(ball); let best = null;
+    Fd.forEach(f => { if (f.p === "C" || f.p === "P") return; const R = 2.5 + defStat(f.c, "def")*.035;   // 몸을 던져 닿는 거리 (수비가 좋을수록 멀리)
+      for (const [t, x, y, z, ld, hr] of Pd){ if (hr || ld) break; if (y > 2.6 || t < .6) continue; if (Math.abs(Math.atan2(x, z)) > Math.PI/4) continue;
+        const short = Math.hypot(x - f.x, z - f.z) - f.reach - f.sp*Math.max(0, t - .5);
+        if (short <= R){ if (!best || t < best.t) best = {f, t, x, z}; break; } } });
+    if (!best) return;
+    let dur = Math.min(rnd(.75, 1.05), best.t - .2), t0 = best.t - dur;            // ⚡ 공이 떨어지기 직전, 갑자기!
+    if (dur < .5) return;
+    const def = defStat(best.f.c, "def");
+    dv = {id: ++dvN, f: best.f, t: best.t, x: best.x, z: best.z, t0, dur, c: rnd(.25, .75), w: .07 + def*.0008, spd: rnd(1.5, 2), pressed: false, res: 0, cpuAt: null};
+    if (!human(dfn())){ const l = lv(); if (Math.random() < [.12, .22, .32][l]) dv.cpuAt = -1; else if (Math.random() < .5) dv.cpuAt = rnd(.1, dur); }   // 🤖 컴퓨터도 가끔 호수비
+    divTarget();
+  }
+  function divTarget(){ if (!dv || dv.res === 2) return; const f = dv.f; Fd.forEach(o => { if (o !== f && o.chase && o.air) o.chase = false; }); f.chase = true; f.tx = dv.x; f.tz = dv.z; f.air = true; }
+  function pressDive(el){
+    if (!dv || dv.pressed || !S.dv) return; dv.pressed = true;
+    const pos = dvPos(el, dv.spd), ok = el <= dv.dur + .02 && Math.abs(pos - dv.c) <= dv.w/2;
+    dv.res = ok ? 1 : 2; S.dv[6] = dv.res; S.dv[7] = +pos.toFixed(3);
+    if (ok){ tone(880, 1320, .12, "triangle", .1); }
+    else { tone(300, 160, .2, "sawtooth", .07); say("아깝다!", "🧤 몸을 던졌지만 닿지 않았어요", "#ffa8a8", 60); dv.f.chase = false; dv.f.wait = 0; chase(); }
+  }
+  function diveStep(){
+    if (!dv || play) return; const el = fT - dv.t0;
+    if (el < 0) return;
+    if (!S.dv){ S.dv = [dv.id, 0, +dv.c.toFixed(3), +dv.w.toFixed(3), +dv.spd.toFixed(3), +dv.dur.toFixed(3), 0, -1, dv.f.c.id]; tone(1500, 1500, .06, "square", .09); }
+    S.dv[1] = +el.toFixed(3);
+    if (dv.res === 0){
+      if (dv.cpuAt != null && !dv.pressed && (dv.cpuAt < 0 ? dvPos(el, dv.spd) >= dv.c - dv.w/4 && dvPos(el, dv.spd) <= dv.c + dv.w/4 : el >= dv.cpuAt)) pressDive(el);
+      else if (!dv.pressed && el > dv.dur + (remote(dfn()) ? .3 : .04)){ dv.pressed = true; dv.res = 2; S.dv[6] = 2; say("아깝다!", "🧤 타이밍을 놓쳤어요", "#ffa8a8", 50); dv.f.chase = false; chase(); }
+    }
+    if (dv.res === 1 && fT >= dv.t){ const f = dv.f; f.x = ball.x; f.z = ball.z; f.has = true; f.dove = 1; dv = null; decide({fly: 1, f, dive: 1}); }
   }
   const airBall = () => !ball.land;
   function fieldStep(){
@@ -166,7 +205,8 @@ NG.defs.ab = () => {
     if (ball.hr && !play){ decide({hr: 1}); }
     // 파울 (처음 떨어진 곳이 선 밖)
     if (!play && ball.land && !ball.fc){ ball.fc = 1; const a = Math.atan2(ball.land[0], ball.land[1]), r = Math.hypot(ball.land[0], ball.land[1]); if (Math.abs(a) > Math.PI/4 && r > 1){ play = {foul: 1}; callPitch("foul"); return; } }
-    if (Math.floor(fT*60) % 15 === 0 && !play) chase();
+    if (Math.floor(fT*60) % 15 === 0 && !play){ chase(); divTarget(); }
+    diveStep();
     // 수비수
     Fd.forEach(f => {
       let tx = f.hx, tz = f.hz;
@@ -199,7 +239,7 @@ NG.defs.ab = () => {
     if (o.fly){
       bat.out = 1; bat.tgt = bat.p; o.outs = 1; o.txt = dist > 45 ? "뜬공 아웃" : ball.vy > -1 && Math.abs(ball.vx) + Math.abs(ball.vz) > 15 ? "라이너 아웃" : "뜬공 아웃";
       live.filter(r => r !== bat).forEach(r => { r.tgt = r.b0; if (outs + 1 < 3){ if (r.b0 === 3 && dist > 56){ r.tgt = 4; o.sac = 1; } else if (r.b0 === 2 && dist > 78 && f.x > 0) r.tgt = 3; } });
-      if (o.sac) o.txt = "희생 플라이!"; throwTo(f, o.sac ? 0 : 2); tone(700, 500, .05, "square", .1); return;
+      if (o.sac) o.txt = "희생 플라이!"; if (o.dive) o.txt = o.sac ? "호수비! 희생 플라이" : "🧤 호수비!!!"; throwTo(f, o.sac ? 0 : 2); tone(700, 500, .05, "square", .1); return;
     }
     const infield = dist < 44 && Math.abs(f.x) < 32;
     if (o.gr && infield && fT < 4.2){
@@ -226,7 +266,8 @@ NG.defs.ab = () => {
     S.bs = nb; S.sc[off_] += runs; S.o += o.outs || 0;
     if (o.hit) S.h[off_]++; endPA("bip", !!o.hit);
     const big = o.hr || runs >= 2 || o.txt === "병살!";
-    say(o.hr ? (runs >= 4 ? "만루 홈런!!!" : "홈런!!!") : o.txt, runs ? `${runs}점! ${S.sc[1]} : ${S.sc[0]}` : o.outs ? `${S.o}아웃` : "", o.hr ? "#ffe066" : o.hit ? "#69db7c" : "#ffa8a8", o.hr ? 160 : 110, big ? 1 : 0);
+    if (o.dive) setTimeout(() => SFX.gold(), 40);
+    say(o.hr ? (runs >= 4 ? "만루 홈런!!!" : "홈런!!!") : o.txt, runs ? `${runs}점! ${S.sc[1]} : ${S.sc[0]}` : o.outs ? `${S.o}아웃` : "", o.hr || o.dive ? "#ffe066" : o.hit ? "#69db7c" : "#ffa8a8", o.hr ? 160 : 110, big || o.dive ? 1 : 0);
     if (runs && !o.hr) setTimeout(() => SFX.pt(), 50);
     S.ph = "res"; S.cd = o.hr ? 160 : 110;
   }
@@ -240,7 +281,7 @@ NG.defs.ab = () => {
       say(S.top ? `${S.inn}회 초` : `${S.inn}회 말`, `${TN[off()]} ${who(noOf_(NG.sids[off()]))} 공격`, "#fff", 110, 1); return; }
     toReady();
   }
-  function toReady(){ S.ph = "ready"; S.pt = 0; S.pz = 0; S.sw = 0; swing = null; ball = null; Fd = []; Rn = []; thr = null; play = null; sel.set = false; }
+  function toReady(){ S.ph = "ready"; S.pt = 0; S.pz = 0; S.sw = 0; swing = null; ball = null; Fd = []; Rn = []; thr = null; play = null; sel.set = false; dv = null; S.dv = 0; }
   function gameOver(){
     const [h, a] = S.sc; let w = -1;
     if (!S.top && S.inn >= INN && h > a) w = 0;                                   // 끝내기 (마지막 말 공격에서 앞서요)
@@ -291,7 +332,7 @@ NG.defs.ab = () => {
     return {ph: S.ph, pt: S.pt, inn: S.inn, top: S.top, o: S.o, b: S.b, s: S.s, sc: S.sc, h: S.h, bo: S.bo, bs: S.bs, msg: S.msg, pz: S.pz, sw: S.sw, tm: S.tm, pc: S.pc, ln: S.ln, fx: S.fx,
       ball: ball && (S.ph === "field" || S.ph === "res") ? [+ball.x.toFixed(2), +ball.y.toFixed(2), +ball.z.toFixed(2)] : 0,
       F: (S.ph === "field" || S.ph === "res") && Fd.length ? Fd.map(f => [f.c.id, +f.x.toFixed(2), +f.z.toFixed(2), f.has ? 1 : 0]) : 0,
-      R: (S.ph === "field" || S.ph === "res") && Rn.length ? Rn.map(r => [r.c.id, r.tm, +r.p.toFixed(3), r.out]) : 0, sel: S.ph === "ready" ? [sel.pt, sel.x, sel.y, sel.set ? 1 : 0] : 0};
+      R: (S.ph === "field" || S.ph === "res") && Rn.length ? Rn.map(r => [r.c.id, r.tm, +r.p.toFixed(3), r.out]) : 0, sel: S.ph === "ready" ? [sel.pt, sel.x, sel.y, sel.set ? 1 : 0] : 0, dv: S.ph === "field" ? S.dv : 0};
   }
   function gstep(){ if (!V) return; if (V.pz && V.ph === "fly"){ if (gLocal.id !== V.pz[0]){ gLocal.id = V.pz[0]; gLocal.t0 = performance.now() - V.pz[11]*1000; } } if (mySw > 0) mySw--; ringT += DT; }
   const flightT = () => net() === "guest" && V && V.pz ? (V.ph === "fly" && gLocal.id === V.pz[0] ? (performance.now() - gLocal.t0)/1000 : V.pz[11]) : (S.pz ? S.pz[11] : 0);
@@ -401,6 +442,7 @@ NG.defs.ab = () => {
       L.forEach(o => sprite(g, C, o.x, o.z, o.e, o.col, 3.4, {alpha: o.alpha}));
       if (Vv.ball) ballAt(g, C, b[0], b[1], b[2]);
       if (Vv.ph === "field"){ const r = Math.hypot(b[0], b[2]); outlined(g, `${Math.round(r)}m`, W - 90, 120, 26, "#fff"); }
+      if (Vv.dv) drawDive(g, Vv, T, df);
     } else {
       g.drawImage(batBg(Vv, T), 0, 0, W, H);
       const D = T[df], O = T[of_], bat = O ? O.ord[Vv.bo[of_] % O.ord.length] : null, pit = D ? D.P : null;
@@ -434,6 +476,20 @@ NG.defs.ab = () => {
       drawControls(g, Vv, of_, df, pit);
     }
     drawBoard(g, Vv, T); drawMsg(g, Vv);
+  }
+  /* 🧤 호수비 막대: 갑자기 떠요 → 노란 칸에서 스페이스(톡)! */
+  function dvEl(Vv){ const d = Vv.dv; if (net() !== "guest") return d[1]; if (gDv.id !== d[0]){ gDv = {id: d[0], t0: performance.now() - d[1]*1000, sent: 0}; } return (performance.now() - gDv.t0)/1000; }
+  function drawDive(g, Vv, T, df){ const d = Vv.dv, el = dvEl(Vv), [, , c, w, spd, dur, res, fz, fid] = d, mine = isLocal(df) && human(df);
+    if (el > dur + (res ? 1.3 : .4)) return;
+    const bw = 520, bx = W/2 - bw/2, by = H*.62, bh = 34, pos = res ? (fz >= 0 ? fz : dvPos(el, spd)) : (gDv.my != null && gDv.id === d[0] ? gDv.my : dvPos(el, spd));
+    const pulse = .5 + .5*Math.sin(el*30);
+    rrect(g, bx - 14, by - 64, bw + 28, bh + 96, 18); g.fillStyle = "rgba(10,14,32,.88)"; g.fill(); g.lineWidth = 4; g.strokeStyle = res === 1 ? "#ffe066" : res === 2 ? "#868e96" : `rgba(255,212,59,${.5 + pulse*.5})`; g.stroke();
+    const fc = cardById(T, fid); g.drawImage(emo(fc.e), bx - 4, by - 58, 48, 48);
+    outlined(g, res === 1 ? "🧤 잡았다!" : res === 2 ? "놓쳤어요…" : mine ? "🧤 호수비 찬스! 노란 칸에서 스페이스(톡)!" : "🧤 호수비 찬스!", W/2 + 20, by - 32, 28, res === 2 ? "#ced4da" : "#ffe066");
+    rrect(g, bx, by, bw, bh, 10); g.fillStyle = "#495057"; g.fill();
+    g.fillStyle = "#ffd43b"; g.fillRect(bx + bw*(c - w/2), by, bw*w, bh); g.strokeStyle = "#fff"; g.lineWidth = 2; g.strokeRect(bx + bw*(c - w/2), by, bw*w, bh);
+    if (!res){ const k = clamp(1 - el/dur, 0, 1); g.fillStyle = "rgba(255,255,255,.2)"; g.fillRect(bx, by + bh + 8, bw, 6); g.fillStyle = k > .35 ? "#69db7c" : "#ff6b6b"; g.fillRect(bx, by + bh + 8, bw*k, 6); }   // 남은 시간
+    const mx = bx + bw*pos; g.fillStyle = "#fff"; g.beginPath(); g.moveTo(mx, by - 2); g.lineTo(mx - 11, by - 18); g.lineTo(mx + 11, by - 18); g.closePath(); g.fill(); g.fillRect(mx - 3, by - 2, 6, bh + 4);
   }
   function ringR(){ return (Math.cos(ringT*Math.PI*1.7) + 1)/2; }
   /* 버튼들 */
@@ -527,7 +583,10 @@ NG.defs.ab = () => {
   function tapSwing(x, y){ const [px, py] = scr2plate(x, y);
     if (net() === "guest"){ if (gsw === (V && V.pz ? V.pz[0] : -1)) return; gsw = V.pz[0]; gswing = {n: gsw, ts: flightT(), x: px, y: py}; mySw = 24; tone(300, 120, .1, "sawtooth", .05); return; }
     doSwing(S.pz[11], px, py); }
-  let gswing = null, myD = null;
+  let gswing = null, myD = null, gDv = {id: 0, t0: 0}, gdive = null;
+  function tapDive(){ const Vv = curV(); if (!Vv || !Vv.dv || Vv.dv[6]) return;
+    if (net() === "guest"){ const el = dvEl(Vv); if (gDv.sent === Vv.dv[0]) return; gDv.sent = Vv.dv[0]; gDv.my = dvPos(el, Vv.dv[4]); gdive = {n: Vv.dv[0], ts: +el.toFixed(3)}; tone(700, 900, .05, "square", .06); return; }
+    pressDive(fT - dv.t0); }
   const self = {
     W, H,
     init(){
@@ -547,6 +606,7 @@ NG.defs.ab = () => {
       cursor = {x, y, on: true};
       if (Vv.ph === "ready" && isLocal(df) && human(df)) return tapPitch(x, y, Vv, T[df] && T[df].P);
       if (Vv.ph === "fly" && isLocal(of_) && human(of_)) return tapSwing(x, y);
+      if (Vv.ph === "field" && Vv.dv && isLocal(df) && human(df)) return tapDive();
     },
     move(x, y){ cursor = {x, y, on: true}; },
     key(code, d){
@@ -557,6 +617,7 @@ NG.defs.ab = () => {
         const n = {Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3, Digit5: 4, Digit6: 5}[code]; if (n !== undefined && L[n]){ s.pt = L[n]; return true; }
         if (code === "Space" || code === "Enter"){ if (!s.set) arm(s); else throwIt(); return true; } }
       if (Vv.ph === "fly" && isLocal(of_) && human(of_) && (code === "Space" || code === "Enter")){ tapSwing(cursor.x, cursor.y); return true; }
+      if (Vv.ph === "field" && Vv.dv && isLocal(df) && human(df) && (code === "Space" || code === "Enter")){ tapDive(); return true; }
       return false;
     },
     hud(){ const Vv = curV(); if (!Vv) return ""; return `⚾ ${esc(who(noOf_(NG.sids[1])))} <b>${Vv.sc[1]}</b> : <b>${Vv.sc[0]}</b> ${esc(who(noOf_(NG.sids[0])))} · ${Vv.inn}회${Vv.top ? "초" : "말"} · ${INN}이닝${net() ? " · 🌐 다른 기기 대결" : cpu() ? " · 🤖 컴퓨터" : ""}`; },
@@ -564,17 +625,18 @@ NG.defs.ab = () => {
       snap: () => view(),
       ev: () => [], fx(){},
       apply(d){ if (net() !== "guest") return; V = d; if (window.__abTest) window.__abV = d; },
-      mine: () => ({tm: myD || (myD = dOf(ABC.of(NG.sids[1]))), pc: gpc, sel: [gsel.pt, +gsel.x.toFixed(3), +gsel.y.toFixed(3), +(gsel.acc || 0).toFixed(3), gsel.gr != null ? gsel.gr : 1], sw: gswing}),
+      mine: () => ({tm: myD || (myD = dOf(ABC.of(NG.sids[1]))), pc: gpc, sel: [gsel.pt, +gsel.x.toFixed(3), +gsel.y.toFixed(3), +(gsel.acc || 0).toFixed(3), gsel.gr != null ? gsel.gr : 1], sw: gswing, dv: gdive}),
       put(d){ if (net() !== "host" || !d) return;
         if (d.tm && !remD){ remD = d.tm; TM[1] = teamOf(remD); TM[1].D = remD; S.tm = [TM[0].D, remD]; bgKey = ""; }
         if (d.pc > inp.pc){ inp.pc = d.pc; if (S.ph === "ready" && dfn() === 1 && d.sel){ startPitch(PT[d.sel[0]] ? d.sel[0] : "fb", clamp(+d.sel[1], -.5, .5), clamp(+d.sel[2], .2, 1.4), clamp(+d.sel[3], 0, 1), [0, 1, 2].includes(d.sel[4]) ? d.sel[4] : 1); } }
+        if (d.dv && dv && d.dv.n === dv.id && S.dv && dfn() === 1 && !dv.pressed) pressDive(clamp(+d.dv.ts, 0, dv.dur + .5));
         if (d.sw && d.sw.n > inp.sw){ inp.sw = d.sw.n; if (S.ph === "fly" && off() === 1 && S.pz && d.sw.n === S.pz[0]) doSwing(clamp(+d.sw.ts, 0, S.pz[8] + .5), +d.sw.x, +d.sw.y); }
       },
       end(w, sc, txt){ if (net() !== "guest" || NG.ended) return; NG.win(w, txt); },
       reset(){}
     },
     /* 🧪 시험용 */
-    dbg: {ft: () => flightT(), auto(){ if (S.ph === "ready") cpuPitch(); else if (S.ph === "fly" && !cpuSw && !swing && S.pz[11] < .02) planCpuSwing(); }, S: () => S, ball: () => ball, Fd: () => Fd, Rn: () => Rn, contact, startBIP, doSwing, startPitch, sel: () => sel, scr2plate, plate2scr, zoneScr, pzPos}
+    dbg: {ft: () => flightT(), auto(){ if (S.ph === "ready") cpuPitch(); else if (S.ph === "fly" && !cpuSw && !swing && S.pz[11] < .02) planCpuSwing(); }, S: () => S, dv: () => dv, pressDive, ball: () => ball, Fd: () => Fd, Rn: () => Rn, contact, startBIP, doSwing, startPitch, sel: () => sel, scr2plate, plate2scr, zoneScr, pzPos}
   };
   return self;
 };
