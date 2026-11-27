@@ -38,6 +38,51 @@ const ABC = (() => {
   const hash = s => { let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0); };
   const cl = v => Math.max(25, Math.min(99, Math.round(v)));
   const PTM = {C: {d: 5, s: -9, a: 3}, "1B": {p: 6, s: -4, d: -3}, "2B": {d: 4, s: 3, p: -5}, SS: {d: 5, s: 4, p: -4, a: 2}, "3B": {p: 3, d: 2, a: 3}, LF: {p: 3, d: -2}, CF: {s: 6, d: 3, p: -3}, RF: {p: 2, a: 5}};
+  /* ---------- ✨ 스킬·특성 (2026.11.27) ----------
+     g: 1 아마추어 · 2 마이너 · 3 메이저 · 4 레전드(전설 카드만의 필살 특성)
+     w(언제): 없음 = 늘 (능력치에 바로 더해져요) · s2 2스트라이크 · risp 2·3루에 주자 · lead 이닝 첫 타자 · last 마지막 회 · late 2회부터
+     k(무엇): 능력치 이름, 또는 wp(딱! 칸 넓이) · eye(속지 않기) · gauge(투구 게이지 느리게) · bait(볼에 속이기) */
+  const SK = {
+    hit:   {e: "🎯", n: "정밀타격",   t: "b", k: "wp",  v: [.08, .14, .22, .32], d: v => `딱! 칸이 ${Math.round(v*100)}% 넓어져요`},
+    pow:   {e: "💥", n: "거포 본능",  t: "b", k: "pow", v: [3, 5, 8, 12], d: v => `파워 +${v}`},
+    clutch:{e: "🔥", n: "승부근성",   t: "b", k: "con", w: "s2", v: [6, 10, 14, 20], d: v => `2스트라이크에서 정확 +${v}`},
+    big:   {e: "👑", n: "빅게임 헌터", t: "b", k: "pow,con", w: "risp", v: [4, 7, 10, 15], d: v => `득점권 주자가 있으면 파워·정확 +${v}`},
+    eye:   {e: "👀", n: "선구안",     t: "b", k: "eye", v: [.15, .25, .35, .5], d: v => `볼·변화구에 ${Math.round(v*100)}% 덜 속아요`},
+    run:   {e: "🏃", n: "질주 본능",  t: "b", k: "spd", v: [3, 5, 8, 12], d: v => `주루 +${v}`},
+    lead:  {e: "⚡", n: "1번 타자",   t: "b", k: "con", w: "lead", v: [6, 10, 14, 20], d: v => `이닝 첫 타자일 때 정확 +${v}`},
+    walk:  {e: "🌙", n: "끝내기 본능", t: "b", k: "pow", w: "last", v: [6, 10, 15, 22], d: v => `마지막 회에 파워 +${v}`},
+    glove: {e: "🧤", n: "철벽 수비",  t: "b", k: "def", v: [3, 6, 9, 13], d: v => `수비 +${v}`},
+    laser: {e: "🚀", n: "레이저 송구", t: "b", k: "arm", v: [4, 7, 10, 15], d: v => `어깨 +${v}`},
+    heat:  {e: "⚡", n: "강속구",     t: "p", k: "vel", v: [2, 4, 6, 10], d: v => `구속 +${v}`},
+    pin:   {e: "📍", n: "핀포인트",   t: "p", k: "ctl", v: [3, 5, 8, 12], d: v => `제구 +${v}`},
+    magic: {e: "🌀", n: "마구",       t: "p", k: "brk", v: [3, 5, 8, 12], d: v => `변화 +${v}`},
+    iron:  {e: "🔋", n: "철완",       t: "p", k: "sta", v: [5, 9, 14, 20], d: v => `체력 +${v}`},
+    crisis:{e: "🧊", n: "위기관리",   t: "p", k: "ctl,brk", w: "risp", v: [5, 8, 12, 18], d: v => `득점권 주자가 있으면 제구·변화 +${v}`},
+    kk:    {e: "💪", n: "탈삼진 머신", t: "p", k: "brk", w: "s2", v: [6, 10, 14, 20], d: v => `2스트라이크에서 변화 +${v}`},
+    slow:  {e: "🐢", n: "슬로우 스타터", t: "p", k: "vel,ctl", w: "late", v: [3, 5, 8, 12], d: v => `2회부터 구속·제구 +${v}`},
+    rhythm:{e: "🎶", n: "리듬 장인",  t: "p", k: "gauge", v: [.08, .14, .2, .28], d: v => `투구 게이지가 ${Math.round(v*100)}% 느려져요`},
+    bait:  {e: "🎣", n: "유인구 장인", t: "p", k: "bait", v: [.05, .09, .13, .18], d: v => `볼에 타자가 더 잘 속아요 (+${Math.round(v*100)}%)`}
+  };
+  const GN = ["", "아마추어", "마이너", "메이저", "레전드"], GC = ["", "#adb5bd", "#4dabf7", "#b197fc", "#ffd43b"];
+  const TAGSK = {p: ["pow", "big", "walk"], c: ["hit", "clutch", "eye", "lead"], s: ["run", "lead"], d: ["glove"], a: ["laser"], v: ["heat", "kk"], k: ["pin", "rhythm", "crisis"], b: ["magic", "bait", "kk"], t: ["iron", "slow"]};
+  /* 🌟 전설 카드만의 레전드 특성 (이름이 따로 있어요) */
+  const SIG = {"불꽃 용": ["heat", "🐉 드래곤 파이어볼"], "무지개 유니콘": ["magic", "🌈 무지개 마구"], "강속구 티라노": ["pin", "🦖 티라노 컨트롤"],
+    "천둥 들소": ["laser", "⚡ 천둥 송구"], "백수의 왕 사자": ["big", "🦁 사자왕의 포효"], "손오공 원숭이": ["run", "☁️ 근두운 질주"], "번개 호랑이": ["glove", "⚡ 번개 다이빙"],
+    "공룡 거인": ["pow", "🦕 공룡 홈런"], "대왕 고래": ["walk", "🐳 고래 끝내기"], "구름 용": ["hit", "🐉 용의 눈"], "황금 갈기 사자": ["clutch", "✨ 황금 갈기"]};
+  function skillsOf(c, h){
+    const out = [], used = new Set(), bat = c.pos !== "P";
+    const pool = [...new Set([...c.tg].flatMap(t => TAGSK[t] || []).filter(k => (SK[k].t === "p") !== bat))];
+    const all = Object.keys(SK).filter(k => (SK[k].t === "p") !== bat);
+    const n = c.r < 0 ? 1 : [1, 2, 3, 3][c.r], g0 = c.r < 0 ? 1 : [1, 1, 2, 3][c.r];
+    const sig = c.r === 3 && SIG[c.n];
+    if (sig){ out.push({k: sig[0], g: 4, nm: sig[1]}); used.add(sig[0]); }
+    for (let i = 0; out.length < n + (sig ? 1 : 0) && i < 40; i++){
+      const A = pool.filter(k => !used.has(k)), L = A.length ? A : all.filter(k => !used.has(k)); if (!L.length) break;
+      const k = L[(h >>> (i*3)) % L.length]; used.add(k); out.push({k, g: Math.max(1, Math.min(3, g0 - (out.length >= 1 && c.r === 1 ? 1 : 0) + (out.length === 0 && c.r === 1 ? 1 : 0)))});
+    }
+    return out;
+  }
+  const skv = s => SK[s.k].v[s.g - 1];
   function make(id, e, n, pos, r, tg){
     const base = r < 0 ? 46 : [54, 64, 75, 86][r], h = hash(id), nz = k => ((h >>> (k*4)) & 15)/15*6 - 3, has = c => tg.includes(c);
     const c = {id, e, n, pos, r, tg};
@@ -55,6 +100,7 @@ const ABC = (() => {
       c.def = cl(base + (has("d") ? 10 : -3) + (m.d || 0) + nz(4)); c.arm = cl(base + (has("a") ? 9 : -2) + (m.a || 0) + nz(5));
       c.hand = (h >> 7) % 4 === 0 ? "L" : "R";
     }
+    c.sk = skillsOf(c, h);
     return c;
   }
   const SPL = /\s+(?=\S+\|[^|]+\|(?:P|C|1B|2B|3B|SS|LF|CF|RF)\|)/, ALL = [], BY = {};
@@ -62,9 +108,14 @@ const ABC = (() => {
   const ST = {}; STARTER.trim().split(SPL).forEach(t => { const [e, n, pos, tg] = t.split("|"); const id = "s" + pos; const c = make(id, e, n, pos, -1, tg || ""); ST[pos] = c; BY[id] = c; });
   /* 강화된 능력치 */
   function stat(c, lv = 0){ const b = lv*2, o = Object.assign({}, c, {lv});
-    ["vel", "ctl", "brk", "sta", "pow", "con", "spd", "def", "arm"].forEach(k => { if (c[k] != null) o[k] = Math.min(99, c[k] + b); }); o.ovr = ovr(o); return o; }
+    ["vel", "ctl", "brk", "sta", "pow", "con", "spd", "def", "arm"].forEach(k => { if (c[k] != null) o[k] = Math.min(99, c[k] + b); });
+    /* ✨ 강화 +3부터 스킬 등급 한 칸 위 (레전드는 그대로) · 늘 켜진 스킬은 능력치에 더해요 */
+    o.sk = (c.sk || []).map(s => ({k: s.k, g: s.g < 4 && lv >= 3 ? Math.min(3, s.g + 1) : s.g, nm: s.nm}));
+    o.base = {}; ["vel", "ctl", "brk", "sta", "pow", "con", "spd", "def", "arm"].forEach(k => { if (o[k] != null) o.base[k] = o[k]; });
+    o.sk.forEach(s => { const d = SK[s.k]; if (d.w) return; d.k.split(",").forEach(k => { if (o[k] != null) o[k] = Math.min(99, o[k] + skv(s)); }); });
+    o.ovr = ovr(o); return o; }
   function ovr(c){ return c.pos === "P" ? Math.round(c.vel*.32 + c.ctl*.3 + c.brk*.28 + c.sta*.1) : Math.round(c.pow*.3 + c.con*.3 + c.spd*.15 + c.def*.17 + c.arm*.08); }
-  ALL.forEach(c => c.ovr = ovr(c)); Object.values(ST).forEach(c => c.ovr = ovr(c));
+  [...ALL, ...Object.values(ST)].forEach(c => { c.ovr = stat(c, 0).ovr; });
   const canPlay = (c, pos) => c.pos === pos || (GRP[c.pos] === GRP[pos] && pos !== "P");
 
   /* ---------- 지갑 ---------- */
@@ -132,16 +183,30 @@ const ABC = (() => {
   }
 
   /* ---------- 🃏 카드 그림 (HTML) ---------- */
+  /* 🖼️ 3D 카드 그림: 선수를 3D로 한 번 찍어 두고 써요 (몇 장씩 천천히 만들어 바꿔 끼워요) */
+  const PURL = {}, PICQ = new Set(); let picT = 0;
+  function picHTML(c, big){
+    const B = window.BB3D; if (!B || NG.no3d || B.st < 0) return `<span class="abc-e">${c.e}</span>`;
+    if (B.st === 0) B.load(() => picWork());
+    const u = PURL[c.id]; if (u) return `<img class="abc-img" src="${u}" alt="">`;
+    PICQ.add(c.id); if (B.ready()) picSoon(); return `<span class="abc-e" data-pic="${c.id}">${c.e}</span>`; }
+  function picSoon(){ if (!picT) picT = setTimeout(picWork, 40); }
+  function picWork(){ picT = 0; const B = window.BB3D; if (!B || !B.ready()) return; let n = 0;
+    for (const id of PICQ){ PICQ.delete(id); try { const cv = B.portrait(BY[id], 0x4c6ef5, 200); if (cv){ PURL[id] = cv.toDataURL();
+      document.querySelectorAll(`[data-pic="${id}"]`).forEach(el => { const im = new Image(); im.className = "abc-img"; im.alt = ""; im.src = PURL[id]; el.replaceWith(im); }); } } catch(e){ console.warn(e); }
+      if (++n >= 3) break; }
+    if (PICQ.size) picSoon(); }
+  const skChip = s => { const d = SK[s.k]; return `<span class="abc-sk g${s.g}" title="${esc((s.nm || d.n) + " · " + GN[s.g])}">${d.e}</span>`; };
   function cardHTML(c, o = {}){
     const R = c.r < 0 ? {n: "새싹", s: "🌱", c: "#8ce99a", g: "#2b8a3e"} : RAR[c.r], s = o.lv != null ? stat(c, o.lv) : c;
     const bars = c.pos === "P" ? [["구속", s.vel], ["제구", s.ctl], ["변화", s.brk], ["체력", s.sta]] : [["파워", s.pow], ["정확", s.con], ["주루", s.spd], ["수비", s.def]];
     return `<div class="abc r${c.r}${o.cls ? " " + o.cls : ""}" style="--rc:${R.c};--rg:${R.g}"${o.data || ""}>
       <div class="abc-top"><span class="abc-pos">${PS[c.pos]}</span><span class="abc-ovr">${s.ovr}</span></div>
-      <div class="abc-em">${c.e}</div><div class="abc-nm">${esc(c.n)}${o.lv ? `<b>+${o.lv}</b>` : ""}</div>
+      <div class="abc-em">${picHTML(c)}</div><div class="abc-sks">${(s.sk || []).map(skChip).join("")}</div><div class="abc-nm">${esc(c.n)}${o.lv ? `<b>+${o.lv}</b>` : ""}</div>
       <div class="abc-rr">${R.s} ${R.n}${c.pos !== "P" ? ` · ${c.hand === "L" ? "좌타" : "우타"}` : ""}</div>
       <div class="abc-st">${bars.map(([k, v]) => `<i><u>${k}</u><s style="width:${v}%"></s><em>${v}</em></i>`).join("")}</div>
       ${c.pos === "P" ? `<div class="abc-pit">${c.pit.map(p => PT[p].e + PT[p].n).join(" · ")}</div>` : ""}
-      ${o.cnt > 1 ? `<span class="abc-cnt">×${o.cnt}</span>` : ""}${o.isNew ? `<span class="abc-new">NEW</span>` : ""}</div>`;
+      ${o.cnt > 1 ? `<span class="abc-cnt">×${o.cnt}</span>` : ""}${o.isNew ? `<span class="abc-new">NEW</span>` : ""}${o.nodet ? "" : `<button class="abc-i" data-det="${c.id}:${o.lv || 0}" title="자세히 보기">🔍</button>`}</div>`;
   }
 
   /* ---------- 🛒 카드 창 (뽑기 · 내 팀 · 도감) ---------- */
@@ -150,7 +215,8 @@ const ABC = (() => {
     open(sid, tab){ this.sid = sid || sidOf(ARC.me); this.tab = tab || this.tab; this.css();
       let el = $("#abShop"); if (!el){ el = document.createElement("div"); el.id = "abShop"; document.body.appendChild(el);
         ["keydown", "keyup"].forEach(ev => el.addEventListener(ev, e => e.stopPropagation())); el.onclick = e => this.click(e); }
-      el.hidden = false; this.res = null; this.pick = null; this.paint(); },
+      el.hidden = false; this.res = null; this.pick = null; this.det = null; this.paint();
+      if (window.BB3D && !NG.no3d && !BB3D.ready()) BB3D.load(() => { if (!el.hidden) this.paint(); }); },
     close(){ const el = $("#abShop"); if (el) el.hidden = true; if (this.onClose){ const f = this.onClose; this.onClose = null; f(); } },
     paint(){
       const el = $("#abShop"); if (!el || el.hidden) return; const w = walletOf(this.sid), q = of(this.sid), T = teamCards(team(q), q);
@@ -176,14 +242,33 @@ const ABC = (() => {
       }
       el.innerHTML = `<div class="ab-box"><div class="ab-hd"><h2>⚾ 동물 프로야구 <small>${esc(who(noOf_(this.sid)))}</small></h2><span class="ab-coin">🪙 ${(w.coins || 0).toLocaleString()}</span><button class="ab-x" data-x>✕</button></div>
         <div class="ab-tabs">${tabs.map(([k, t]) => `<button data-tab="${k}" class="${this.tab === k ? "on" : ""}">${t}</button>`).join("")}</div>
-        <div class="ab-body">${body}</div>${this.msg ? `<div class="ab-msg">${this.msg}</div>` : ""}</div>`;
+        <div class="ab-body">${body}</div>${this.msg ? `<div class="ab-msg">${this.msg}</div>` : ""}</div>${this.det ? this.detHTML() : ""}`;
     },
+    /* 🔍 선수 자세히: 3D 그림 · 능력치 (기본 + 스킬) · 공 종류 · 스킬 */
+    detHTML(){ const [id, lv] = this.det, c0 = BY[id]; if (!c0) return ""; const c = stat(c0, +lv || 0), R = c0.r < 0 ? {n: "새싹", s: "🌱", c: "#8ce99a", g: "#2b8a3e"} : RAR[c0.r];
+      const ST_ = c.pos === "P" ? [["vel", "⚡ 구속", "공이 빨라요"], ["ctl", "🎯 제구", "던지고 싶은 곳에 잘 들어가요 · 게이지 칸이 넓어요"], ["brk", "🌀 변화", "변화구가 크게 휘어요"], ["sta", "🔋 체력", "공을 많이 던져도 덜 지쳐요"]]
+        : [["pow", "💪 파워", "멀리 날려요 (홈런)"], ["con", "🎯 정확", "공을 잘 맞혀요 · 딱! 칸이 넓어요"], ["spd", "👟 주루", "빨리 달려요"], ["def", "🧤 수비", "공을 잘 잡아요"], ["arm", "🚀 어깨", "멀리·세게 던져요"]];
+      const big = (window.BB3D && BB3D.ready() && BB3D.portrait(c0, 0x4c6ef5, 320)) ? `<img src="${BB3D.portrait(c0, 0x4c6ef5, 320).toDataURL()}" alt="">` : `<span>${c0.e}</span>`;
+      return `<div class="ab-det" data-detx><div class="ab-dbox" style="--rc:${R.c};--rg:${R.g}">
+        <button class="ab-x" data-detx>✕</button>
+        <div class="ab-dl"><div class="ab-dpic">${big}</div><div class="ab-dovr"><b>${c.ovr}</b><small>종합</small></div>
+          <h3>${esc(c0.n)}${c.lv ? ` <em>+${c.lv}</em>` : ""}</h3><div class="ab-dr">${R.s} ${R.n} · ${PN[c0.pos]}${c0.pos !== "P" ? ` · ${c0.hand === "L" ? "왼손 타자" : "오른손 타자"}` : ""}</div></div>
+        <div class="ab-dr2"><h4>📊 능력치 <small>회색 = 기본 · 초록 = 스킬로 더해진 만큼</small></h4>
+          ${ST_.map(([k, n, d]) => { const b = c.base[k], v = c[k], plus = v - b; return `<div class="ab-st"><b>${n}</b><div class="ab-bar"><s style="width:${b}%"></s>${plus > 0 ? `<i style="left:${b}%;width:${plus}%"></i>` : ""}</div><em>${v}${plus > 0 ? `<small>+${plus}</small>` : ""}</em><p>${d}</p></div>`; }).join("")}
+          ${c.pos === "P" ? `<h4>⚾ 던질 수 있는 공 <small>${c.pit.length}가지</small></h4><div class="ab-pits">${c.pit.map(p => `<span>${PT[p].e} ${PT[p].n}</span>`).join("")}</div>` : ""}
+          <h4>✨ 스킬 · 특성 <small>강화 +3부터 등급이 한 칸 올라가요</small></h4>
+          ${(c.sk || []).map(s => { const d = SK[s.k]; return `<div class="ab-skd g${s.g}"><span class="ab-ske">${d.e}</span><div><b>${esc(s.nm || d.n)}</b> <i class="g${s.g}">${GN[s.g]}</i><p>${d.d(skv(s))}${d.w ? " · 🔔 그때만 켜져요" : " · 늘 켜져 있어요"}</p></div></div>`; }).join("") || "<p>스킬이 없어요</p>"}
+        </div></div></div>`; },
     pickList(q){ const p = this.pick, cur = team(q)[p];
       const L = Object.keys(q.c).filter(id => BY[id] && q.c[id] > 0 && canPlay(BY[id], p)).map(id => BY[id]).sort((a, b) => (b.pos === p) - (a.pos === p) || stat(b, lvOf(q, b.id)).ovr - stat(a, lvOf(q, a.id)).ovr);
       return `<div class="ab-pick"><h4>${PN[p]} 자리에 넣을 선수 <small>${L.length ? "카드를 눌러요" : "아직 이 자리 카드가 없어요 · 🎁 뽑기에서 모아요!"}</small></h4>
         <div class="ab-grid">${cardHTML(ST[p], {cls: cur === ST[p].id ? "cur" : "", data: ` data-put="${p}:"`})}${L.map(c => cardHTML(c, {lv: lvOf(q, c.id), cnt: q.c[c.id], cls: (cur === c.id ? "cur" : "") + (c.pos !== p ? " off" : ""), data: ` data-put="${p}:${c.id}"`})).join("")}</div></div>`; },
     async click(e){
-      const t = e.target; if (t.id === "abShop" || t.closest("[data-x]")) return this.close();
+      const t = e.target;
+      const dt = t.closest("[data-det]"); if (dt){ e.stopPropagation(); this.det = dt.dataset.det.split(":"); return this.paint(); }
+      if (this.det && (t.closest("[data-detx]") && (t.classList.contains("ab-det") || t.closest("button[data-detx]")))){ this.det = null; return this.paint(); }
+      if (this.det && t.closest(".ab-dbox")) return;
+      if (t.id === "abShop" || t.closest("[data-x]")) return this.close();
       const tb = t.closest("[data-tab]"); if (tb){ this.tab = tb.dataset.tab; this.res = null; this.pick = null; this.msg = ""; return this.paint(); }
       if (t.closest("[data-res-x]")){ this.res = null; return this.paint(); }
       const fl = t.closest("[data-flt]"); if (fl){ this.flt = fl.dataset.flt; return this.paint(); }
@@ -226,7 +311,26 @@ const ABC = (() => {
 .abc-st s{display:block;height:6px;border-radius:4px;background:linear-gradient(90deg,var(--rc),#fff)}.abc-st em{font-style:normal;text-align:right;font-weight:bold}
 .abc-pit{font-size:10.5px;color:#ffe8cc;text-align:center;margin-top:4px}
 .abc-cnt{position:absolute;right:6px;bottom:4px;font:13px "Jua";color:#ffe066}.abc-new{position:absolute;left:6px;bottom:5px;background:#fa5252;font:12px "Jua";padding:1px 8px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
-.abc.lock{filter:grayscale(.8) brightness(.6);cursor:default}.abc.cur{outline:4px solid #69db7c}.abc.off{opacity:.85}
+.abc.lock{filter:grayscale(.8) brightness(.6);cursor:default}
+.abc-e{display:block}.abc-img{display:block;width:84px;height:84px;margin:-6px auto -4px;object-fit:contain;filter:drop-shadow(0 5px 6px rgba(0,0,0,.5))}
+.abc-sks{display:flex;justify-content:center;gap:3px;min-height:22px;margin:1px 0 2px}.abc-sk{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;background:rgba(0,0,0,.45);border:2px solid #adb5bd}
+.abc-sk.g2,.ab-skd.g2 .ab-ske{border-color:#4dabf7}.abc-sk.g3,.ab-skd.g3 .ab-ske{border-color:#b197fc;box-shadow:0 0 6px #b197fc}.abc-sk.g4,.ab-skd.g4 .ab-ske{border-color:#ffd43b;box-shadow:0 0 8px #ffd43b}
+.abc-i{position:absolute;right:4px;top:30px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(0,0,0,.45);cursor:pointer;font-size:14px;padding:0}
+.ab-det{position:fixed;inset:0;z-index:9100;background:rgba(5,4,18,.72);display:flex;align-items:center;justify-content:center;padding:12px}
+.ab-dbox{position:relative;width:min(860px,100%);max-height:100%;overflow:auto;display:grid;grid-template-columns:300px 1fr;gap:18px;background:linear-gradient(160deg,var(--rg),#0d1426 60%);border:3px solid var(--rc);border-radius:24px;padding:18px;box-shadow:0 0 40px rgba(0,0,0,.6)}
+.ab-dbox>.ab-x{position:absolute;right:8px;top:6px}
+.ab-dl{text-align:center;position:relative}.ab-dpic{border-radius:18px;background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.18),transparent 70%)}.ab-dpic img{width:100%;max-width:280px;display:block;margin:auto}.ab-dpic span{font-size:140px;line-height:1.6}
+.ab-dovr{position:absolute;left:4px;top:4px;background:rgba(0,0,0,.5);border:2px solid var(--rc);border-radius:14px;padding:4px 10px;line-height:1}.ab-dovr b{font:34px "Jua";color:var(--rc);display:block}.ab-dovr small{font-size:12px}
+.ab-dl h3{font:28px "Jua";margin:6px 0 2px}.ab-dl h3 em{color:#69db7c;font-style:normal}.ab-dr{color:var(--rc);font-size:15px}
+.ab-dr2 h4{font:19px "Jua";margin:10px 0 6px}.ab-dr2 h4 small{font:13px "Gowun Dodum";color:#a5b4fc;margin-left:6px}
+.ab-st{display:grid;grid-template-columns:78px 1fr 58px;align-items:center;gap:8px;margin:3px 0}.ab-st b{font:16px "Jua"}.ab-st p{grid-column:2/4;margin:-3px 0 4px;font-size:12px;color:#a5b4fc}
+.ab-bar{position:relative;height:12px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden}.ab-bar s{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#868e96,#dee2e6)}.ab-bar i{position:absolute;top:0;bottom:0;background:#51cf66}
+.ab-st em{font:20px "Jua";font-style:normal;text-align:right}.ab-st em small{font-size:13px;color:#69db7c;margin-left:2px}
+.ab-pits{display:flex;flex-wrap:wrap;gap:6px}.ab-pits span{background:rgba(255,255,255,.08);border-radius:10px;padding:4px 10px;font:15px "Jua"}
+.ab-skd{display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,.05);border-radius:14px;padding:8px 10px;margin:6px 0}.ab-ske{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:22px;border:3px solid #adb5bd;background:rgba(0,0,0,.35)}
+.ab-skd b{font:18px "Jua"}.ab-skd i{font:12px "Jua";font-style:normal;padding:1px 8px;border-radius:8px;background:#495057;margin-left:4px}.ab-skd i.g2{background:#1971c2}.ab-skd i.g3{background:#7048e8}.ab-skd i.g4{background:linear-gradient(90deg,#f59f00,#fab005);color:#2b1a00}
+.ab-skd p{margin:2px 0 0;font-size:14px;color:#dbe4ff}
+@media (max-width:760px){.ab-dbox{grid-template-columns:1fr}.ab-dpic img{max-width:200px}}.abc.cur{outline:4px solid #69db7c}.abc.off{opacity:.85}
 .abc.flip{animation:abFlip .55s both}@keyframes abFlip{0%{transform:rotateY(90deg) scale(.6);opacity:0}100%{transform:none;opacity:1}}
 .ab-team{display:grid;grid-template-columns:1.6fr 1fr;gap:14px}
 .ab-field{position:relative;aspect-ratio:1.25;border-radius:18px;background:radial-gradient(circle at 50% 92%,#c98b52 0 18%,transparent 18.5%),radial-gradient(circle at 50% 62%,#c98b52 0 27%,transparent 27.5%),linear-gradient(180deg,#2f9e44,#237a35)}
@@ -240,6 +344,6 @@ const ABC = (() => {
 @media (max-width:760px){.ab-packs{grid-template-columns:1fr}.ab-team{grid-template-columns:1fr}.ab-field{aspect-ratio:.92}.ab-slot{width:72px;padding:2px 2px 3px;border-radius:10px}.ab-slot span{font-size:22px}.ab-slot b{font-size:11px}.ab-slot small{font-size:9px}.ab-tabs button{font-size:15px;padding:7px 10px;white-space:nowrap}.ab-box{padding:12px}.ab-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}.ab-hd h2{font-size:21px}}`;
       document.head.appendChild(s); }
   };
-  return {POS, PN, PS, PT, RAR, ALL, BY, ST, stat, team, teamCards, order, power, cpuTeam, of, lvOf, canPlay, cardHTML, UI, COST1, COST10};
+  return {SK, GN, GC, skv, POS, PN, PS, PT, RAR, ALL, BY, ST, stat, team, teamCards, order, power, cpuTeam, of, lvOf, canPlay, cardHTML, UI, COST1, COST10};
 })();
 window.ABC = ABC;

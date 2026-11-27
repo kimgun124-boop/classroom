@@ -43,11 +43,22 @@ NG.defs.ab = () => {
   const batter = () => TM[off()].ord[S.bo[off()] % TM[off()].ord.length], pitcher = () => TM[dfn()].P;
   function say(t, sub = "", c = "#fff", f = 90, big = 0){ S.msg = [t, sub, c, f, big]; }
 
+  /* ---------- ✨ 스킬 (조건이 맞을 때만 켜지는 것들) ---------- */
+  function skCond(w){ return !w || (w === "s2" ? S.s === 2 : w === "risp" ? !!(S.bs[1] || S.bs[2]) : w === "lead" ? (S.pa || 0) === 0 : w === "last" ? S.inn >= INN : w === "late" ? S.inn >= 2 : false); }
+  function skApply(c){ const o = Object.assign({}, c), fired = [];
+    (c.sk || []).forEach(s => { const d = ABC.SK[s.k], v = ABC.skv(s);
+      if (["wp", "eye", "gauge", "bait"].includes(d.k)){ o[d.k] = (o[d.k] || 0) + v; return; }
+      if (!d.w || !skCond(d.w)) return; d.k.split(",").forEach(k => { o[k] = Math.min(120, (o[k] || 60) + v); }); fired.push([d.e, s.nm || d.n, s.g]); });
+    o.fired = fired; return o; }
+  /* 발동한 스킬은 타자·투수 카드 위에 잠깐 보여요 (타석마다 한 번) */
+  function skShow(){ const k = `${S.inn}${S.top}${S.bo[off()]}${S.s}${S.bs.map(Boolean).join("")}`; if (S.skK === k) return; S.skK = k;
+    const b = skApply(batter()).fired, p = skApply(pitcher()).fired; if (b.length || p.length){ S.skp = [b, p, 120]; tone(1046, 1568, .12, "triangle", .07); } }
+
   /* ---------- 공 던지기 ---------- */
   function fatigue(){ const P = pitcher(); return clamp((S.pc[dfn()] - (25 + P.sta*.35))/40, 0, 1); }
   /* gr: 게이지 결과 2 완벽 · 1 좋음 · 0 실투 */
   function mkPitch(type, cx, cy, acc, gr = 1){
-    const P = pitcher(), t = PT[type] || PT.fb, fat = fatigue();
+    const P = skApply(pitcher()), t = PT[type] || PT.fb, fat = fatigue();
     if (gr === 0){ cx *= .45; cy = .78 + (cy - .78)*.45; }   // 😅 실투: 가운데로 몰려요
     const kmh = (100 + P.vel*(1 - fat*.08)*.5)*t.sp*(gr === 2 ? 1.03 : gr === 0 ? .97 : 1), FT = 17.4/(kmh/3.6)*1.55;
     const sig = (.16 - P.ctl*(1 - fat*.25)*.0013)*(.55 + clamp(acc, 0, 1)*1.1)*(gr === 2 ? .7 : 1);
@@ -63,7 +74,7 @@ NG.defs.ab = () => {
     const e = pzPos(pz, FT), k = (u - 1)*REL[2]; return [e[0] + (pz[6]*.4)*(u - 1), e[1] + (pz[7]*.6 - .2)*(u - 1), -k];
   }
   const inZone = (x, y) => Math.abs(x) <= ZX && y >= ZY0 && y <= ZY1;
-  function startPitch(type, x, y, acc, gr = 1){ S.pz = mkPitch(type, x, y, acc, gr); S.ph = "wind"; S.pt = 0; swing = null; cpuSw = null; sel.set = false;
+  function startPitch(type, x, y, acc, gr = 1){ skShow(); S.pz = mkPitch(type, x, y, acc, gr); S.ph = "wind"; S.pt = 0; swing = null; cpuSw = null; sel.set = false;
     say(["😅 실투!", "👍 좋은 공", "🎯 완벽한 공!"][gr], "", ["#ff8787", "#b2f2bb", "#ffe066"][gr], 46);
     if (!human(off())) planCpuSwing(); }
   function cpuPitch(){
@@ -81,12 +92,14 @@ NG.defs.ab = () => {
   /* ---------- 치기 ---------- */
   /* 🏏 (2026.11.27) 타이밍 싸움: 어디를 칠지는 타자가 알아서, 언제 치는지가 전부!
      '딱!' 칸(완벽) = ±(0.015 + 정확×0.0003)초 · 맞힐 수 있는 칸 = 그 2.4배 정도 (정확 60 → ±0.09초) → 정확이 높은 타자는 칸이 넓어요 */
-  const Wp = B => .015 + B.con*.0003, Wg = B => Wp(B)*2.4 + .01;
-  function contact(ts, sx, sy, B, pz){
+  const Wp = B => (.015 + B.con*.0003)*(1 + (B.wp || 0)), Wg = B => Wp(B)*2.4 + .01;
+  function contact(ts, sx, sy, B0, pz){
+    const B = skApply(B0), Pk = skApply(pitcher());   // ✨ 타자 스킬(정확·파워·딱 칸·선구안) · 투수 유인구
     const dt = ts - pz[8], ad = Math.abs(dt), wp = Wp(B), wg = Wg(B), tm = ad <= wp ? 1 : dt < 0 ? 0 : 2;
     if (ad > wg) return {hit: false, tm};
     const out = Math.max(0, Math.abs(pz[2]) - ZX, ZY0 - pz[3], pz[3] - ZY1), brk = Math.hypot(pz[6], pz[7])*(PT[pz[1]] && PT[pz[1]].wob ? 1.6 : 1);
     let fool = (out*2.4 + brk*.62*(1 - B.con/130))*(1 + .8*ad/wg) + (pz[12] === 0 ? -.12 : pz[12] === 2 ? .06 : 0) - .04;   // 😵 볼·큰 변화구에 속아요 (실투는 잘 보여요)
+    if (out > 0) fool += Pk.bait || 0; fool *= 1 - (B.eye || 0);
     if (tm === 1) fool *= .35; if (Math.random() < fool) return {hit: false, tm: 3};
     const q = clamp(1 - .75*(ad/wg)**1.6 - out*1.5, .12, 1), ev = (28 + B.pow*.28)*(.6 + .4*q)*(tm === 1 ? 1.06 : 1);
     const la = clamp((tm === 1 ? 22 : 14) + (pz[3] - .78)*55 + (1 - q)*rnd(-30, 24) + rnd(-7, 7), -20, 70);   // 높은 공은 뜨고, 낮은 공은 굴러요
@@ -94,7 +107,7 @@ NG.defs.ab = () => {
     return {hit: true, q, ev, la, sp, tm};
   }
   function planCpuSwing(){
-    const pz = S.pz, B = batter(), l = lv(), Tz = inZone(pz[2], pz[3]), s = S.s;
+    const pz = S.pz, B = skApply(batter()), l = lv(), Tz = inZone(pz[2], pz[3]), s = S.s;
     let p = Tz ? (s === 2 ? .92 : .7)*[.85, 1, 1.05][l] : (s === 2 ? .4 : .24)*[1.25, 1, .7][l];
     if (S.b === 3 && !Tz) p *= .5; if (Math.random() > p){ cpuSw = null; return; }
     const k = [.95, .75, .6][l], brk = !["fb", "ts", "rf"].includes(pz[1]);
@@ -108,7 +121,7 @@ NG.defs.ab = () => {
 
   /* ---------- 볼카운트 ---------- */
   function lineOf(c){ const k = off() + ":" + c.id; return S.ln[k] || (S.ln[k] = [0, 0]); }
-  function endPA(kind, hit){ const B = batter(); const L = lineOf(B); if (kind !== "walk") L[0]++; if (hit) L[1]++; S.bo[off()]++; S.b = S.s = 0; }
+  function endPA(kind, hit){ S.pa = (S.pa || 0) + 1; const B = batter(); const L = lineOf(B); if (kind !== "walk") L[0]++; if (hit) L[1]++; S.bo[off()]++; S.b = S.s = 0; }
   function callPitch(k){
     if (k === "ball"){ S.b++; if (S.b >= 4){ endPA("walk"); walk(); return; } say("볼", `${S.b}볼 ${S.s}스트라이크`, "#a5d8ff", 55); }
     else if (k === "foul"){ if (S.s < 2) S.s++; say("파울!", `${S.b}볼 ${S.s}스트라이크`, "#ffe066", 60); }
@@ -277,7 +290,7 @@ NG.defs.ab = () => {
     if (gameOver()) return;
     if (S.o >= 3){ S.ph = "change"; S.pt = 0; const wasTop = S.top;
       if (wasTop){ S.top = false; } else { S.top = true; S.inn++; }
-      S.o = S.b = S.s = 0; S.bs = [0, 0, 0]; S.pz = 0; bgKey = "";
+      S.o = S.b = S.s = 0; S.bs = [0, 0, 0]; S.pz = 0; S.pa = 0; bgKey = "";
       say(S.top ? `${S.inn}회 초` : `${S.inn}회 말`, `${TN[off()]} ${who(noOf_(NG.sids[off()]))} 공격`, "#fff", 110, 1); return; }
     toReady();
   }
@@ -300,7 +313,7 @@ NG.defs.ab = () => {
   function step(){
     if (net() === "guest"){ gstep(); return; }
     S.tm = [TM[0].D, TM[1].D];
-    if (S.msg && S.msg[3] > 0) S.msg[3]--;
+    if (S.msg && S.msg[3] > 0) S.msg[3]--; if (S.skp && S.skp[2] > 0) S.skp[2]--;
     S.pt++; ringT += DT;
     if (S.ph === "intro"){ if (S.pt > (net() === "host" && !remD ? 360 : 200)) { say("1회 초", `${TN[1]} ${who(noOf_(NG.sids[1]))} 공격`, "#fff", 110, 1); S.ph = "change"; S.pt = 1; } return; }
     if (S.ph === "change"){ if (S.pt > 110) toReady(); return; }
@@ -332,7 +345,7 @@ NG.defs.ab = () => {
     return {ph: S.ph, pt: S.pt, inn: S.inn, top: S.top, o: S.o, b: S.b, s: S.s, sc: S.sc, h: S.h, bo: S.bo, bs: S.bs, msg: S.msg, pz: S.pz, sw: S.sw, tm: S.tm, pc: S.pc, ln: S.ln, fx: S.fx,
       ball: ball && (S.ph === "field" || S.ph === "res") ? [+ball.x.toFixed(2), +ball.y.toFixed(2), +ball.z.toFixed(2)] : 0,
       F: (S.ph === "field" || S.ph === "res") && Fd.length ? Fd.map(f => [f.c.id, +f.x.toFixed(2), +f.z.toFixed(2), f.has ? 1 : 0]) : 0,
-      R: (S.ph === "field" || S.ph === "res") && Rn.length ? Rn.map(r => [r.c.id, r.tm, +r.p.toFixed(3), r.out]) : 0, sel: S.ph === "ready" ? [sel.pt, sel.x, sel.y, sel.set ? 1 : 0] : 0, dv: S.ph === "field" ? S.dv : 0};
+      R: (S.ph === "field" || S.ph === "res") && Rn.length ? Rn.map(r => [r.c.id, r.tm, +r.p.toFixed(3), r.out]) : 0, sel: S.ph === "ready" ? [sel.pt, sel.x, sel.y, sel.set ? 1 : 0] : 0, dv: S.ph === "field" ? S.dv : 0, skp: S.skp && S.skp[2] > 0 ? S.skp : 0};
   }
   function gstep(){ if (!V) return; if (V.pz && V.ph === "fly"){ if (gLocal.id !== V.pz[0]){ gLocal.id = V.pz[0]; gLocal.t0 = performance.now() - V.pz[11]*1000; } } if (mySw > 0) mySw--; ringT += DT; }
   const flightT = () => net() === "guest" && V && V.pz ? (V.ph === "fly" && gLocal.id === V.pz[0] ? (performance.now() - gLocal.t0)/1000 : V.pz[11]) : (S.pz ? S.pz[11] : 0);
@@ -428,27 +441,65 @@ NG.defs.ab = () => {
   /* ---------- 그리기 ---------- */
   function teams(Vv){ return [Vv.tm[0] ? teamOf(Vv.tm[0]) : null, Vv.tm[1] ? teamOf(Vv.tm[1]) : null]; }
   const cardById = (T, id) => { for (const t of T) if (t) for (const p of ABC.POS) if (t.C[p].id === id) return t.C[p]; const c = ABC.BY[id]; return c ? ABC.stat(c) : ABC.ST.P; };
+  /* ---------- 🏟️ 3D 그리기 (BB3D가 준비되면) ---------- */
+  const use3D = () => window.BB3D && BB3D.ready() && !NG.no3d;
+  const hexC = i => parseInt(TC[i].slice(1), 16);
+  const MV = new Map();   // 선수 움직임 (달리기 자세용)
+  function mover(key, x, z){ let m = MV.get(key); const now = ringT;
+    if (!m || now - m.t > .5){ m = {x, z, t: now, ph: Math.random()*6, sp: 0, fx: 0, fz: 1}; MV.set(key, m); }
+    const dx = x - m.x, dz = z - m.z, d = Math.hypot(dx, dz); m.sp = m.sp*.7 + d*.3;
+    if (d > .01){ m.fx = dx/d; m.fz = dz/d; } m.ph += Math.min(.5, d*2.2) + (m.sp > .02 ? .05 : 0); m.x = x; m.z = z; m.t = now; return m; }
+  function board3(Vv){ return {a: `✈️ ${who(noOf_(NG.sids[1]))}`, sa: Vv.sc[1], h: `🏠 ${who(noOf_(NG.sids[0]))}`, sh: Vv.sc[0], i: `${Vv.inn}회 ${Vv.top ? "초" : "말"} · ${Vv.o}아웃`}; }
+  function field3D(g, Vv, T, df, b){
+    const ch = [], ballP = Vv.ball || [0, 1, 0];
+    Vv.F.forEach(([id, x, z, has]) => { const c = cardById(T, id), k = "f" + df + id, m = mover(k, x, z), run = m.sp > .03;
+      ch.push({key: k, card: c, team: hexC(df), x, z, fx: x + (run ? m.fx : ballP[0] - x), fz: z + (run ? m.fz : ballP[2] - z), pose: has ? "catch" : run ? "run" : "ready", t: run ? m.ph : ringT, glove: 1, s: 1.9}); });
+    Vv.R.forEach(([id, tm, p, out]) => { const c = cardById(T, id), [x, z] = bpos(p), k = "r" + tm + id, m = mover(k, x, z), [nx, nz] = bpos(Math.floor(p) + 1);
+      ch.push({key: k, card: c, team: hexC(tm), x: x + .6, z: z - .6, fx: out ? x - 10 : nx, fz: out ? z : nz, pose: out ? "idle" : m.sp > .01 ? "run" : "idle", t: m.ph, s: 1.9, hide: out && p % 1 < .02 && Vv.ph === "res"}); });
+    const cv = BB3D.frame({W, H, k: NG.k || 1, cam: {p: [FC.x, FC.y, FC.z], t: [FC.tx, 0, FC.tz], fov: 52, cy: H*.48}, chars: ch, ball: Vv.ball ? ballP : null, shadowAt: [ballP[0], 0, ballP[2]], shadowR: 34, board: board3(Vv)});
+    g.drawImage(cv, 0, 0, W, H);
+    // 공 가진 선수 · 달리는 선수 이름표
+    ch.forEach(c => { if (c.hide || !(c.pose === "catch" || c.key[0] === "r")) return; const p = BB3D.project(c.x, 4.4, c.z, W, H); if (!p) return;
+      const t = (c.pose === "catch" ? "🧤 " : "🏃 ") + c.card.n; g.font = `bold 17px ${BD_FONT}`; const w = g.measureText(t).width + 16;
+      rrect(g, p[0] - w/2, p[1] - 14, w, 26, 10); g.fillStyle = "rgba(10,14,32,.72)"; g.fill(); outlined(g, t, p[0], p[1], 17, c.key[0] === "r" ? (c.key[1] === "0" ? "#ffc9c9" : "#a5d8ff") : "#ffe066"); });
+  }
+  function bat3D(g, Vv, T, of_, df, bat, pit){
+    const ch = [], D = T[df];
+    if (D) ["CF", "LF", "RF", "SS", "2B", "3B", "1B"].forEach(p => { const [x, z] = FP[p]; ch.push({key: "f" + df + D.C[p].id, card: D.C[p], team: hexC(df), x, z, fx: 0, fz: 0, pose: "ready", t: ringT + x, glove: 1, s: "LFCFRF".includes(p) ? 1.7 : 1.25}); });
+    if (pit){ const t = Vv.ph === "wind" ? clamp(Vv.pt/42, 0, 1)*.88 : Vv.ph === "fly" ? Math.min(1, .88 + flightT()*.5) : 0;
+      ch.push({key: "p" + df + pit.id, card: pit, team: hexC(df), x: 0, y: .22, z: 18.3, fx: 0, fz: 0, pose: "pitch", t, glove: 1}); }
+    if (bat){ const L = bat.hand === "L", swT = net() === "guest" && mySw ? (24 - mySw)/24 : Vv.sw ? clamp((flightT() - Vv.sw[0] + .12)/.28, 0, 1) : 0;
+      ch.push({key: "b" + of_ + bat.id, card: bat, team: hexC(of_), x: L ? 1.12 : -1.12, z: .3, fx: 0, fz: .3, L, pose: swT > 0 ? "swing" : "stance", t: swT > 0 ? swT : ringT, bat: 1}); }
+    let ballP = null, trail = null;
+    if ((Vv.ph === "fly" || Vv.ph === "foulfx") && Vv.pz){
+      if (Vv.ph === "foulfx"){ const k = Vv.pt/40, fx = Vv.fx || [1, 40]; ballP = [fx[0]*k*6, 1 + k*8*(fx[1] > 60 ? 1.8 : .6), -k*4 + 1]; }
+      else { const t = flightT(), q = pzPos(Vv.pz, t); if (q[2] > -2.5){ ballP = q; trail = [1, 2, 3, 4].map(j => pzPos(Vv.pz, Math.max(0, t - j*.025))); } } }
+    const cv = BB3D.frame({W, H, k: NG.k || 1, cam: {p: [0, 2.05, -5.4], t: [0, .5, 18.4], fov: 25, cy: H*.52}, chars: ch, ball: ballP, trail, shadowAt: [0, 0, 9], shadowR: 14, board: board3(Vv)});
+    g.drawImage(cv, 0, 0, W, H);
+  }
+  const PIC = (c, side) => (use3D() && BB3D.portrait(c, hexC(side), 192)) || emo(c.e);
   function draw(g){
     const Vv = net() === "guest" ? V : view(); if (!Vv || !Vv.tm || !Vv.tm[0]){ g.fillStyle = "#0d1426"; g.fillRect(0, 0, W, H); outlined(g, "⚾ 경기장으로 가는 중…", W/2, H/2, 40, "#fff"); return; }
     const T = teams(Vv), of_ = Vv.top ? 1 : 0, df = 1 - of_;
     if (Vv.ph === "intro"){ drawIntro(g, Vv, T); drawMsg(g, Vv); return; }
     const fieldView = (Vv.ph === "field" || Vv.ph === "res") && Vv.F;
     if (fieldView){
-      const b = Vv.ball || [0, 1, 0], C = fieldCam(b[0], b[2]); drawField(g, C, false);
+      const b = Vv.ball || [0, 1, 0], C = fieldCam(b[0], b[2]);
+      if (use3D()) field3D(g, Vv, T, df, b); else { drawField(g, C, false);
       const L = [];
       Vv.F.forEach(([id, x, z, has]) => L.push({x, z, e: cardById(T, id).e, col: TC[df], has}));
       Vv.R.forEach(([id, tm, p, out]) => { if (out && p % 1 < .02 && Vv.ph === "res") return; const [x, z] = bpos(p); L.push({x: x + .6, z: z - .6, e: cardById(T, id).e, col: TC[tm], alpha: out ? .45 : 1}); });
       L.forEach(o => { const c = toC(C, o.x, 0, o.z); o.d = c[2]; }); L.sort((a, b) => b.d - a.d);
       L.forEach(o => sprite(g, C, o.x, o.z, o.e, o.col, 3.4, {alpha: o.alpha}));
-      if (Vv.ball) ballAt(g, C, b[0], b[1], b[2]);
+      if (Vv.ball) ballAt(g, C, b[0], b[1], b[2]); }
       if (Vv.ph === "field"){ const r = Math.hypot(b[0], b[2]); outlined(g, `${Math.round(r)}m`, W - 90, 120, 26, "#fff"); }
       if (Vv.dv) drawDive(g, Vv, T, df);
     } else {
-      g.drawImage(batBg(Vv, T), 0, 0, W, H);
-      const D = T[df], O = T[of_], bat = O ? O.ord[Vv.bo[of_] % O.ord.length] : null, pit = D ? D.P : null;
+      const D = T[df], O = T[of_], bat = O ? O.ord[Vv.bo[of_] % O.ord.length] : null, pit = D ? D.P : null, D3 = use3D();
+      if (D3) bat3D(g, Vv, T, of_, df, bat, pit); else g.drawImage(batBg(Vv, T), 0, 0, W, H);
       // 투수 (던지는 몸짓)
       const wind = Vv.ph === "wind" ? Vv.pt/42 : Vv.ph === "fly" ? 1 : 0;
-      if (pit){ const lift = Math.sin(clamp(wind, 0, 1)*Math.PI)*.5; const p = sprite(g, BC, 0, 18.1, pit.e, TC[df], 2.3 + lift*.25, {rot: wind > .6 && wind < 1 ? -.5 : wind >= 1 && Vv.ph === "fly" && flightT() < .15 ? .4 : 0}); }
+      if (pit && !D3){ const lift = Math.sin(clamp(wind, 0, 1)*Math.PI)*.5; const p = sprite(g, BC, 0, 18.1, pit.e, TC[df], 2.3 + lift*.25, {rot: wind > .6 && wind < 1 ? -.5 : wind >= 1 && Vv.ph === "fly" && flightT() < .15 ? .4 : 0}); }
       // 스트라이크존
       const Z = zoneScr(); g.strokeStyle = "rgba(255,255,255,.55)"; g.lineWidth = 2; g.strokeRect(Z.x, Z.y, Z.w, Z.h);
       g.strokeStyle = "rgba(255,255,255,.18)"; g.lineWidth = 1; g.beginPath(); for (let i = 1; i < 3; i++){ g.moveTo(Z.x + Z.w*i/3, Z.y); g.lineTo(Z.x + Z.w*i/3, Z.y + Z.h); g.moveTo(Z.x, Z.y + Z.h*i/3); g.lineTo(Z.x + Z.w, Z.y + Z.h*i/3); } g.stroke();
@@ -459,12 +510,12 @@ NG.defs.ab = () => {
           g.lineWidth = 2; g.beginPath(); g.moveTo(sx - 24, sy); g.lineTo(sx - 8, sy); g.moveTo(sx + 8, sy); g.lineTo(sx + 24, sy); g.moveTo(sx, sy - 24); g.lineTo(sx, sy - 8); g.moveTo(sx, sy + 8); g.lineTo(sx, sy + 24); g.stroke(); }
       }
       // 공
-      if ((Vv.ph === "fly" || Vv.ph === "foulfx") && Vv.pz){ const t = Vv.ph === "foulfx" ? Vv.pz[8] : flightT();
+      if (!D3 && (Vv.ph === "fly" || Vv.ph === "foulfx") && Vv.pz){ const t = Vv.ph === "foulfx" ? Vv.pz[8] : flightT();
         if (Vv.ph === "foulfx"){ const k = Vv.pt/40, fx = Vv.fx || [1, 40]; ballAt(g, BC, fx[0]*k*6, 1 + k*8*(fx[1] > 60 ? 1.8 : .6), -k*4 + 1); }
         else { for (let j = 3; j >= 1; j--){ const q = pzPos(Vv.pz, Math.max(0, t - j*.03)), p = P(BC, ...q); if (p){ g.globalAlpha = .12*(4 - j); g.fillStyle = "#fff"; g.beginPath(); g.arc(p[0], p[1], Math.max(2, .04*p[2]), 0, 7); g.fill(); } } g.globalAlpha = 1;
           const q = pzPos(Vv.pz, t); if (q[2] > -2.5) ballAt(g, BC, q[0], q[1], q[2]); } }
       // 타자 + 방망이
-      if (bat){ const L = bat.hand === "L", bx = L ? 1.05 : -1.05; const swT = net() === "guest" && mySw ? (24 - mySw)/24 : Vv.sw ? clamp((flightT() - Vv.sw[0] + .1)/.25, 0, 1) : 0;
+      if (bat && !D3){ const L = bat.hand === "L", bx = L ? 1.05 : -1.05; const swT = net() === "guest" && mySw ? (24 - mySw)/24 : Vv.sw ? clamp((flightT() - Vv.sw[0] + .1)/.25, 0, 1) : 0;
         const p = P(BC, bx, 0, .15); if (p){ const sz = 1.45*p[2]; g.globalAlpha = .9; g.drawImage(emo(bat.e), p[0] - sz/2, p[1] - sz*.92, sz, sz); g.globalAlpha = 1;
           const hx = p[0] + (L ? -sz*.18 : sz*.18), hy = p[1] - sz*.5, ang = (L ? Math.PI + .6 : -.6) + (L ? 1 : -1)*swT*2.6;
           g.strokeStyle = "#c8915a"; g.lineCap = "round"; g.lineWidth = sz*.06; g.beginPath(); g.moveTo(hx, hy); g.lineTo(hx + Math.cos(ang - Math.PI/2)*sz*.55, hy + Math.sin(ang - Math.PI/2)*sz*.55); g.stroke(); g.lineCap = "butt"; } }
@@ -497,7 +548,8 @@ NG.defs.ab = () => {
   /* 🎯 투구 게이지: 막대가 왔다갔다 → 금색 칸(완벽) · 초록 칸(좋음) · 나머지(실투) */
   function arm(s){ if (s.set) return; s.set = true; s.g0 = ringT; s.gc = .2 + Math.random()*.6; }
   function gauge(s, pit, Vv){ const t = PT[s.pt] || PT.fb, df = Vv ? (Vv.top ? 0 : 1) : 0, fat = pit && Vv ? clamp(((Vv.pc || [0, 0])[df] - (25 + pit.sta*.35))/40, 0, 1) : 0;
-    const spd = .8*(t.d || (s.pt === "fb" ? 1 : 1.15))*(1 + fat*.6), u = ((ringT - (s.g0 || 0))*spd) % 2;
+    const rh = pit ? (pit.sk || []).filter(q => q.k === "rhythm").reduce((a, q) => a + ABC.skv(q), 0) : 0;
+    const spd = .8*(t.d || (s.pt === "fb" ? 1 : 1.15))*(1 + fat*.6)*(1 - rh), u = ((ringT - (s.g0 || 0))*spd) % 2;
     return {pos: u < 1 ? u : 2 - u, c: s.gc != null ? s.gc : .5, w: .06 + (pit ? pit.ctl : 60)*.0009}; }
   const gradeOf = G => { const d = Math.abs(G.pos - G.c); return d <= G.w/2 ? 2 : d <= G.w*1.6 ? 1 : 0; };
   function drawGauge(g, G){ const bw = 560, bx = W/2 - bw/2, by = H - 96, bh = 30;
@@ -527,16 +579,28 @@ NG.defs.ab = () => {
   }
   function drawCards(g, Vv, bat, pit, of_, df){
     const box = (x, y, w, h, col) => { rrect(g, x, y, w, h, 16); g.fillStyle = "rgba(10,14,32,.78)"; g.fill(); g.lineWidth = 3; g.strokeStyle = col; g.stroke(); };
-    if (bat){ const ln = (Vv.ln || {})[of_ + ":" + bat.id] || [0, 0]; box(16, H - 152, 330, 136, TC[of_]); g.drawImage(emo(bat.e), 22, H - 146, 92, 92);
+    if (bat){ const ln = (Vv.ln || {})[of_ + ":" + bat.id] || [0, 0]; box(16, H - 152, 330, 136, TC[of_]); g.drawImage(PIC(bat, of_), 22, H - 146, 92, 92);
       outlined(g, `${(Vv.bo[of_] % 8) + 1}번 ${ABC.PS[bat.at]} ${bat.hand === "L" ? "좌타" : "우타"}`, 120, H - 132, 18, "#a5d8ff", undefined, "left");
       outlined(g, bat.n + (bat.lv ? ` +${bat.lv}` : ""), 120, H - 104, 26, "#fff", undefined, "left");
       outlined(g, `💪${bat.pow} 🎯${bat.con} 👟${bat.spd}`, 120, H - 74, 20, "#ffe8cc", undefined, "left");
-      outlined(g, `오늘 ${ln[0]}타수 ${ln[1]}안타`, 120, H - 44, 18, "#b2f2bb", undefined, "left"); }
-    if (pit && Vv.ph !== "ready"){ const fat = clamp(((Vv.pc || [0, 0])[df] - (25 + pit.sta*.35))/40, 0, 1); box(W - 300, H - 152, 284, 136, TC[df]); g.drawImage(emo(pit.e), W - 294, H - 146, 84, 84);
+      outlined(g, `오늘 ${ln[0]}타수 ${ln[1]}안타`, 120, H - 44, 18, "#b2f2bb", undefined, "left"); skChips(g, bat, 16, H - 170, Vv.skp && Vv.skp[0]); }
+    if (pit && Vv.ph !== "ready"){ const fat = clamp(((Vv.pc || [0, 0])[df] - (25 + pit.sta*.35))/40, 0, 1); box(W - 300, H - 152, 284, 136, TC[df]); g.drawImage(PIC(pit, df), W - 294, H - 146, 84, 84);
       outlined(g, "투수 " + pit.n, W - 204, H - 120, 22, "#fff", undefined, "left"); outlined(g, `⚡${pit.vel} 🎯${pit.ctl} 🌀${pit.brk}`, W - 204, H - 90, 18, "#ffe8cc", undefined, "left");
       outlined(g, `공 ${(Vv.pc || [0, 0])[df]}개`, W - 204, H - 62, 17, "#ced4da", undefined, "left");
-      g.fillStyle = "rgba(255,255,255,.15)"; g.fillRect(W - 204, H - 44, 170, 10); g.fillStyle = fat > .5 ? "#ff6b6b" : fat > 0 ? "#ffd43b" : "#69db7c"; g.fillRect(W - 204, H - 44, 170*(1 - fat*.8), 10); }
+      g.fillStyle = "rgba(255,255,255,.15)"; g.fillRect(W - 204, H - 44, 170, 10); g.fillStyle = fat > .5 ? "#ff6b6b" : fat > 0 ? "#ffd43b" : "#69db7c"; g.fillRect(W - 204, H - 44, 170*(1 - fat*.8), 10); skChips(g, pit, W - 300, H - 170, Vv.skp && Vv.skp[1]); }
+    skPop(g, Vv);
   }
+  /* ✨ 스킬 표시: 카드 위 동그라미 (테두리 색 = 등급) + 발동하면 반짝 */
+  function skChips(g, c, x, y, fired){
+    (c.sk || []).forEach((q, i) => { const d = ABC.SK[q.k], cx = x + 17 + i*38, on = fired && fired.some(f => f[0] === d.e);
+      g.beginPath(); g.arc(cx, y, 16, 0, 7); g.fillStyle = on ? "rgba(255,224,102,.35)" : "rgba(10,14,32,.85)"; g.fill(); g.lineWidth = on ? 4 : 3; g.strokeStyle = ABC.GC[q.g]; g.stroke();
+      g.font = `18px ${EMOJI}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = "#fff"; g.fillText(d.e, cx, y + 1); });
+  }
+  function skPop(g, Vv){ const k = Vv.skp; if (!k) return; const a = Math.min(1, k[2]/20), up = (120 - k[2])*.15;
+    [[k[0], 181, "left"], [k[1], W - 158, "center"]].forEach(([L, x, al], side) => L.forEach((f, i) => { const t = `✨ ${f[0]} ${f[1]} 발동!`, y = H - 214 - i*36 - Math.min(10, up);
+      g.globalAlpha = a; g.font = `bold 21px ${BD_FONT}`; const w = g.measureText(t).width + 26, x0 = side ? Math.min(W - 12 - w, x - w/2) : 16;
+      rrect(g, x0, y - 17, w, 34, 17); g.fillStyle = "rgba(20,12,40,.88)"; g.fill(); g.lineWidth = 3; g.strokeStyle = ABC.GC[f[2]] || "#ffd43b"; g.stroke();
+      outlined(g, t, x0 + w/2, y, 21, f[2] >= 4 ? "#ffe066" : "#fff"); g.globalAlpha = 1; })); }
   function drawBoard(g, Vv, T){
     rrect(g, 12, 12, 430, 96, 16); g.fillStyle = "rgba(10,14,32,.82)"; g.fill();
     [1, 0].forEach((t, i) => { const y = 38 + i*40, on = (Vv.top ? 1 : 0) === t;
@@ -561,8 +625,8 @@ NG.defs.ab = () => {
       rrect(g, x0, 130, W/2 - 70, 560, 22); g.fillStyle = "rgba(255,255,255,.06)"; g.fill(); g.lineWidth = 3; g.strokeStyle = TC[t]; g.stroke();
       outlined(g, `${TN[t]} ${who(noOf_(NG.sids[t]))}${t === 1 && cpu() ? " 🤖" : ""}`, x0 + 24, 166, 28, "#fff", undefined, "left");
       outlined(g, `💪 전력 ${Tt.pow}`, x0 + W/2 - 100, 166, 24, "#ffe066", undefined, "right");
-      Tt.ord.forEach((c, k) => { const y = 214 + k*48; g.drawImage(emo(c.e), x0 + 24, y - 22, 44, 44); outlined(g, `${k + 1}. ${c.n}${c.lv ? ` +${c.lv}` : ""}`, x0 + 78, y, 22, "#fff", undefined, "left"); outlined(g, `${ABC.PS[c.at]} · ${c.ovr}`, x0 + W/2 - 100, y, 20, "#a5d8ff", undefined, "right"); });
-      const p = Tt.P, y = 214 + 9*48; g.drawImage(emo(p.e), x0 + 24, y - 22, 44, 44); outlined(g, `⚾ ${p.n}`, x0 + 78, y, 22, "#ffe8cc", undefined, "left"); outlined(g, `투수 · ${p.ovr}`, x0 + W/2 - 100, y, 20, "#ffd8a8", undefined, "right"); });
+      Tt.ord.forEach((c, k) => { const y = 214 + k*48; g.drawImage(PIC(c, t), x0 + 20, y - 26, 52, 52); outlined(g, `${k + 1}. ${c.n}${c.lv ? ` +${c.lv}` : ""}`, x0 + 78, y, 22, "#fff", undefined, "left"); outlined(g, `${ABC.PS[c.at]} · ${c.ovr}`, x0 + W/2 - 100, y, 20, "#a5d8ff", undefined, "right"); });
+      const p = Tt.P, y = 214 + 9*48; g.drawImage(PIC(p, t), x0 + 20, y - 26, 52, 52); outlined(g, `⚾ ${p.n}`, x0 + 78, y, 22, "#ffe8cc", undefined, "left"); outlined(g, `투수 · ${p.ovr}`, x0 + W/2 - 100, y, 20, "#ffd8a8", undefined, "right"); });
     outlined(g, "VS", W/2, 400, 60, "#fff");
     if (net() === "host" && !remD) outlined(g, "🌐 친구 팀을 받는 중…", W/2, H - 20, 20, "#ced4da");
   }
@@ -599,6 +663,7 @@ NG.defs.ab = () => {
         TM = [teamOf(d0), teamOf(d1)]; TM[0].D = d0; TM[1].D = d1; S.tm = [d0, d1];
       }
       [...ABC.ALL, ...Object.values(ABC.ST)].forEach(c => emo(c.e));
+      if (window.BB3D && !NG.no3d){ BB3D.reset(); BB3D.load(); } MV.clear();
     },
     step, draw,
     down(x, y){

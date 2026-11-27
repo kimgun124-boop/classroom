@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="arc-build" content="dec699c566">
+<meta name="arc-build" content="2e0627ad27">
 <script>/*! 🎲 우리반 보드게임 · made by 효석쌤 · © 2026 효석쌤 (GitHub: kimgun124-boop). All rights reserved.
    이 프로그램(코드·그림·게임 규칙·화면 구성)의 저작권은 효석쌤에게 있습니다. 허락 없이 복제·수정·배포하거나 다른 주소에 올려 쓸 수 없습니다. */
 (function(){
@@ -25,7 +25,7 @@
 <script>
 /* 🔄 늘 최신 보드게임: 새 버전이 올라오면 저절로 새로 불러와요 (게임 중에는 안 해요) */
 (function(){
-  var B = "dec699c566", K = "arcade.reloaded";
+  var B = "2e0627ad27", K = "arcade.reloaded";
   function saving(){ try { return typeof Store !== "undefined" && Store.saving && Store.saving(); } catch(e){ return false; } }
   function idle(){ var a = document.activeElement; return !(window.ARC && ARC.busy) && !(window.PARTY && PARTY.role) && !saving() && !(a && /INPUT|TEXTAREA/.test(a.tagName) && a.value); }
   function chk(){
@@ -481,6 +481,8 @@ body.big .card .why{font-size:15px}
 .wear svg.batt .lv{fill:#e5484d;stroke:none;animation:battBlink 1s steps(2) infinite}
 @keyframes battBlink{50%{opacity:0}}
 @keyframes flick{0%,40%,46%,52%,100%{background:rgba(20,20,40,0)}42%,48%{background:rgba(20,20,40,.35)}}
+.wear .fluff{border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff 0 30%,#f3f0ea 55%,#ddd6ca 100%);box-shadow:8px 4px 0 -2px #f6f2ea,-6px 6px 0 -3px #efe9df,0 2px 4px rgba(0,0,0,.15)}
+.wear .cone{font-size:30px;line-height:1;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
 .card.dmg .num,.card.dmg .crown{opacity:.85}
 .card.dmg .name,.card.dmg .count{position:relative;z-index:3;pointer-events:none;text-shadow:0 0 2px #fff,0 0 4px #fff,0 0 7px #fff,0 0 10px rgba(255,255,255,.9)}
 @keyframes praised{0%{transform:none}25%{transform:scale(.95,1.04)}55%{transform:scale(1.06)}100%{transform:none}}
@@ -23947,6 +23949,51 @@ const ABC = (() => {
   const hash = s => { let h = 2166136261; for (let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0); };
   const cl = v => Math.max(25, Math.min(99, Math.round(v)));
   const PTM = {C: {d: 5, s: -9, a: 3}, "1B": {p: 6, s: -4, d: -3}, "2B": {d: 4, s: 3, p: -5}, SS: {d: 5, s: 4, p: -4, a: 2}, "3B": {p: 3, d: 2, a: 3}, LF: {p: 3, d: -2}, CF: {s: 6, d: 3, p: -3}, RF: {p: 2, a: 5}};
+  /* ---------- ✨ 스킬·특성 (2026.11.27) ----------
+     g: 1 아마추어 · 2 마이너 · 3 메이저 · 4 레전드(전설 카드만의 필살 특성)
+     w(언제): 없음 = 늘 (능력치에 바로 더해져요) · s2 2스트라이크 · risp 2·3루에 주자 · lead 이닝 첫 타자 · last 마지막 회 · late 2회부터
+     k(무엇): 능력치 이름, 또는 wp(딱! 칸 넓이) · eye(속지 않기) · gauge(투구 게이지 느리게) · bait(볼에 속이기) */
+  const SK = {
+    hit:   {e: "🎯", n: "정밀타격",   t: "b", k: "wp",  v: [.08, .14, .22, .32], d: v => `딱! 칸이 ${Math.round(v*100)}% 넓어져요`},
+    pow:   {e: "💥", n: "거포 본능",  t: "b", k: "pow", v: [3, 5, 8, 12], d: v => `파워 +${v}`},
+    clutch:{e: "🔥", n: "승부근성",   t: "b", k: "con", w: "s2", v: [6, 10, 14, 20], d: v => `2스트라이크에서 정확 +${v}`},
+    big:   {e: "👑", n: "빅게임 헌터", t: "b", k: "pow,con", w: "risp", v: [4, 7, 10, 15], d: v => `득점권 주자가 있으면 파워·정확 +${v}`},
+    eye:   {e: "👀", n: "선구안",     t: "b", k: "eye", v: [.15, .25, .35, .5], d: v => `볼·변화구에 ${Math.round(v*100)}% 덜 속아요`},
+    run:   {e: "🏃", n: "질주 본능",  t: "b", k: "spd", v: [3, 5, 8, 12], d: v => `주루 +${v}`},
+    lead:  {e: "⚡", n: "1번 타자",   t: "b", k: "con", w: "lead", v: [6, 10, 14, 20], d: v => `이닝 첫 타자일 때 정확 +${v}`},
+    walk:  {e: "🌙", n: "끝내기 본능", t: "b", k: "pow", w: "last", v: [6, 10, 15, 22], d: v => `마지막 회에 파워 +${v}`},
+    glove: {e: "🧤", n: "철벽 수비",  t: "b", k: "def", v: [3, 6, 9, 13], d: v => `수비 +${v}`},
+    laser: {e: "🚀", n: "레이저 송구", t: "b", k: "arm", v: [4, 7, 10, 15], d: v => `어깨 +${v}`},
+    heat:  {e: "⚡", n: "강속구",     t: "p", k: "vel", v: [2, 4, 6, 10], d: v => `구속 +${v}`},
+    pin:   {e: "📍", n: "핀포인트",   t: "p", k: "ctl", v: [3, 5, 8, 12], d: v => `제구 +${v}`},
+    magic: {e: "🌀", n: "마구",       t: "p", k: "brk", v: [3, 5, 8, 12], d: v => `변화 +${v}`},
+    iron:  {e: "🔋", n: "철완",       t: "p", k: "sta", v: [5, 9, 14, 20], d: v => `체력 +${v}`},
+    crisis:{e: "🧊", n: "위기관리",   t: "p", k: "ctl,brk", w: "risp", v: [5, 8, 12, 18], d: v => `득점권 주자가 있으면 제구·변화 +${v}`},
+    kk:    {e: "💪", n: "탈삼진 머신", t: "p", k: "brk", w: "s2", v: [6, 10, 14, 20], d: v => `2스트라이크에서 변화 +${v}`},
+    slow:  {e: "🐢", n: "슬로우 스타터", t: "p", k: "vel,ctl", w: "late", v: [3, 5, 8, 12], d: v => `2회부터 구속·제구 +${v}`},
+    rhythm:{e: "🎶", n: "리듬 장인",  t: "p", k: "gauge", v: [.08, .14, .2, .28], d: v => `투구 게이지가 ${Math.round(v*100)}% 느려져요`},
+    bait:  {e: "🎣", n: "유인구 장인", t: "p", k: "bait", v: [.05, .09, .13, .18], d: v => `볼에 타자가 더 잘 속아요 (+${Math.round(v*100)}%)`}
+  };
+  const GN = ["", "아마추어", "마이너", "메이저", "레전드"], GC = ["", "#adb5bd", "#4dabf7", "#b197fc", "#ffd43b"];
+  const TAGSK = {p: ["pow", "big", "walk"], c: ["hit", "clutch", "eye", "lead"], s: ["run", "lead"], d: ["glove"], a: ["laser"], v: ["heat", "kk"], k: ["pin", "rhythm", "crisis"], b: ["magic", "bait", "kk"], t: ["iron", "slow"]};
+  /* 🌟 전설 카드만의 레전드 특성 (이름이 따로 있어요) */
+  const SIG = {"불꽃 용": ["heat", "🐉 드래곤 파이어볼"], "무지개 유니콘": ["magic", "🌈 무지개 마구"], "강속구 티라노": ["pin", "🦖 티라노 컨트롤"],
+    "천둥 들소": ["laser", "⚡ 천둥 송구"], "백수의 왕 사자": ["big", "🦁 사자왕의 포효"], "손오공 원숭이": ["run", "☁️ 근두운 질주"], "번개 호랑이": ["glove", "⚡ 번개 다이빙"],
+    "공룡 거인": ["pow", "🦕 공룡 홈런"], "대왕 고래": ["walk", "🐳 고래 끝내기"], "구름 용": ["hit", "🐉 용의 눈"], "황금 갈기 사자": ["clutch", "✨ 황금 갈기"]};
+  function skillsOf(c, h){
+    const out = [], used = new Set(), bat = c.pos !== "P";
+    const pool = [...new Set([...c.tg].flatMap(t => TAGSK[t] || []).filter(k => (SK[k].t === "p") !== bat))];
+    const all = Object.keys(SK).filter(k => (SK[k].t === "p") !== bat);
+    const n = c.r < 0 ? 1 : [1, 2, 3, 3][c.r], g0 = c.r < 0 ? 1 : [1, 1, 2, 3][c.r];
+    const sig = c.r === 3 && SIG[c.n];
+    if (sig){ out.push({k: sig[0], g: 4, nm: sig[1]}); used.add(sig[0]); }
+    for (let i = 0; out.length < n + (sig ? 1 : 0) && i < 40; i++){
+      const A = pool.filter(k => !used.has(k)), L = A.length ? A : all.filter(k => !used.has(k)); if (!L.length) break;
+      const k = L[(h >>> (i*3)) % L.length]; used.add(k); out.push({k, g: Math.max(1, Math.min(3, g0 - (out.length >= 1 && c.r === 1 ? 1 : 0) + (out.length === 0 && c.r === 1 ? 1 : 0)))});
+    }
+    return out;
+  }
+  const skv = s => SK[s.k].v[s.g - 1];
   function make(id, e, n, pos, r, tg){
     const base = r < 0 ? 46 : [54, 64, 75, 86][r], h = hash(id), nz = k => ((h >>> (k*4)) & 15)/15*6 - 3, has = c => tg.includes(c);
     const c = {id, e, n, pos, r, tg};
@@ -23964,6 +24011,7 @@ const ABC = (() => {
       c.def = cl(base + (has("d") ? 10 : -3) + (m.d || 0) + nz(4)); c.arm = cl(base + (has("a") ? 9 : -2) + (m.a || 0) + nz(5));
       c.hand = (h >> 7) % 4 === 0 ? "L" : "R";
     }
+    c.sk = skillsOf(c, h);
     return c;
   }
   const SPL = /\s+(?=\S+\|[^|]+\|(?:P|C|1B|2B|3B|SS|LF|CF|RF)\|)/, ALL = [], BY = {};
@@ -23971,9 +24019,14 @@ const ABC = (() => {
   const ST = {}; STARTER.trim().split(SPL).forEach(t => { const [e, n, pos, tg] = t.split("|"); const id = "s" + pos; const c = make(id, e, n, pos, -1, tg || ""); ST[pos] = c; BY[id] = c; });
   /* 강화된 능력치 */
   function stat(c, lv = 0){ const b = lv*2, o = Object.assign({}, c, {lv});
-    ["vel", "ctl", "brk", "sta", "pow", "con", "spd", "def", "arm"].forEach(k => { if (c[k] != null) o[k] = Math.min(99, c[k] + b); }); o.ovr = ovr(o); return o; }
+    ["vel", "ctl", "brk", "sta", "pow", "con", "spd", "def", "arm"].forEach(k => { if (c[k] != null) o[k] = Math.min(99, c[k] + b); });
+    /* ✨ 강화 +3부터 스킬 등급 한 칸 위 (레전드는 그대로) · 늘 켜진 스킬은 능력치에 더해요 */
+    o.sk = (c.sk || []).map(s => ({k: s.k, g: s.g < 4 && lv >= 3 ? Math.min(3, s.g + 1) : s.g, nm: s.nm}));
+    o.base = {}; ["vel", "ctl", "brk", "sta", "pow", "con", "spd", "def", "arm"].forEach(k => { if (o[k] != null) o.base[k] = o[k]; });
+    o.sk.forEach(s => { const d = SK[s.k]; if (d.w) return; d.k.split(",").forEach(k => { if (o[k] != null) o[k] = Math.min(99, o[k] + skv(s)); }); });
+    o.ovr = ovr(o); return o; }
   function ovr(c){ return c.pos === "P" ? Math.round(c.vel*.32 + c.ctl*.3 + c.brk*.28 + c.sta*.1) : Math.round(c.pow*.3 + c.con*.3 + c.spd*.15 + c.def*.17 + c.arm*.08); }
-  ALL.forEach(c => c.ovr = ovr(c)); Object.values(ST).forEach(c => c.ovr = ovr(c));
+  [...ALL, ...Object.values(ST)].forEach(c => { c.ovr = stat(c, 0).ovr; });
   const canPlay = (c, pos) => c.pos === pos || (GRP[c.pos] === GRP[pos] && pos !== "P");
 
   /* ---------- 지갑 ---------- */
@@ -24041,16 +24094,30 @@ const ABC = (() => {
   }
 
   /* ---------- 🃏 카드 그림 (HTML) ---------- */
+  /* 🖼️ 3D 카드 그림: 선수를 3D로 한 번 찍어 두고 써요 (몇 장씩 천천히 만들어 바꿔 끼워요) */
+  const PURL = {}, PICQ = new Set(); let picT = 0;
+  function picHTML(c, big){
+    const B = window.BB3D; if (!B || NG.no3d || B.st < 0) return `<span class="abc-e">${c.e}</span>`;
+    if (B.st === 0) B.load(() => picWork());
+    const u = PURL[c.id]; if (u) return `<img class="abc-img" src="${u}" alt="">`;
+    PICQ.add(c.id); if (B.ready()) picSoon(); return `<span class="abc-e" data-pic="${c.id}">${c.e}</span>`; }
+  function picSoon(){ if (!picT) picT = setTimeout(picWork, 40); }
+  function picWork(){ picT = 0; const B = window.BB3D; if (!B || !B.ready()) return; let n = 0;
+    for (const id of PICQ){ PICQ.delete(id); try { const cv = B.portrait(BY[id], 0x4c6ef5, 200); if (cv){ PURL[id] = cv.toDataURL();
+      document.querySelectorAll(`[data-pic="${id}"]`).forEach(el => { const im = new Image(); im.className = "abc-img"; im.alt = ""; im.src = PURL[id]; el.replaceWith(im); }); } } catch(e){ console.warn(e); }
+      if (++n >= 3) break; }
+    if (PICQ.size) picSoon(); }
+  const skChip = s => { const d = SK[s.k]; return `<span class="abc-sk g${s.g}" title="${esc((s.nm || d.n) + " · " + GN[s.g])}">${d.e}</span>`; };
   function cardHTML(c, o = {}){
     const R = c.r < 0 ? {n: "새싹", s: "🌱", c: "#8ce99a", g: "#2b8a3e"} : RAR[c.r], s = o.lv != null ? stat(c, o.lv) : c;
     const bars = c.pos === "P" ? [["구속", s.vel], ["제구", s.ctl], ["변화", s.brk], ["체력", s.sta]] : [["파워", s.pow], ["정확", s.con], ["주루", s.spd], ["수비", s.def]];
     return `<div class="abc r${c.r}${o.cls ? " " + o.cls : ""}" style="--rc:${R.c};--rg:${R.g}"${o.data || ""}>
       <div class="abc-top"><span class="abc-pos">${PS[c.pos]}</span><span class="abc-ovr">${s.ovr}</span></div>
-      <div class="abc-em">${c.e}</div><div class="abc-nm">${esc(c.n)}${o.lv ? `<b>+${o.lv}</b>` : ""}</div>
+      <div class="abc-em">${picHTML(c)}</div><div class="abc-sks">${(s.sk || []).map(skChip).join("")}</div><div class="abc-nm">${esc(c.n)}${o.lv ? `<b>+${o.lv}</b>` : ""}</div>
       <div class="abc-rr">${R.s} ${R.n}${c.pos !== "P" ? ` · ${c.hand === "L" ? "좌타" : "우타"}` : ""}</div>
       <div class="abc-st">${bars.map(([k, v]) => `<i><u>${k}</u><s style="width:${v}%"></s><em>${v}</em></i>`).join("")}</div>
       ${c.pos === "P" ? `<div class="abc-pit">${c.pit.map(p => PT[p].e + PT[p].n).join(" · ")}</div>` : ""}
-      ${o.cnt > 1 ? `<span class="abc-cnt">×${o.cnt}</span>` : ""}${o.isNew ? `<span class="abc-new">NEW</span>` : ""}</div>`;
+      ${o.cnt > 1 ? `<span class="abc-cnt">×${o.cnt}</span>` : ""}${o.isNew ? `<span class="abc-new">NEW</span>` : ""}${o.nodet ? "" : `<button class="abc-i" data-det="${c.id}:${o.lv || 0}" title="자세히 보기">🔍</button>`}</div>`;
   }
 
   /* ---------- 🛒 카드 창 (뽑기 · 내 팀 · 도감) ---------- */
@@ -24059,7 +24126,8 @@ const ABC = (() => {
     open(sid, tab){ this.sid = sid || sidOf(ARC.me); this.tab = tab || this.tab; this.css();
       let el = $("#abShop"); if (!el){ el = document.createElement("div"); el.id = "abShop"; document.body.appendChild(el);
         ["keydown", "keyup"].forEach(ev => el.addEventListener(ev, e => e.stopPropagation())); el.onclick = e => this.click(e); }
-      el.hidden = false; this.res = null; this.pick = null; this.paint(); },
+      el.hidden = false; this.res = null; this.pick = null; this.det = null; this.paint();
+      if (window.BB3D && !NG.no3d && !BB3D.ready()) BB3D.load(() => { if (!el.hidden) this.paint(); }); },
     close(){ const el = $("#abShop"); if (el) el.hidden = true; if (this.onClose){ const f = this.onClose; this.onClose = null; f(); } },
     paint(){
       const el = $("#abShop"); if (!el || el.hidden) return; const w = walletOf(this.sid), q = of(this.sid), T = teamCards(team(q), q);
@@ -24085,14 +24153,33 @@ const ABC = (() => {
       }
       el.innerHTML = `<div class="ab-box"><div class="ab-hd"><h2>⚾ 동물 프로야구 <small>${esc(who(noOf_(this.sid)))}</small></h2><span class="ab-coin">🪙 ${(w.coins || 0).toLocaleString()}</span><button class="ab-x" data-x>✕</button></div>
         <div class="ab-tabs">${tabs.map(([k, t]) => `<button data-tab="${k}" class="${this.tab === k ? "on" : ""}">${t}</button>`).join("")}</div>
-        <div class="ab-body">${body}</div>${this.msg ? `<div class="ab-msg">${this.msg}</div>` : ""}</div>`;
+        <div class="ab-body">${body}</div>${this.msg ? `<div class="ab-msg">${this.msg}</div>` : ""}</div>${this.det ? this.detHTML() : ""}`;
     },
+    /* 🔍 선수 자세히: 3D 그림 · 능력치 (기본 + 스킬) · 공 종류 · 스킬 */
+    detHTML(){ const [id, lv] = this.det, c0 = BY[id]; if (!c0) return ""; const c = stat(c0, +lv || 0), R = c0.r < 0 ? {n: "새싹", s: "🌱", c: "#8ce99a", g: "#2b8a3e"} : RAR[c0.r];
+      const ST_ = c.pos === "P" ? [["vel", "⚡ 구속", "공이 빨라요"], ["ctl", "🎯 제구", "던지고 싶은 곳에 잘 들어가요 · 게이지 칸이 넓어요"], ["brk", "🌀 변화", "변화구가 크게 휘어요"], ["sta", "🔋 체력", "공을 많이 던져도 덜 지쳐요"]]
+        : [["pow", "💪 파워", "멀리 날려요 (홈런)"], ["con", "🎯 정확", "공을 잘 맞혀요 · 딱! 칸이 넓어요"], ["spd", "👟 주루", "빨리 달려요"], ["def", "🧤 수비", "공을 잘 잡아요"], ["arm", "🚀 어깨", "멀리·세게 던져요"]];
+      const big = (window.BB3D && BB3D.ready() && BB3D.portrait(c0, 0x4c6ef5, 320)) ? `<img src="${BB3D.portrait(c0, 0x4c6ef5, 320).toDataURL()}" alt="">` : `<span>${c0.e}</span>`;
+      return `<div class="ab-det" data-detx><div class="ab-dbox" style="--rc:${R.c};--rg:${R.g}">
+        <button class="ab-x" data-detx>✕</button>
+        <div class="ab-dl"><div class="ab-dpic">${big}</div><div class="ab-dovr"><b>${c.ovr}</b><small>종합</small></div>
+          <h3>${esc(c0.n)}${c.lv ? ` <em>+${c.lv}</em>` : ""}</h3><div class="ab-dr">${R.s} ${R.n} · ${PN[c0.pos]}${c0.pos !== "P" ? ` · ${c0.hand === "L" ? "왼손 타자" : "오른손 타자"}` : ""}</div></div>
+        <div class="ab-dr2"><h4>📊 능력치 <small>회색 = 기본 · 초록 = 스킬로 더해진 만큼</small></h4>
+          ${ST_.map(([k, n, d]) => { const b = c.base[k], v = c[k], plus = v - b; return `<div class="ab-st"><b>${n}</b><div class="ab-bar"><s style="width:${b}%"></s>${plus > 0 ? `<i style="left:${b}%;width:${plus}%"></i>` : ""}</div><em>${v}${plus > 0 ? `<small>+${plus}</small>` : ""}</em><p>${d}</p></div>`; }).join("")}
+          ${c.pos === "P" ? `<h4>⚾ 던질 수 있는 공 <small>${c.pit.length}가지</small></h4><div class="ab-pits">${c.pit.map(p => `<span>${PT[p].e} ${PT[p].n}</span>`).join("")}</div>` : ""}
+          <h4>✨ 스킬 · 특성 <small>강화 +3부터 등급이 한 칸 올라가요</small></h4>
+          ${(c.sk || []).map(s => { const d = SK[s.k]; return `<div class="ab-skd g${s.g}"><span class="ab-ske">${d.e}</span><div><b>${esc(s.nm || d.n)}</b> <i class="g${s.g}">${GN[s.g]}</i><p>${d.d(skv(s))}${d.w ? " · 🔔 그때만 켜져요" : " · 늘 켜져 있어요"}</p></div></div>`; }).join("") || "<p>스킬이 없어요</p>"}
+        </div></div></div>`; },
     pickList(q){ const p = this.pick, cur = team(q)[p];
       const L = Object.keys(q.c).filter(id => BY[id] && q.c[id] > 0 && canPlay(BY[id], p)).map(id => BY[id]).sort((a, b) => (b.pos === p) - (a.pos === p) || stat(b, lvOf(q, b.id)).ovr - stat(a, lvOf(q, a.id)).ovr);
       return `<div class="ab-pick"><h4>${PN[p]} 자리에 넣을 선수 <small>${L.length ? "카드를 눌러요" : "아직 이 자리 카드가 없어요 · 🎁 뽑기에서 모아요!"}</small></h4>
         <div class="ab-grid">${cardHTML(ST[p], {cls: cur === ST[p].id ? "cur" : "", data: ` data-put="${p}:"`})}${L.map(c => cardHTML(c, {lv: lvOf(q, c.id), cnt: q.c[c.id], cls: (cur === c.id ? "cur" : "") + (c.pos !== p ? " off" : ""), data: ` data-put="${p}:${c.id}"`})).join("")}</div></div>`; },
     async click(e){
-      const t = e.target; if (t.id === "abShop" || t.closest("[data-x]")) return this.close();
+      const t = e.target;
+      const dt = t.closest("[data-det]"); if (dt){ e.stopPropagation(); this.det = dt.dataset.det.split(":"); return this.paint(); }
+      if (this.det && (t.closest("[data-detx]") && (t.classList.contains("ab-det") || t.closest("button[data-detx]")))){ this.det = null; return this.paint(); }
+      if (this.det && t.closest(".ab-dbox")) return;
+      if (t.id === "abShop" || t.closest("[data-x]")) return this.close();
       const tb = t.closest("[data-tab]"); if (tb){ this.tab = tb.dataset.tab; this.res = null; this.pick = null; this.msg = ""; return this.paint(); }
       if (t.closest("[data-res-x]")){ this.res = null; return this.paint(); }
       const fl = t.closest("[data-flt]"); if (fl){ this.flt = fl.dataset.flt; return this.paint(); }
@@ -24135,7 +24222,26 @@ const ABC = (() => {
 .abc-st s{display:block;height:6px;border-radius:4px;background:linear-gradient(90deg,var(--rc),#fff)}.abc-st em{font-style:normal;text-align:right;font-weight:bold}
 .abc-pit{font-size:10.5px;color:#ffe8cc;text-align:center;margin-top:4px}
 .abc-cnt{position:absolute;right:6px;bottom:4px;font:13px "Jua";color:#ffe066}.abc-new{position:absolute;left:6px;bottom:5px;background:#fa5252;font:12px "Jua";padding:1px 8px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.4)}
-.abc.lock{filter:grayscale(.8) brightness(.6);cursor:default}.abc.cur{outline:4px solid #69db7c}.abc.off{opacity:.85}
+.abc.lock{filter:grayscale(.8) brightness(.6);cursor:default}
+.abc-e{display:block}.abc-img{display:block;width:84px;height:84px;margin:-6px auto -4px;object-fit:contain;filter:drop-shadow(0 5px 6px rgba(0,0,0,.5))}
+.abc-sks{display:flex;justify-content:center;gap:3px;min-height:22px;margin:1px 0 2px}.abc-sk{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;background:rgba(0,0,0,.45);border:2px solid #adb5bd}
+.abc-sk.g2,.ab-skd.g2 .ab-ske{border-color:#4dabf7}.abc-sk.g3,.ab-skd.g3 .ab-ske{border-color:#b197fc;box-shadow:0 0 6px #b197fc}.abc-sk.g4,.ab-skd.g4 .ab-ske{border-color:#ffd43b;box-shadow:0 0 8px #ffd43b}
+.abc-i{position:absolute;right:4px;top:30px;width:28px;height:28px;border-radius:50%;border:0;background:rgba(0,0,0,.45);cursor:pointer;font-size:14px;padding:0}
+.ab-det{position:fixed;inset:0;z-index:9100;background:rgba(5,4,18,.72);display:flex;align-items:center;justify-content:center;padding:12px}
+.ab-dbox{position:relative;width:min(860px,100%);max-height:100%;overflow:auto;display:grid;grid-template-columns:300px 1fr;gap:18px;background:linear-gradient(160deg,var(--rg),#0d1426 60%);border:3px solid var(--rc);border-radius:24px;padding:18px;box-shadow:0 0 40px rgba(0,0,0,.6)}
+.ab-dbox>.ab-x{position:absolute;right:8px;top:6px}
+.ab-dl{text-align:center;position:relative}.ab-dpic{border-radius:18px;background:radial-gradient(circle at 50% 40%,rgba(255,255,255,.18),transparent 70%)}.ab-dpic img{width:100%;max-width:280px;display:block;margin:auto}.ab-dpic span{font-size:140px;line-height:1.6}
+.ab-dovr{position:absolute;left:4px;top:4px;background:rgba(0,0,0,.5);border:2px solid var(--rc);border-radius:14px;padding:4px 10px;line-height:1}.ab-dovr b{font:34px "Jua";color:var(--rc);display:block}.ab-dovr small{font-size:12px}
+.ab-dl h3{font:28px "Jua";margin:6px 0 2px}.ab-dl h3 em{color:#69db7c;font-style:normal}.ab-dr{color:var(--rc);font-size:15px}
+.ab-dr2 h4{font:19px "Jua";margin:10px 0 6px}.ab-dr2 h4 small{font:13px "Gowun Dodum";color:#a5b4fc;margin-left:6px}
+.ab-st{display:grid;grid-template-columns:78px 1fr 58px;align-items:center;gap:8px;margin:3px 0}.ab-st b{font:16px "Jua"}.ab-st p{grid-column:2/4;margin:-3px 0 4px;font-size:12px;color:#a5b4fc}
+.ab-bar{position:relative;height:12px;border-radius:6px;background:rgba(255,255,255,.1);overflow:hidden}.ab-bar s{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#868e96,#dee2e6)}.ab-bar i{position:absolute;top:0;bottom:0;background:#51cf66}
+.ab-st em{font:20px "Jua";font-style:normal;text-align:right}.ab-st em small{font-size:13px;color:#69db7c;margin-left:2px}
+.ab-pits{display:flex;flex-wrap:wrap;gap:6px}.ab-pits span{background:rgba(255,255,255,.08);border-radius:10px;padding:4px 10px;font:15px "Jua"}
+.ab-skd{display:flex;gap:10px;align-items:flex-start;background:rgba(255,255,255,.05);border-radius:14px;padding:8px 10px;margin:6px 0}.ab-ske{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:22px;border:3px solid #adb5bd;background:rgba(0,0,0,.35)}
+.ab-skd b{font:18px "Jua"}.ab-skd i{font:12px "Jua";font-style:normal;padding:1px 8px;border-radius:8px;background:#495057;margin-left:4px}.ab-skd i.g2{background:#1971c2}.ab-skd i.g3{background:#7048e8}.ab-skd i.g4{background:linear-gradient(90deg,#f59f00,#fab005);color:#2b1a00}
+.ab-skd p{margin:2px 0 0;font-size:14px;color:#dbe4ff}
+@media (max-width:760px){.ab-dbox{grid-template-columns:1fr}.ab-dpic img{max-width:200px}}.abc.cur{outline:4px solid #69db7c}.abc.off{opacity:.85}
 .abc.flip{animation:abFlip .55s both}@keyframes abFlip{0%{transform:rotateY(90deg) scale(.6);opacity:0}100%{transform:none;opacity:1}}
 .ab-team{display:grid;grid-template-columns:1.6fr 1fr;gap:14px}
 .ab-field{position:relative;aspect-ratio:1.25;border-radius:18px;background:radial-gradient(circle at 50% 92%,#c98b52 0 18%,transparent 18.5%),radial-gradient(circle at 50% 62%,#c98b52 0 27%,transparent 27.5%),linear-gradient(180deg,#2f9e44,#237a35)}
@@ -24149,7 +24255,7 @@ const ABC = (() => {
 @media (max-width:760px){.ab-packs{grid-template-columns:1fr}.ab-team{grid-template-columns:1fr}.ab-field{aspect-ratio:.92}.ab-slot{width:72px;padding:2px 2px 3px;border-radius:10px}.ab-slot span{font-size:22px}.ab-slot b{font-size:11px}.ab-slot small{font-size:9px}.ab-tabs button{font-size:15px;padding:7px 10px;white-space:nowrap}.ab-box{padding:12px}.ab-grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}.ab-hd h2{font-size:21px}}`;
       document.head.appendChild(s); }
   };
-  return {POS, PN, PS, PT, RAR, ALL, BY, ST, stat, team, teamCards, order, power, cpuTeam, of, lvOf, canPlay, cardHTML, UI, COST1, COST10};
+  return {SK, GN, GC, skv, POS, PN, PS, PT, RAR, ALL, BY, ST, stat, team, teamCards, order, power, cpuTeam, of, lvOf, canPlay, cardHTML, UI, COST1, COST10};
 })();
 window.ABC = ABC;
 
@@ -24198,11 +24304,22 @@ NG.defs.ab = () => {
   const batter = () => TM[off()].ord[S.bo[off()] % TM[off()].ord.length], pitcher = () => TM[dfn()].P;
   function say(t, sub = "", c = "#fff", f = 90, big = 0){ S.msg = [t, sub, c, f, big]; }
 
+  /* ---------- ✨ 스킬 (조건이 맞을 때만 켜지는 것들) ---------- */
+  function skCond(w){ return !w || (w === "s2" ? S.s === 2 : w === "risp" ? !!(S.bs[1] || S.bs[2]) : w === "lead" ? (S.pa || 0) === 0 : w === "last" ? S.inn >= INN : w === "late" ? S.inn >= 2 : false); }
+  function skApply(c){ const o = Object.assign({}, c), fired = [];
+    (c.sk || []).forEach(s => { const d = ABC.SK[s.k], v = ABC.skv(s);
+      if (["wp", "eye", "gauge", "bait"].includes(d.k)){ o[d.k] = (o[d.k] || 0) + v; return; }
+      if (!d.w || !skCond(d.w)) return; d.k.split(",").forEach(k => { o[k] = Math.min(120, (o[k] || 60) + v); }); fired.push([d.e, s.nm || d.n, s.g]); });
+    o.fired = fired; return o; }
+  /* 발동한 스킬은 타자·투수 카드 위에 잠깐 보여요 (타석마다 한 번) */
+  function skShow(){ const k = `${S.inn}${S.top}${S.bo[off()]}${S.s}${S.bs.map(Boolean).join("")}`; if (S.skK === k) return; S.skK = k;
+    const b = skApply(batter()).fired, p = skApply(pitcher()).fired; if (b.length || p.length){ S.skp = [b, p, 120]; tone(1046, 1568, .12, "triangle", .07); } }
+
   /* ---------- 공 던지기 ---------- */
   function fatigue(){ const P = pitcher(); return clamp((S.pc[dfn()] - (25 + P.sta*.35))/40, 0, 1); }
   /* gr: 게이지 결과 2 완벽 · 1 좋음 · 0 실투 */
   function mkPitch(type, cx, cy, acc, gr = 1){
-    const P = pitcher(), t = PT[type] || PT.fb, fat = fatigue();
+    const P = skApply(pitcher()), t = PT[type] || PT.fb, fat = fatigue();
     if (gr === 0){ cx *= .45; cy = .78 + (cy - .78)*.45; }   // 😅 실투: 가운데로 몰려요
     const kmh = (100 + P.vel*(1 - fat*.08)*.5)*t.sp*(gr === 2 ? 1.03 : gr === 0 ? .97 : 1), FT = 17.4/(kmh/3.6)*1.55;
     const sig = (.16 - P.ctl*(1 - fat*.25)*.0013)*(.55 + clamp(acc, 0, 1)*1.1)*(gr === 2 ? .7 : 1);
@@ -24218,7 +24335,7 @@ NG.defs.ab = () => {
     const e = pzPos(pz, FT), k = (u - 1)*REL[2]; return [e[0] + (pz[6]*.4)*(u - 1), e[1] + (pz[7]*.6 - .2)*(u - 1), -k];
   }
   const inZone = (x, y) => Math.abs(x) <= ZX && y >= ZY0 && y <= ZY1;
-  function startPitch(type, x, y, acc, gr = 1){ S.pz = mkPitch(type, x, y, acc, gr); S.ph = "wind"; S.pt = 0; swing = null; cpuSw = null; sel.set = false;
+  function startPitch(type, x, y, acc, gr = 1){ skShow(); S.pz = mkPitch(type, x, y, acc, gr); S.ph = "wind"; S.pt = 0; swing = null; cpuSw = null; sel.set = false;
     say(["😅 실투!", "👍 좋은 공", "🎯 완벽한 공!"][gr], "", ["#ff8787", "#b2f2bb", "#ffe066"][gr], 46);
     if (!human(off())) planCpuSwing(); }
   function cpuPitch(){
@@ -24236,12 +24353,14 @@ NG.defs.ab = () => {
   /* ---------- 치기 ---------- */
   /* 🏏 (2026.11.27) 타이밍 싸움: 어디를 칠지는 타자가 알아서, 언제 치는지가 전부!
      '딱!' 칸(완벽) = ±(0.015 + 정확×0.0003)초 · 맞힐 수 있는 칸 = 그 2.4배 정도 (정확 60 → ±0.09초) → 정확이 높은 타자는 칸이 넓어요 */
-  const Wp = B => .015 + B.con*.0003, Wg = B => Wp(B)*2.4 + .01;
-  function contact(ts, sx, sy, B, pz){
+  const Wp = B => (.015 + B.con*.0003)*(1 + (B.wp || 0)), Wg = B => Wp(B)*2.4 + .01;
+  function contact(ts, sx, sy, B0, pz){
+    const B = skApply(B0), Pk = skApply(pitcher());   // ✨ 타자 스킬(정확·파워·딱 칸·선구안) · 투수 유인구
     const dt = ts - pz[8], ad = Math.abs(dt), wp = Wp(B), wg = Wg(B), tm = ad <= wp ? 1 : dt < 0 ? 0 : 2;
     if (ad > wg) return {hit: false, tm};
     const out = Math.max(0, Math.abs(pz[2]) - ZX, ZY0 - pz[3], pz[3] - ZY1), brk = Math.hypot(pz[6], pz[7])*(PT[pz[1]] && PT[pz[1]].wob ? 1.6 : 1);
     let fool = (out*2.4 + brk*.62*(1 - B.con/130))*(1 + .8*ad/wg) + (pz[12] === 0 ? -.12 : pz[12] === 2 ? .06 : 0) - .04;   // 😵 볼·큰 변화구에 속아요 (실투는 잘 보여요)
+    if (out > 0) fool += Pk.bait || 0; fool *= 1 - (B.eye || 0);
     if (tm === 1) fool *= .35; if (Math.random() < fool) return {hit: false, tm: 3};
     const q = clamp(1 - .75*(ad/wg)**1.6 - out*1.5, .12, 1), ev = (28 + B.pow*.28)*(.6 + .4*q)*(tm === 1 ? 1.06 : 1);
     const la = clamp((tm === 1 ? 22 : 14) + (pz[3] - .78)*55 + (1 - q)*rnd(-30, 24) + rnd(-7, 7), -20, 70);   // 높은 공은 뜨고, 낮은 공은 굴러요
@@ -24249,7 +24368,7 @@ NG.defs.ab = () => {
     return {hit: true, q, ev, la, sp, tm};
   }
   function planCpuSwing(){
-    const pz = S.pz, B = batter(), l = lv(), Tz = inZone(pz[2], pz[3]), s = S.s;
+    const pz = S.pz, B = skApply(batter()), l = lv(), Tz = inZone(pz[2], pz[3]), s = S.s;
     let p = Tz ? (s === 2 ? .92 : .7)*[.85, 1, 1.05][l] : (s === 2 ? .4 : .24)*[1.25, 1, .7][l];
     if (S.b === 3 && !Tz) p *= .5; if (Math.random() > p){ cpuSw = null; return; }
     const k = [.95, .75, .6][l], brk = !["fb", "ts", "rf"].includes(pz[1]);
@@ -24263,7 +24382,7 @@ NG.defs.ab = () => {
 
   /* ---------- 볼카운트 ---------- */
   function lineOf(c){ const k = off() + ":" + c.id; return S.ln[k] || (S.ln[k] = [0, 0]); }
-  function endPA(kind, hit){ const B = batter(); const L = lineOf(B); if (kind !== "walk") L[0]++; if (hit) L[1]++; S.bo[off()]++; S.b = S.s = 0; }
+  function endPA(kind, hit){ S.pa = (S.pa || 0) + 1; const B = batter(); const L = lineOf(B); if (kind !== "walk") L[0]++; if (hit) L[1]++; S.bo[off()]++; S.b = S.s = 0; }
   function callPitch(k){
     if (k === "ball"){ S.b++; if (S.b >= 4){ endPA("walk"); walk(); return; } say("볼", `${S.b}볼 ${S.s}스트라이크`, "#a5d8ff", 55); }
     else if (k === "foul"){ if (S.s < 2) S.s++; say("파울!", `${S.b}볼 ${S.s}스트라이크`, "#ffe066", 60); }
@@ -24432,7 +24551,7 @@ NG.defs.ab = () => {
     if (gameOver()) return;
     if (S.o >= 3){ S.ph = "change"; S.pt = 0; const wasTop = S.top;
       if (wasTop){ S.top = false; } else { S.top = true; S.inn++; }
-      S.o = S.b = S.s = 0; S.bs = [0, 0, 0]; S.pz = 0; bgKey = "";
+      S.o = S.b = S.s = 0; S.bs = [0, 0, 0]; S.pz = 0; S.pa = 0; bgKey = "";
       say(S.top ? `${S.inn}회 초` : `${S.inn}회 말`, `${TN[off()]} ${who(noOf_(NG.sids[off()]))} 공격`, "#fff", 110, 1); return; }
     toReady();
   }
@@ -24455,7 +24574,7 @@ NG.defs.ab = () => {
   function step(){
     if (net() === "guest"){ gstep(); return; }
     S.tm = [TM[0].D, TM[1].D];
-    if (S.msg && S.msg[3] > 0) S.msg[3]--;
+    if (S.msg && S.msg[3] > 0) S.msg[3]--; if (S.skp && S.skp[2] > 0) S.skp[2]--;
     S.pt++; ringT += DT;
     if (S.ph === "intro"){ if (S.pt > (net() === "host" && !remD ? 360 : 200)) { say("1회 초", `${TN[1]} ${who(noOf_(NG.sids[1]))} 공격`, "#fff", 110, 1); S.ph = "change"; S.pt = 1; } return; }
     if (S.ph === "change"){ if (S.pt > 110) toReady(); return; }
@@ -24487,7 +24606,7 @@ NG.defs.ab = () => {
     return {ph: S.ph, pt: S.pt, inn: S.inn, top: S.top, o: S.o, b: S.b, s: S.s, sc: S.sc, h: S.h, bo: S.bo, bs: S.bs, msg: S.msg, pz: S.pz, sw: S.sw, tm: S.tm, pc: S.pc, ln: S.ln, fx: S.fx,
       ball: ball && (S.ph === "field" || S.ph === "res") ? [+ball.x.toFixed(2), +ball.y.toFixed(2), +ball.z.toFixed(2)] : 0,
       F: (S.ph === "field" || S.ph === "res") && Fd.length ? Fd.map(f => [f.c.id, +f.x.toFixed(2), +f.z.toFixed(2), f.has ? 1 : 0]) : 0,
-      R: (S.ph === "field" || S.ph === "res") && Rn.length ? Rn.map(r => [r.c.id, r.tm, +r.p.toFixed(3), r.out]) : 0, sel: S.ph === "ready" ? [sel.pt, sel.x, sel.y, sel.set ? 1 : 0] : 0, dv: S.ph === "field" ? S.dv : 0};
+      R: (S.ph === "field" || S.ph === "res") && Rn.length ? Rn.map(r => [r.c.id, r.tm, +r.p.toFixed(3), r.out]) : 0, sel: S.ph === "ready" ? [sel.pt, sel.x, sel.y, sel.set ? 1 : 0] : 0, dv: S.ph === "field" ? S.dv : 0, skp: S.skp && S.skp[2] > 0 ? S.skp : 0};
   }
   function gstep(){ if (!V) return; if (V.pz && V.ph === "fly"){ if (gLocal.id !== V.pz[0]){ gLocal.id = V.pz[0]; gLocal.t0 = performance.now() - V.pz[11]*1000; } } if (mySw > 0) mySw--; ringT += DT; }
   const flightT = () => net() === "guest" && V && V.pz ? (V.ph === "fly" && gLocal.id === V.pz[0] ? (performance.now() - gLocal.t0)/1000 : V.pz[11]) : (S.pz ? S.pz[11] : 0);
@@ -24583,27 +24702,65 @@ NG.defs.ab = () => {
   /* ---------- 그리기 ---------- */
   function teams(Vv){ return [Vv.tm[0] ? teamOf(Vv.tm[0]) : null, Vv.tm[1] ? teamOf(Vv.tm[1]) : null]; }
   const cardById = (T, id) => { for (const t of T) if (t) for (const p of ABC.POS) if (t.C[p].id === id) return t.C[p]; const c = ABC.BY[id]; return c ? ABC.stat(c) : ABC.ST.P; };
+  /* ---------- 🏟️ 3D 그리기 (BB3D가 준비되면) ---------- */
+  const use3D = () => window.BB3D && BB3D.ready() && !NG.no3d;
+  const hexC = i => parseInt(TC[i].slice(1), 16);
+  const MV = new Map();   // 선수 움직임 (달리기 자세용)
+  function mover(key, x, z){ let m = MV.get(key); const now = ringT;
+    if (!m || now - m.t > .5){ m = {x, z, t: now, ph: Math.random()*6, sp: 0, fx: 0, fz: 1}; MV.set(key, m); }
+    const dx = x - m.x, dz = z - m.z, d = Math.hypot(dx, dz); m.sp = m.sp*.7 + d*.3;
+    if (d > .01){ m.fx = dx/d; m.fz = dz/d; } m.ph += Math.min(.5, d*2.2) + (m.sp > .02 ? .05 : 0); m.x = x; m.z = z; m.t = now; return m; }
+  function board3(Vv){ return {a: `✈️ ${who(noOf_(NG.sids[1]))}`, sa: Vv.sc[1], h: `🏠 ${who(noOf_(NG.sids[0]))}`, sh: Vv.sc[0], i: `${Vv.inn}회 ${Vv.top ? "초" : "말"} · ${Vv.o}아웃`}; }
+  function field3D(g, Vv, T, df, b){
+    const ch = [], ballP = Vv.ball || [0, 1, 0];
+    Vv.F.forEach(([id, x, z, has]) => { const c = cardById(T, id), k = "f" + df + id, m = mover(k, x, z), run = m.sp > .03;
+      ch.push({key: k, card: c, team: hexC(df), x, z, fx: x + (run ? m.fx : ballP[0] - x), fz: z + (run ? m.fz : ballP[2] - z), pose: has ? "catch" : run ? "run" : "ready", t: run ? m.ph : ringT, glove: 1, s: 1.9}); });
+    Vv.R.forEach(([id, tm, p, out]) => { const c = cardById(T, id), [x, z] = bpos(p), k = "r" + tm + id, m = mover(k, x, z), [nx, nz] = bpos(Math.floor(p) + 1);
+      ch.push({key: k, card: c, team: hexC(tm), x: x + .6, z: z - .6, fx: out ? x - 10 : nx, fz: out ? z : nz, pose: out ? "idle" : m.sp > .01 ? "run" : "idle", t: m.ph, s: 1.9, hide: out && p % 1 < .02 && Vv.ph === "res"}); });
+    const cv = BB3D.frame({W, H, k: NG.k || 1, cam: {p: [FC.x, FC.y, FC.z], t: [FC.tx, 0, FC.tz], fov: 52, cy: H*.48}, chars: ch, ball: Vv.ball ? ballP : null, shadowAt: [ballP[0], 0, ballP[2]], shadowR: 34, board: board3(Vv)});
+    g.drawImage(cv, 0, 0, W, H);
+    // 공 가진 선수 · 달리는 선수 이름표
+    ch.forEach(c => { if (c.hide || !(c.pose === "catch" || c.key[0] === "r")) return; const p = BB3D.project(c.x, 4.4, c.z, W, H); if (!p) return;
+      const t = (c.pose === "catch" ? "🧤 " : "🏃 ") + c.card.n; g.font = `bold 17px ${BD_FONT}`; const w = g.measureText(t).width + 16;
+      rrect(g, p[0] - w/2, p[1] - 14, w, 26, 10); g.fillStyle = "rgba(10,14,32,.72)"; g.fill(); outlined(g, t, p[0], p[1], 17, c.key[0] === "r" ? (c.key[1] === "0" ? "#ffc9c9" : "#a5d8ff") : "#ffe066"); });
+  }
+  function bat3D(g, Vv, T, of_, df, bat, pit){
+    const ch = [], D = T[df];
+    if (D) ["CF", "LF", "RF", "SS", "2B", "3B", "1B"].forEach(p => { const [x, z] = FP[p]; ch.push({key: "f" + df + D.C[p].id, card: D.C[p], team: hexC(df), x, z, fx: 0, fz: 0, pose: "ready", t: ringT + x, glove: 1, s: "LFCFRF".includes(p) ? 1.7 : 1.25}); });
+    if (pit){ const t = Vv.ph === "wind" ? clamp(Vv.pt/42, 0, 1)*.88 : Vv.ph === "fly" ? Math.min(1, .88 + flightT()*.5) : 0;
+      ch.push({key: "p" + df + pit.id, card: pit, team: hexC(df), x: 0, y: .22, z: 18.3, fx: 0, fz: 0, pose: "pitch", t, glove: 1}); }
+    if (bat){ const L = bat.hand === "L", swT = net() === "guest" && mySw ? (24 - mySw)/24 : Vv.sw ? clamp((flightT() - Vv.sw[0] + .12)/.28, 0, 1) : 0;
+      ch.push({key: "b" + of_ + bat.id, card: bat, team: hexC(of_), x: L ? 1.12 : -1.12, z: .3, fx: 0, fz: .3, L, pose: swT > 0 ? "swing" : "stance", t: swT > 0 ? swT : ringT, bat: 1}); }
+    let ballP = null, trail = null;
+    if ((Vv.ph === "fly" || Vv.ph === "foulfx") && Vv.pz){
+      if (Vv.ph === "foulfx"){ const k = Vv.pt/40, fx = Vv.fx || [1, 40]; ballP = [fx[0]*k*6, 1 + k*8*(fx[1] > 60 ? 1.8 : .6), -k*4 + 1]; }
+      else { const t = flightT(), q = pzPos(Vv.pz, t); if (q[2] > -2.5){ ballP = q; trail = [1, 2, 3, 4].map(j => pzPos(Vv.pz, Math.max(0, t - j*.025))); } } }
+    const cv = BB3D.frame({W, H, k: NG.k || 1, cam: {p: [0, 2.05, -5.4], t: [0, .5, 18.4], fov: 25, cy: H*.52}, chars: ch, ball: ballP, trail, shadowAt: [0, 0, 9], shadowR: 14, board: board3(Vv)});
+    g.drawImage(cv, 0, 0, W, H);
+  }
+  const PIC = (c, side) => (use3D() && BB3D.portrait(c, hexC(side), 192)) || emo(c.e);
   function draw(g){
     const Vv = net() === "guest" ? V : view(); if (!Vv || !Vv.tm || !Vv.tm[0]){ g.fillStyle = "#0d1426"; g.fillRect(0, 0, W, H); outlined(g, "⚾ 경기장으로 가는 중…", W/2, H/2, 40, "#fff"); return; }
     const T = teams(Vv), of_ = Vv.top ? 1 : 0, df = 1 - of_;
     if (Vv.ph === "intro"){ drawIntro(g, Vv, T); drawMsg(g, Vv); return; }
     const fieldView = (Vv.ph === "field" || Vv.ph === "res") && Vv.F;
     if (fieldView){
-      const b = Vv.ball || [0, 1, 0], C = fieldCam(b[0], b[2]); drawField(g, C, false);
+      const b = Vv.ball || [0, 1, 0], C = fieldCam(b[0], b[2]);
+      if (use3D()) field3D(g, Vv, T, df, b); else { drawField(g, C, false);
       const L = [];
       Vv.F.forEach(([id, x, z, has]) => L.push({x, z, e: cardById(T, id).e, col: TC[df], has}));
       Vv.R.forEach(([id, tm, p, out]) => { if (out && p % 1 < .02 && Vv.ph === "res") return; const [x, z] = bpos(p); L.push({x: x + .6, z: z - .6, e: cardById(T, id).e, col: TC[tm], alpha: out ? .45 : 1}); });
       L.forEach(o => { const c = toC(C, o.x, 0, o.z); o.d = c[2]; }); L.sort((a, b) => b.d - a.d);
       L.forEach(o => sprite(g, C, o.x, o.z, o.e, o.col, 3.4, {alpha: o.alpha}));
-      if (Vv.ball) ballAt(g, C, b[0], b[1], b[2]);
+      if (Vv.ball) ballAt(g, C, b[0], b[1], b[2]); }
       if (Vv.ph === "field"){ const r = Math.hypot(b[0], b[2]); outlined(g, `${Math.round(r)}m`, W - 90, 120, 26, "#fff"); }
       if (Vv.dv) drawDive(g, Vv, T, df);
     } else {
-      g.drawImage(batBg(Vv, T), 0, 0, W, H);
-      const D = T[df], O = T[of_], bat = O ? O.ord[Vv.bo[of_] % O.ord.length] : null, pit = D ? D.P : null;
+      const D = T[df], O = T[of_], bat = O ? O.ord[Vv.bo[of_] % O.ord.length] : null, pit = D ? D.P : null, D3 = use3D();
+      if (D3) bat3D(g, Vv, T, of_, df, bat, pit); else g.drawImage(batBg(Vv, T), 0, 0, W, H);
       // 투수 (던지는 몸짓)
       const wind = Vv.ph === "wind" ? Vv.pt/42 : Vv.ph === "fly" ? 1 : 0;
-      if (pit){ const lift = Math.sin(clamp(wind, 0, 1)*Math.PI)*.5; const p = sprite(g, BC, 0, 18.1, pit.e, TC[df], 2.3 + lift*.25, {rot: wind > .6 && wind < 1 ? -.5 : wind >= 1 && Vv.ph === "fly" && flightT() < .15 ? .4 : 0}); }
+      if (pit && !D3){ const lift = Math.sin(clamp(wind, 0, 1)*Math.PI)*.5; const p = sprite(g, BC, 0, 18.1, pit.e, TC[df], 2.3 + lift*.25, {rot: wind > .6 && wind < 1 ? -.5 : wind >= 1 && Vv.ph === "fly" && flightT() < .15 ? .4 : 0}); }
       // 스트라이크존
       const Z = zoneScr(); g.strokeStyle = "rgba(255,255,255,.55)"; g.lineWidth = 2; g.strokeRect(Z.x, Z.y, Z.w, Z.h);
       g.strokeStyle = "rgba(255,255,255,.18)"; g.lineWidth = 1; g.beginPath(); for (let i = 1; i < 3; i++){ g.moveTo(Z.x + Z.w*i/3, Z.y); g.lineTo(Z.x + Z.w*i/3, Z.y + Z.h); g.moveTo(Z.x, Z.y + Z.h*i/3); g.lineTo(Z.x + Z.w, Z.y + Z.h*i/3); } g.stroke();
@@ -24614,12 +24771,12 @@ NG.defs.ab = () => {
           g.lineWidth = 2; g.beginPath(); g.moveTo(sx - 24, sy); g.lineTo(sx - 8, sy); g.moveTo(sx + 8, sy); g.lineTo(sx + 24, sy); g.moveTo(sx, sy - 24); g.lineTo(sx, sy - 8); g.moveTo(sx, sy + 8); g.lineTo(sx, sy + 24); g.stroke(); }
       }
       // 공
-      if ((Vv.ph === "fly" || Vv.ph === "foulfx") && Vv.pz){ const t = Vv.ph === "foulfx" ? Vv.pz[8] : flightT();
+      if (!D3 && (Vv.ph === "fly" || Vv.ph === "foulfx") && Vv.pz){ const t = Vv.ph === "foulfx" ? Vv.pz[8] : flightT();
         if (Vv.ph === "foulfx"){ const k = Vv.pt/40, fx = Vv.fx || [1, 40]; ballAt(g, BC, fx[0]*k*6, 1 + k*8*(fx[1] > 60 ? 1.8 : .6), -k*4 + 1); }
         else { for (let j = 3; j >= 1; j--){ const q = pzPos(Vv.pz, Math.max(0, t - j*.03)), p = P(BC, ...q); if (p){ g.globalAlpha = .12*(4 - j); g.fillStyle = "#fff"; g.beginPath(); g.arc(p[0], p[1], Math.max(2, .04*p[2]), 0, 7); g.fill(); } } g.globalAlpha = 1;
           const q = pzPos(Vv.pz, t); if (q[2] > -2.5) ballAt(g, BC, q[0], q[1], q[2]); } }
       // 타자 + 방망이
-      if (bat){ const L = bat.hand === "L", bx = L ? 1.05 : -1.05; const swT = net() === "guest" && mySw ? (24 - mySw)/24 : Vv.sw ? clamp((flightT() - Vv.sw[0] + .1)/.25, 0, 1) : 0;
+      if (bat && !D3){ const L = bat.hand === "L", bx = L ? 1.05 : -1.05; const swT = net() === "guest" && mySw ? (24 - mySw)/24 : Vv.sw ? clamp((flightT() - Vv.sw[0] + .1)/.25, 0, 1) : 0;
         const p = P(BC, bx, 0, .15); if (p){ const sz = 1.45*p[2]; g.globalAlpha = .9; g.drawImage(emo(bat.e), p[0] - sz/2, p[1] - sz*.92, sz, sz); g.globalAlpha = 1;
           const hx = p[0] + (L ? -sz*.18 : sz*.18), hy = p[1] - sz*.5, ang = (L ? Math.PI + .6 : -.6) + (L ? 1 : -1)*swT*2.6;
           g.strokeStyle = "#c8915a"; g.lineCap = "round"; g.lineWidth = sz*.06; g.beginPath(); g.moveTo(hx, hy); g.lineTo(hx + Math.cos(ang - Math.PI/2)*sz*.55, hy + Math.sin(ang - Math.PI/2)*sz*.55); g.stroke(); g.lineCap = "butt"; } }
@@ -24652,7 +24809,8 @@ NG.defs.ab = () => {
   /* 🎯 투구 게이지: 막대가 왔다갔다 → 금색 칸(완벽) · 초록 칸(좋음) · 나머지(실투) */
   function arm(s){ if (s.set) return; s.set = true; s.g0 = ringT; s.gc = .2 + Math.random()*.6; }
   function gauge(s, pit, Vv){ const t = PT[s.pt] || PT.fb, df = Vv ? (Vv.top ? 0 : 1) : 0, fat = pit && Vv ? clamp(((Vv.pc || [0, 0])[df] - (25 + pit.sta*.35))/40, 0, 1) : 0;
-    const spd = .8*(t.d || (s.pt === "fb" ? 1 : 1.15))*(1 + fat*.6), u = ((ringT - (s.g0 || 0))*spd) % 2;
+    const rh = pit ? (pit.sk || []).filter(q => q.k === "rhythm").reduce((a, q) => a + ABC.skv(q), 0) : 0;
+    const spd = .8*(t.d || (s.pt === "fb" ? 1 : 1.15))*(1 + fat*.6)*(1 - rh), u = ((ringT - (s.g0 || 0))*spd) % 2;
     return {pos: u < 1 ? u : 2 - u, c: s.gc != null ? s.gc : .5, w: .06 + (pit ? pit.ctl : 60)*.0009}; }
   const gradeOf = G => { const d = Math.abs(G.pos - G.c); return d <= G.w/2 ? 2 : d <= G.w*1.6 ? 1 : 0; };
   function drawGauge(g, G){ const bw = 560, bx = W/2 - bw/2, by = H - 96, bh = 30;
@@ -24682,16 +24840,28 @@ NG.defs.ab = () => {
   }
   function drawCards(g, Vv, bat, pit, of_, df){
     const box = (x, y, w, h, col) => { rrect(g, x, y, w, h, 16); g.fillStyle = "rgba(10,14,32,.78)"; g.fill(); g.lineWidth = 3; g.strokeStyle = col; g.stroke(); };
-    if (bat){ const ln = (Vv.ln || {})[of_ + ":" + bat.id] || [0, 0]; box(16, H - 152, 330, 136, TC[of_]); g.drawImage(emo(bat.e), 22, H - 146, 92, 92);
+    if (bat){ const ln = (Vv.ln || {})[of_ + ":" + bat.id] || [0, 0]; box(16, H - 152, 330, 136, TC[of_]); g.drawImage(PIC(bat, of_), 22, H - 146, 92, 92);
       outlined(g, `${(Vv.bo[of_] % 8) + 1}번 ${ABC.PS[bat.at]} ${bat.hand === "L" ? "좌타" : "우타"}`, 120, H - 132, 18, "#a5d8ff", undefined, "left");
       outlined(g, bat.n + (bat.lv ? ` +${bat.lv}` : ""), 120, H - 104, 26, "#fff", undefined, "left");
       outlined(g, `💪${bat.pow} 🎯${bat.con} 👟${bat.spd}`, 120, H - 74, 20, "#ffe8cc", undefined, "left");
-      outlined(g, `오늘 ${ln[0]}타수 ${ln[1]}안타`, 120, H - 44, 18, "#b2f2bb", undefined, "left"); }
-    if (pit && Vv.ph !== "ready"){ const fat = clamp(((Vv.pc || [0, 0])[df] - (25 + pit.sta*.35))/40, 0, 1); box(W - 300, H - 152, 284, 136, TC[df]); g.drawImage(emo(pit.e), W - 294, H - 146, 84, 84);
+      outlined(g, `오늘 ${ln[0]}타수 ${ln[1]}안타`, 120, H - 44, 18, "#b2f2bb", undefined, "left"); skChips(g, bat, 16, H - 170, Vv.skp && Vv.skp[0]); }
+    if (pit && Vv.ph !== "ready"){ const fat = clamp(((Vv.pc || [0, 0])[df] - (25 + pit.sta*.35))/40, 0, 1); box(W - 300, H - 152, 284, 136, TC[df]); g.drawImage(PIC(pit, df), W - 294, H - 146, 84, 84);
       outlined(g, "투수 " + pit.n, W - 204, H - 120, 22, "#fff", undefined, "left"); outlined(g, `⚡${pit.vel} 🎯${pit.ctl} 🌀${pit.brk}`, W - 204, H - 90, 18, "#ffe8cc", undefined, "left");
       outlined(g, `공 ${(Vv.pc || [0, 0])[df]}개`, W - 204, H - 62, 17, "#ced4da", undefined, "left");
-      g.fillStyle = "rgba(255,255,255,.15)"; g.fillRect(W - 204, H - 44, 170, 10); g.fillStyle = fat > .5 ? "#ff6b6b" : fat > 0 ? "#ffd43b" : "#69db7c"; g.fillRect(W - 204, H - 44, 170*(1 - fat*.8), 10); }
+      g.fillStyle = "rgba(255,255,255,.15)"; g.fillRect(W - 204, H - 44, 170, 10); g.fillStyle = fat > .5 ? "#ff6b6b" : fat > 0 ? "#ffd43b" : "#69db7c"; g.fillRect(W - 204, H - 44, 170*(1 - fat*.8), 10); skChips(g, pit, W - 300, H - 170, Vv.skp && Vv.skp[1]); }
+    skPop(g, Vv);
   }
+  /* ✨ 스킬 표시: 카드 위 동그라미 (테두리 색 = 등급) + 발동하면 반짝 */
+  function skChips(g, c, x, y, fired){
+    (c.sk || []).forEach((q, i) => { const d = ABC.SK[q.k], cx = x + 17 + i*38, on = fired && fired.some(f => f[0] === d.e);
+      g.beginPath(); g.arc(cx, y, 16, 0, 7); g.fillStyle = on ? "rgba(255,224,102,.35)" : "rgba(10,14,32,.85)"; g.fill(); g.lineWidth = on ? 4 : 3; g.strokeStyle = ABC.GC[q.g]; g.stroke();
+      g.font = `18px ${EMOJI}`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillStyle = "#fff"; g.fillText(d.e, cx, y + 1); });
+  }
+  function skPop(g, Vv){ const k = Vv.skp; if (!k) return; const a = Math.min(1, k[2]/20), up = (120 - k[2])*.15;
+    [[k[0], 181, "left"], [k[1], W - 158, "center"]].forEach(([L, x, al], side) => L.forEach((f, i) => { const t = `✨ ${f[0]} ${f[1]} 발동!`, y = H - 214 - i*36 - Math.min(10, up);
+      g.globalAlpha = a; g.font = `bold 21px ${BD_FONT}`; const w = g.measureText(t).width + 26, x0 = side ? Math.min(W - 12 - w, x - w/2) : 16;
+      rrect(g, x0, y - 17, w, 34, 17); g.fillStyle = "rgba(20,12,40,.88)"; g.fill(); g.lineWidth = 3; g.strokeStyle = ABC.GC[f[2]] || "#ffd43b"; g.stroke();
+      outlined(g, t, x0 + w/2, y, 21, f[2] >= 4 ? "#ffe066" : "#fff"); g.globalAlpha = 1; })); }
   function drawBoard(g, Vv, T){
     rrect(g, 12, 12, 430, 96, 16); g.fillStyle = "rgba(10,14,32,.82)"; g.fill();
     [1, 0].forEach((t, i) => { const y = 38 + i*40, on = (Vv.top ? 1 : 0) === t;
@@ -24716,8 +24886,8 @@ NG.defs.ab = () => {
       rrect(g, x0, 130, W/2 - 70, 560, 22); g.fillStyle = "rgba(255,255,255,.06)"; g.fill(); g.lineWidth = 3; g.strokeStyle = TC[t]; g.stroke();
       outlined(g, `${TN[t]} ${who(noOf_(NG.sids[t]))}${t === 1 && cpu() ? " 🤖" : ""}`, x0 + 24, 166, 28, "#fff", undefined, "left");
       outlined(g, `💪 전력 ${Tt.pow}`, x0 + W/2 - 100, 166, 24, "#ffe066", undefined, "right");
-      Tt.ord.forEach((c, k) => { const y = 214 + k*48; g.drawImage(emo(c.e), x0 + 24, y - 22, 44, 44); outlined(g, `${k + 1}. ${c.n}${c.lv ? ` +${c.lv}` : ""}`, x0 + 78, y, 22, "#fff", undefined, "left"); outlined(g, `${ABC.PS[c.at]} · ${c.ovr}`, x0 + W/2 - 100, y, 20, "#a5d8ff", undefined, "right"); });
-      const p = Tt.P, y = 214 + 9*48; g.drawImage(emo(p.e), x0 + 24, y - 22, 44, 44); outlined(g, `⚾ ${p.n}`, x0 + 78, y, 22, "#ffe8cc", undefined, "left"); outlined(g, `투수 · ${p.ovr}`, x0 + W/2 - 100, y, 20, "#ffd8a8", undefined, "right"); });
+      Tt.ord.forEach((c, k) => { const y = 214 + k*48; g.drawImage(PIC(c, t), x0 + 20, y - 26, 52, 52); outlined(g, `${k + 1}. ${c.n}${c.lv ? ` +${c.lv}` : ""}`, x0 + 78, y, 22, "#fff", undefined, "left"); outlined(g, `${ABC.PS[c.at]} · ${c.ovr}`, x0 + W/2 - 100, y, 20, "#a5d8ff", undefined, "right"); });
+      const p = Tt.P, y = 214 + 9*48; g.drawImage(PIC(p, t), x0 + 20, y - 26, 52, 52); outlined(g, `⚾ ${p.n}`, x0 + 78, y, 22, "#ffe8cc", undefined, "left"); outlined(g, `투수 · ${p.ovr}`, x0 + W/2 - 100, y, 20, "#ffd8a8", undefined, "right"); });
     outlined(g, "VS", W/2, 400, 60, "#fff");
     if (net() === "host" && !remD) outlined(g, "🌐 친구 팀을 받는 중…", W/2, H - 20, 20, "#ced4da");
   }
@@ -24754,6 +24924,7 @@ NG.defs.ab = () => {
         TM = [teamOf(d0), teamOf(d1)]; TM[0].D = d0; TM[1].D = d1; S.tm = [d0, d1];
       }
       [...ABC.ALL, ...Object.values(ABC.ST)].forEach(c => emo(c.e));
+      if (window.BB3D && !NG.no3d){ BB3D.reset(); BB3D.load(); } MV.clear();
     },
     step, draw,
     down(x, y){
@@ -24795,6 +24966,401 @@ NG.defs.ab = () => {
   };
   return self;
 };
+
+/* =====================================================================
+   🏟️ 동물 프로야구 3D (2026.11.27) — three.js로 진짜 입체 야구장 · 입체 동물 선수
+   - three.js는 야구를 열 때만 lib/three/에서 불러와요 (안 되면 예전 그림으로 저절로)
+   - 야간 경기장: 잔디 줄무늬·내야 흙·베이스·마운드 · 담장 · 관중석 · 조명탑 · 전광판
+   - 동물 선수: 동물마다 머리(귀·주둥이·뿔·갈기·부리·무늬…) + 팀 유니폼·모자·바지·신발
+     · 몸은 관절(허리·몸통·어깨·다리·무릎)로 움직여요: 타격 자세·스윙 / 투구 폼 / 달리기 / 수비 자세 / 다이빙
+     · 팔은 손이 있는 곳을 바라보게 늘어나서 방망이를 두 손으로 꼭 잡아요
+   - 좌표: 게임 좌표(x 오른쪽 1루 쪽, z 외야 쪽) → three 좌표 (-x, y, z)  (화면 오른쪽이 1루가 되게)
+   - 카드 그림: 선수를 한 번 3D로 찍어 두고(portrait) 카드·전광판·타석 카드에 써요
+   ===================================================================== */
+const BB3D = {
+  st: 0, T: null, R: null, S: null, cam: null, CH: new Map(), PORT: new Map(), onReady: [], q: 1, slow: 0,
+  load(cb){
+    if (this.st === 2){ cb && cb(); return; } if (cb) this.onReady.push(cb); if (this.st) return; this.st = 1;
+    try { const c = document.createElement("canvas"); if (!(c.getContext("webgl2") || c.getContext("webgl"))) throw new Error("no webgl"); } catch(e){ this.st = -1; return; }
+    import("./lib/three/three.module.min.js").then(T => { this.T = T; this.build(); this.st = 2; const L = this.onReady; this.onReady = []; L.forEach(f => { try { f(); } catch(e){ console.warn(e); } }); })
+      .catch(e => { console.warn("[3D 야구]", e); this.st = -1; this.onReady = []; });
+  },
+  ready(){ return this.st === 2; },
+  V3(x, y, z){ return new this.T.Vector3(-x, y, z); },
+
+  /* ---------- 🏟️ 경기장 ---------- */
+  build(){
+    const T = this.T;
+    const R = this.R = new T.WebGLRenderer({antialias: true, powerPreference: "high-performance"});
+    R.outputColorSpace = T.SRGBColorSpace; R.toneMapping = T.ACESFilmicToneMapping; R.toneMappingExposure = 1.15;
+    R.shadowMap.enabled = true; R.shadowMap.type = T.PCFSoftShadowMap;
+    const S = this.S = new T.Scene();
+    S.background = this.skyTex(); S.fog = new T.Fog(0x0d1730, 140, 330);
+    S.add(new T.HemisphereLight(0xcfe0ff, 0x1d3b20, 1.05));
+    const key = this.key = new T.DirectionalLight(0xfff6e0, 2.4); key.position.set(-30, 60, -40); key.castShadow = true;
+    key.shadow.mapSize.set(1024, 1024); const sc = key.shadow.camera; sc.left = sc.bottom = -18; sc.right = sc.top = 18; sc.near = 10; sc.far = 160; key.shadow.bias = -.0006; key.shadow.normalBias = .02;
+    S.add(key); S.add(key.target);
+    const fill = new T.DirectionalLight(0xa8c4ff, .7); fill.position.set(40, 30, 80); S.add(fill);
+    this.cam = new T.PerspectiveCamera(25, 16/9, .1, 600);
+    // 바닥: 경기장 그림 (210m × 150m) + 홈 근처 고화질 그림
+    const big = new T.Mesh(new T.PlaneGeometry(900, 900), new T.MeshStandardMaterial({color: 0x1f5a2c, roughness: 1})); big.rotation.x = -Math.PI/2; big.position.y = -.03; S.add(big);
+    S.add(this.groundMesh(-105, 105, -30, 120, this.fieldTex(), 0));
+    S.add(this.groundMesh(-7, 7, -7, 7, this.homeTex(), .012));
+    // 마운드 (살짝 볼록)
+    const mound = new T.Mesh(new T.CylinderGeometry(2.6, 2.9, .25, 40), new T.MeshStandardMaterial({color: 0xb9784a, roughness: .95})); mound.position.copy(this.V3(0, .1, 18.4)); mound.receiveShadow = true; S.add(mound);
+    const rub = new T.Mesh(new T.BoxGeometry(.6, .05, .15), new T.MeshStandardMaterial({color: 0xffffff})); rub.position.copy(this.V3(0, .25, 18.4)); S.add(rub);
+    // 베이스
+    const bm = new T.MeshStandardMaterial({color: 0xffffff, roughness: .6}), bg = new T.BoxGeometry(.42, .08, .42);
+    [[19.4, 19.4], [0, 38.8], [-19.4, 19.4]].forEach(([x, z]) => { const b = new T.Mesh(bg, bm); b.position.copy(this.V3(x, .04, z)); b.rotation.y = Math.PI/4; b.receiveShadow = true; S.add(b); });
+    this.stadium();
+    // 공 + 꼬리
+    this.ball = new T.Mesh(new T.SphereGeometry(.075, 16, 12), new T.MeshStandardMaterial({map: this.ballTex(), roughness: .45, emissive: 0x333333})); this.ball.castShadow = true; S.add(this.ball);
+    this.trail = [0, 1, 2, 3].map(i => { const m = new T.Mesh(new T.SphereGeometry(.07, 10, 8), new T.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: .25 - i*.05, depthWrite: false})); S.add(m); return m; });
+    this.bshadow = new T.Mesh(new T.CircleGeometry(.12, 16), new T.MeshBasicMaterial({color: 0x000000, transparent: true, opacity: .3, depthWrite: false})); this.bshadow.rotation.x = -Math.PI/2; S.add(this.bshadow);
+    this.mats = {};
+  },
+  groundMesh(x0, x1, z0, z1, tex, y){
+    const T = this.T, g = new T.BufferGeometry(), P = [[x0, z0], [x1, z0], [x1, z1], [x0, z1]];
+    g.setAttribute("position", new T.Float32BufferAttribute(P.flatMap(([x, z]) => [-x, y, z]), 3));
+    g.setAttribute("uv", new T.Float32BufferAttribute(P.flatMap(([x, z]) => [(x - x0)/(x1 - x0), (z - z0)/(z1 - z0)]), 2));
+    g.setAttribute("normal", new T.Float32BufferAttribute([0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0], 3)); g.setIndex([0, 1, 2, 0, 2, 3]);
+    const m = new T.Mesh(g, new T.MeshStandardMaterial({map: tex, roughness: .95, transparent: y > 0, depthWrite: !(y > 0), polygonOffset: true, polygonOffsetFactor: -1 - y*100})); m.receiveShadow = true; return m;
+  },
+  canvasTex(c, rep){ const T = this.T, t = new T.CanvasTexture(c); t.colorSpace = T.SRGBColorSpace; t.anisotropy = 8; if (rep){ t.wrapS = t.wrapT = T.RepeatWrapping; t.repeat.set(...rep); } return t; },
+  fieldTex(){
+    const X0 = -105, X1 = 105, Z0 = -30, Z1 = 120, s = 10, c = document.createElement("canvas"); c.width = (X1 - X0)*s; c.height = (Z1 - Z0)*s;
+    const g = c.getContext("2d"), px = x => (x - X0)*s, py = z => (Z1 - z)*s, fR = a => 84 + 16*Math.cos(2*a);
+    g.fillStyle = "#2c7a3c"; g.fillRect(0, 0, c.width, c.height);
+    // 페어 지역 잔디 (체크 무늬 깎기)
+    g.save(); g.beginPath(); g.moveTo(px(0), py(0)); for (let d = -45; d <= 45; d += 1){ const a = d*Math.PI/180, r = fR(a); g.lineTo(px(Math.sin(a)*r), py(Math.cos(a)*r)); } g.closePath(); g.clip();
+    g.fillStyle = "#38994b"; g.fillRect(0, 0, c.width, c.height);
+    for (let i = -30; i < 30; i++){ g.fillStyle = i % 2 ? "rgba(255,255,255,.05)" : "rgba(0,0,0,.06)"; g.save(); g.translate(px(0), py(0)); g.rotate(Math.PI/4); g.fillRect(i*6*s, -200*s, 6*s, 400*s); g.restore(); }
+    for (let i = -30; i < 30; i++){ g.fillStyle = i % 2 ? "rgba(255,255,255,.035)" : "rgba(0,0,0,.035)"; g.save(); g.translate(px(0), py(0)); g.rotate(-Math.PI/4); g.fillRect(i*6*s, -200*s, 6*s, 400*s); g.restore(); }
+    g.restore();
+    // 경고 트랙 (담장 앞 흙길)
+    g.strokeStyle = "#a8693d"; g.lineWidth = 4.5*s; g.beginPath(); for (let d = -45; d <= 45; d += 1){ const a = d*Math.PI/180, r = fR(a) - 2.3; d === -45 ? g.moveTo(px(Math.sin(a)*r), py(Math.cos(a)*r)) : g.lineTo(px(Math.sin(a)*r), py(Math.cos(a)*r)); } g.stroke();
+    // 내야 흙 + 안쪽 잔디
+    const dirt = "#c4834f"; g.fillStyle = dirt; g.beginPath(); g.arc(px(0), py(19), 28.5*s, 0, 7); g.fill();
+    g.fillStyle = "#3a9e4e"; g.beginPath(); g.moveTo(px(0), py(3.6)); g.lineTo(px(15.6), py(19.4)); g.lineTo(px(0), py(35.2)); g.lineTo(px(-15.6), py(19.4)); g.closePath(); g.fill();
+    // 베이스 길 (흙) · 파울선
+    g.strokeStyle = dirt; g.lineWidth = 1.3*s; g.lineCap = "round"; g.beginPath(); g.moveTo(px(0), py(0)); g.lineTo(px(19.4), py(19.4)); g.lineTo(px(0), py(38.8)); g.lineTo(px(-19.4), py(19.4)); g.closePath(); g.stroke();
+    [[19.4, 19.4], [0, 38.8], [-19.4, 19.4]].forEach(([x, z]) => { g.fillStyle = dirt; g.beginPath(); g.arc(px(x), py(z), 2.8*s, 0, 7); g.fill(); });
+    g.strokeStyle = "rgba(255,255,255,.95)"; g.lineWidth = .14*s; g.beginPath(); [1, -1].forEach(k => { g.moveTo(px(0), py(0)); g.lineTo(px(k*Math.sin(Math.PI/4)*84), py(Math.cos(Math.PI/4)*84)); }); g.stroke();
+    // 흙 질감
+    for (let i = 0; i < 9000; i++){ const x = X0 + Math.random()*(X1 - X0), z = -10 + Math.random()*60; g.fillStyle = `rgba(${Math.random() < .5 ? "255,255,255" : "60,30,10"},${Math.random()*.05})`; g.fillRect(px(x), py(z), 2, 2); }
+    return this.canvasTex(c);
+  },
+  homeTex(){
+    const N = 1024, s = N/14, c = document.createElement("canvas"); c.width = c.height = N; const g = c.getContext("2d"), px = x => (x + 7)*s, py = z => (7 - z)*s;
+    g.fillStyle = "#c4834f"; g.beginPath(); g.arc(px(0), py(0), 4.3*s, 0, 7); g.fill();
+    for (let i = 0; i < 4000; i++){ const a = Math.random()*7, r = Math.random()*4.2*s; g.fillStyle = `rgba(${Math.random() < .5 ? "255,255,255" : "70,35,10"},${Math.random()*.08})`; g.fillRect(px(0) + Math.cos(a)*r, py(0) + Math.sin(a)*r, 3, 3); }
+    g.strokeStyle = "rgba(255,255,255,.92)"; g.lineWidth = .07*s; [[-1.3, -.9, .8, 1.8], [.5, -.9, .8, 1.8]].forEach(([x, z, w, h]) => g.strokeRect(px(x), py(z + h), w*s, h*s));
+    g.beginPath(); [1, -1].forEach(k => { g.moveTo(px(k*.6), py(.6)); g.lineTo(px(k*7), py(7)); }); g.stroke();
+    g.fillStyle = "#fff"; g.beginPath(); g.moveTo(px(-.215), py(.215)); g.lineTo(px(.215), py(.215)); g.lineTo(px(.215), py(0)); g.lineTo(px(0), py(-.215)); g.lineTo(px(-.215), py(0)); g.closePath(); g.fill();
+    g.globalCompositeOperation = "destination-in"; const gr = g.createRadialGradient(px(0), py(0), 3.9*s, px(0), py(0), 4.4*s); gr.addColorStop(0, "#000"); gr.addColorStop(1, "rgba(0,0,0,0)"); g.fillStyle = gr; g.fillRect(0, 0, N, N);
+    return this.canvasTex(c);
+  },
+  skyTex(){ const c = document.createElement("canvas"); c.width = 4; c.height = 512; const g = c.getContext("2d"), gr = g.createLinearGradient(0, 0, 0, 512);
+    gr.addColorStop(0, "#050a1c"); gr.addColorStop(.55, "#0f1f45"); gr.addColorStop(.8, "#26386e"); gr.addColorStop(1, "#3c3f6e"); g.fillStyle = gr; g.fillRect(0, 0, 4, 512); const t = this.canvasTex(c); return t; },
+  ballTex(){ const c = document.createElement("canvas"); c.width = 128; c.height = 64; const g = c.getContext("2d"); g.fillStyle = "#fbfbf6"; g.fillRect(0, 0, 128, 64);
+    g.strokeStyle = "#d9302c"; g.lineWidth = 3; g.setLineDash([3, 3]); g.beginPath(); for (let x = 0; x <= 128; x += 2) g.lineTo(x, 32 + Math.sin(x/128*Math.PI*4)*18); g.stroke(); return this.canvasTex(c); },
+  crowdTex(){ const c = document.createElement("canvas"); c.width = 512; c.height = 256; const g = c.getContext("2d"); g.fillStyle = "#1d2236"; g.fillRect(0, 0, 512, 256);
+    const C = ["#ff6b6b", "#4dabf7", "#ffd43b", "#f8f9fa", "#69db7c", "#da77f2", "#ffa94d", "#e64980", "#3bc9db"];
+    for (let r = 0; r < 16; r++){ g.fillStyle = r % 2 ? "#262c45" : "#20253b"; g.fillRect(0, r*16, 512, 16); for (let k = 0; k < 64; k++){ if (Math.random() < .15) continue; const x = k*8 + Math.random()*3, y = r*16 + 4;
+      g.fillStyle = C[(Math.random()*C.length) | 0]; g.fillRect(x, y + 4, 6, 7); g.fillStyle = "#f1c8a0"; g.beginPath(); g.arc(x + 3, y + 2, 2.6, 0, 7); g.fill(); } }
+    return this.canvasTex(c, [6, 1]); },
+  stadium(){
+    const T = this.T, S = this.S, fR = a => 84 + 16*Math.cos(2*a), FH = 3.2;
+    const quadStrip = (A, B, mat) => { const pos = [], uv = [], idx = []; A.forEach((p, i) => { pos.push(-A[i][0], A[i][1], A[i][2], -B[i][0], B[i][1], B[i][2]); uv.push(i/(A.length - 1), 0, i/(A.length - 1), 1); if (i){ const k = i*2; idx.push(k - 2, k - 1, k, k - 1, k + 1, k); } });
+      const g = new T.BufferGeometry(); g.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); g.setAttribute("uv", new T.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals(); const m = new T.Mesh(g, mat); S.add(m); return m; };
+    const arc = (r0, y, d0 = -45, d1 = 45, st = 2) => { const L = []; for (let d = d0; d <= d1; d += st){ const a = d*Math.PI/180, r = typeof r0 === "function" ? r0(a) : r0; L.push([Math.sin(a)*r, y, Math.cos(a)*r]); } return L; };
+    // 담장 (짙은 초록 쿠션 + 노란 선)
+    const wallM = new T.MeshStandardMaterial({color: 0x17472f, roughness: .8, side: T.DoubleSide});
+    quadStrip(arc(fR, 0), arc(fR, FH), wallM);
+    quadStrip(arc(fR, FH - .02), arc(a => fR(a) + .3, FH + .08), new T.MeshBasicMaterial({color: 0xffd43b, side: T.DoubleSide}));
+    // 파울 지역 담장 (홈 뒤까지)
+    const sideR = a => { const d = Math.abs(a*180/Math.PI); return d <= 45 ? fR(a) : 84*Math.cos(Math.PI/4)/Math.max(.25, Math.cos(Math.abs(a))) ; };
+    [[45, 100], [-100, -45]].forEach(([d0, d1]) => { const A = arc(a => Math.min(130, 59.4/Math.max(.35, Math.cos(Math.abs(a) - Math.PI/4 - .0001)) ), 0, d0, d1, 3).map(([x, y, z]) => [x, y, z]); });
+    // 관중석: 담장 뒤로 높아져요 (외야) + 내야 쪽 스탠드
+    const crowdM = new T.MeshStandardMaterial({map: this.crowdTex(), roughness: .9, side: T.DoubleSide});
+    quadStrip(arc(a => fR(a) + 1, FH + .2, -46, 46), arc(a => fR(a) + 34, 24, -46, 46), crowdM);
+    quadStrip(arc(a => fR(a) + 34, 24, -46, 46), arc(a => fR(a) + 36, 30, -46, 46), new T.MeshStandardMaterial({color: 0x2b3352, side: T.DoubleSide}));
+    [[46, 128], [-128, -46]].forEach(([d0, d1]) => {
+      const rIn = a => 62/Math.max(.3, Math.abs(Math.cos(Math.abs(a) - (Math.abs(a) > Math.PI/2 ? Math.PI : 0)))) * 0 + 64, rOut = a => 100;
+      quadStrip(arc(rIn, 1.2, d0, d1, 4), arc(rOut, 22, d0, d1, 4), crowdM);
+      quadStrip(arc(rIn, 0, d0, d1, 4), arc(rIn, 1.2, d0, d1, 4), wallM); });
+    // 파울 기둥
+    const poleM = new T.MeshStandardMaterial({color: 0xffd43b, emissive: 0x806000, roughness: .5});
+    [1, -1].forEach(k => { const p = new T.Mesh(new T.CylinderGeometry(.18, .18, 22, 10), poleM); p.position.copy(this.V3(k*Math.sin(Math.PI/4)*84, 11, Math.cos(Math.PI/4)*84)); S.add(p); });
+    // 조명탑 (빛나는 판 + 번짐)
+    const glow = this.glowTex(), towerM = new T.MeshStandardMaterial({color: 0x3d4766, roughness: .7}), lampM = new T.MeshBasicMaterial({color: 0xfff8e1});
+    [[-75, 30], [-55, 82], [0, 128], [55, 82], [75, 30], [-60, -18], [60, -18]].forEach(([x, z]) => {
+      const pole = new T.Mesh(new T.CylinderGeometry(.6, .9, 46, 8), towerM); pole.position.copy(this.V3(x, 23, z)); S.add(pole);
+      const lamp = new T.Mesh(new T.BoxGeometry(9, 5, .6), lampM); lamp.position.copy(this.V3(x, 47, z)); lamp.lookAt(this.V3(0, 0, 30)); S.add(lamp);
+      const sp = new T.Sprite(new T.SpriteMaterial({map: glow, color: 0xfff2c8, transparent: true, depthWrite: false, blending: T.AdditiveBlending, fog: false})); sp.scale.set(34, 34, 1); sp.position.copy(this.V3(x, 47, z)); S.add(sp); });
+    // 전광판 (가운데 담장 뒤)
+    this.sbC = document.createElement("canvas"); this.sbC.width = 1024; this.sbC.height = 384; this.sbT = this.canvasTex(this.sbC);
+    const sb = new T.Mesh(new T.PlaneGeometry(36, 13.5), new T.MeshBasicMaterial({map: this.sbT, fog: false})); sb.position.copy(this.V3(0, 33, 136)); sb.rotation.y = Math.PI; S.add(sb);
+    const frame = new T.Mesh(new T.BoxGeometry(38, 15.5, 1), towerM); frame.position.copy(this.V3(0, 33, 136.6)); S.add(frame);
+    const leg = new T.Mesh(new T.BoxGeometry(2, 26, 2), towerM); leg.position.copy(this.V3(0, 13, 137)); S.add(leg);
+    this.sbKey = "";
+  },
+  glowTex(){ const c = document.createElement("canvas"); c.width = c.height = 128; const x = c.getContext("2d"), g = x.createRadialGradient(64, 64, 2, 64, 64, 64);
+    g.addColorStop(0, "rgba(255,255,255,1)"); g.addColorStop(.25, "rgba(255,255,255,.5)"); g.addColorStop(1, "rgba(255,255,255,0)"); x.fillStyle = g; x.fillRect(0, 0, 128, 128); return new this.T.CanvasTexture(c); },
+  board(o){ const k = JSON.stringify(o); if (k === this.sbKey) return; this.sbKey = k; const g = this.sbC.getContext("2d"), W = 1024, H = 384;
+    const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, "#0b1a3a"); gr.addColorStop(1, "#04081a"); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+    g.strokeStyle = "#ffd43b"; g.lineWidth = 8; g.strokeRect(6, 6, W - 12, H - 12);
+    g.font = "bold 60px Jua, sans-serif"; g.textBaseline = "middle"; g.fillStyle = "#ffe066"; g.textAlign = "center"; g.fillText("⚾ 동물 프로야구", W/2, 62);
+    [[o.a, o.sa, "#4dabf7", 165], [o.h, o.sh, "#ff6b6b", 265]].forEach(([n, v, c, y]) => { g.textAlign = "left"; g.fillStyle = c; g.fillRect(40, y - 36, 14, 72); g.fillStyle = "#fff"; g.font = "bold 58px Jua, sans-serif"; g.fillText(n, 74, y); g.textAlign = "right"; g.fillStyle = "#ffe066"; g.font = "bold 80px Jua, sans-serif"; g.fillText(String(v), W - 60, y); });
+    g.textAlign = "center"; g.fillStyle = "#a5d8ff"; g.font = "bold 40px Jua, sans-serif"; g.fillText(o.i, W/2, H - 34); this.sbT.needsUpdate = true; },
+
+  /* ---------- 🐾 동물 선수 ---------- */
+  /* 이모지 → [털색, 배·주둥이색, 귀, 주둥이, 꾸미기…] */
+  SP: {
+    "🐔": [0xf8f9fa, 0xffffff, "none", "beak", "comb,wattle"], "🐷": [0xffb3c6, 0xffd6e0, "point", "pig", ""], "🐑": [0xf1f3f5, 0x5c5f66, "floppy", "short", "wool"], "🐸": [0x51cf66, 0xd8f5a2, "none", "flat", "frogeyes"],
+    "🐧": [0x25262b, 0xffffff, "none", "beak", "face"], "🦆": [0x2f9e44, 0xfff3bf, "none", "duck", ""], "🐮": [0xffffff, 0xffc9c9, "floppy", "short", "spots,horns"], "🐹": [0xf4a261, 0xfff4e6, "round", "short", ""],
+    "🦊": [0xf76707, 0xffffff, "point", "long", "face"], "🦉": [0x8d5524, 0xe6c79c, "tuft", "beak", "bigeyes,face"], "🐺": [0x868e96, 0xdee2e6, "point", "long", "face"], "🦌": [0xb5651d, 0xf1d3b3, "point", "long", "antlers"],
+    "🐐": [0xe9ecef, 0xffffff, "floppy", "long", "horns,beard"], "🦜": [0xfa5252, 0xffd43b, "none", "beak", "crest"], "🐬": [0x74c0fc, 0xe7f5ff, "none", "long", "fin"], "🦅": [0xffffff, 0xffffff, "none", "beak", "brow"],
+    "🐻‍❄️": [0xf8f9fa, 0xe9ecef, "round", "short", ""], "🦈": [0x8fa3b8, 0xffffff, "none", "long", "fin,teeth"], "🐍": [0x51cf66, 0xd8f5a2, "none", "flat", "tongue,spots"], "🦩": [0xff8fab, 0xffc2d1, "none", "beak", ""],
+    "🐲": [0x2f9e44, 0xd8f5a2, "none", "long", "horns,spikes,mane"], "🦄": [0xffffff, 0xf3d9fa, "point", "long", "horn1,rainbow"], "🦖": [0x40c057, 0xd3f9d8, "none", "croc", "spikes"], "🐢": [0x82c91e, 0xd8f5a2, "none", "short", "shell"],
+    "🐻": [0x8b5a2b, 0xd2a679, "round", "short", ""], "🦔": [0x8d6e63, 0xf5deb3, "small", "short", "spikes"], "🦏": [0x868e96, 0xadb5bd, "point", "long", "horn1"], "🦫": [0x8b5a2b, 0xd2a679, "small", "short", "teeth,tailflat"],
+    "🦍": [0x343a40, 0x6c757d, "small", "flat", "brow"], "🐘": [0xadb5bd, 0xced4da, "big", "trunk", "tusks"], "🦬": [0x5c3d2e, 0x3b2a20, "small", "short", "horns,beard,wool"], "🐊": [0x2b8a3e, 0x94d82d, "none", "croc", "spikes"],
+    "🐼": [0xffffff, 0xffffff, "roundk", "short", "patch"], "🐨": [0xadb5bd, 0xf1f3f5, "fluffy", "nose", ""], "🐗": [0x6d4c41, 0x8d6e63, "point", "pig", "tusks"], "🐂": [0x8b5a2b, 0xd2a679, "floppy", "short", "horns"],
+    "🦛": [0x9c88b8, 0xe0c3fc, "small", "wide", ""], "🐃": [0x495057, 0x868e96, "small", "short", "horns"], "🦭": [0x868e96, 0xdee2e6, "none", "short", ""], "🦁": [0xf59f00, 0xffe8a1, "round", "short", "mane"],
+    "🐿️": [0xd9480f, 0xffe8cc, "point", "short", "tailbushy"], "🐭": [0xadb5bd, 0xffdeeb, "big", "short", ""], "🐞": [0xe03131, 0x212529, "none", "flat", "antennae,spots"], "🦝": [0x868e96, 0xf1f3f5, "point", "short", "mask,tailring"],
+    "🐒": [0x8b5a2b, 0xf1d3b3, "side", "flat", ""], "🦦": [0x8b5a2b, 0xd2a679, "small", "short", ""], "🐱": [0xffa94d, 0xfff4e6, "point", "short", "stripes"], "🐵": [0x8b5a2b, 0xf1d3b3, "side", "flat", "band"],
+    "🦎": [0x94d82d, 0xd8f5a2, "none", "flat", "spots"], "🐇": [0xf8f9fa, 0xffdeeb, "long", "short", ""], "🦀": [0xfa5252, 0xffa8a8, "none", "flat", "eyestalk"], "🐶": [0xd4a373, 0xfefae0, "floppy", "short", ""],
+    "🐆": [0xfab005, 0xfff3bf, "round", "short", "spots"], "🦡": [0x495057, 0xffffff, "small", "long", "stripe"], "🐯": [0xff922b, 0xffffff, "round", "short", "stripes"], "🐰": [0xffe3ec, 0xffffff, "long", "short", ""],
+    "🐌": [0xced4da, 0xe9ecef, "none", "flat", "eyestalk,shellsnail"], "🦨": [0x212529, 0xffffff, "small", "short", "stripe,tailbushy"], "🐙": [0xcc5de8, 0xf3d9fa, "none", "flat", "spots"], "🦞": [0xc92a2a, 0xffa8a8, "none", "flat", "antennae"],
+    "🦧": [0xd9480f, 0xf1a87c, "small", "flat", "brow"], "🦕": [0x51cf66, 0xb2f2bb, "none", "flat", "spots"], "🦇": [0x495057, 0x868e96, "bigpoint", "short", "wings"], "🐝": [0xfab005, 0x212529, "none", "flat", "stripes,antennae,wings"],
+    "🦥": [0xa98467, 0xe6ccb2, "none", "flat", "mask"], "🦘": [0xc97b45, 0xf1d3b3, "long", "long", ""], "🐫": [0xd4a373, 0xe9c46a, "small", "long", "hump"], "🦒": [0xfab005, 0xfff3bf, "point", "long", "ossicones,spots"],
+    "🐅": [0xff922b, 0xffffff, "round", "short", "stripes"], "🐳": [0x339af0, 0xe7f5ff, "none", "wide", ""], "🦙": [0xf8f0e3, 0xffffff, "long", "long", "wool"], "🐴": [0x8b5a2b, 0xd2a679, "point", "long", "mane"],
+    "🦋": [0x4dabf7, 0xe7f5ff, "none", "flat", "antennae,wings"], "🐦": [0x4dabf7, 0xe7f5ff, "none", "beak", ""], "🦓": [0xffffff, 0xf1f3f5, "point", "long", "stripes,mane"], "🦢": [0xffffff, 0xffffff, "none", "beak", ""],
+    "🐎": [0x5c3d2e, 0x8b5a2b, "point", "long", "mane"], "🦚": [0x1c7ed6, 0x63e6be, "none", "beak", "crest"], "🐉": [0x15aabf, 0x99e9f2, "none", "long", "horns,mane,spikes"], "🐕": [0xf1d3b3, 0xffffff, "point", "long", ""],
+    "🐤": [0xffd43b, 0xfff3bf, "none", "beak", ""], "🦃": [0x8b5a2b, 0xc92a2a, "none", "beak", "wattle"], "🐟": [0x4dabf7, 0xe7f5ff, "none", "flat", "fin"], "🐕‍🦺": [0xd4a373, 0xfefae0, "point", "long", ""],
+    "🐈‍⬛": [0x2b2b30, 0x495057, "point", "short", ""], "🐣": [0xffe066, 0xfff3bf, "none", "beak", "eggshell"]
+  },
+  mat(col, o = {}){ const k = col + JSON.stringify(o); let m = this.mats[k]; if (!m){ m = this.mats[k] = new this.T.MeshStandardMaterial(Object.assign({color: col, roughness: .75}, o)); } return m; },
+  headTex(sp){ const [fur, bel, , , ex] = sp, k = "h" + fur + bel + ex; if (this.mats[k]) return this.mats[k];
+    const c = document.createElement("canvas"); c.width = 256; c.height = 128; const g = c.getContext("2d"), hx = n => "#" + n.toString(16).padStart(6, "0");
+    g.fillStyle = hx(fur); g.fillRect(0, 0, 256, 128); const front = 64;   // 앞 = u 0.25
+    if (/stripes/.test(ex)){ g.fillStyle = "rgba(25,20,15,.85)"; for (let i = 0; i < 12; i++){ const x = 100 + i*14; g.beginPath(); g.moveTo(x, 10); g.lineTo(x + 6, 10); g.lineTo(x + 2, 60); g.closePath(); g.fill(); } }
+    if (/spots/.test(ex)){ g.fillStyle = "rgba(40,25,10,.75)"; for (let i = 0; i < 40; i++){ const x = Math.random()*256, y = 10 + Math.random()*100; if (Math.abs(x - front) < 26 && y > 40) continue; g.beginPath(); g.arc(x, y, 3 + Math.random()*5, 0, 7); g.fill(); } }
+    if (/mask/.test(ex)){ g.fillStyle = "rgba(30,30,35,.9)"; g.beginPath(); g.ellipse(front, 56, 34, 10, 0, 0, 7); g.fill(); }
+    if (/patch/.test(ex)){ g.fillStyle = "#212529"; [-13, 13].forEach(d => { g.beginPath(); g.ellipse(front + d, 58, 8, 11, d > 0 ? -.4 : .4, 0, 7); g.fill(); }); }
+    if (/stripe(?!s)/.test(ex)){ g.fillStyle = "#ffffff"; g.fillRect(front - 5, 0, 10, 70); }
+    if (/face/.test(ex)){ g.fillStyle = hx(bel); g.beginPath(); g.ellipse(front, 74, 28, 30, 0, 0, 7); g.fill(); }
+    g.fillStyle = hx(bel); g.beginPath(); g.ellipse(front, 128, 46, 30, 0, 0, 7); g.fill();
+    const t = this.canvasTex(c); this.mats[k] = t; return t; },
+  /* 선수 만들기 (얼굴은 +z 쪽) */
+  makeChar(card, teamCol, opt = {}){
+    const T = this.T, sp = this.SP[card.e] || [0x8b5a2b, 0xd2a679, "round", "short", ""], [fur, bel, ear, snout, ex] = sp;
+    const M = {fur: this.mat(fur, {roughness: .85}), bel: this.mat(bel, {roughness: .85}), jer: this.mat(teamCol, {roughness: .55}), pants: this.mat(0xf1f3f5, {roughness: .6}),
+      sock: this.mat(teamCol, {roughness: .6}), shoe: this.mat(0x212529, {roughness: .4}), belt: this.mat(0x1b1b1f), black: this.mat(0x111111, {roughness: .3}), white: this.mat(0xffffff, {roughness: .3}),
+      cap: this.mat(teamCol, {roughness: .35, metalness: .1}), glove: this.mat(0x9c5a24, {roughness: .6}), bat: this.mat(0xd7a86e, {roughness: .45}), gold: this.mat(0xffd43b, {roughness: .3, metalness: .6}),
+      beak: this.mat(/duck|🐧|🦩|🦢|🐤|🐣|🐔|🦆/.test(card.e) ? 0xff922b : 0xfab005, {roughness: .5}), horn: this.mat(0xf8f0e3, {roughness: .5}), pink: this.mat(0xff8fab, {roughness: .6})};
+    const sph = (r, ws = 16, hs = 12) => new T.SphereGeometry(r, ws, hs), cap = (r, l) => new T.CapsuleGeometry(r, l, 6, 12), cyl = (a, b, h, n = 12) => new T.CylinderGeometry(a, b, h, n), cone = (r, h, n = 12) => new T.ConeGeometry(r, h, n);
+    const add = (par, geo, mat, x = 0, y = 0, z = 0, sc, rot) => { const m = new T.Mesh(geo, mat); m.position.set(x, y, z); if (sc) m.scale.set(...sc); if (rot) m.rotation.set(...rot); m.castShadow = true; par.add(m); return m; };
+    const G = new T.Group(), J = {};
+    const root = J.root = new T.Group(); G.add(root);
+    const hip = J.hip = new T.Group(); hip.position.y = .72; root.add(hip);
+    add(hip, sph(.21), M.pants, 0, -.02, 0, [1.05, .8, .85]);
+    [1, -1].forEach(sd => { const L = new T.Group(); L.position.set(sd*.11, -.05, 0); hip.add(L);
+      add(L, cap(.085, .2), M.pants, 0, -.15, 0); const K = new T.Group(); K.position.y = -.33; L.add(K);
+      add(K, cap(.07, .18), M.sock, 0, -.14, 0); add(K, new T.BoxGeometry(.14, .08, .26), M.shoe, 0, -.3, .05);
+      J[sd > 0 ? "legL" : "legR"] = L; J[sd > 0 ? "kneeL" : "kneeR"] = K; });
+    const sp_ = J.spine = new T.Group(); sp_.position.y = .04; hip.add(sp_);
+    add(sp_, cap(.21, .2), M.jer, 0, .22, 0, [1.05, 1, .82]); add(sp_, cyl(.21, .21, .05, 16), M.belt, 0, .03, 0, [1.02, 1, .84]);
+    if (/shell(?!snail)/.test(ex)) add(sp_, sph(.3, 16, 10), this.mat(0x5c940d, {roughness: .5}), 0, .27, -.16, [1, 1.05, .6]);
+    if (/shellsnail/.test(ex)) add(sp_, sph(.26, 16, 10), this.mat(0xb5651d, {roughness: .5}), 0, .3, -.2, [.7, 1, 1]);
+    if (/hump/.test(ex)) add(sp_, sph(.17), M.fur, 0, .43, -.15);
+    if (/wings/.test(ex)) [1, -1].forEach(sd => add(sp_, sph(.22, 12, 8), this.mat(card.e === "🦋" ? 0x74c0fc : card.e === "🐝" ? 0xe7f5ff : 0x495057, {roughness: .4, transparent: card.e === "🐝", opacity: .7}), sd*.17, .36, -.17, [.25, 1.1, .7], [0, sd*.5, sd*.3]));
+    // 배번
+    // 어깨 (팔은 손을 바라보게 매 장면 돌려요)
+    [1, -1].forEach(sd => { const sh = new T.Group(); sh.position.set(sd*.25, .36, 0); sp_.add(sh);
+      const arm = new T.Group(); sh.add(arm); add(arm, cap(.07, .14), M.jer, 0, 0, .09, null, [Math.PI/2, 0, 0]); add(arm, cap(.058, .14), M.fur, 0, 0, .27, null, [Math.PI/2, 0, 0]);
+      J[sd > 0 ? "shL" : "shR"] = sh; J[sd > 0 ? "armL" : "armR"] = arm; });
+    // 손 (몸통 기준 자리)
+    J.hL = new T.Group(); J.hR = new T.Group(); sp_.add(J.hL); sp_.add(J.hR);
+    add(J.hR, sph(.065, 10, 8), M.fur); add(J.hL, sph(.065, 10, 8), M.fur);
+    if (opt.glove) add(J.hL, sph(.11, 12, 8), M.glove, 0, 0, .02, [1, 1.2, .55]);
+    // 방망이 (오른손이 손잡이)
+    if (opt.bat){ const bat = J.bat = new T.Group(); J.hR.add(bat); add(bat, cyl(.032, .022, .3, 10), M.bat, 0, .15, 0); add(bat, cyl(.045, .032, .55, 12), M.bat, 0, .57, 0); add(bat, sph(.045, 10, 8), M.bat, 0, .85, 0); add(bat, cyl(.03, .03, .03, 10), M.black, 0, .0, 0); }
+    // 머리
+    const hd = J.head = new T.Group(); hd.position.y = .56; sp_.add(hd);
+    const big = /🐙|🐸|🐣|🐤/.test(card.e) ? 1.1 : 1, headM = new T.MeshStandardMaterial({map: this.headTex(sp), roughness: .85});
+    add(hd, sph(.29*big, 24, 18), headM, 0, .2, 0, [1, .95, .95]);
+    const fz = .27*big;
+    // 눈
+    const eyeS = /bigeyes/.test(ex) ? 1.6 : 1, eyeY = /frogeyes/.test(ex) ? .42 : .26;
+    [1, -1].forEach(sd => { const e = new T.Group(); e.position.set(sd*.1, eyeY, /frogeyes/.test(ex) ? .12 : fz - .03); hd.add(e);
+      if (/frogeyes|eyestalk/.test(ex)) add(e, /eyestalk/.test(ex) ? cyl(.025, .025, .18, 8) : sph(.08, 12, 8), M.fur, 0, /eyestalk/.test(ex) ? .1 : -.02, 0);
+      const ey = new T.Group(); ey.position.y = /eyestalk/.test(ex) ? .2 : 0; e.add(ey);
+      add(ey, sph(.05*eyeS, 12, 10), M.white, 0, 0, 0, [1, 1.1, .6]); add(ey, sph(.033*eyeS, 10, 8), M.black, 0, 0, .025*eyeS); add(ey, sph(.011*eyeS, 6, 6), M.white, sd*.01, .015, .05*eyeS); });
+    if (/brow/.test(ex)) add(hd, cap(.04, .22), M.fur, 0, .33, fz - .05, null, [0, 0, Math.PI/2]);
+    // 주둥이
+    const nose = (z, y = .16) => add(hd, sph(.035, 10, 8), M.black, 0, y, z);
+    if (snout === "short"){ add(hd, sph(.12, 14, 10), M.bel, 0, .12, fz - .02, [1.15, .8, .7]); nose(fz + .07); }
+    else if (snout === "long"){ add(hd, cap(.08, .16), M.bel, 0, .12, fz + .04, [1.1, 1, 1], [Math.PI/2, 0, 0]); nose(fz + .2, .14); }
+    else if (snout === "flat"){ add(hd, sph(.1, 14, 10), M.bel, 0, .1, fz - .03, [1.3, .7, .5]); }
+    else if (snout === "nose"){ add(hd, sph(.07, 12, 10), M.black, 0, .14, fz + .02, [1, 1.3, .8]); }
+    else if (snout === "pig"){ add(hd, cyl(.09, .09, .08, 16), M.pink, 0, .12, fz + .02, null, [Math.PI/2, 0, 0]); [1, -1].forEach(sd => add(hd, sph(.02, 6, 6), M.black, sd*.035, .12, fz + .06)); }
+    else if (snout === "beak"){ add(hd, cone(.07, .18), M.beak, 0, .13, fz + .06, null, [Math.PI/2, 0, 0]); }
+    else if (snout === "duck"){ add(hd, sph(.1, 12, 8), M.beak, 0, .1, fz + .05, [1.2, .35, 1.1]); }
+    else if (snout === "trunk"){ const tr = new T.Group(); tr.position.set(0, .1, fz); hd.add(tr); add(tr, cyl(.07, .04, .4, 10), M.fur, 0, -.12, .12, null, [.7, 0, 0]); }
+    else if (snout === "croc"){ add(hd, new T.BoxGeometry(.24, .1, .36), M.fur, 0, .08, fz + .1); add(hd, new T.BoxGeometry(.2, .03, .3), M.white, 0, .03, fz + .1); }
+    else if (snout === "wide"){ add(hd, sph(.16, 14, 10), M.bel, 0, .08, fz, [1.4, .8, .8]); [1, -1].forEach(sd => add(hd, sph(.02, 6, 6), M.black, sd*.06, .14, fz + .12)); }
+    if (/teeth/.test(ex)) add(hd, new T.BoxGeometry(.07, .05, .02), M.white, 0, .02, fz + .02);
+    if (/tongue/.test(ex)) add(hd, new T.BoxGeometry(.03, .01, .12), this.mat(0xe03131), 0, .07, fz + .08);
+    // 귀
+    const EAR = {round: [sph(.09, 12, 8), [1, 1, .45], .19, .4, 0], small: [sph(.06, 10, 8), [1, 1, .5], .2, .38, 0], roundk: [sph(.09, 12, 8), [1, 1, .45], .19, .4, 0],
+      point: [cone(.08, .2, 10), [1, 1, .6], .16, .46, -.25], bigpoint: [cone(.12, .3, 10), [1, 1, .4], .18, .5, -.3], long: [cap(.055, .3), [1, 1, .55], .09, .6, -.1],
+      floppy: [cap(.055, .16), [1, 1, .5], .3, .22, 1.1], big: [sph(.22, 14, 10), [1, 1.1, .25], .3, .25, .2], fluffy: [sph(.12, 12, 8), [1, 1, .5], .25, .38, 0],
+      side: [sph(.07, 10, 8), [.5, 1, 1], .3, .24, 0], tuft: [cone(.05, .14, 8), [1, 1, .6], .14, .48, -.2]}[ear];
+    if (EAR) [1, -1].forEach(sd => add(hd, EAR[0], ear === "roundk" ? M.black : M.fur, sd*EAR[2], EAR[3], -.02, EAR[1], [0, 0, -sd*EAR[4]]));
+    // 꾸미기
+    if (/mane/.test(ex)) add(hd, new T.TorusGeometry(.27, .1, 10, 24), this.mat(card.e === "🦁" ? 0xb35900 : card.e === "🦓" ? 0x212529 : card.e === "🐲" || card.e === "🐉" ? 0xffd43b : 0x3b2a20, {roughness: .9}), 0, .2, -.06);
+    if (/rainbow/.test(ex)) add(hd, new T.TorusGeometry(.25, .07, 8, 20, Math.PI), this.mat(0xda77f2), 0, .3, -.12, null, [0, Math.PI/2, 0]);
+    if (/horns/.test(ex)) [1, -1].forEach(sd => add(hd, cone(.045, .2, 8), M.horn, sd*.17, .46, -.02, null, [0, 0, -sd*.6]));
+    if (/horn1/.test(ex)) add(hd, cone(.045, .26, 10), card.e === "🦄" ? M.gold : M.horn, 0, .47, .12, null, [.5, 0, 0]);
+    if (/antlers/.test(ex)) [1, -1].forEach(sd => { add(hd, cyl(.02, .025, .3, 6), this.mat(0x8d6e63), sd*.12, .55, -.03, null, [0, 0, -sd*.4]); add(hd, cyl(.015, .02, .14, 6), this.mat(0x8d6e63), sd*.2, .62, -.03, null, [0, 0, sd*.6]); });
+    if (/ossicones/.test(ex)) [1, -1].forEach(sd => { add(hd, cyl(.02, .02, .14, 6), M.fur, sd*.08, .5, -.02); add(hd, sph(.035, 8, 6), this.mat(0x8b5a2b), sd*.08, .58, -.02); });
+    if (/tusks/.test(ex)) [1, -1].forEach(sd => add(hd, cone(.025, .14, 8), M.horn, sd*.09, .02, fz + .02, null, [-.4, 0, 0]));
+    if (/comb/.test(ex)) [-.06, 0, .06].forEach((z, i) => add(hd, sph(.05, 8, 6), this.mat(0xe03131), 0, .47 + (i === 1 ? .03 : 0), z + .05));
+    if (/wattle/.test(ex)) add(hd, sph(.04, 8, 6), this.mat(0xe03131), 0, .0, fz + .02, [1, 1.4, 1]);
+    if (/crest/.test(ex)) [-.05, 0, .05].forEach(x => add(hd, cone(.025, .16, 6), this.mat(card.e === "🦚" ? 0x63e6be : 0xffd43b), x, .5, -.02));
+    if (/fin/.test(ex)) add(hd, cone(.08, .25, 4), M.fur, 0, .5, -.05, [.4, 1, 1.4]);
+    if (/spikes/.test(ex)) for (let i = 0; i < 7; i++){ const a = -1.1 + i*.36; add(hd, cone(.04, .14, 6), card.e === "🦔" ? this.mat(0x5d4037) : M.bel, 0, .2 + Math.cos(a)*.28, -Math.sin(-a)*.0 - .1 - Math.abs(a)*.08, null, [-.5 - a*.3, 0, 0]); }
+    if (/antennae/.test(ex)) [1, -1].forEach(sd => { add(hd, cyl(.008, .008, .25, 4), M.black, sd*.07, .55, .05, null, [.3, 0, -sd*.3]); add(hd, sph(.025, 6, 6), M.black, sd*.12, .67, .09); });
+    if (/beard/.test(ex)) add(hd, cone(.06, .14, 8), M.bel, 0, -.04, fz - .04, null, [Math.PI, 0, 0]);
+    if (/wool/.test(ex)) for (let i = 0; i < 6; i++){ const a = i/6*Math.PI*2; add(hd, sph(.09, 8, 6), this.mat(0xf8f9fa, {roughness: 1}), Math.cos(a)*.15, .42, Math.sin(a)*.1 - .04); }
+    if (/band/.test(ex)) add(hd, new T.TorusGeometry(.27, .025, 6, 24), M.gold, 0, .32, 0, null, [Math.PI/2, 0, 0]);
+    if (/eggshell/.test(ex)) add(hip, sph(.24, 14, 8, 0, Math.PI*2, Math.PI/2, Math.PI/2), this.mat(0xfff9db), 0, .05, 0);
+    // 모자 (귀·뿔이 있으면 조금 뒤로)
+    if (!opt.nocap){ const capG = new T.Group(); capG.position.set(0, .3, -.02); hd.add(capG);
+      add(capG, new T.SphereGeometry(.27*big, 18, 10, 0, Math.PI*2, 0, Math.PI/2), M.cap, 0, .08, -.02, [1, .7, 1]);
+      add(capG, cyl(.2, .2, .02, 20, 1), M.cap, 0, .08, .2, [1, 1, .9]);
+      add(capG, sph(.03, 6, 6), M.cap, 0, .27, -.02); }
+    // 꼬리
+    if (/tailbushy/.test(ex)) add(hip, cap(.12, .3), M.fur, 0, .2, -.28, null, [-.6, 0, 0]);
+    if (/tailring/.test(ex)) add(hip, cap(.07, .3), this.mat(0x495057), 0, .05, -.3, null, [-1, 0, 0]);
+    if (/tailflat/.test(ex)) add(hip, new T.BoxGeometry(.18, .04, .3), this.mat(0x5d4037), 0, -.12, -.3, null, [-.5, 0, 0]);
+    G.userData = {J, ph: 0, card: card.id};
+    G.traverse(o => { if (o.isMesh){ o.castShadow = true; } });
+    return G;
+  },
+  /* ---------- 🤸 자세 ---------- */
+  L: (a, b, t) => a + (b - a)*t,
+  lerpPose(A, B, t){ const o = {}; for (const k in A){ const a = A[k], b = B[k] ?? a; o[k] = Array.isArray(a) ? a.map((v, i) => this.L(v, b[i], t)) : this.L(a, b, t); } return o; },
+  keys(K, t){ if (t <= K[0][0]) return K[0][1]; for (let i = 1; i < K.length; i++) if (t <= K[i][0]){ const [t0, a] = K[i - 1], [t1, b] = K[i], u = (t - t0)/(t1 - t0); return this.lerpPose(a, b, u*u*(3 - 2*u)); } return K[K.length - 1][1]; },
+  /* 자세: y(앉기) hy(허리 돌기) sy·sx·sz(몸통) lL·lR([앞뒤, 옆]) kL·kR(무릎) hL·hR(손 자리, 몸통 기준) bat([x,y,z] 방망이 돌림) hx·hyw(고개) */
+  P0: {y: 0, hy: 0, sy: 0, sx: 0, sz: 0, lL: [0, 0], lR: [0, 0], kL: 0, kR: 0, hL: [.18, .12, .25], hR: [-.18, .12, .25], bat: [0, 0, 0], hx: 0, hyw: 0, rx: 0},
+  pose(name, t){
+    const P = this.P0, Q = (o) => Object.assign({}, P, o);
+    if (name === "stance"){ const b = Math.sin(t*6)*.02;
+      return Q({y: -.05, lL: [-.15, .18], lR: [.1, -.18], kL: .3, kR: .35, sx: .2, hy: 0, sy: -.15, hL: [-.08, .42 + b, .18], hR: [-.14, .4 + b, .16], bat: [.6, 0, .55], hyw: 1.2, hx: .1}); }
+    if (name === "swing"){
+      const S0 = Q({y: -.05, lL: [-.15, .18], lR: [.1, -.18], kL: .3, kR: .35, sx: .2, sy: -.15, hL: [-.08, .42, .18], hR: [-.14, .4, .16], bat: [.6, 0, .55], hyw: 1.2, hx: .1});
+      const S1 = Q({y: -.08, lL: [-.45, .3], lR: [.15, -.2], kL: .35, kR: .45, sx: .25, sy: -.45, hy: -.15, hL: [-.12, .44, .1], hR: [-.2, .42, .06], bat: [.9, 0, .7], hyw: 1.4, hx: .1});
+      const S2 = Q({y: -.12, lL: [-.25, .35], lR: [.3, -.25], kL: .15, kR: .6, sx: .3, sy: .55, hy: .55, hL: [.1, .2, .42], hR: [.02, .2, .38], bat: [1.55, 0, 1.55], hyw: .6, hx: .2});
+      const S3 = Q({y: -.06, lL: [-.2, .35], lR: [.25, -.1], kL: .1, kR: .5, sx: .15, sy: 1.25, hy: .9, hL: [.22, .48, .12], hR: [.16, .5, .1], bat: [1.4, 0, 2.9], hyw: .2, hx: 0});
+      return this.keys([[0, S0], [.3, S1], [.52, S2], [1, S3]], t); }
+    if (name === "pitch"){   // 0 셋 · .5 다리 들기 · .78 내딛기 · .9 놓기 · 1 따라가기
+      const A = Q({hL: [.08, .3, .3], hR: [-.02, .3, .32], hyw: 0});
+      const B = Q({lL: [-1.3, .1], kL: 1.6, kR: .1, sy: -.8, hy: -.4, hL: [.06, .32, .26], hR: [0, .3, .28], hyw: .6, y: .02});
+      const C = Q({lL: [-.7, .3], lR: [.5, -.1], kL: .5, kR: .4, sy: -.5, hy: -.3, sx: .1, hL: [.45, .45, .25], hR: [-.5, .55, -.35], y: -.12, hyw: .5});
+      const D = Q({lL: [-.55, .25], lR: [.7, -.05], kL: .4, kR: .7, sy: .6, hy: .4, sx: .55, hL: [.35, .2, .05], hR: [-.05, .7, .55], y: -.2, hyw: 0});
+      const E = Q({lL: [-.4, .2], lR: [.2, -.3], kL: .5, kR: .3, sy: .9, hy: .6, sx: .75, hL: [.3, .05, 0], hR: [.35, -.05, .35], y: -.22, hyw: -.2});
+      return this.keys([[0, A], [.5, B], [.78, C], [.9, D], [1, E]], t); }
+    if (name === "run"){ const s = Math.sin(t), c = Math.cos(t);
+      return Q({y: Math.abs(c)*.06 - .04, lL: [-s*.9, 0], lR: [s*.9, 0], kL: .4 + Math.max(0, s)*1.1, kR: .4 + Math.max(0, -s)*1.1, sx: .3, hL: [.2, .1 + s*.12, .12 + s*.22], hR: [-.2, .1 - s*.12, .12 - s*.22], hx: -.2}); }
+    if (name === "ready"){ const b = Math.sin(t*3)*.015;
+      return Q({y: -.12 + b, lL: [-.35, .25], lR: [-.35, -.25], kL: .7, kR: .7, sx: .45, hL: [.16, -.05, .38], hR: [-.16, -.05, .38], hx: -.35}); }
+    if (name === "idle"){ const b = Math.sin(t*2)*.01; return Q({y: b, lL: [0, .08], lR: [0, -.08], hL: [.26, .02, .08], hR: [-.26, .02, .08]}); }
+    if (name === "crouch") return Q({y: -.36, lL: [-1.3, .45], lR: [-1.3, -.45], kL: 2, kR: 2, sx: .2, hL: [.18, .2, .42], hR: [-.15, .05, .3], hx: -.1});
+    if (name === "throw"){ const u = Math.min(1, t);
+      return this.keys([[0, Q({lL: [-.4, .2], kL: .4, kR: .3, hR: [-.4, .55, -.25], hL: [.3, .35, .3], sy: -.5})], [1, Q({lL: [-.5, .2], lR: [.4, 0], kL: .4, kR: .5, sx: .4, sy: .6, hR: [.2, .1, .5], hL: [.3, .05, .1]})]], u); }
+    if (name === "catch") return Q({y: -.05, lL: [-.2, .2], lR: [.1, -.2], kL: .3, kR: .3, hL: [.12, .7, .32], hR: [-.12, .6, .3], hx: .4});
+    if (name === "dive") return Q({y: -.35, rx: 1.25, lL: [.3, .2], lR: [.5, -.2], kL: .3, kR: .5, hL: [.2, .75, .25], hR: [-.15, .7, .2], hx: -1});
+    if (name === "cheer"){ const b = Math.abs(Math.sin(t*8))*.12; return Q({y: b, hL: [.25, .75, .1], hR: [-.25, .75, .1], hx: .3}); }
+    return P;
+  },
+  applyPose(G, p){
+    const J = G.userData.J, T = this.T;
+    J.root.position.y = p.y; J.root.rotation.x = p.rx; J.hip.rotation.y = p.hy;
+    J.spine.rotation.set(p.sx, p.sy - p.hy*.0, p.sz);
+    J.legL.rotation.set(p.lL[0], 0, p.lL[1]*.6); J.legR.rotation.set(p.lR[0], 0, p.lR[1]*.6); J.kneeL.rotation.x = p.kL; J.kneeR.rotation.x = p.kR;
+    J.head.rotation.set(p.hx, p.hyw, 0);
+    J.hL.position.set(...p.hL); J.hR.position.set(...p.hR);
+    if (J.bat) J.bat.rotation.set(p.bat[0], p.bat[1], p.bat[2]);
+    // 방망이를 두 손으로: 왼손은 방망이 손잡이 위쪽으로
+    G.updateMatrixWorld(true);
+    if (J.bat){ const w = new T.Vector3(0, .13, 0); J.bat.localToWorld(w); J.spine.worldToLocal(w); J.hL.position.copy(w); G.updateMatrixWorld(true); }
+    // 팔: 어깨에서 손을 바라봐요
+    [["shL", "armL", "hL"], ["shR", "armR", "hR"]].forEach(([s, a, h]) => { const tgt = new T.Vector3(); J[h].getWorldPosition(tgt); const arm = J[a];
+      const o = new T.Vector3(); J[s].getWorldPosition(o); const d = o.distanceTo(tgt); arm.lookAt(tgt); arm.scale.z = Math.max(.35, Math.min(1.3, d/.36)); });
+  },
+
+  /* ---------- 🎬 한 장면 그리기 ----------
+     o = {cam: {p, t, fov, cy}, chars: [{key, card, team, x, z, fx, fz, pose, t, alpha, glove, bat, hide}], ball, trail, board, W, H, k} */
+  frame(o){
+    const T = this.T, R = this.R, S = this.S, W = o.W, H = o.H;
+    const q = this.slow > 40 ? .7 : Math.min(1.5, Math.max(.75, o.k || 1)), w = Math.round(W*q), h = Math.round(H*q);
+    if (this._w !== w || this._h !== h){ R.setSize(w, h, false); this._w = w; this._h = h; }
+    const C = this.cam; C.fov = o.cam.fov; C.aspect = W/H; C.position.copy(this.V3(...o.cam.p)); C.lookAt(this.V3(...o.cam.t));
+    C.setViewOffset(W, H, 0, H/2 - o.cam.cy, W, H); C.updateProjectionMatrix();
+    // 그림자는 보고 있는 곳 둘레만
+    const fc = o.shadowAt || o.cam.t; this.key.target.position.copy(this.V3(fc[0], 0, fc[2])); this.key.position.copy(this.V3(fc[0] - 30*-1, 60, fc[2] - 45));
+    const sc = this.key.shadow.camera, ext = o.shadowR || 18; if (sc.right !== ext){ sc.left = sc.bottom = -ext; sc.right = sc.top = ext; sc.updateProjectionMatrix(); }
+    // 선수
+    const seen = new Set();
+    (o.chars || []).forEach(c => {
+      const key = c.key; let G = this.CH.get(key);
+      if (!G){ G = this.makeChar(c.card, c.team, {glove: c.glove, bat: c.bat}); this.CH.set(key, G); S.add(G); }
+      seen.add(key); G.visible = !c.hide; if (c.hide) return;
+      G.position.copy(this.V3(c.x, c.y || 0, c.z)); G.scale.set(c.L ? -1 : 1, 1, 1); G.scale.multiplyScalar(c.s || 1);
+      G.lookAt(this.V3(c.fx, (c.y || 0), c.fz));
+      if (c.L){ G.rotateY(0); }
+      this.applyPose(G, this.pose(c.pose, c.t || 0));
+      if (c.alpha != null && c.alpha < 1){ G.traverse(m => { if (m.isMesh){ m.material = m.material.clone(); m.material.transparent = true; m.material.opacity = c.alpha; } }); G.userData.faded = 1; }
+    });
+    this.CH.forEach((G, k) => { if (!seen.has(k)) G.visible = false; });
+    // 공
+    if (o.ball){ this.ball.visible = this.bshadow.visible = true; this.ball.position.copy(this.V3(...o.ball)); this.ball.rotation.x += .4; this.bshadow.position.copy(this.V3(o.ball[0], .02, o.ball[2])); }
+    else this.ball.visible = this.bshadow.visible = false;
+    this.trail.forEach((m, i) => { const p = o.trail && o.trail[i]; m.visible = !!p; if (p) m.position.copy(this.V3(...p)); });
+    if (o.board) this.board(o.board);
+    const t0 = performance.now(); R.render(S, C); const dt = performance.now() - t0; this.slow = dt > 22 ? this.slow + 1 : Math.max(0, this.slow - 1);
+    if (this.slow > 240 && window.NG){ NG.no3d = true; console.warn("[3D 야구] 기기가 느려서 예전 그림으로 바꿔요"); }   // 너무 느린 기기는 예전 그림으로
+    return R.domElement;
+  },
+  /* 새 경기: 지난 경기 선수는 치워요 */
+  reset(){ if (!this.S) return; this.CH.forEach(G => { this.S.remove(G); G.traverse(o => { if (o.isMesh) o.geometry.dispose(); }); }); this.CH.clear(); this.sbKey = ""; },
+  /* 3D 점 → 화면 (이름표·표시용) */
+  project(x, y, z, W, H){ const v = this.V3(x, y, z).project(this.cam); if (v.z > 1) return null; return [(v.x + 1)/2*W, (1 - v.y)/2*H]; },
+  /* 지난 장면에서 쓴 흐린 재료는 다시 진하게 */
+  unfade(){ this.CH.forEach((G, k) => { if (G.userData.faded){ this.S.remove(G); this.CH.delete(k); } }); },
+
+  /* ---------- 🖼️ 카드 그림 (3D로 한 번 찍어 두기) ---------- */
+  portrait(card, teamCol = 0x4c6ef5, size = 256){
+    const k = card.id + "|" + teamCol + "|" + size; if (this.PORT.has(k)) return this.PORT.get(k); if (this.st !== 2) return null;
+    const T = this.T, R = this.R;
+    if (!this.pS){ const S = this.pS = new T.Scene(); S.add(new T.HemisphereLight(0xffffff, 0x445066, 1.6)); const d = new T.DirectionalLight(0xffffff, 2.2); d.position.set(1.5, 3, 4); S.add(d);
+      const r = new T.DirectionalLight(0xb4c8ff, 1.2); r.position.set(-3, 2, -2); S.add(r); this.pC = new T.PerspectiveCamera(26, 1, .1, 20); this.pRT = new T.WebGLRenderTarget(size, size, {samples: 4}); }
+    const G = this.makeChar(card, teamCol, {glove: card.pos !== "P" && false, bat: card.pos !== "P"}); this.pS.add(G);
+    this.applyPose(G, card.pos === "P" ? Object.assign({}, this.P0, {hL: [.2, .3, .3], hR: [-.12, .3, .32], hyw: .2}) : Object.assign(this.pose("stance", 0), {hyw: -.35, hx: 0, sx: .05, y: 0}));
+    G.rotation.y = card.pos === "P" ? -.35 : .45;
+    this.pC.position.set(0, 1.55, 2.75); this.pC.lookAt(0, 1.28, 0);
+    if (this.pRT.width !== size) this.pRT.setSize(size, size);
+    const prev = R.getRenderTarget(); R.setRenderTarget(this.pRT); R.setClearColor(0x000000, 0); R.clear(); R.render(this.pS, this.pC); R.setRenderTarget(prev);
+    const px = new Uint8Array(size*size*4); R.readRenderTargetPixels(this.pRT, 0, 0, size, size, px);
+    const c = document.createElement("canvas"); c.width = c.height = size; const g = c.getContext("2d"), im = g.createImageData(size, size);
+    for (let y = 0; y < size; y++) im.data.set(px.subarray((size - 1 - y)*size*4, (size - y)*size*4), y*size*4);
+    g.putImageData(im, 0, 0); this.pS.remove(G); G.traverse(o => { if (o.isMesh && o.geometry) o.geometry.dispose(); });
+    this.PORT.set(k, c); return c;
+  }
+};
+window.BB3D = BB3D;
 
 /* =====================================================================
    🧊 3D 체스 (2026.11.23) — three.js로 진짜 입체 체스판·말을 그려요
@@ -26889,6 +27455,12 @@ Object.assign(VOICE, {
    - k: "new"(새로 생겼어요) · "up"(더 좋아졌어요) · "fix"(고쳤어요)
    ===================================================================== */
 const NEWS = [
+  {id: "2026-11-27f", d: "11월 27일", e: "🏟️", t: "동물 프로야구가 진짜 3D가 됐어요!", items: [
+    ["new", "🦁", "입체 동물 선수들", "동물 선수들이 진짜 입체로 나와요! 유니폼과 모자를 쓰고 방망이를 휘두르고, 다리를 들어 공을 던지고, 베이스를 향해 달려요."],
+    ["new", "🏟️", "밤 야구장", "조명탑이 빛나는 밤 경기장, 관중석, 전광판까지 생겼어요."],
+    ["new", "✨", "선수마다 스킬", "모든 카드에 스킬이 생겼어요. 아마추어·마이너·메이저·레전드 등급이 있고, 전설 카드는 자기만의 필살 스킬이 있어요. 경기 중에 스킬이 켜지면 반짝 알려 줘요!"],
+    ["new", "🔍", "선수 자세히 보기", "카드의 🔍를 누르면 3D 선수 그림, 능력치, 던질 수 있는 공, 스킬 설명을 자세히 볼 수 있어요."]
+  ], tip: "같은 카드를 모아 +3 강화하면 스킬 등급이 한 칸 올라가요!"},
   {id: "2026-11-27e", d: "11월 27일", e: "🎋", t: "다같이 윷놀이 — 이제 6명까지!", items: [
     ["up", "👨‍👩‍👧‍👦", "6명이 함께 윷놀이", "노랑🟡·빨강🔴 말이 새로 생겨서 이제 6명까지 함께 해요. 모둠 친구들이 다 같이 한 판!"],
     ["up", "🌐", "온라인 방도 6명", "온라인 방에도 6명까지 들어올 수 있어요. 빈자리는 🤖 컴퓨터가 채워요."]
