@@ -1,7 +1,10 @@
 /* =====================================================================
    ⚾ 동물 프로야구 (2026.11.25) — 3D 야구 대결
-   - 🎯 투수: 공 종류를 고르고 스트라이크존을 톡 → 링이 작을 때 ⚾ 던지기 (작을수록 정확)
-   - 🏏 타자: 공이 올 곳을 보고 알맞은 때에 화면을 톡! (빨리 치면 당겨 치고, 늦으면 밀어 쳐요)
+   - 🎯 투수: 공 종류(최대 6가지)를 고르고 스트라이크존을 톡 → 스페이스! 왔다갔다 하는 막대를 금색 칸에서 멈추면 완벽한 공
+            (금색 칸 넓이 = 제구, 막대 빠르기 = 공 종류·지친 정도) · 완벽: 더 빠르고 더 꺾여요 · 실투: 가운데로 몰리고 덜 꺾여요
+   - 🏏 타자 (2026.11.27 타이밍 싸움): 공이 홈에 닿는 순간 스페이스(또는 화면 톡)! 어디를 칠지는 타자가 알아서 —
+            🎯 정확(con)이 높을수록 '딱!' 칸이 넓고, 💪 파워가 높을수록 멀리 날아가요 · 빨리 치면 당겨 치고, 늦으면 밀어 쳐요
+            변화구·볼은 속기 쉬워요 (딱 맞추면 덜 속아요) · 날아오는 동안은 공 이름이 안 보여요 → 빠르기를 보고 읽어요
    - 수비수·주자는 카드 능력(파워·정확·주루·수비·어깨 / 구속·제구·변화·체력)대로 움직여요
    - 3D는 가벼운 원근 그리기(캔버스)로: 타석 화면은 한 번 그려 기억해 붙이고, 공이 날아갈 때만 경기장을 다시 그려요
    - 🌐 다른 기기와: 신청한 친구(홈 팀) 기기가 심판 — 스윙은 '내 기기에서 본 때'를 보내서 늦게 도착해도 공정해요
@@ -40,22 +43,26 @@ NG.defs.ab = () => {
 
   /* ---------- 공 던지기 ---------- */
   function fatigue(){ const P = pitcher(); return clamp((S.pc[dfn()] - (25 + P.sta*.35))/40, 0, 1); }
-  function mkPitch(type, cx, cy, acc){
+  /* gr: 게이지 결과 2 완벽 · 1 좋음 · 0 실투 */
+  function mkPitch(type, cx, cy, acc, gr = 1){
     const P = pitcher(), t = PT[type] || PT.fb, fat = fatigue();
-    const kmh = (100 + P.vel*(1 - fat*.08)*.5)*t.sp, FT = 17.4/(kmh/3.6)*1.55;
-    const sig = (.16 - P.ctl*(1 - fat*.25)*.0013)*(.55 + clamp(acc, 0, 1)*1.1);
-    const Tx = cx + gauss()*sig, Ty = cy + gauss()*sig*.85, bk = .55 + P.brk/110, Bx = t.B[0]*bk, By = t.B[1]*bk;
+    if (gr === 0){ cx *= .45; cy = .78 + (cy - .78)*.45; }   // 😅 실투: 가운데로 몰려요
+    const kmh = (100 + P.vel*(1 - fat*.08)*.5)*t.sp*(gr === 2 ? 1.03 : gr === 0 ? .97 : 1), FT = 17.4/(kmh/3.6)*1.55;
+    const sig = (.16 - P.ctl*(1 - fat*.25)*.0013)*(.55 + clamp(acc, 0, 1)*1.1)*(gr === 2 ? .7 : 1);
+    const Tx = cx + gauss()*sig, Ty = cy + gauss()*sig*.85, bk = (.55 + P.brk/110)*(gr === 2 ? 1.15 : gr === 0 ? .55 : 1), Bx = t.B[0]*bk, By = t.B[1]*bk;
     S.pc[dfn()]++;
-    return [++pid, type, +Tx.toFixed(3), +Ty.toFixed(3), +(Tx - Bx).toFixed(3), +(Ty - By).toFixed(3), +Bx.toFixed(3), +By.toFixed(3), +FT.toFixed(3), +(.1 + (1 - t.sp)*.55).toFixed(3), Math.round(kmh), 0];
+    return [++pid, type, +Tx.toFixed(3), +Ty.toFixed(3), +(Tx - Bx).toFixed(3), +(Ty - By).toFixed(3), +Bx.toFixed(3), +By.toFixed(3), +FT.toFixed(3), +(t.arc || (.1 + (1 - t.sp)*.55)).toFixed(3), Math.round(kmh), 0, gr];
   }
   /* pz: [id, 종류, Tx, Ty, Ax, Ay, Bx, By, FT, 솟음, km/h, 지난 시간] */
   function pzPos(pz, t){
     const FT = pz[8], u = t/FT;
-    if (u <= 1){ const x = REL[0] + (pz[4] - REL[0])*u + pz[6]*u*u, y = REL[1] + (pz[5] - REL[1])*u + pz[7]*u*u + pz[9]*4*u*(1 - u); return [x, y, REL[2]*(1 - u)]; }
+    if (u <= 1){ const wb = PT[pz[1]] && PT[pz[1]].wob ? 4*u*(1 - u) : 0;   // 🦋 너클볼: 나풀나풀 흔들려요
+      const x = REL[0] + (pz[4] - REL[0])*u + pz[6]*u*u + wb*.09*Math.sin(u*13 + pz[0]), y = REL[1] + (pz[5] - REL[1])*u + pz[7]*u*u + pz[9]*4*u*(1 - u) + wb*.07*Math.sin(u*10 + pz[0]*1.7); return [x, y, REL[2]*(1 - u)]; }
     const e = pzPos(pz, FT), k = (u - 1)*REL[2]; return [e[0] + (pz[6]*.4)*(u - 1), e[1] + (pz[7]*.6 - .2)*(u - 1), -k];
   }
   const inZone = (x, y) => Math.abs(x) <= ZX && y >= ZY0 && y <= ZY1;
-  function startPitch(type, x, y, acc){ S.pz = mkPitch(type, x, y, acc); S.ph = "wind"; S.pt = 0; swing = null; cpuSw = null; sel.set = false;
+  function startPitch(type, x, y, acc, gr = 1){ S.pz = mkPitch(type, x, y, acc, gr); S.ph = "wind"; S.pt = 0; swing = null; cpuSw = null; sel.set = false;
+    say(["😅 실투!", "👍 좋은 공", "🎯 완벽한 공!"][gr], "", ["#ff8787", "#b2f2bb", "#ffe066"][gr], 46);
     if (!human(off())) planCpuSwing(); }
   function cpuPitch(){
     const P = pitcher(), L = P.pit, b = S.b, s = S.s, l = lv();
@@ -65,29 +72,35 @@ NG.defs.ab = () => {
     else if (s === 2 && b < 2 && Math.random() < .45){ x = side*rnd(.27, .38); y = rnd(.35, .6); }
     else if (Math.random() < .25){ x = side*rnd(.24, .34); y = rnd(.45, 1.1); }
     else { x = side*rnd(.05, .2); y = rnd(.55, 1.02); }
-    startPitch(type, x, y, [.75, .5, .3][l] + rnd(.25));
+    const r = Math.random(), gr = r < [.2, .35, .5][l] ? 2 : r < [.65, .8, .9][l] ? 1 : 0;
+    startPitch(type, x, y, [.6, .45, .3][l] + rnd(.2), gr);
   }
 
   /* ---------- 치기 ---------- */
+  /* 🏏 (2026.11.27) 타이밍 싸움: 어디를 칠지는 타자가 알아서, 언제 치는지가 전부!
+     '딱!' 칸(완벽) = ±(0.015 + 정확×0.0003)초 · 맞힐 수 있는 칸 = 그 2.4배 정도 (정확 60 → ±0.09초) → 정확이 높은 타자는 칸이 넓어요 */
+  const Wp = B => .015 + B.con*.0003, Wg = B => Wp(B)*2.4 + .01;
   function contact(ts, sx, sy, B, pz){
-    const Wt = .095 + B.con*.0009, Rr = .12 + B.con*.0012, dt = ts - pz[8], dx = sx - pz[2], dy = sy - pz[3], d = Math.hypot(dx, dy*1.15);
-    if (Math.abs(dt) > Wt || d > Rr) return {hit: false};
-    const q = clamp(1 - .45*(dt/Wt)**2 - .5*(d/Rr)**2, .1, 1), ev = (28 + B.pow*.28)*(.62 + .38*q);
-    const la = clamp(19 - dy*150 + (1 - q)*rnd(-26, 20) + rnd(-7, 7), -20, 70);
-    const pull = B.hand === "L" ? 1 : -1, sp = pull*(-dt/Wt)*40 + rnd(-9, 9);
-    return {hit: true, q, ev, la, sp};
+    const dt = ts - pz[8], ad = Math.abs(dt), wp = Wp(B), wg = Wg(B), tm = ad <= wp ? 1 : dt < 0 ? 0 : 2;
+    if (ad > wg) return {hit: false, tm};
+    const out = Math.max(0, Math.abs(pz[2]) - ZX, ZY0 - pz[3], pz[3] - ZY1), brk = Math.hypot(pz[6], pz[7])*(PT[pz[1]] && PT[pz[1]].wob ? 1.6 : 1);
+    let fool = (out*2.4 + brk*.62*(1 - B.con/130))*(1 + .8*ad/wg) + (pz[12] === 0 ? -.12 : pz[12] === 2 ? .06 : 0) - .04;   // 😵 볼·큰 변화구에 속아요 (실투는 잘 보여요)
+    if (tm === 1) fool *= .35; if (Math.random() < fool) return {hit: false, tm: 3};
+    const q = clamp(1 - .75*(ad/wg)**1.6 - out*1.5, .12, 1), ev = (28 + B.pow*.28)*(.6 + .4*q)*(tm === 1 ? 1.06 : 1);
+    const la = clamp((tm === 1 ? 22 : 14) + (pz[3] - .78)*55 + (1 - q)*rnd(-30, 24) + rnd(-7, 7), -20, 70);   // 높은 공은 뜨고, 낮은 공은 굴러요
+    const pull = B.hand === "L" ? 1 : -1, sp = pull*(-dt/wg)*42 + rnd(-8, 8);
+    return {hit: true, q, ev, la, sp, tm};
   }
   function planCpuSwing(){
     const pz = S.pz, B = batter(), l = lv(), Tz = inZone(pz[2], pz[3]), s = S.s;
     let p = Tz ? (s === 2 ? .92 : .7)*[.85, 1, 1.05][l] : (s === 2 ? .4 : .24)*[1.25, 1, .7][l];
     if (S.b === 3 && !Tz) p *= .5; if (Math.random() > p){ cpuSw = null; return; }
-    const Wt = .095 + B.con*.0009, Rr = .12 + B.con*.0012, k = [.78, .62, .5][l], brk = pz[1] !== "fb" && pz[1] !== "ts";
-    const fool = brk ? rnd(.15, .45) : 0;
-    cpuSw = {t: pz[8] + gauss()*Wt*k + (brk ? gauss()*.03 : 0), x: pz[2] + gauss()*Rr*k*.8 + (pz[4] - pz[2])*fool*.6, y: pz[3] + gauss()*Rr*k*.8 + (pz[5] - pz[3])*fool};
+    const k = [.95, .75, .6][l], brk = !["fb", "ts", "rf"].includes(pz[1]);
+    cpuSw = {t: pz[8] + gauss()*Wg(B)*k + (brk ? gauss()*.035 : 0), x: pz[2], y: pz[3]};
   }
   function doSwing(ts, x, y){
     if (S.ph !== "fly" || swing) return; const pz = S.pz;
-    swing = {t: ts, x, y, res: contact(ts, x, y, batter(), pz), done: false}; S.sw = [+ts.toFixed(3), +x.toFixed(2), +y.toFixed(2), swing.res.hit ? 1 : 0];
+    swing = {t: ts, x, y, res: contact(ts, x, y, batter(), pz), done: false}; S.sw = [+ts.toFixed(3), +x.toFixed(2), +y.toFixed(2), swing.res.hit ? 1 : 0, swing.res.tm];
     tone(300, 120, .1, "sawtooth", .05);
   }
 
@@ -259,7 +272,7 @@ NG.defs.ab = () => {
     if (S.ph === "fly"){
       const pz = S.pz; pz[11] = +(pz[11] + DT).toFixed(4); const t = pz[11];
       if (cpuSw && !swing && t >= cpuSw.t) doSwing(cpuSw.t, cpuSw.x, cpuSw.y);
-      const grace = Math.max(.16, .095 + batter().con*.0009) + (remote(off()) ? .25 : .03);
+      const grace = Math.max(.16, Wg(batter())) + (remote(off()) ? .25 : .03);
       if (swing && !swing.done && t >= Math.max(pz[8], swing.t)){ swing.done = true;
         if (swing.res.hit){ if (Math.abs(swing.res.sp) > 46 || swing.res.la > 66){ S.ph = "foulfx"; S.pt = 0; S.fx = [Math.sign(swing.res.sp || 1), swing.res.la]; tone(1200, 600, .05, "square", .1); return; } startBIP(swing.res); return; } }
       if (t >= pz[8] + grace && (!swing || (swing.done && !swing.res.hit))){
@@ -400,8 +413,8 @@ NG.defs.ab = () => {
       // 투수 겨냥 (던지는 쪽 기기만 보여요)
       const sel_ = net() === "guest" ? gsel : sel;
       if (Vv.ph === "ready" && isLocal(df) && human(df)){
-        if (sel_.set){ const [sx, sy] = plate2scr(sel_.x, sel_.y), rr = ringR(); g.strokeStyle = "#ffd43b"; g.lineWidth = 4; g.beginPath(); g.arc(sx, sy, 14, 0, 7); g.stroke();
-          g.strokeStyle = `rgba(255,212,59,${.4 + (1 - rr)*.6})`; g.lineWidth = 3; g.beginPath(); g.arc(sx, sy, 14 + rr*70, 0, 7); g.stroke(); }
+        if (sel_.set){ const [sx, sy] = plate2scr(sel_.x, sel_.y); g.strokeStyle = "#ffd43b"; g.lineWidth = 4; g.beginPath(); g.arc(sx, sy, 14, 0, 7); g.stroke();
+          g.lineWidth = 2; g.beginPath(); g.moveTo(sx - 24, sy); g.lineTo(sx - 8, sy); g.moveTo(sx + 8, sy); g.lineTo(sx + 24, sy); g.moveTo(sx, sy - 24); g.lineTo(sx, sy - 8); g.moveTo(sx, sy + 8); g.lineTo(sx, sy + 24); g.stroke(); }
       }
       // 공
       if ((Vv.ph === "fly" || Vv.ph === "foulfx") && Vv.pz){ const t = Vv.ph === "foulfx" ? Vv.pz[8] : flightT();
@@ -414,8 +427,9 @@ NG.defs.ab = () => {
           const hx = p[0] + (L ? -sz*.18 : sz*.18), hy = p[1] - sz*.5, ang = (L ? Math.PI + .6 : -.6) + (L ? 1 : -1)*swT*2.6;
           g.strokeStyle = "#c8915a"; g.lineCap = "round"; g.lineWidth = sz*.06; g.beginPath(); g.moveTo(hx, hy); g.lineTo(hx + Math.cos(ang - Math.PI/2)*sz*.55, hy + Math.sin(ang - Math.PI/2)*sz*.55); g.stroke(); g.lineCap = "butt"; } }
       // 타격 겨냥 원 (마우스)
-      if ((Vv.ph === "fly" || Vv.ph === "wind") && isLocal(of_) && human(of_) && cursor.on){ g.strokeStyle = "rgba(255,255,255,.75)"; g.lineWidth = 3; g.beginPath(); g.arc(cursor.x, cursor.y, 22, 0, 7); g.stroke(); }
-      if (Vv.pz && Vv.ph !== "ready") outlined(g, `${PT[Vv.pz[1]].e} ${PT[Vv.pz[1]].n} ${Vv.pz[10]}km/h`, W/2, 128, 24, "#ffe8cc");
+      const hide = Vv.ph === "wind" || (Vv.ph === "fly" && !Vv.sw && flightT() < Vv.pz[8] + .05);   // 🙈 날아오는 동안은 공 이름이 안 보여요 (빠르기로 읽기!)
+      if (Vv.pz && Vv.ph !== "ready") outlined(g, hide && isLocal(of_) && human(of_) && !isLocal(df) ? "⚾ 무슨 공일까?" : `${PT[Vv.pz[1]].e} ${PT[Vv.pz[1]].n} ${Vv.pz[10]}km/h`, W/2, 128, 24, "#ffe8cc");
+      if (Vv.sw && bat && Vv.pz) timingBar(g, Vv, bat);
       drawCards(g, Vv, bat, pit, of_, df);
       drawControls(g, Vv, of_, df, pit);
     }
@@ -423,17 +437,37 @@ NG.defs.ab = () => {
   }
   function ringR(){ return (Math.cos(ringT*Math.PI*1.7) + 1)/2; }
   /* 버튼들 */
-  function pitchBtns(pit){ const L = pit ? pit.pit : ["fb"]; return L.map((k, i) => ({k, x: W - 196, y: 190 + i*78, w: 180, h: 66})); }
+  function pitchBtns(pit){ const L = pit ? pit.pit : ["fb"]; return L.map((k, i) => ({k, x: W - 196, y: 132 + i*64, w: 180, h: 56})); }
+  /* 🎯 투구 게이지: 막대가 왔다갔다 → 금색 칸(완벽) · 초록 칸(좋음) · 나머지(실투) */
+  function arm(s){ if (s.set) return; s.set = true; s.g0 = ringT; s.gc = .2 + Math.random()*.6; }
+  function gauge(s, pit, Vv){ const t = PT[s.pt] || PT.fb, df = Vv ? (Vv.top ? 0 : 1) : 0, fat = pit && Vv ? clamp(((Vv.pc || [0, 0])[df] - (25 + pit.sta*.35))/40, 0, 1) : 0;
+    const spd = .8*(t.d || (s.pt === "fb" ? 1 : 1.15))*(1 + fat*.6), u = ((ringT - (s.g0 || 0))*spd) % 2;
+    return {pos: u < 1 ? u : 2 - u, c: s.gc != null ? s.gc : .5, w: .06 + (pit ? pit.ctl : 60)*.0009}; }
+  const gradeOf = G => { const d = Math.abs(G.pos - G.c); return d <= G.w/2 ? 2 : d <= G.w*1.6 ? 1 : 0; };
+  function drawGauge(g, G){ const bw = 560, bx = W/2 - bw/2, by = H - 96, bh = 30;
+    rrect(g, bx - 8, by - 8, bw + 16, bh + 16, 14); g.fillStyle = "rgba(10,14,32,.85)"; g.fill();
+    rrect(g, bx, by, bw, bh, 10); g.fillStyle = "#c92a2a"; g.fill();
+    const gx = bx + bw*(G.c - G.w*1.6), gw = bw*G.w*3.2; g.fillStyle = "#40c057"; g.fillRect(clamp(gx, bx, bx + bw), by, Math.min(gw, bx + bw - Math.max(gx, bx)), bh);
+    const px = bx + bw*(G.c - G.w/2); g.fillStyle = "#ffd43b"; g.fillRect(px, by, bw*G.w, bh); g.strokeStyle = "#fff"; g.lineWidth = 2; g.strokeRect(px, by, bw*G.w, bh);
+    outlined(g, "🎯", px + bw*G.w/2, by - 14, 18, "#fff");
+    const mx = bx + bw*G.pos; g.fillStyle = "#fff"; g.beginPath(); g.moveTo(mx, by - 2); g.lineTo(mx - 10, by - 16); g.lineTo(mx + 10, by - 16); g.closePath(); g.fill(); g.fillRect(mx - 2.5, by - 2, 5, bh + 4); }
+  /* ⏱️ 스윙 타이밍 막대: 가운데가 '딱!' (넓이 = 타자 정확) */
+  function timingBar(g, Vv, bat){ const dt = Vv.sw[0] - Vv.pz[8], tm = Vv.sw[4], wp = Wp(bat), wg = Wg(bat), bw = 440, bx = W/2 - bw/2, by = 150, R = .3, X = v => bx + bw*(clamp(v, -R, R) + R)/(2*R);
+    rrect(g, bx - 8, by - 8, bw + 16, 62, 12); g.fillStyle = "rgba(10,14,32,.8)"; g.fill();
+    g.fillStyle = "rgba(255,255,255,.15)"; g.fillRect(bx, by, bw, 14); g.fillStyle = "#40c057"; g.fillRect(X(-wg), by, X(wg) - X(-wg), 14); g.fillStyle = "#ffd43b"; g.fillRect(X(-wp), by, X(wp) - X(-wp), 14);
+    const mx = X(dt); g.fillStyle = "#fff"; g.fillRect(mx - 3, by - 5, 6, 24);
+    outlined(g, "빨라요", bx + 30, by + 34, 15, "#a5d8ff"); outlined(g, "늦어요", bx + bw - 30, by + 34, 15, "#ffc9c9");
+    outlined(g, tm === 3 ? "😵 속았다!" : tm === 1 ? "🎯 딱!" : `${dt < 0 ? "⚡" : "🐢"} ${Math.abs(dt).toFixed(2)}초 ${dt < 0 ? "빨라요" : "늦어요"}`, W/2, by + 34, 20, tm === 1 ? "#ffe066" : tm === 3 ? "#e599f7" : "#fff"); }
   const THROW = {x: W - 236, y: H - 128, w: 220, h: 96};
   function drawControls(g, Vv, of_, df, pit){
     const sel_ = net() === "guest" ? gsel : sel;
     if (Vv.ph === "ready"){
       if (isLocal(df) && human(df)){
         pitchBtns(pit).forEach(b => { bdBtn(g, {x: b.x, y: b.y, w: b.w, h: b.h, t: `${PT[b.k].e} ${PT[b.k].n}`, p: sel_.pt === b.k ? 1 : 0}, sel_.pt === b.k); });
-        if (sel_.set) bdBtn(g, {x: THROW.x, y: THROW.y, w: THROW.w, h: THROW.h, t: "⚾ 던지기!", p: 1}, true);
-        outlined(g, sel_.set ? "🎯 링이 작아질 때 ⚾ 던지기! (작을수록 정확해요)" : "🎯 공 종류를 고르고, 던질 곳을 스트라이크존에 톡!", W/2, H - 34, 26, "#ffe066");
+        if (sel_.set){ bdBtn(g, {x: THROW.x, y: THROW.y, w: THROW.w, h: THROW.h, t: "⚾ 던지기!", p: 1}, true); drawGauge(g, gauge(sel_, pit, Vv)); }
+        outlined(g, sel_.set ? "⌨️ 스페이스! 막대가 🎯 금색 칸에 올 때 던져요 (초록 칸도 괜찮아요)" : "🎯 공 종류(1~6)를 고르고, 던질 곳을 스트라이크존에 톡 (또는 방향키)", W/2, H - 34, 24, "#ffe066");
       } else outlined(g, isLocal(of_) ? "🤔 투수가 공을 고르고 있어요… 공이 오면 칠 곳을 톡!" : "🤔 투수가 공을 고르고 있어요", W/2, H - 34, 26, "#fff");
-    } else if ((Vv.ph === "wind" || Vv.ph === "fly") && isLocal(of_) && human(of_)) outlined(g, "🏏 공이 올 곳을 보고, 홈에 닿을 때 화면을 톡!", W/2, H - 34, 26, "#ffe066");
+    } else if ((Vv.ph === "wind" || Vv.ph === "fly") && isLocal(of_) && human(of_) && !Vv.sw) outlined(g, "🏏 공이 홈에 닿는 순간 스페이스! (화면 톡도 돼요) · 볼은 참아요", W/2, H - 34, 26, "#ffe066");
   }
   function drawCards(g, Vv, bat, pit, of_, df){
     const box = (x, y, w, h, col) => { rrect(g, x, y, w, h, 16); g.fillStyle = "rgba(10,14,32,.78)"; g.fill(); g.lineWidth = 3; g.strokeStyle = col; g.stroke(); };
@@ -485,9 +519,11 @@ NG.defs.ab = () => {
     const s = net() === "guest" ? gsel : sel;
     for (const b of pitchBtns(pit)) if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h){ s.pt = b.k; tone(800, 900, .04, "sine", .06); return; }
     if (s.set && x >= THROW.x && x <= THROW.x + THROW.w && y >= THROW.y && y <= THROW.y + THROW.h){ throwIt(); return; }
-    const [px, py] = scr2plate(x, y); if (Math.abs(px) < .6 && py > .1 && py < 1.5){ if (s.set && Math.hypot(px - s.x, py - s.y) < .06){ throwIt(); return; } s.x = clamp(px, -.5, .5); s.y = clamp(py, .2, 1.4); s.set = true; ringT = 0; tone(900, 900, .03, "sine", .05); }
+    const [px, py] = scr2plate(x, y); if (Math.abs(px) < .6 && py > .1 && py < 1.5){ if (s.set && Math.hypot(px - s.x, py - s.y) < .06){ throwIt(); return; } s.x = clamp(px, -.5, .5); s.y = clamp(py, .2, 1.4); arm(s); tone(900, 900, .03, "sine", .05); }
   }
-  function throwIt(){ const acc = ringR(); if (net() === "guest"){ gsel.acc = acc; gpc++; gsel.set = false; return; } startPitch(sel.pt, sel.x, sel.y, acc); }
+  function throwIt(){ const Vv = curV(), T = teams(Vv), pit = T[Vv.top ? 0 : 1] && T[Vv.top ? 0 : 1].P, s = net() === "guest" ? gsel : sel, gr = gradeOf(gauge(s, pit, Vv)), acc = [1, .4, 0][gr];
+    tone([200, 600, 1000][gr], [150, 700, 1300][gr], .08, "sine", .08);
+    if (net() === "guest"){ gsel.acc = acc; gsel.gr = gr; gpc++; gsel.set = false; return; } startPitch(sel.pt, sel.x, sel.y, acc, gr); }
   function tapSwing(x, y){ const [px, py] = scr2plate(x, y);
     if (net() === "guest"){ if (gsw === (V && V.pz ? V.pz[0] : -1)) return; gsw = V.pz[0]; gswing = {n: gsw, ts: flightT(), x: px, y: py}; mySw = 24; tone(300, 120, .1, "sawtooth", .05); return; }
     doSwing(S.pz[11], px, py); }
@@ -517,9 +553,9 @@ NG.defs.ab = () => {
       if (!d) return false; const Vv = curV(); if (!Vv || !Vv.tm || !Vv.tm[0]) return false; const of_ = Vv.top ? 1 : 0, df = 1 - of_;
       if (Vv.ph === "ready" && isLocal(df) && human(df)){ const s = net() === "guest" ? gsel : sel, T = teams(Vv), L = (T[df] && T[df].P.pit) || ["fb"];
         const mv = {ArrowLeft: [-.08, 0], ArrowRight: [.08, 0], ArrowUp: [0, .08], ArrowDown: [0, -.08]}[code];
-        if (mv){ s.x = clamp(s.x + mv[0], -.5, .5); s.y = clamp(s.y + mv[1], .2, 1.4); s.set = true; return true; }
-        const n = {Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3}[code]; if (n !== undefined && L[n]){ s.pt = L[n]; return true; }
-        if (code === "Space" || code === "Enter"){ if (!s.set) s.set = true; else throwIt(); return true; } }
+        if (mv){ s.x = clamp(s.x + mv[0], -.5, .5); s.y = clamp(s.y + mv[1], .2, 1.4); arm(s); return true; }
+        const n = {Digit1: 0, Digit2: 1, Digit3: 2, Digit4: 3, Digit5: 4, Digit6: 5}[code]; if (n !== undefined && L[n]){ s.pt = L[n]; return true; }
+        if (code === "Space" || code === "Enter"){ if (!s.set) arm(s); else throwIt(); return true; } }
       if (Vv.ph === "fly" && isLocal(of_) && human(of_) && (code === "Space" || code === "Enter")){ tapSwing(cursor.x, cursor.y); return true; }
       return false;
     },
@@ -528,10 +564,10 @@ NG.defs.ab = () => {
       snap: () => view(),
       ev: () => [], fx(){},
       apply(d){ if (net() !== "guest") return; V = d; if (window.__abTest) window.__abV = d; },
-      mine: () => ({tm: myD || (myD = dOf(ABC.of(NG.sids[1]))), pc: gpc, sel: [gsel.pt, +gsel.x.toFixed(3), +gsel.y.toFixed(3), +(gsel.acc || 0).toFixed(3)], sw: gswing}),
+      mine: () => ({tm: myD || (myD = dOf(ABC.of(NG.sids[1]))), pc: gpc, sel: [gsel.pt, +gsel.x.toFixed(3), +gsel.y.toFixed(3), +(gsel.acc || 0).toFixed(3), gsel.gr != null ? gsel.gr : 1], sw: gswing}),
       put(d){ if (net() !== "host" || !d) return;
         if (d.tm && !remD){ remD = d.tm; TM[1] = teamOf(remD); TM[1].D = remD; S.tm = [TM[0].D, remD]; bgKey = ""; }
-        if (d.pc > inp.pc){ inp.pc = d.pc; if (S.ph === "ready" && dfn() === 1 && d.sel){ startPitch(PT[d.sel[0]] ? d.sel[0] : "fb", clamp(+d.sel[1], -.5, .5), clamp(+d.sel[2], .2, 1.4), clamp(+d.sel[3], 0, 1)); } }
+        if (d.pc > inp.pc){ inp.pc = d.pc; if (S.ph === "ready" && dfn() === 1 && d.sel){ startPitch(PT[d.sel[0]] ? d.sel[0] : "fb", clamp(+d.sel[1], -.5, .5), clamp(+d.sel[2], .2, 1.4), clamp(+d.sel[3], 0, 1), [0, 1, 2].includes(d.sel[4]) ? d.sel[4] : 1); } }
         if (d.sw && d.sw.n > inp.sw){ inp.sw = d.sw.n; if (S.ph === "fly" && off() === 1 && S.pz && d.sw.n === S.pz[0]) doSwing(clamp(+d.sw.ts, 0, S.pz[8] + .5), +d.sw.x, +d.sw.y); }
       },
       end(w, sc, txt){ if (net() !== "guest" || NG.ended) return; NG.win(w, txt); },
