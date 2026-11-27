@@ -214,6 +214,7 @@ const RDA = {
     else if (h === "candy"){ this.ell(t, hx, hy - hs*.3, hs*.45, hs*.45); t.fillStyle = "#ff8fab"; t.fill(); this.ol(t, lw*.7); t.strokeStyle = "#fff"; t.lineWidth = lw; t.beginPath(); t.arc(hx, hy - hs*.3, hs*.22, 0, 4.5); t.stroke(); }
     else if (h === "ant"){ [-1, 1].forEach(d => { t.strokeStyle = this.OL; t.lineWidth = lw*.7; t.beginPath(); t.moveTo(hx + d*hs*.3, hy + hs*.2); t.lineTo(hx + d*hs*.6, hy - hs*.6); t.stroke(); this.ell(t, hx + d*hs*.6, hy - hs*.65, hs*.16, hs*.16); t.fillStyle = "#ffe066"; t.fill(); this.ol(t, lw*.5); }); }
     else if (h === "devil"){ [-1, 1].forEach(d => { t.beginPath(); t.moveTo(hx + d*hs*.6, hy + hs*.25); t.quadraticCurveTo(hx + d*hs*1.1, hy - hs*.3, hx + d*hs*.8, hy - hs*.8); t.lineTo(hx + d*hs*.25, hy + hs*.15); t.closePath(); t.fillStyle = "#2b2b33"; t.fill(); this.ol(t, lw*.6); }); }
+    else if (this.hat2) this.hat2(t, h, hx, hy, hs, lw);   // 🗺️ 새 곳 모자 (rdworld.js)
   },
 
   /* ---------- 탄 ---------- */
@@ -317,6 +318,7 @@ const RD_MS = {
 RDA.prop = function(t, ti, x, y, s, v){
   const ol = (w) => this.ol(t, w || Math.max(1.5, s*.035)), sh = () => { this.ell(t, x, y + s*.38, s*.36, s*.1); t.fillStyle = "rgba(0,0,0,.25)"; t.fill(); };
   sh();
+  if (ti >= 10 && this.prop2) return this.prop2(t, ti, x, y, s, v);   // 🗺️ (2026.11.27) 새 곳 소품 (rdworld.js)
   const tree = (c1, c2, flw) => { t.fillStyle = "#8d5a3b"; t.fillRect(x - s*.06, y, s*.12, s*.38); ol(); [[0, -.18, .3], [-.18, .02, .22], [.18, .02, .22]].forEach(([a, b, r]) => { this.ell(t, x + a*s, y + b*s, r*s, r*s*.92); t.fillStyle = BSA.rg(t, x + a*s - r*s*.3, y + b*s - r*s*.4, 1, r*s*1.2, [[0, c1], [1, c2]]); t.fill(); ol(); });
     if (flw) for (let i = 0; i < 7; i++){ const a = i*2.3 + v, rr = s*.22*((i % 3) + 1)/3; this.ell(t, x + Math.cos(a)*rr, y - s*.08 + Math.sin(a)*rr*.8, s*.035, s*.035); t.fillStyle = flw; t.fill(); } };
   if (ti === 0) tree("#d3f9d8", "#51cf66", v % 2 ? "#ffafcc" : "#fff3bf");
@@ -505,7 +507,7 @@ const RD_USE = {}; RD_RCK.forEach(t => RD_RC[t].forEach(([k]) => (RD_USE[k] = RD
 
 /* 🏡 동물 마을 (지켜야 하는 곳) */
 RDA.house = function(t, x, y, s, ti){
-  const roof = ["#ff6b6b", "#e8590c", "#4dabf7", "#d9480f", "#495057", "#74c0fc", "#5f3dc4", "#f783ac", "#7048e8", "#862e9c"][ti % 10], lw = Math.max(1.5, s*.03);
+  const roof = ti >= 10 && typeof RDW_ROOF !== "undefined" ? RDW_ROOF[(ti - 10) % 10] : ["#ff6b6b", "#e8590c", "#4dabf7", "#d9480f", "#495057", "#74c0fc", "#5f3dc4", "#f783ac", "#7048e8", "#862e9c"][ti % 10], lw = Math.max(1.5, s*.03);
   this.ell(t, x, y + s*.38, s*.42, s*.1); t.fillStyle = "rgba(0,0,0,.25)"; t.fill();
   t.fillStyle = "#fff4e6"; rrect(t, x - s*.3, y - s*.08, s*.6, s*.44, s*.04); t.fill(); this.ol(t, lw);
   t.beginPath(); t.moveTo(x - s*.4, y - s*.04); t.lineTo(x, y - s*.4); t.lineTo(x + s*.4, y - s*.04); t.closePath(); t.fillStyle = roof; t.fill(); this.ol(t, lw);
